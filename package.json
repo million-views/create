@@ -11,8 +11,7 @@
     "node": ">=20.0.0"
   },
   "files": [
-    "bin",
-    "lib"
+    "bin"
   ],
   "keywords": [
     "scaffold",
@@ -21,6 +20,9 @@
   ],
   "exports": {
     ".": "./bin/index.mjs"
+  },
+  "dependencies": {
+    "minimist": "^1.2.8"
   },
   "repository": {
     "type": "git",
