@@ -1,0 +1,29 @@
+{
+  "name": "@m5nv/create",
+  "version": "0.0.1",
+  "description": "Scaffold new projects from git-hosted template subdirectories",
+  "type": "module",
+  "license": "MIT",
+  "bin": {
+    "m5nv-create": "bin/index.mjs"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "files": [
+    "bin",
+    "lib"
+  ],
+  "keywords": [
+    "scaffold",
+    "templates",
+    "cli"
+  ],
+  "exports": {
+    ".": "./bin/index.mjs"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/million-views/create.git"
+  }
+}
