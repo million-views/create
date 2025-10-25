@@ -14,6 +14,7 @@ inclusion: always
 ## Technology Constraints
 
 ### Required Stack
+
 - **Runtime**: Node.js 22+ (latest LTS)
 - **Module System**: ES Modules exclusively (`type: "module"` in package.json)
 - **Argument Parsing**: `util.parseArgs` (native Node.js) - NOT minimist or yargs
@@ -21,6 +22,7 @@ inclusion: always
 - **Process Management**: `child_process` for spawning git commands
 
 ### Forbidden Patterns
+
 - ❌ CommonJS (`require()`, `module.exports`)
 - ❌ Heavy external dependencies (prefer zero-dependency approach)
 - ❌ Browser-specific APIs or patterns
@@ -29,18 +31,21 @@ inclusion: always
 ## CLI Development Guidelines
 
 ### Error Handling
+
 - Fail fast with clear, actionable error messages
 - Include specific instructions for common issues (git not found, auth failures)
 - Use appropriate exit codes (0 for success, 1 for errors)
 - Provide context about what went wrong and how to fix it
 
 ### User Experience
+
 - Clear progress indicators for long operations (cloning, copying)
 - Consistent output formatting with visual cues (✅ ❌ 📦 etc.)
 - Help text that matches actual usage patterns
 - Graceful handling of edge cases (existing directories, network issues)
 
 ### Code Organization
+
 - Single-purpose functions with clear responsibilities
 - Async/await throughout (no callback patterns)
 - Proper cleanup of temporary resources
@@ -49,6 +54,7 @@ inclusion: always
 ## CLI Development Methodology
 
 ### Test-First Development (Critical)
+
 - **ALWAYS** write comprehensive functional tests FIRST before implementing any CLI functionality
 - Write end-to-end tests that cover all CLI arguments, error scenarios, and expected behaviors
 - Test all security validations (path traversal, injection prevention) before implementing them
@@ -56,6 +62,7 @@ inclusion: always
 - This approach saves significant time and tokens by catching issues early and providing clear implementation targets
 
 ### Why Test-First for CLI Tools
+
 - CLI tools have complex interaction patterns (arguments, file system, external processes)
 - Error scenarios are numerous and critical to handle correctly
 - Security validations must be bulletproof from the start
@@ -82,6 +89,7 @@ inclusion: always
 ## Development Task Ordering
 
 ### Correct Order for CLI Development
+
 1. **Write comprehensive functional tests first** - Cover all CLI scenarios
 2. **Update configuration** - package.json, dependencies
 3. **Implement core modules** - Argument parsing, validation, security
@@ -89,6 +97,7 @@ inclusion: always
 5. **Integration** - Wire everything together in main entry point
 
 ### Avoid This Anti-Pattern
+
 - ❌ Implementing functionality first, then writing tests
 - ❌ Building modules in isolation without end-to-end validation
 - ❌ Fixing issues reactively instead of preventing them with tests
@@ -96,6 +105,7 @@ inclusion: always
 ## Success Criteria
 
 A well-built Node.js CLI tool should:
+
 - Start quickly (minimal dependencies)
 - Provide clear feedback during operations
 - Handle errors gracefully with helpful messages

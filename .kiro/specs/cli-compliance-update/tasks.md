@@ -76,6 +76,7 @@
 ## 🧹 NEW CLEANUP TASKS
 
 - [x] **Fix lint warnings and errors**
+
   - **Root Cause:** Multiple unused variables in catch blocks across all files
   - **Issue:** ESLint reports 17 warnings for unused variables (cleanupError, error, configError, accessError)
   - **Solution:** Replace unused variables with underscore prefix or remove them entirely
@@ -83,12 +84,14 @@
   - **Security review:** Conduct thorough security audit and remove redundant code
 
 - [x] **Security audit and code cleanup**
+
   - Review all code for security vulnerabilities
   - Remove redundant code and unused functions
   - Optimize error handling patterns
   - Ensure all security best practices are followed
 
 - [x] **Organize test structure and npm scripts**
+
   - **Issue:** Multiple test types scattered across different locations without proper npm scripts
   - **Current state:** Functional tests, smoke tests, spec compliance tests, and resource leak tests run separately
   - **Solution:** Add comprehensive npm scripts for all test types and create a unified test runner
@@ -99,6 +102,18 @@
   - **Solution:** Streamlined README focused on quick start, moved detailed content to focused docs/ files
   - **Structure:** Tutorial (README), How-to guides (creating-templates), Reference (troubleshooting), Explanation (security)
   - **Benefits:** Users can get started immediately, detailed information is easily accessible when needed
+
+- [x] **Create comprehensive development guide**
+  - **Issue:** Development information was minimal and scattered
+  - **Solution:** Created detailed docs/development.md with all local testing options and development workflows
+  - **Content:** Local testing methods, test suites, code quality standards, contribution guidelines
+  - **Benefits:** Developers can easily test changes locally and contribute effectively
+
+- [x] **Clean up version examples and create contribution guidelines**
+  - **Issue:** @latest examples were confusing and didn't add value, too many testing options, missing contribution guidelines
+  - **Solution:** Use default (no version) and @1.0.0 examples, simplified to 2 testing options, created CONTRIBUTING.md
+  - **Content:** Clear version examples, streamlined development guide, comprehensive contribution standards
+  - **Benefits:** Less confusing documentation, focused development workflow, professional contribution process
 
 ## 📋 IMPLEMENTATION STATUS
 
