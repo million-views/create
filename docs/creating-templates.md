@@ -84,7 +84,11 @@ export default function setup({ projectDirectory, projectName }) {
 ## Using Your Templates
 
 ```bash
-npm create @m5nv my-project -- --template react-vite --repo yourusername/your-templates
+# Use latest version
+npm create @m5nv/create my-project -- --template react-vite --repo yourusername/your-templates
+
+# Use specific version
+npm create @m5nv/create@1.0.0 my-project -- --template react-vite --repo yourusername/your-templates
 ```
 
 ## Common Setup Tasks

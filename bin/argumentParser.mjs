@@ -158,8 +158,8 @@ export function generateHelpText() {
 @m5nv/create - Project scaffolding CLI for Million Views templates
 
 USAGE:
-  npm create @m5nv <project-directory> -- --template <template-name> [options]
-  npx @m5nv/create@latest <project-directory> --template <template-name> [options]
+  npm create @m5nv/create <project-directory> -- --template <template-name> [options]
+  npx @m5nv/create@1.0.0 <project-directory> --template <template-name> [options]
 
 ARGUMENTS:
   <project-directory>    Name of the directory to create for your project
@@ -177,16 +177,16 @@ OPTIONS:
 
 EXAMPLES:
   # Create a new React project using the default repository
-  npm create @m5nv my-app -- --template react
+  npm create @m5nv/create my-app -- --template react
 
   # Use a custom repository
-  npm create @m5nv my-app -- --template nextjs --repo custom-user/templates
+  npm create @m5nv/create my-app -- --template nextjs --repo custom-user/templates
 
-  # Use a specific branch
-  npm create @m5nv my-app -- --template vue --branch development
+  # Use a specific version
+  npm create @m5nv/create@1.0.0 my-app -- --template vue --branch development
 
   # Using npx directly
-  npx @m5nv/create@latest my-app --template react --repo user/templates
+  npx @m5nv/create@1.0.0 my-app --template react --repo user/templates
 
 TEMPLATE REPOSITORIES:
   Templates are organized as subdirectories within git repositories.

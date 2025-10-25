@@ -6,16 +6,20 @@ A secure, zero-dependency CLI for creating projects from git-based templates.
 
 ```bash
 # Create a new project
-npm create @m5nv my-app -- --template react-vite
+npm create @m5nv/create my-app -- --template react-vite
 
 # With custom repository
-npm create @m5nv my-api -- --template express --repo myorg/templates
+npm create @m5nv/create my-api -- --template express --repo myorg/templates
 ```
 
 ## Usage
 
 ```bash
-npm create @m5nv <project-name> -- --template <template-name> [options]
+# Use latest version (default)
+npm create @m5nv/create <project-name> -- --template <template-name> [options]
+
+# Use specific version
+npm create @m5nv/create@1.0.0 <project-name> -- --template <template-name> [options]
 ```
 
 | Option           | Description                                     |
@@ -36,19 +40,8 @@ npm create @m5nv <project-name> -- --template <template-name> [options]
 - [Authentication](docs/authentication.md) - Setting up git access for private repositories
 - [Troubleshooting](docs/troubleshooting.md) - Common issues and solutions
 - [Security](docs/security.md) - Security features and best practices
-
-## Development
-
-```bash
-# Run tests
-npm test
-
-# Quick validation
-npm run test:quick
-
-# Lint code
-npm run lint
-```
+- [Development](docs/development.md) - Local development and testing guide
+- [Contributing](CONTRIBUTING.md) - How to contribute to the project
 
 ## License
 
