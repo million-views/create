@@ -1,1 +1,45 @@
-{"name":"@m5nv/create","version":"0.1.0","private":false,"type":"module","description":"Project scaffolding CLI for Million Views templates and custom git-based template repos.","bin":{"m5nv-create":"./bin/create.mjs"},"exports":{".":"./bin/create.mjs"},"engines":{"node":">=22.0.0"},"keywords":["scaffold","templates","cli","esm","million-views"],"license":"MIT","repository":{"type":"git","url":"git+https://github.com/million-views/create.git"},"bugs":{"url":"https://github.com/million-views/create/issues"},"homepage":"https://github.com/million-views/create#readme","dependencies":{"minimist":"^1.2.8"},"devDependencies":{"eslint":"^9.0.0","eslint-config-standard":"^17.1.0","eslint-plugin-import":"^2.29.0","eslint-plugin-n":"^16.6.0","eslint-plugin-promise":"^6.1.1"},"scripts":{"lint":"eslint .","prepare":"node ./scripts/build-check.mjs || true","test":"node ./scripts/smoke-test.mjs"}}
+{
+    "name": "@m5nv/create",
+    "version": "0.1.0",
+    "private": false,
+    "type": "module",
+    "description": "Project scaffolding CLI for Million Views templates and custom git-based template repos.",
+    "bin": {
+        "m5nv-create": "./bin/index.mjs"
+    },
+    "exports": {
+        ".": "./bin/index.mjs"
+    },
+    "engines": {
+        "node": ">=22.0.0"
+    },
+    "keywords": [
+        "scaffold",
+        "templates",
+        "cli",
+        "esm",
+        "million-views"
+    ],
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/million-views/create.git"
+    },
+    "bugs": {
+        "url": "https://github.com/million-views/create/issues"
+    },
+    "homepage": "https://github.com/million-views/create#readme",
+    "devDependencies": {
+        "@types/eslint": "^9.6.1",
+        "eslint": "^9.38.0",
+        "eslint-plugin-import": "^2.31.0",
+        "eslint-plugin-n": "^17.23.1",
+        "eslint-plugin-promise": "^7.2.1"
+    },
+    "scripts": {
+        "lint": "eslint .",
+        "prepare": "npm run lint",
+        "test": "node ./test/cli.test.mjs",
+        "test:smoke": "node ./scripts/smoke-test.mjs"
+    }
+}

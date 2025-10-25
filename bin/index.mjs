@@ -3,11 +3,17 @@
 import { spawn } from 'child_process';
 import fs from 'fs/promises';
 import path from 'path';
-import { fileURLToPath } from 'url';
-import minimist from 'minimist';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+import { parseArguments, validateArguments, generateHelpText, ArgumentError } from './argumentParser.mjs';
+import { 
+  validateAllInputs, 
+  sanitizeErrorMessage, 
+  createSecureTempDir,
+  ValidationError 
+} from './security.mjs';
+import { 
+  runAllPreflightChecks,
+  PreflightError 
+} from './preflightChecks.mjs';
 
 // Default configuration
 const DEFAULT_REPO = 'million-views/templates';
@@ -17,44 +23,48 @@ const SETUP_SCRIPT = '_setup.mjs';
  * Main function to orchestrate the scaffolding process
  */
 async function main() {
+  let tempDir = null;
+  let projectDirectory = null;
+  let projectCreated = false;
+
   try {
-    // Parse arguments
-    const args = minimist(process.argv.slice(2), {
-      string: ['template', 'repo', 'branch'],
-      alias: {
-        t: 'template',
-        r: 'repo',
-        b: 'branch'
+    // Parse arguments using native Node.js parseArgs
+    const args = parseArguments();
+    
+    // Validate arguments
+    const validation = validateArguments(args);
+    
+    // Show help if requested or if validation failed
+    if (validation.showHelp || args.help) {
+      console.log(generateHelpText());
+      process.exit(0);
+    }
+    
+    // Handle validation errors
+    if (!validation.isValid) {
+      console.error('❌ Error: Invalid arguments\n');
+      for (const error of validation.errors) {
+        console.error(`  ${error}`);
       }
+      console.error('\nUse --help for usage information.');
+      process.exit(1);
+    }
+
+    // Perform comprehensive input validation and sanitization
+    const validatedInputs = validateAllInputs({
+      projectDirectory: args.projectDirectory,
+      template: args.template,
+      repo: args.repo || DEFAULT_REPO,
+      branch: args.branch
     });
 
-    // Extract project directory (first positional argument)
-    const projectDirectory = args._[0];
+    projectDirectory = validatedInputs.projectDirectory;
+    const templateName = validatedInputs.template;
+    const repoUrl = validatedInputs.repo;
+    const branchName = validatedInputs.branch;
 
-    // Validate required arguments
-    if (!projectDirectory) {
-      console.error('❌ Error: Project directory is required.');
-      console.error('\nUsage:');
-      console.error('  npm create @m5nv <project-directory> -- --template <template-name> [--repo <user/repo>] [--branch <branch-name>]');
-      console.error('  npx @m5nv/create@latest <project-directory> --template <template-name> [--repo <user/repo>] [--branch <branch-name>]');
-      process.exit(1);
-    }
-
-    if (!args.template) {
-      console.error('❌ Error: --template flag is required.');
-      console.error('\nUsage:');
-      console.error('  npm create @m5nv <project-directory> -- --template <template-name> [--repo <user/repo>] [--branch <branch-name>]');
-      console.error('  npx @m5nv/create@latest <project-directory> --template <template-name> [--repo <user/repo>] [--branch <branch-name>]');
-      process.exit(1);
-    }
-
-    const templateName = args.template;
-    const repoUrl = args.repo || DEFAULT_REPO;
-    const branchName = args.branch;
-
-    // Preflight checks
-    await checkGitInstallation();
-    await checkProjectDirectory(projectDirectory);
+    // Run comprehensive preflight checks
+    await runAllPreflightChecks(args, repoUrl);
 
     console.log(`\n🚀 Creating project: ${projectDirectory}`);
     console.log(`📦 Template: ${templateName}`);
@@ -64,8 +74,8 @@ async function main() {
     }
     console.log('');
 
-    // Clone the template repository
-    const tempDir = await cloneTemplateRepo(repoUrl, branchName);
+    // Clone the template repository using secure temporary directory
+    tempDir = await cloneTemplateRepo(repoUrl, branchName);
 
     // Verify template exists
     const templatePath = path.join(tempDir, templateName);
@@ -73,9 +83,11 @@ async function main() {
 
     // Copy template to project directory
     await copyTemplate(templatePath, projectDirectory);
+    projectCreated = true;
 
-    // Clean up temp directory
+    // Clean up temp directory after successful copy
     await fs.rm(tempDir, { recursive: true, force: true });
+    tempDir = null; // Mark as cleaned up
 
     // Execute setup script if it exists
     await executeSetupScript(projectDirectory, projectDirectory);
@@ -86,54 +98,43 @@ async function main() {
     console.log('');
 
   } catch (error) {
-    console.error(`\n❌ Error: ${error.message}`);
-    process.exit(1);
-  }
-}
-
-/**
- * Check if git is installed and available
- */
-async function checkGitInstallation() {
-  try {
-    await execCommand('git', ['--version']);
-  } catch (error) {
-    throw new Error(
-      'Git is not installed or not available in PATH.\n' +
-      'Please install git and try again.\n' +
-      'Visit: https://git-scm.com/downloads'
-    );
-  }
-}
-
-/**
- * Check if project directory already exists
- */
-async function checkProjectDirectory(projectDirectory) {
-  try {
-    await fs.access(projectDirectory);
-    throw new Error(
-      `Directory "${projectDirectory}" already exists.\n` +
-      'Please choose a different name or remove the existing directory.'
-    );
-  } catch (error) {
-    // Directory doesn't exist - this is what we want
-    if (error.code === 'ENOENT') {
-      return;
+    // Clean up resources on any error
+    if (tempDir) {
+      try {
+        await fs.rm(tempDir, { recursive: true, force: true });
+      } catch (cleanupError) {
+        // Ignore cleanup errors to avoid masking the original error
+      }
     }
-    // Re-throw if it's our custom error
-    throw error;
+
+    // Clean up partially created project directory if it was created but process failed
+    if (projectCreated && projectDirectory) {
+      try {
+        await fs.rm(projectDirectory, { recursive: true, force: true });
+      } catch (cleanupError) {
+        // Ignore cleanup errors to avoid masking the original error
+      }
+    }
+
+    if (error instanceof ArgumentError || error instanceof ValidationError || error instanceof PreflightError) {
+      console.error(`\n❌ ${error.message}`);
+      process.exit(1);
+    } else {
+      // Sanitize error messages to prevent information disclosure
+      const sanitizedMessage = sanitizeErrorMessage(error.message);
+      console.error(`\n❌ Error: ${sanitizedMessage}`);
+      process.exit(1);
+    }
   }
 }
 
+
+
 /**
- * Clone the template repository to a temporary directory
+ * Clone the template repository to a secure temporary directory
  */
 async function cloneTemplateRepo(repoUrl, branchName) {
-  const tempDir = path.join(
-    process.cwd(),
-    `.tmp-template-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`
-  );
+  const tempDir = createSecureTempDir();
 
   console.log('📥 Cloning template repository...');
 
@@ -160,17 +161,22 @@ async function cloneTemplateRepo(repoUrl, branchName) {
   cloneArgs.push(fullRepoUrl, tempDir);
 
   try {
-    await execCommand('git', cloneArgs);
+    await execCommand('git', cloneArgs, { timeout: 60000 }); // 60 second timeout for git clone
   } catch (error) {
     // Clean up temp directory if clone failed
     try {
       await fs.rm(tempDir, { recursive: true, force: true });
-    } catch {}
+    } catch (cleanupError) {
+      // Ignore cleanup errors to avoid masking the original error
+      console.debug('Temp directory cleanup error ignored:', cleanupError.message);
+    }
 
     // Provide helpful error messages based on common issues
+    const sanitizedErrorMessage = sanitizeErrorMessage(error.message);
+    
     if (error.message.includes('Repository not found')) {
       throw new Error(
-        `Repository "${repoUrl}" not found.\n` +
+        `Repository not found.\n` +
         'Please check that:\n' +
         '  1. The repository exists\n' +
         '  2. You have access to it\n' +
@@ -178,7 +184,7 @@ async function cloneTemplateRepo(repoUrl, branchName) {
       );
     } else if (error.message.includes('branch') && branchName) {
       throw new Error(
-        `Branch "${branchName}" not found in repository "${repoUrl}".\n` +
+        `Branch not found in repository.\n` +
         'Please check the branch name and try again.'
       );
     } else if (error.message.includes('Authentication failed') || error.message.includes('403')) {
@@ -189,8 +195,18 @@ async function cloneTemplateRepo(repoUrl, branchName) {
         '  - SSH keys: https://docs.github.com/en/authentication/connecting-to-github-with-ssh\n' +
         '  - Personal Access Token: https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token'
       );
+    } else if (error.message.includes('timed out')) {
+      throw new Error(
+        'Git clone operation timed out.\n' +
+        'This may be due to:\n' +
+        '  • Network connectivity issues\n' +
+        '  • Large repository size\n' +
+        '  • Repository server being slow or unavailable\n' +
+        '  • Firewall or proxy blocking the connection\n\n' +
+        'Please check your network connection and try again.'
+      );
     } else {
-      throw new Error(`Failed to clone repository: ${error.message}`);
+      throw new Error(`Failed to clone repository: ${sanitizedErrorMessage}`);
     }
   }
 
@@ -209,11 +225,12 @@ async function verifyTemplate(templatePath, templateName) {
   } catch (error) {
     if (error.code === 'ENOENT') {
       throw new Error(
-        `Template "${templateName}" not found in the repository.\n` +
+        `Template not found in the repository.\n` +
         'Please check the template name and try again.'
       );
     }
-    throw error;
+    const sanitizedMessage = sanitizeErrorMessage(error.message);
+    throw new Error(sanitizedMessage);
   }
 }
 
@@ -234,10 +251,14 @@ async function copyTemplate(templatePath, projectDirectory) {
     const gitDir = path.join(projectDirectory, '.git');
     try {
       await fs.rm(gitDir, { recursive: true, force: true });
-    } catch {}
+    } catch (cleanupError) {
+      // Ignore cleanup errors - .git directory may not exist
+      console.debug('Git directory cleanup error ignored:', cleanupError.message);
+    }
 
   } catch (error) {
-    throw new Error(`Failed to copy template: ${error.message}`);
+    const sanitizedMessage = sanitizeErrorMessage(error.message);
+    throw new Error(`Failed to copy template: ${sanitizedMessage}`);
   }
 }
 
@@ -271,6 +292,7 @@ async function copyRecursive(src, dest) {
 async function executeSetupScript(projectDirectory, projectName) {
   const setupScriptPath = path.join(projectDirectory, SETUP_SCRIPT);
 
+  // Check if setup script exists
   try {
     await fs.access(setupScriptPath);
   } catch (error) {
@@ -278,9 +300,10 @@ async function executeSetupScript(projectDirectory, projectName) {
     return;
   }
 
-  console.log('⚙️  Running template setup script...');
-
+  // Setup script exists, ensure it gets cleaned up regardless of what happens
   try {
+    console.log('⚙️  Running template setup script...');
+
     // Import and execute the setup script
     const setupScriptUrl = `file://${path.resolve(setupScriptPath)}`;
     const setupModule = await import(setupScriptUrl);
@@ -300,19 +323,27 @@ async function executeSetupScript(projectDirectory, projectName) {
       });
     }
 
-    // Remove the setup script after execution
-    await fs.unlink(setupScriptPath);
-
   } catch (error) {
-    console.warn(`⚠️  Warning: Setup script execution failed: ${error.message}`);
+    const sanitizedMessage = sanitizeErrorMessage(error.message);
+    console.warn(`⚠️  Warning: Setup script execution failed: ${sanitizedMessage}`);
     console.warn('Continuing without setup...');
+  } finally {
+    // Remove the setup script after execution attempt (success or failure)
+    try {
+      await fs.unlink(setupScriptPath);
+    } catch (cleanupError) {
+      // Ignore cleanup errors - setup script may have already been removed
+      // or there may be permission issues, but we don't want to fail the entire process
+    }
   }
 }
 
 /**
- * Execute a command and return stdout
+ * Execute a command with timeout and return stdout
  */
-function execCommand(command, args) {
+function execCommand(command, args, options = {}) {
+  const { timeout = 30000 } = options; // Default 30 second timeout for git operations
+  
   return new Promise((resolve, reject) => {
     const child = spawn(command, args, {
       stdio: ['inherit', 'pipe', 'pipe']
@@ -320,6 +351,15 @@ function execCommand(command, args) {
 
     let stdout = '';
     let stderr = '';
+    let timeoutId;
+
+    // Set up timeout
+    if (timeout > 0) {
+      timeoutId = setTimeout(() => {
+        child.kill('SIGTERM');
+        reject(new Error(`Command timed out after ${timeout}ms`));
+      }, timeout);
+    }
 
     if (child.stdout) {
       child.stdout.on('data', (data) => {
@@ -334,10 +374,13 @@ function execCommand(command, args) {
     }
 
     child.on('error', (error) => {
+      if (timeoutId) clearTimeout(timeoutId);
       reject(error);
     });
 
     child.on('close', (code) => {
+      if (timeoutId) clearTimeout(timeoutId);
+      
       if (code === 0) {
         resolve(stdout);
       } else {
