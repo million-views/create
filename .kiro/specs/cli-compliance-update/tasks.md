@@ -73,6 +73,27 @@
   - Verify all spec requirements are met
   - Test CLI tool end-to-end with real repositories
 
+## 🧹 NEW CLEANUP TASKS
+
+- [x] **Fix lint warnings and errors**
+  - **Root Cause:** Multiple unused variables in catch blocks across all files
+  - **Issue:** ESLint reports 17 warnings for unused variables (cleanupError, error, configError, accessError)
+  - **Solution:** Replace unused variables with underscore prefix or remove them entirely
+  - **Files affected:** bin/index.mjs, bin/preflightChecks.mjs, bin/security.mjs, test files, scripts
+  - **Security review:** Conduct thorough security audit and remove redundant code
+
+- [x] **Security audit and code cleanup**
+  - Review all code for security vulnerabilities
+  - Remove redundant code and unused functions
+  - Optimize error handling patterns
+  - Ensure all security best practices are followed
+
+- [x] **Organize test structure and npm scripts**
+  - **Issue:** Multiple test types scattered across different locations without proper npm scripts
+  - **Current state:** Functional tests, smoke tests, spec compliance tests, and resource leak tests run separately
+  - **Solution:** Add comprehensive npm scripts for all test types and create a unified test runner
+  - **Benefits:** Single command to run all tests, better CI/CD integration, clearer test organization
+
 ## 📋 IMPLEMENTATION STATUS
 
 **Core Functionality:** ✅ Complete
@@ -80,4 +101,5 @@
 **Error Handling:** ✅ Complete
 **Spec Compliance:** ✅ Complete
 **Dependencies:** ✅ Zero external runtime dependencies
-**Testing:** ✅ Comprehensive test suite
+**Testing:** ✅ Comprehensive test suite with unified runner
+**Code Quality:** ✅ Complete (all lint warnings fixed)

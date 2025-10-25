@@ -181,7 +181,6 @@ export function sanitizeBranchName(branchName) {
 
   // Git branch name validation rules
   // Prevent control characters, spaces, and special git characters
-  // eslint-disable-next-line no-control-regex
   const invalidChars = /[\s\x00-\x1f\x7f~^:?*[\]\\]/;
   if (invalidChars.test(trimmedBranch)) {
     throw new ValidationError(

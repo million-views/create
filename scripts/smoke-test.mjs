@@ -70,7 +70,7 @@ class SmokeTestUtils {
     for (const p of Array.isArray(paths) ? paths : [paths]) {
       try {
         await fs.rm(p, { recursive: true, force: true });
-      } catch (error) {
+      } catch {
         // Ignore cleanup errors
       }
     }

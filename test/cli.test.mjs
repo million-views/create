@@ -36,7 +36,7 @@ class TestUtils {
     for (const p of Array.isArray(paths) ? paths : [paths]) {
       try {
         await fs.rm(p, { recursive: true, force: true });
-      } catch (error) {
+      } catch {
         // Ignore cleanup errors
       }
     }
@@ -554,7 +554,7 @@ export default function setup({ projectDirectory, projectName, cwd }) {
     if (!markerContent.includes('setup completed')) {
       throw new Error('Setup script did not execute properly');
     }
-  } catch (error) {
+  } catch {
     throw new Error('Setup script marker file not found');
   }
   
@@ -563,7 +563,7 @@ export default function setup({ projectDirectory, projectName, cwd }) {
   try {
     await fs.access(setupScriptInProject);
     throw new Error('Setup script was not removed after execution');
-  } catch (error) {
+  } catch {
     // Expected - setup script should be removed
   }
 });
@@ -825,7 +825,7 @@ export default function setup({ projectDirectory, projectName, cwd }) {
   try {
     await fs.access(createdProjectPath);
     // Expected - project directory should exist
-  } catch (error) {
+  } catch {
     throw new Error('Project directory should exist despite setup script failure');
   }
   
@@ -875,7 +875,7 @@ runner.test('Project directory is cleaned up on failures after copy', async () =
   try {
     await fs.access(createdProjectPath);
     // Expected - project directory should exist after successful completion
-  } catch (error) {
+  } catch {
     throw new Error('Project directory should exist after successful completion');
   }
 });
@@ -1019,7 +1019,7 @@ export default function setup({ projectDirectory, projectName, cwd }) {
   try {
     await fs.access(projectPath);
     runner.tempPaths.push(projectPath); // Mark for cleanup
-  } catch (error) {
+  } catch {
     throw new Error('Project directory should exist despite setup script failure');
   }
   
@@ -1189,7 +1189,7 @@ export default function setup({ projectDirectory, projectName, cwd }) {
   
   try {
     await fs.access(projectPath);
-  } catch (error) {
+  } catch {
     throw new Error('Project directory should exist after successful completion');
   }
   

@@ -45,7 +45,7 @@ export async function checkGitInstallation() {
     try {
       await execCommand('git', ['config', 'user.name'], { timeout: 3000 });
       await execCommand('git', ['config', 'user.email'], { timeout: 3000 });
-    } catch (configError) {
+    } catch {
       console.warn('⚠️  Warning: Git user configuration not found. Some template setup scripts may require git user.name and user.email to be configured.');
       console.warn('   Configure with: git config --global user.name "Your Name"');
       console.warn('   Configure with: git config --global user.email "your.email@example.com"');
@@ -204,7 +204,7 @@ export async function checkProjectDirectoryConflicts(projectDirectory) {
       const parentDir = path.dirname(targetPath);
       try {
         await fs.access(parentDir, fs.constants.W_OK);
-      } catch (accessError) {
+      } catch {
         throw new PreflightError(
           `Cannot create project directory "${projectDirectory}".\n\n` +
           'The parent directory either doesn\'t exist or you don\'t have write permissions.\n' +

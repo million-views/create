@@ -102,7 +102,7 @@ async function main() {
     if (tempDir) {
       try {
         await fs.rm(tempDir, { recursive: true, force: true });
-      } catch (cleanupError) {
+      } catch {
         // Ignore cleanup errors to avoid masking the original error
       }
     }
@@ -111,7 +111,7 @@ async function main() {
     if (projectCreated && projectDirectory) {
       try {
         await fs.rm(projectDirectory, { recursive: true, force: true });
-      } catch (cleanupError) {
+      } catch {
         // Ignore cleanup errors to avoid masking the original error
       }
     }
@@ -166,9 +166,8 @@ async function cloneTemplateRepo(repoUrl, branchName) {
     // Clean up temp directory if clone failed
     try {
       await fs.rm(tempDir, { recursive: true, force: true });
-    } catch (cleanupError) {
+    } catch {
       // Ignore cleanup errors to avoid masking the original error
-      console.debug('Temp directory cleanup error ignored:', cleanupError.message);
     }
 
     // Provide helpful error messages based on common issues
@@ -222,14 +221,14 @@ async function verifyTemplate(templatePath, templateName) {
     if (!stats.isDirectory()) {
       throw new Error(`Template "${templateName}" exists but is not a directory.`);
     }
-  } catch (error) {
-    if (error.code === 'ENOENT') {
+  } catch (err) {
+    if (err.code === 'ENOENT') {
       throw new Error(
         `Template not found in the repository.\n` +
         'Please check the template name and try again.'
       );
     }
-    const sanitizedMessage = sanitizeErrorMessage(error.message);
+    const sanitizedMessage = sanitizeErrorMessage(err.message);
     throw new Error(sanitizedMessage);
   }
 }
@@ -251,13 +250,12 @@ async function copyTemplate(templatePath, projectDirectory) {
     const gitDir = path.join(projectDirectory, '.git');
     try {
       await fs.rm(gitDir, { recursive: true, force: true });
-    } catch (cleanupError) {
+    } catch {
       // Ignore cleanup errors - .git directory may not exist
-      console.debug('Git directory cleanup error ignored:', cleanupError.message);
     }
 
-  } catch (error) {
-    const sanitizedMessage = sanitizeErrorMessage(error.message);
+  } catch (err) {
+    const sanitizedMessage = sanitizeErrorMessage(err.message);
     throw new Error(`Failed to copy template: ${sanitizedMessage}`);
   }
 }
@@ -295,7 +293,7 @@ async function executeSetupScript(projectDirectory, projectName) {
   // Check if setup script exists
   try {
     await fs.access(setupScriptPath);
-  } catch (error) {
+  } catch {
     // Setup script doesn't exist - this is fine
     return;
   }
@@ -323,15 +321,15 @@ async function executeSetupScript(projectDirectory, projectName) {
       });
     }
 
-  } catch (error) {
-    const sanitizedMessage = sanitizeErrorMessage(error.message);
+  } catch (err) {
+    const sanitizedMessage = sanitizeErrorMessage(err.message);
     console.warn(`⚠️  Warning: Setup script execution failed: ${sanitizedMessage}`);
     console.warn('Continuing without setup...');
   } finally {
     // Remove the setup script after execution attempt (success or failure)
     try {
       await fs.unlink(setupScriptPath);
-    } catch (cleanupError) {
+    } catch {
       // Ignore cleanup errors - setup script may have already been removed
       // or there may be permission issues, but we don't want to fail the entire process
     }

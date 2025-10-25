@@ -89,7 +89,7 @@ class SpecComplianceVerifier {
     for (const p of this.tempPaths) {
       try {
         await fs.rm(p, { recursive: true, force: true });
-      } catch (error) {
+      } catch {
         // Ignore cleanup errors
       }
     }
