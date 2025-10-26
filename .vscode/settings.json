@@ -9,6 +9,7 @@
         "node -c *",
         "node bin/index.mjs *",
         "node test/*",
+        "node test/*.test.mjs",
         "git --no-pager status *",
         "git --no-pager log *",
         "git --no-pager show *",
@@ -24,6 +25,21 @@
         "find . -name *",
         "grep *",
         "head *",
-        "ast-grep *"
+        "ast-grep *",
+        "cd test*",
+        "node test/cacheManager.test.mjs",
+        "node test/logger.test.mjs",
+        "node test/templateDiscovery.test.mjs",
+        "node test/dryRunEngine.test.mjs",
+        "node test/cli-integration.test.mjs",
+        "node test/cli.test.mjs",
+        "node bin/index.mjs --help | grep -A 10 \"log-file\\|list-templates\\|dry-run\\|no-cache\\|cache-ttl\"",
+        "find . -maxdepth 1 -type d -name \"*-test-*\" -exec rm -rf {} \\;",
+        "find . -maxdepth 1 -type d -name \".tmp-template-*\" -exec rm -rf {} \\;",
+        "find test -name \"*.mjs\" -exec grep -l \"createTempDir\\|tempPath\\|tmpdir\" {} \\;",
+        "grep -n \"async.*test\\|await.*test\\|runner\\.test\" test/*.mjs | wc -l",
+        "for file in test/*.mjs; do echo \"=== $file ===\"; grep -c \"await.*test\\|runner\\.test\" \"$file\" 2>/dev/null || echo \"0\"; done",
+        "node test/security-tempdir.test.mjs",
+        "node bin/index.mjs test-project --from-template basic --repo /nonexistent/path/with/private/data 2>&1 | head -10"
     ]
 }
