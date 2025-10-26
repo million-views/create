@@ -8,6 +8,7 @@
 import { spawn } from 'child_process';
 import fs from 'fs/promises';
 import path from 'path';
+import os from 'os';
 import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -99,7 +100,7 @@ class SpecComplianceVerifier {
     const timestamp = Date.now();
     const random = Math.random().toString(36).slice(2, 8);
     const dirName = `spec-test-${timestamp}-${random}${suffix}`;
-    const tempPath = path.join(process.cwd(), dirName);
+    const tempPath = path.join(os.tmpdir(), dirName);
     await fs.mkdir(tempPath, { recursive: true });
     this.tempPaths.push(tempPath);
     return tempPath;

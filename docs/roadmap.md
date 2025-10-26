@@ -2,7 +2,7 @@
 
 Strategic feature development for @m5nv/create-scaffold, prioritized by user impact and implementation complexity.
 
-## Phase 1: Core User Experience (v1.1)
+## Phase 1: Core User Experience (v0.3)
 
 ### 1. Template Caching
 
@@ -28,7 +28,7 @@ Strategic feature development for @m5nv/create-scaffold, prioritized by user imp
 **Solution:** `--dry-run` shows planned operations without executing them, **uses cache for fast preview**  
 **Impact:** Medium - Builds confidence, especially for CI/CD
 
-## Phase 2: Developer Experience (v1.2)
+## Phase 2: Developer Experience (v.0.4)
 
 ### 4. Template Validation
 
@@ -48,7 +48,7 @@ Strategic feature development for @m5nv/create-scaffold, prioritized by user imp
 **Solution:** `npm create @m5nv/scaffold` (no args) prompts for template selection from available options  
 **Impact:** Medium - Lowers barrier to entry
 
-## Phase 3: Advanced Features (v1.3)
+## Phase 3: Advanced Features (v0.5)
 
 ### 7. Template Variables
 
@@ -62,7 +62,7 @@ Strategic feature development for @m5nv/create-scaffold, prioritized by user imp
 **Solution:** `--from-templates frontend,backend` creates multiple directories with orchestrated setup  
 **Impact:** Low - Niche use case, high complexity
 
-## Phase 4: Ecosystem (v2.0)
+## Phase 4: Ecosystem (v0.6)
 
 ### 10. Template Health Checks
 

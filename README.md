@@ -53,6 +53,11 @@ This pattern allows for a clean, semantic command structure where `npm create @m
 | `--branch, -b`   | Git branch                                      |
 | `--ide, -i`      | Target IDE (kiro, vscode, cursor, windsurf)    |
 | `--features, -f` | Comma-separated feature list                    |
+| `--list-templates` | Display available templates from repository    |
+| `--dry-run`      | Preview operations without executing them       |
+| `--log-file`     | Enable detailed logging to specified file      |
+| `--no-cache`     | Bypass cache system and clone directly         |
+| `--cache-ttl`    | Override default cache TTL (1-720 hours)       |
 | `--help, -h`     | Show help                                       |
 
 ## Examples
@@ -127,6 +132,55 @@ npm create @m5nv/scaffold beta-app -- \
   --branch experimental
 ```
 
+## Phase 1 Core UX Features
+
+Version 0.3 introduces powerful new features for enhanced performance and debugging:
+
+### Template Caching
+Dramatically faster operations with local template caching:
+```bash
+# Automatic caching (24-hour TTL)
+npm create @m5nv/scaffold my-app -- --from-template react
+
+# Custom cache TTL (48 hours)
+npm create @m5nv/scaffold my-app -- --from-template react --cache-ttl 48
+
+# Bypass cache for latest version
+npm create @m5nv/scaffold my-app -- --from-template react --no-cache
+```
+
+### Template Discovery
+Explore available templates before creating projects:
+```bash
+# List templates from default repository
+npm create @m5nv/scaffold -- --list-templates
+
+# List templates from custom repository
+npm create @m5nv/scaffold -- --list-templates --repo user/templates
+```
+
+### Dry Run Mode
+Preview operations without making changes:
+```bash
+# Preview what will be created
+npm create @m5nv/scaffold my-app -- --from-template react --dry-run
+
+# Combine with logging for detailed analysis
+npm create @m5nv/scaffold my-app -- --from-template react --dry-run --log-file preview.log
+```
+
+### Detailed Logging
+Comprehensive operation tracking for debugging:
+```bash
+# Enable detailed logging
+npm create @m5nv/scaffold my-app -- --from-template react --log-file scaffold.log
+
+# Log template discovery
+npm create @m5nv/scaffold -- --list-templates --log-file discovery.log
+```
+
+**📖 [Complete Phase 1 Features Documentation](docs/phase-1-features.md)**
+
 ## Best Practices
 
 ### IDE Selection
@@ -160,6 +214,7 @@ npm create @m5nv/scaffold beta-app -- \
 
 ## Documentation
 
+- [Phase 1 Features](docs/phase-1-features.md) - Caching, logging, discovery, and dry run features
 - [Creating Templates](docs/creating-templates.md) - How to build your own template repository
 - [Authentication](docs/authentication.md) - Setting up git access for private repositories
 - [Troubleshooting](docs/troubleshooting.md) - Common issues and solutions
