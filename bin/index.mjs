@@ -14,6 +14,7 @@ import {
   runAllPreflightChecks,
   PreflightError 
 } from './preflightChecks.mjs';
+import { createEnvironmentObject } from './environmentFactory.mjs';
 
 // Default configuration
 const DEFAULT_REPO = 'million-views/templates';
@@ -62,6 +63,10 @@ async function main() {
     const templateName = validatedInputs.template;
     const repoUrl = validatedInputs.repo;
     const branchName = validatedInputs.branch;
+    
+    // Extract ide and features from validated arguments
+    const ide = args.ide;
+    const features = args.features;
 
     // Run comprehensive preflight checks
     await runAllPreflightChecks(args, repoUrl);
@@ -90,7 +95,7 @@ async function main() {
     tempDir = null; // Mark as cleaned up
 
     // Execute setup script if it exists
-    await executeSetupScript(projectDirectory, projectDirectory);
+    await executeSetupScript(projectDirectory, projectDirectory, ide, features);
 
     console.log('\n✅ Project created successfully!');
     console.log(`\n📂 Next steps:`);
@@ -287,7 +292,7 @@ async function copyRecursive(src, dest) {
 /**
  * Execute optional setup script if it exists
  */
-async function executeSetupScript(projectDirectory, projectName) {
+async function executeSetupScript(projectDirectory, projectName, ide, features) {
   const setupScriptPath = path.join(projectDirectory, SETUP_SCRIPT);
 
   // Check if setup script exists
@@ -306,20 +311,26 @@ async function executeSetupScript(projectDirectory, projectName) {
     const setupScriptUrl = `file://${path.resolve(setupScriptPath)}`;
     const setupModule = await import(setupScriptUrl);
 
-    // Call the default export or setup function
-    if (typeof setupModule.default === 'function') {
-      await setupModule.default({
-        projectDirectory,
-        projectName,
-        cwd: process.cwd()
-      });
-    } else if (typeof setupModule.setup === 'function') {
-      await setupModule.setup({
-        projectDirectory,
-        projectName,
-        cwd: process.cwd()
-      });
+    // Create Environment_Object with all necessary context
+    const env = createEnvironmentObject({
+      projectDirectory,
+      projectName,
+      cwd: process.cwd(),
+      ide,
+      features
+    });
+
+    // Validate that setup script exports a default function
+    if (typeof setupModule.default !== 'function') {
+      throw new Error(
+        'Setup script must export a default function\n' +
+        'Example: export default function setup(env) { ... }\n' +
+        'Current export type: ' + typeof setupModule.default
+      );
     }
+
+    // Execute the setup script with Environment_Object
+    await setupModule.default(env);
 
   } catch (err) {
     const sanitizedMessage = sanitizeErrorMessage(err.message);

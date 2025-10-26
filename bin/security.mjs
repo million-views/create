@@ -415,6 +415,104 @@ export function createSecureTempDir() {
 }
 
 /**
+ * Validate IDE parameter against allowed values
+ * @param {string|null|undefined} ide - IDE parameter value
+ * @returns {string|null} - Validated and normalized IDE value or null
+ * @throws {ValidationError} - If IDE value is invalid
+ */
+export function validateIdeParameter(ide) {
+  // Return null for undefined or null values
+  if (ide === undefined || ide === null) {
+    return null;
+  }
+
+  if (typeof ide !== 'string') {
+    throw new ValidationError('IDE parameter must be a string', 'ide');
+  }
+
+  // Remove any null bytes
+  if (ide.includes('\0')) {
+    throw new ValidationError('IDE parameter contains null bytes', 'ide');
+  }
+
+  const trimmedIde = ide.trim();
+  
+  // Return null for empty strings
+  if (!trimmedIde) {
+    return null;
+  }
+
+  // Allowed IDE values
+  const allowedIdes = ['kiro', 'vscode', 'cursor', 'windsurf'];
+  
+  // Case-insensitive matching with lowercase normalization
+  const normalizedIde = trimmedIde.toLowerCase();
+  
+  if (!allowedIdes.includes(normalizedIde)) {
+    throw new ValidationError(
+      `Invalid IDE: "${ide}". Supported IDEs: ${allowedIdes.join(', ')}`,
+      'ide'
+    );
+  }
+
+  return normalizedIde;
+}
+
+/**
+ * Validate features parameter with parsing and validation
+ * @param {string|null|undefined} features - Features parameter value
+ * @returns {string[]} - Array of validated feature names or empty array
+ * @throws {ValidationError} - If features parameter is invalid
+ */
+export function validateFeaturesParameter(features) {
+  // Return empty array for undefined, null, or empty values
+  if (features === undefined || features === null) {
+    return [];
+  }
+
+  if (typeof features !== 'string') {
+    throw new ValidationError('Features parameter must be a string', 'features');
+  }
+
+  // Remove any null bytes
+  if (features.includes('\0')) {
+    throw new ValidationError('Features parameter contains null bytes', 'features');
+  }
+
+  const trimmedFeatures = features.trim();
+  
+  // Return empty array for empty strings
+  if (!trimmedFeatures) {
+    return [];
+  }
+
+  // Parse comma-separated feature names
+  const featureList = trimmedFeatures.split(',').map(f => f.trim()).filter(f => f.length > 0);
+  
+  // Regex validation for feature names (alphanumeric, hyphens, underscores)
+  const validFeaturePattern = /^[a-zA-Z0-9_-]+$/;
+  
+  for (const feature of featureList) {
+    if (!validFeaturePattern.test(feature)) {
+      throw new ValidationError(
+        `Invalid feature name: "${feature}". Feature names must contain only letters, numbers, hyphens, and underscores`,
+        'features'
+      );
+    }
+    
+    // Check feature name length
+    if (feature.length > 50) {
+      throw new ValidationError(
+        `Feature name too long: "${feature}". Maximum 50 characters allowed`,
+        'features'
+      );
+    }
+  }
+
+  return featureList;
+}
+
+/**
  * Validate all inputs comprehensively
  * @param {Object} inputs - Object containing all user inputs
  * @returns {Object} - Validated and sanitized inputs
@@ -451,6 +549,22 @@ export function validateAllInputs(inputs) {
   try {
     if (inputs.branch) {
       validated.branch = sanitizeBranchName(inputs.branch);
+    }
+  } catch (error) {
+    errors.push(error.message);
+  }
+
+  try {
+    if (inputs.ide !== undefined) {
+      validated.ide = validateIdeParameter(inputs.ide);
+    }
+  } catch (error) {
+    errors.push(error.message);
+  }
+
+  try {
+    if (inputs.features !== undefined) {
+      validated.features = validateFeaturesParameter(inputs.features);
     }
   } catch (error) {
     errors.push(error.message);

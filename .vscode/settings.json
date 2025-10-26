@@ -38,6 +38,10 @@
         "node bin/index.mjs test-project-null --template basic 2>&1",
         "find . -name \".tmp-template-*\" -type d | wc -l",
         "node test/cli.test.mjs",
-        "ls -la | grep test-"
+        "ls -la | grep test-",
+        "node test/argumentParser.test.mjs",
+        "node test/environmentFactory.test.mjs",
+        "node bin/index.mjs *",
+        "node test/security.test.mjs"
     ]
 }

@@ -6,6 +6,8 @@ import {
   validateTemplateName, 
   validateRepoUrl, 
   sanitizeBranchName,
+  validateIdeParameter,
+  validateFeaturesParameter,
   ValidationError 
 } from './security.mjs';
 
@@ -31,6 +33,16 @@ export function parseArguments(argv = process.argv.slice(2)) {
         short: 'b',
         description: 'Git branch to use (default: main/master)'
       },
+      ide: {
+        type: 'string',
+        short: 'i',
+        description: 'Target IDE (kiro, vscode, cursor, windsurf)'
+      },
+      features: {
+        type: 'string',
+        short: 'f',
+        description: 'Comma-separated list of features to enable'
+      },
       help: {
         type: 'boolean',
         short: 'h',
@@ -54,6 +66,8 @@ export function parseArguments(argv = process.argv.slice(2)) {
       template: values.template,
       repo: values.repo,
       branch: values.branch,
+      ide: values.ide,
+      features: values.features,
       help: values.help,
       _: positionals // For backward compatibility
     };
@@ -143,6 +157,32 @@ export function validateArguments(args) {
     }
   }
 
+  // Validate IDE parameter if provided
+  if (args.ide) {
+    try {
+      validateIdeParameter(args.ide);
+    } catch (error) {
+      if (error instanceof ValidationError) {
+        errors.push(error.message);
+      } else {
+        errors.push('IDE parameter validation failed');
+      }
+    }
+  }
+
+  // Validate features parameter if provided
+  if (args.features) {
+    try {
+      validateFeaturesParameter(args.features);
+    } catch (error) {
+      if (error instanceof ValidationError) {
+        errors.push(error.message);
+      } else {
+        errors.push('Features parameter validation failed');
+      }
+    }
+  }
+
   return {
     isValid: errors.length === 0,
     errors,
@@ -173,6 +213,10 @@ OPTIONS:
                            https://github.com/user/repo.git
                            /path/to/local/repo
   -b, --branch <branch>  Git branch to use (default: main/master)
+  -i, --ide <ide>        Target IDE for template customization
+                         Supported: kiro, vscode, cursor, windsurf
+  -f, --features <list>  Comma-separated list of features to enable
+                         Example: auth,database,testing
   -h, --help            Show this help message
 
 EXAMPLES:
@@ -181,6 +225,15 @@ EXAMPLES:
 
   # Use a custom repository
   npm create @m5nv/create my-app -- --template nextjs --repo custom-user/templates
+
+  # Create project with IDE-specific customization
+  npm create @m5nv/create my-app -- --template react --ide kiro
+
+  # Enable specific features
+  npm create @m5nv/create my-app -- --template fullstack --features auth,database,testing
+
+  # Combine IDE and features
+  npm create @m5nv/create my-app -- --template react --ide vscode --features auth,testing
 
   # Use a specific version
   npm create @m5nv/create@1.0.0 my-app -- --template vue --branch development

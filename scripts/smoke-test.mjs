@@ -289,11 +289,20 @@ async function runSmokeTests() {
     // Add setup script to template
     const setupScriptPath = path.join(mockRepoPath, 'with-setup', '_setup.mjs');
     const setupScript = `
-export default function setup({ projectDirectory, projectName, cwd }) {
-  console.log('Setup script executed for:', projectName);
+export default function setup(envOrLegacy) {
+  // Support both new Environment_Object and legacy destructured interface
+  const env = envOrLegacy.projectDir ? envOrLegacy : {
+    projectDir: envOrLegacy.projectDirectory,
+    projectName: envOrLegacy.projectName,
+    cwd: envOrLegacy.cwd,
+    ide: null,
+    features: []
+  };
+  
+  console.log('Setup script executed for:', env.projectName);
   // Create a marker file to prove setup ran
   import('fs').then(fs => {
-    fs.writeFileSync(projectDirectory + '/setup-completed.txt', 'Setup completed successfully');
+    fs.writeFileSync(env.projectDir + '/setup-completed.txt', 'Setup completed successfully');
   });
 }
 `;

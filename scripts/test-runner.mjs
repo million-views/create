@@ -87,6 +87,16 @@ class TestRunner {
 
     const tests = [
       {
+        name: 'Environment Factory Tests',
+        command: './test/environmentFactory.test.mjs',
+        description: 'Unit tests for Environment_Object factory and validation'
+      },
+      {
+        name: 'Security Tests',
+        command: './test/security.test.mjs',
+        description: 'Security validation for new IDE and features parameters'
+      },
+      {
         name: 'Functional Tests',
         command: './test/cli.test.mjs',
         description: 'Comprehensive end-to-end CLI behavior validation'
@@ -120,6 +130,11 @@ class TestRunner {
     console.log('='.repeat(60));
 
     const tests = [
+      {
+        name: 'Environment Factory Tests',
+        command: './test/environmentFactory.test.mjs',
+        description: 'Unit tests for Environment_Object factory and validation'
+      },
       {
         name: 'Functional Tests',
         command: './test/cli.test.mjs',

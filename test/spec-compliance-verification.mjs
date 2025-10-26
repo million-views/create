@@ -442,7 +442,16 @@ class SpecComplianceVerifier {
       // Add setup script
       const setupScriptPath = path.join(mockRepoPath, 'with-setup', '_setup.mjs');
       await fs.writeFile(setupScriptPath, `
-export default function setup({ projectDirectory, projectName, cwd }) {
+export default function setup(envOrLegacy) {
+  // Support both new Environment_Object and legacy destructured interface
+  const env = envOrLegacy.projectDir ? envOrLegacy : {
+    projectDir: envOrLegacy.projectDirectory,
+    projectName: envOrLegacy.projectName,
+    cwd: envOrLegacy.cwd,
+    ide: null,
+    features: []
+  };
+  
   console.log('Setup executed');
 }
 `);
@@ -487,7 +496,16 @@ export default function setup({ projectDirectory, projectName, cwd }) {
       // Add failing setup script
       const setupScriptPath = path.join(mockRepoPath, 'failing-setup', '_setup.mjs');
       await fs.writeFile(setupScriptPath, `
-export default function setup({ projectDirectory, projectName, cwd }) {
+export default function setup(envOrLegacy) {
+  // Support both new Environment_Object and legacy destructured interface
+  const env = envOrLegacy.projectDir ? envOrLegacy : {
+    projectDir: envOrLegacy.projectDirectory,
+    projectName: envOrLegacy.projectName,
+    cwd: envOrLegacy.cwd,
+    ide: null,
+    features: []
+  };
+  
   throw new Error('Setup script intentionally failed');
 }
 `);
