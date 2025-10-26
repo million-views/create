@@ -1,9 +1,10 @@
 #!/usr/bin/env node
 
-import { spawn } from 'child_process';
 import fs from 'fs/promises';
 import path from 'path';
 import { sanitizeErrorMessage, getPackageName, validatePackageIdentity } from './security.mjs';
+import { execCommand } from './utils/commandUtils.mjs';
+import { validateDirectoryExists } from './utils/fsUtils.mjs';
 
 /**
  * Comprehensive preflight checks module
@@ -248,14 +249,7 @@ export async function validateRepositoryAccessibility(repoUrl, branchName = null
     // Local path - validate it exists
     try {
       const resolvedPath = path.resolve(repoUrl);
-      const stats = await fs.stat(resolvedPath);
-      if (!stats.isDirectory()) {
-        throw new PreflightError(
-          `Local repository path "${repoUrl}" exists but is not a directory.\n\n` +
-          'Please provide a valid git repository directory path.',
-          'LOCAL_REPO_NOT_DIRECTORY'
-        );
-      }
+      await validateDirectoryExists(resolvedPath, 'Local repository path');
       
       // Check if it's a git repository
       const gitDir = path.join(resolvedPath, '.git');
@@ -274,9 +268,11 @@ export async function validateRepositoryAccessibility(repoUrl, branchName = null
       if (error instanceof PreflightError) {
         throw error;
       }
-      if (error.code === 'ENOENT') {
+      
+      // Handle validation errors from validateDirectoryExists
+      if (error.message.includes('not found') || error.message.includes('not a directory')) {
         throw new PreflightError(
-          `Local repository path "${repoUrl}" does not exist.\n\n` +
+          `Local repository path "${repoUrl}" does not exist or is not a directory.\n\n` +
           'Please check the path and try again, or use a remote repository URL.',
           'LOCAL_REPO_NOT_FOUND'
         );
@@ -392,63 +388,7 @@ export async function validateRepositoryAccessibility(repoUrl, branchName = null
   }
 }
 
-/**
- * Execute a command with timeout and proper error handling
- * @param {string} command - Command to execute
- * @param {string[]} args - Command arguments
- * @param {Object} options - Execution options
- * @returns {Promise<string>} - Command output
- */
-function execCommand(command, args, options = {}) {
-  const { timeout = 10000 } = options;
-  
-  return new Promise((resolve, reject) => {
-    const child = spawn(command, args, {
-      stdio: ['ignore', 'pipe', 'pipe']
-    });
 
-    let stdout = '';
-    let stderr = '';
-    let timeoutId;
-
-    // Set up timeout
-    if (timeout > 0) {
-      timeoutId = setTimeout(() => {
-        child.kill('SIGTERM');
-        reject(new Error(`Command timed out after ${timeout}ms`));
-      }, timeout);
-    }
-
-    if (child.stdout) {
-      child.stdout.on('data', (data) => {
-        stdout += data.toString();
-      });
-    }
-
-    if (child.stderr) {
-      child.stderr.on('data', (data) => {
-        stderr += data.toString();
-      });
-    }
-
-    child.on('error', (error) => {
-      if (timeoutId) clearTimeout(timeoutId);
-      reject(error);
-    });
-
-    child.on('close', (code) => {
-      if (timeoutId) clearTimeout(timeoutId);
-      
-      if (code === 0) {
-        resolve(stdout);
-      } else {
-        const error = new Error(stderr || stdout || `Command failed with exit code ${code}`);
-        error.code = code;
-        reject(error);
-      }
-    });
-  });
-}
 
 /**
  * Run all preflight checks in sequence

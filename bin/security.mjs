@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import path from 'path';
+import os from 'os';
 
 /**
  * Comprehensive input validation and security module
@@ -492,12 +493,12 @@ export function sanitizeErrorMessage(error) {
  * @throws {ValidationError} - If temporary directory creation fails
  */
 export function createSecureTempDir() {
-  const tempBase = process.cwd();
+  const tempBase = os.tmpdir();
   const timestamp = Date.now();
   const randomSuffix = Math.random().toString(36).slice(2, 9);
   
   // Create a predictable but unique temporary directory name
-  const tempDirName = `.tmp-template-${timestamp}-${randomSuffix}`;
+  const tempDirName = `tmp-template-${timestamp}-${randomSuffix}`;
   
   // Validate the generated name
   const sanitizedName = sanitizePath(tempDirName, tempBase);
@@ -604,6 +605,94 @@ export function validateFeaturesParameter(features) {
 }
 
 /**
+ * Validate log file path parameter
+ * @param {string|null|undefined} logFile - Log file path parameter
+ * @returns {string|null} - Validated log file path or null
+ * @throws {ValidationError} - If log file path is invalid
+ */
+export function validateLogFilePath(logFile) {
+  // Return null for undefined or null values
+  if (logFile === undefined || logFile === null) {
+    return null;
+  }
+
+  if (typeof logFile !== 'string') {
+    throw new ValidationError('Log file path must be a string', 'logFile');
+  }
+
+  // Remove any null bytes
+  if (logFile.includes('\0')) {
+    throw new ValidationError('Log file path contains null bytes', 'logFile');
+  }
+
+  const trimmedPath = logFile.trim();
+  
+  // Reject empty strings
+  if (!trimmedPath) {
+    throw new ValidationError('Log file path cannot be empty', 'logFile');
+  }
+
+  // Check for path traversal attempts
+  if (trimmedPath.includes('..')) {
+    throw new ValidationError('Log file path contains path traversal attempts', 'logFile');
+  }
+
+  // Prevent certain dangerous paths
+  const dangerousPaths = ['/etc/', '/usr/', '/var/', '/sys/', '/proc/'];
+  for (const dangerous of dangerousPaths) {
+    if (trimmedPath.startsWith(dangerous)) {
+      throw new ValidationError('Log file path points to restricted system directory', 'logFile');
+    }
+  }
+
+  return trimmedPath;
+}
+
+/**
+ * Validate cache TTL parameter
+ * @param {string|null|undefined} cacheTtl - Cache TTL parameter in hours
+ * @returns {number|null} - Validated TTL in hours or null
+ * @throws {ValidationError} - If cache TTL is invalid
+ */
+export function validateCacheTtl(cacheTtl) {
+  // Return null for undefined or null values
+  if (cacheTtl === undefined || cacheTtl === null) {
+    return null;
+  }
+
+  if (typeof cacheTtl !== 'string') {
+    throw new ValidationError('Cache TTL must be a string', 'cacheTtl');
+  }
+
+  // Remove any null bytes
+  if (cacheTtl.includes('\0')) {
+    throw new ValidationError('Cache TTL contains null bytes', 'cacheTtl');
+  }
+
+  const trimmedTtl = cacheTtl.trim();
+  
+  // Return null for empty strings
+  if (!trimmedTtl) {
+    return null;
+  }
+
+  // Parse as integer
+  const ttlValue = parseInt(trimmedTtl, 10);
+  
+  // Check if parsing was successful
+  if (isNaN(ttlValue) || ttlValue.toString() !== trimmedTtl) {
+    throw new ValidationError('Cache TTL must be a valid integer', 'cacheTtl');
+  }
+
+  // Check range (1 hour to 30 days)
+  if (ttlValue < 1 || ttlValue > 720) {
+    throw new ValidationError('Cache TTL must be between 1 and 720 hours', 'cacheTtl');
+  }
+
+  return ttlValue;
+}
+
+/**
  * Validate all inputs comprehensively
  * @param {Object} inputs - Object containing all user inputs
  * @returns {Object} - Validated and sanitized inputs
@@ -656,6 +745,22 @@ export function validateAllInputs(inputs) {
   try {
     if (inputs.features !== undefined) {
       validated.features = validateFeaturesParameter(inputs.features);
+    }
+  } catch (error) {
+    errors.push(error.message);
+  }
+
+  try {
+    if (inputs.logFile !== undefined) {
+      validated.logFile = validateLogFilePath(inputs.logFile);
+    }
+  } catch (error) {
+    errors.push(error.message);
+  }
+
+  try {
+    if (inputs.cacheTtl !== undefined) {
+      validated.cacheTtl = validateCacheTtl(inputs.cacheTtl);
     }
   } catch (error) {
     errors.push(error.message);
