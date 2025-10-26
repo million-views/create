@@ -227,6 +227,32 @@ class SpecComplianceVerifier {
         throw new Error('Project directory should be parsed from positional argument');
       }
     });
+
+    await this.test('R1.6: Supports --options parameter with both short and long forms', async () => {
+      // Test --options long form
+      const longResult = await this.execCLI(['test-project', '--from-template', 'basic', '--options', 'typescript,react']);
+      
+      // Should fail at preflight (missing repo), not argument parsing
+      if (longResult.exitCode !== 1) {
+        throw new Error('Should fail at preflight stage with --options');
+      }
+
+      // Should not contain argument parsing errors
+      if (longResult.stderr.includes('unknown') || longResult.stderr.includes('unrecognized')) {
+        throw new Error('--options parameter should be recognized');
+      }
+
+      // Test -o short form
+      const shortResult = await this.execCLI(['test-project', '--from-template', 'basic', '-o', 'typescript,react']);
+      
+      if (shortResult.exitCode !== 1) {
+        throw new Error('Should fail at preflight stage with -o');
+      }
+
+      if (shortResult.stderr.includes('unknown') || shortResult.stderr.includes('unrecognized')) {
+        throw new Error('-o parameter should be recognized');
+      }
+    });
   }
 
   async verifyRequirement2() {
@@ -396,6 +422,11 @@ class SpecComplianceVerifier {
       if (!result.stdout.includes('USAGE:') || !result.stdout.includes('--from-template') || !result.stdout.includes('EXAMPLES:')) {
         throw new Error('Help text should be comprehensive');
       }
+
+      // Verify --options parameter is documented
+      if (!result.stdout.includes('--options')) {
+        throw new Error('Help text should include --options parameter');
+      }
     });
 
     await this.test('R5.2: Displays usage examples for both npm create and npx methods', async () => {
@@ -403,6 +434,11 @@ class SpecComplianceVerifier {
 
       if (!result.stdout.includes('npm create') || !result.stdout.includes('npx')) {
         throw new Error('Help should include both npm create and npx examples');
+      }
+
+      // Verify examples include --options parameter usage
+      if (!result.stdout.includes('--options')) {
+        throw new Error('Help examples should demonstrate --options parameter usage');
       }
     });
 
@@ -450,8 +486,13 @@ export default function setup(envOrLegacy) {
     projectName: envOrLegacy.projectName,
     cwd: envOrLegacy.cwd,
     ide: null,
-    features: []
+    options: []
   };
+  
+  // Verify options property exists and is an array
+  if (!Array.isArray(env.options)) {
+    throw new Error('Expected options to be an array');
+  }
   
   console.log('Setup executed');
 }
@@ -504,8 +545,13 @@ export default function setup(envOrLegacy) {
     projectName: envOrLegacy.projectName,
     cwd: envOrLegacy.cwd,
     ide: null,
-    features: []
+    options: []
   };
+  
+  // Verify options property exists and is an array before failing
+  if (!Array.isArray(env.options)) {
+    throw new Error('Expected options to be an array');
+  }
   
   throw new Error('Setup script intentionally failed');
 }

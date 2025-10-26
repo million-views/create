@@ -10,7 +10,7 @@ import {
 } from '../bin/environmentFactory.mjs';
 import { 
   validateIdeParameter, 
-  validateFeaturesParameter,
+  validateOptionsParameter,
   ValidationError 
 } from '../bin/security.mjs';
 
@@ -157,10 +157,10 @@ runner.test('validateIdeParameter: rejects null bytes', () => {
   }
 });
 
-// ===== Features Parameter Validation Tests =====
+// ===== Options Parameter Validation Tests =====
 
-runner.test('validateFeaturesParameter: parses comma-separated features', () => {
-  const result = validateFeaturesParameter('auth,database,testing');
+runner.test('validateOptionsParameter: parses comma-separated options', () => {
+  const result = validateOptionsParameter('auth,database,testing');
   const expected = ['auth', 'database', 'testing'];
   
   if (JSON.stringify(result) !== JSON.stringify(expected)) {
@@ -168,8 +168,8 @@ runner.test('validateFeaturesParameter: parses comma-separated features', () => 
   }
 });
 
-runner.test('validateFeaturesParameter: trims whitespace from features', () => {
-  const result = validateFeaturesParameter(' auth , database , testing ');
+runner.test('validateOptionsParameter: trims whitespace from options', () => {
+  const result = validateOptionsParameter(' auth , database , testing ');
   const expected = ['auth', 'database', 'testing'];
   
   if (JSON.stringify(result) !== JSON.stringify(expected)) {
@@ -177,65 +177,65 @@ runner.test('validateFeaturesParameter: trims whitespace from features', () => {
   }
 });
 
-runner.test('validateFeaturesParameter: returns empty array for undefined/null/empty', () => {
+runner.test('validateOptionsParameter: returns empty array for undefined/null/empty', () => {
   const testCases = [undefined, null, '', '   '];
   
   for (const testCase of testCases) {
-    const result = validateFeaturesParameter(testCase);
+    const result = validateOptionsParameter(testCase);
     if (!Array.isArray(result) || result.length !== 0) {
       throw new Error(`Expected empty array for ${testCase}, got ${JSON.stringify(result)}`);
     }
   }
 });
 
-runner.test('validateFeaturesParameter: validates feature name format', () => {
-  const validFeatures = [
+runner.test('validateOptionsParameter: validates option name format', () => {
+  const validOptions = [
     'auth',
     'user-management',
     'api_client',
-    'feature123',
-    'test-feature_v2'
+    'option123',
+    'test-option_v2'
   ];
   
-  for (const feature of validFeatures) {
-    const result = validateFeaturesParameter(feature);
-    if (!result.includes(feature)) {
-      throw new Error(`Valid feature ${feature} was rejected`);
+  for (const option of validOptions) {
+    const result = validateOptionsParameter(option);
+    if (!result.includes(option)) {
+      throw new Error(`Valid option ${option} was rejected`);
     }
   }
 });
 
-runner.test('validateFeaturesParameter: rejects invalid feature names', () => {
-  const invalidFeatures = [
-    'feature@invalid',
-    'feature with spaces',
-    'feature.with.dots',
-    'feature/with/slashes',
-    'feature\\with\\backslashes',
-    'feature:with:colons'
+runner.test('validateOptionsParameter: rejects invalid option names', () => {
+  const invalidOptions = [
+    'option@invalid',
+    'option with spaces',
+    'option.with.dots',
+    'option/with/slashes',
+    'option\\with\\backslashes',
+    'option:with:colons'
   ];
   
-  for (const feature of invalidFeatures) {
+  for (const option of invalidOptions) {
     try {
-      validateFeaturesParameter(feature);
-      throw new Error(`Should have rejected invalid feature: ${feature}`);
+      validateOptionsParameter(option);
+      throw new Error(`Should have rejected invalid option: ${option}`);
     } catch (error) {
       if (!(error instanceof ValidationError)) {
         throw new Error(`Expected ValidationError, got ${error.constructor.name}`);
       }
-      if (!error.message.includes('Invalid feature name')) {
-        throw new Error(`Expected "Invalid feature name" in error message, got: ${error.message}`);
+      if (!error.message.includes('Invalid option name')) {
+        throw new Error(`Expected "Invalid option name" in error message, got: ${error.message}`);
       }
     }
   }
 });
 
-runner.test('validateFeaturesParameter: rejects overly long feature names', () => {
-  const longFeature = 'a'.repeat(51); // Exceeds 50 character limit
+runner.test('validateOptionsParameter: rejects overly long option names', () => {
+  const longOption = 'a'.repeat(51); // Exceeds 50 character limit
   
   try {
-    validateFeaturesParameter(longFeature);
-    throw new Error('Should have rejected overly long feature name');
+    validateOptionsParameter(longOption);
+    throw new Error('Should have rejected overly long option name');
   } catch (error) {
     if (!(error instanceof ValidationError)) {
       throw new Error(`Expected ValidationError, got ${error.constructor.name}`);
@@ -246,8 +246,8 @@ runner.test('validateFeaturesParameter: rejects overly long feature names', () =
   }
 });
 
-runner.test('validateFeaturesParameter: filters out empty features', () => {
-  const result = validateFeaturesParameter('auth,,database,,,testing,');
+runner.test('validateOptionsParameter: filters out empty options', () => {
+  const result = validateOptionsParameter('auth,,database,,,testing,');
   const expected = ['auth', 'database', 'testing'];
   
   if (JSON.stringify(result) !== JSON.stringify(expected)) {
@@ -255,12 +255,12 @@ runner.test('validateFeaturesParameter: filters out empty features', () => {
   }
 });
 
-runner.test('validateFeaturesParameter: rejects non-string types', () => {
+runner.test('validateOptionsParameter: rejects non-string types', () => {
   const invalidTypes = [123, {}, [], true, Symbol('test')];
   
   for (const invalid of invalidTypes) {
     try {
-      validateFeaturesParameter(invalid);
+      validateOptionsParameter(invalid);
       throw new Error(`Should have rejected non-string type: ${typeof invalid}`);
     } catch (error) {
       if (!(error instanceof ValidationError)) {
@@ -270,9 +270,9 @@ runner.test('validateFeaturesParameter: rejects non-string types', () => {
   }
 });
 
-runner.test('validateFeaturesParameter: rejects null bytes', () => {
+runner.test('validateOptionsParameter: rejects null bytes', () => {
   try {
-    validateFeaturesParameter('auth\0malicious');
+    validateOptionsParameter('auth\0malicious');
     throw new Error('Should have rejected null bytes');
   } catch (error) {
     if (!(error instanceof ValidationError)) {
@@ -292,7 +292,7 @@ runner.test('createEnvironmentObject: creates valid environment object', () => {
     projectName: 'test-project',
     cwd: process.cwd(),
     ide: 'kiro',
-    features: 'auth,testing'
+    options: 'auth,testing'
   };
   
   const env = createEnvironmentObject(params);
@@ -313,18 +313,18 @@ runner.test('createEnvironmentObject: creates valid environment object', () => {
     throw new Error(`Expected ide 'kiro', got '${env.ide}'`);
   }
   
-  if (!Array.isArray(env.features) || env.features.length !== 2) {
-    throw new Error(`Expected features array with 2 items, got ${JSON.stringify(env.features)}`);
+  if (!Array.isArray(env.options) || env.options.length !== 2) {
+    throw new Error(`Expected options array with 2 items, got ${JSON.stringify(env.options)}`);
   }
 });
 
-runner.test('createEnvironmentObject: handles null/undefined IDE and features', () => {
+runner.test('createEnvironmentObject: handles null/undefined IDE and options', () => {
   const params = {
     projectDirectory: 'test-project',
     projectName: 'test-project',
     cwd: process.cwd(),
     ide: null,
-    features: undefined
+    options: undefined
   };
   
   const env = createEnvironmentObject(params);
@@ -333,8 +333,8 @@ runner.test('createEnvironmentObject: handles null/undefined IDE and features', 
     throw new Error(`Expected ide null, got '${env.ide}'`);
   }
   
-  if (!Array.isArray(env.features) || env.features.length !== 0) {
-    throw new Error(`Expected empty features array, got ${JSON.stringify(env.features)}`);
+  if (!Array.isArray(env.options) || env.options.length !== 0) {
+    throw new Error(`Expected empty options array, got ${JSON.stringify(env.options)}`);
   }
 });
 
@@ -344,7 +344,7 @@ runner.test('createEnvironmentObject: creates immutable object', () => {
     projectName: 'test-project',
     cwd: process.cwd(),
     ide: 'kiro',
-    features: 'auth'
+    options: 'auth'
   };
   
   const env = createEnvironmentObject(params);
@@ -381,7 +381,7 @@ runner.test('createEnvironmentObject: validates all input parameters', () => {
       projectName: 'test',
       cwd: process.cwd(),
       ide: 'kiro',
-      features: 'auth'
+      options: 'auth'
     });
     throw new Error('Should have rejected invalid project directory');
   } catch (error) {
@@ -397,7 +397,7 @@ runner.test('createEnvironmentObject: validates all input parameters', () => {
       projectName: 'invalid/name',
       cwd: process.cwd(),
       ide: 'kiro',
-      features: 'auth'
+      options: 'auth'
     });
     throw new Error('Should have rejected invalid project name');
   } catch (error) {
@@ -413,7 +413,7 @@ runner.test('createEnvironmentObject: validates all input parameters', () => {
       projectName: 'test-project',
       cwd: process.cwd(),
       ide: 'invalid-ide',
-      features: 'auth'
+      options: 'auth'
     });
     throw new Error('Should have rejected invalid IDE');
   } catch (error) {
@@ -422,16 +422,16 @@ runner.test('createEnvironmentObject: validates all input parameters', () => {
     }
   }
   
-  // Test invalid features
+  // Test invalid options
   try {
     createEnvironmentObject({
       projectDirectory: 'test-project',
       projectName: 'test-project',
       cwd: process.cwd(),
       ide: 'kiro',
-      features: 'invalid@feature'
+      options: 'invalid@option'
     });
-    throw new Error('Should have rejected invalid features');
+    throw new Error('Should have rejected invalid options');
   } catch (error) {
     if (!(error instanceof ValidationError)) {
       throw new Error(`Expected ValidationError, got ${error.constructor.name}`);
@@ -445,7 +445,7 @@ runner.test('createEnvironmentObject: resolves paths correctly', () => {
     projectName: 'test-project',
     cwd: process.cwd(),
     ide: 'kiro',
-    features: 'auth'
+    options: 'auth'
   };
   
   const env = createEnvironmentObject(params);

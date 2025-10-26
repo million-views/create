@@ -19,11 +19,11 @@ export default async function setup(env) {
     throw new Error('Setup script must receive Environment_Object parameter');
   }
   
-  const { projectDir, projectName, ide, features } = env;
+  const { projectDir, projectName, ide, options } = env;
   
   console.log(`📁 Project: ${projectName}`);
   console.log(`🎯 IDE: ${ide || 'none specified'}`);
-  console.log(`⚡ Features: ${features?.length ? features.join(', ') : 'none'}`);
+  console.log(`⚡ Options: ${options?.length ? options.join(', ') : 'none'}`);
   
   // Create IDE-specific configuration
   if (ide) {

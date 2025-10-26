@@ -37,7 +37,7 @@ Add a `_setup.mjs` file for post-copy customization:
 export default function setup(env) {
   console.log(`Setting up ${env.projectName}...`);
   console.log(`Target IDE: ${env.ide || "none specified"}`);
-  console.log(`Features: ${env.features.join(", ") || "none"}`);
+  console.log(`Options: ${env.options.join(", ") || "none"}`);
 
   // Replace placeholders in package.json
   import("fs").then((fs) => {
@@ -64,7 +64,7 @@ The setup script receives a single `env` parameter with the following structure:
   projectName: 'my-project',                 // Sanitized project name
   cwd: '/current/working/directory',         // Current working directory
   ide: 'kiro',                              // Target IDE (kiro, vscode, cursor, windsurf) or null
-  features: ['auth', 'database', 'testing'] // Array of enabled features or empty array
+  options: ['auth', 'database', 'testing'] // Array of enabled options or empty array
 }
 ```
 
@@ -104,13 +104,13 @@ export default function setup(env) {
       );
     }
 
-    // Feature-based customization
-    if (env.features.includes("auth")) {
+    // Option-based customization
+    if (env.options.includes("auth")) {
       // Add authentication setup
       console.log("🔐 Setting up authentication...");
     }
 
-    if (env.features.includes("database")) {
+    if (env.options.includes("database")) {
       // Add database configuration
       console.log("🗄️ Setting up database...");
     }
@@ -158,11 +158,11 @@ npm create @m5nv/scaffold my-project -- --from-template react-vite --repo yourus
 # With IDE-specific customization
 npm create @m5nv/scaffold my-project -- --from-template react-vite --ide kiro --repo yourusername/your-templates
 
-# With features enabled
-npm create @m5nv/scaffold my-project -- --from-template react-vite --features "auth,database" --repo yourusername/your-templates
+# With options enabled
+npm create @m5nv/scaffold my-project -- --from-template react-vite --options "auth,database" --repo yourusername/your-templates
 
-# Combined IDE and features
-npm create @m5nv/scaffold my-project -- --from-template react-vite --ide vscode --features "auth,testing,dark-theme" --repo yourusername/your-templates
+# Combined IDE and options
+npm create @m5nv/scaffold my-project -- --from-template react-vite --ide vscode --options "auth,testing,dark-theme" --repo yourusername/your-templates
 
 # Using npx directly
 npx @m5nv/create-scaffold@latest my-project --from-template react-vite --repo yourusername/your-templates
@@ -172,7 +172,7 @@ npx @m5nv/create-scaffold@latest my-project --from-template react-vite --repo yo
 
 - Replace project name placeholders using `env.projectName`
 - Create IDE-specific configuration files based on `env.ide`
-- Enable/disable features based on `env.features` array
+- Enable/disable functionality based on `env.options` array
 - Install dependencies (`npm install`)
 - Initialize git repository
 - Create additional files
@@ -210,16 +210,16 @@ export default function setup(env) {
           console.log("No IDE-specific setup performed");
       }
 
-      // Feature-based setup
-      if (env.features.includes("auth")) {
+      // Option-based setup
+      if (env.options.includes("auth")) {
         setupAuthentication(env, fs);
       }
 
-      if (env.features.includes("database")) {
+      if (env.options.includes("database")) {
         setupDatabase(env, fs);
       }
 
-      if (env.features.includes("testing")) {
+      if (env.options.includes("testing")) {
         setupTesting(env, fs);
       }
     });
@@ -268,7 +268,7 @@ function setupVSCode(env, fs) {
 ```javascript
 export default function setup(env) {
   console.log(
-    `Setting up ${env.projectName} with features: ${env.features.join(", ")}`
+    `Setting up ${env.projectName} with options: ${env.options.join(", ")}`
   );
 
   import("fs").then((fs) => {
@@ -280,10 +280,10 @@ export default function setup(env) {
       env.projectName
     );
 
-    // Conditionally add dependencies based on features
+    // Conditionally add dependencies based on options
     const packageJson = JSON.parse(packageContent);
 
-    if (env.features.includes("auth")) {
+    if (env.options.includes("auth")) {
       packageJson.dependencies = {
         ...packageJson.dependencies,
         jsonwebtoken: "^9.0.0",
@@ -295,7 +295,7 @@ export default function setup(env) {
       console.log("🔐 Authentication setup added");
     }
 
-    if (env.features.includes("database")) {
+    if (env.options.includes("database")) {
       packageJson.dependencies = {
         ...packageJson.dependencies,
         mongoose: "^7.0.0",
@@ -306,7 +306,7 @@ export default function setup(env) {
       console.log("🗄️ Database setup added");
     }
 
-    if (env.features.includes("testing")) {
+    if (env.options.includes("testing")) {
       packageJson.devDependencies = {
         ...packageJson.devDependencies,
         vitest: "^1.0.0",

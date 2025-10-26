@@ -6,7 +6,7 @@ import {
   sanitizePath, 
   validateProjectDirectory,
   validateIdeParameter,
-  validateFeaturesParameter
+  validateOptionsParameter
 } from './security.mjs';
 
 /**
@@ -46,16 +46,16 @@ function sanitizeProjectName(projectName) {
  * @param {string} params.projectName - Project name
  * @param {string} params.cwd - Current working directory
  * @param {string|null|undefined} params.ide - IDE parameter
- * @param {string|null|undefined} params.features - Features parameter
+ * @param {string|null|undefined} params.options - Options parameter
  * @returns {Object} - Immutable Environment_Object
  * @throws {ValidationError} - If any parameter is invalid
  */
-export function createEnvironmentObject({ projectDirectory, projectName, cwd, ide, features }) {
+export function createEnvironmentObject({ projectDirectory, projectName, cwd, ide, options }) {
   // Validate and sanitize inputs (but don't resolve to absolute paths yet)
   const sanitizedProjectDir = sanitizePath(projectDirectory);
   const sanitizedProjectName = sanitizeProjectName(projectName);
   const validatedIde = validateIdeParameter(ide);
-  const validatedFeatures = validateFeaturesParameter(features);
+  const validatedOptions = validateOptionsParameter(options);
 
   // For cwd, we need to handle it differently since it's already an absolute path
   let sanitizedCwd;
@@ -74,7 +74,7 @@ export function createEnvironmentObject({ projectDirectory, projectName, cwd, id
     projectName: sanitizedProjectName,
     cwd: sanitizedCwd,
     ide: validatedIde,
-    features: validatedFeatures
+    options: validatedOptions
   };
 
   // Implement Object.freeze for immutability

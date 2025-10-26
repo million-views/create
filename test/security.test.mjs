@@ -1,14 +1,14 @@
 #!/usr/bin/env node
 
 /**
- * Security validation tests for new IDE and features parameters
+ * Security validation tests for new IDE and options parameters
  * Tests path traversal prevention, input sanitization, and validation edge cases
  * Verifies no system environment variable exposure
  */
 
 import { 
   validateIdeParameter,
-  validateFeaturesParameter,
+  validateOptionsParameter,
   validateAllInputs,
   ValidationError 
 } from '../bin/security.mjs';
@@ -165,9 +165,9 @@ runner.test('IDE parameter: handles edge cases safely', () => {
   }
 });
 
-// ===== Features Parameter Security Tests =====
+// ===== Options Parameter Security Tests =====
 
-runner.test('Features parameter: prevents path traversal in feature names', () => {
+runner.test('Options parameter: prevents path traversal in option names', () => {
   const pathTraversalAttempts = [
     '../auth',
     '../../database',
@@ -182,20 +182,20 @@ runner.test('Features parameter: prevents path traversal in feature names', () =
 
   for (const attempt of pathTraversalAttempts) {
     try {
-      validateFeaturesParameter(attempt);
+      validateOptionsParameter(attempt);
       throw new Error(`Should have rejected path traversal attempt: ${attempt}`);
     } catch (error) {
       if (!(error instanceof ValidationError)) {
         throw new Error(`Expected ValidationError for ${attempt}, got ${error.constructor.name}`);
       }
-      if (!error.message.includes('Invalid feature name')) {
-        throw new Error(`Expected feature validation error for ${attempt}, got: ${error.message}`);
+      if (!error.message.includes('Invalid option name')) {
+        throw new Error(`Expected option validation error for ${attempt}, got: ${error.message}`);
       }
     }
   }
 });
 
-runner.test('Features parameter: prevents injection attacks in feature names', () => {
+runner.test('Options parameter: prevents injection attacks in option names', () => {
   const injectionAttempts = [
     'auth; rm -rf /',
     'auth && malicious',
@@ -212,20 +212,20 @@ runner.test('Features parameter: prevents injection attacks in feature names', (
 
   for (const attempt of injectionAttempts) {
     try {
-      validateFeaturesParameter(attempt);
+      validateOptionsParameter(attempt);
       throw new Error(`Should have rejected injection attempt: ${attempt}`);
     } catch (error) {
       if (!(error instanceof ValidationError)) {
         throw new Error(`Expected ValidationError for ${attempt}, got ${error.constructor.name}`);
       }
-      if (!error.message.includes('Invalid feature name')) {
-        throw new Error(`Expected feature validation error for ${attempt}, got: ${error.message}`);
+      if (!error.message.includes('Invalid option name')) {
+        throw new Error(`Expected option validation error for ${attempt}, got: ${error.message}`);
       }
     }
   }
 });
 
-runner.test('Features parameter: prevents null byte injection', () => {
+runner.test('Options parameter: prevents null byte injection', () => {
   const nullByteAttempts = [
     'auth\0',
     '\0auth',
@@ -237,7 +237,7 @@ runner.test('Features parameter: prevents null byte injection', () => {
 
   for (const attempt of nullByteAttempts) {
     try {
-      validateFeaturesParameter(attempt);
+      validateOptionsParameter(attempt);
       throw new Error(`Should have rejected null byte injection: ${JSON.stringify(attempt)}`);
     } catch (error) {
       if (!(error instanceof ValidationError)) {
@@ -250,7 +250,7 @@ runner.test('Features parameter: prevents null byte injection', () => {
   }
 });
 
-runner.test('Features parameter: handles malicious feature combinations', () => {
+runner.test('Options parameter: handles malicious option combinations', () => {
   const maliciousCombinations = [
     'auth,@malicious,database', // Special characters
     'auth,feature@evil.com,database', // Email-like injection
@@ -264,57 +264,57 @@ runner.test('Features parameter: handles malicious feature combinations', () => 
 
   for (const combination of maliciousCombinations) {
     try {
-      validateFeaturesParameter(combination);
+      validateOptionsParameter(combination);
       throw new Error(`Should have rejected malicious combination: ${combination}`);
     } catch (error) {
       if (!(error instanceof ValidationError)) {
         throw new Error(`Expected ValidationError for ${combination}, got ${error.constructor.name}`);
       }
-      if (!error.message.includes('Invalid feature name')) {
-        throw new Error(`Expected feature validation error for ${combination}, got: ${error.message}`);
+      if (!error.message.includes('Invalid option name')) {
+        throw new Error(`Expected option validation error for ${combination}, got: ${error.message}`);
       }
     }
   }
 });
 
-runner.test('Features parameter: prevents resource exhaustion attacks', () => {
-  // Test very long feature names
-  const longFeature = 'a'.repeat(1000);
+runner.test('Options parameter: prevents resource exhaustion attacks', () => {
+  // Test very long option names
+  const longOption = 'a'.repeat(1000);
   try {
-    validateFeaturesParameter(longFeature);
-    throw new Error('Should have rejected overly long feature name');
+    validateOptionsParameter(longOption);
+    throw new Error('Should have rejected overly long option name');
   } catch (error) {
     if (!(error instanceof ValidationError)) {
       throw new Error(`Expected ValidationError for long feature, got ${error.constructor.name}`);
     }
   }
 
-  // Test many features - this should succeed but we'll just verify it doesn't crash
-  const manyFeatures = Array(100).fill('auth').join(',');
+  // Test many options - this should succeed but we'll just verify it doesn't crash
+  const manyOptions = Array(100).fill('auth').join(',');
   try {
-    const result = validateFeaturesParameter(manyFeatures);
-    // Should succeed and return the features
+    const result = validateOptionsParameter(manyOptions);
+    // Should succeed and return the options
     if (!Array.isArray(result)) {
-      throw new Error(`Expected array result for many features, got ${typeof result}`);
+      throw new Error(`Expected array result for many options, got ${typeof result}`);
     }
   } catch (error) {
     // ValidationError is acceptable for resource limits
     if (!(error instanceof ValidationError)) {
-      throw new Error(`Expected ValidationError or success for many features, got ${error.constructor.name}`);
+      throw new Error(`Expected ValidationError or success for many options, got ${error.constructor.name}`);
     }
   }
 });
 
 // ===== validateAllInputs Security Tests =====
 
-runner.test('validateAllInputs: handles IDE and features parameters securely', () => {
+runner.test('validateAllInputs: handles IDE and options parameters securely', () => {
   const testInputs = {
     projectDirectory: 'test-project',
     template: 'react',
     repo: 'user/repo',
     branch: 'main',
     ide: 'kiro',
-    features: 'auth,database,testing'
+    options: 'auth,database,testing'
   };
 
   const result = validateAllInputs(testInputs);
@@ -323,12 +323,12 @@ runner.test('validateAllInputs: handles IDE and features parameters securely', (
     throw new Error(`Expected IDE 'kiro', got ${result.ide}`);
   }
   
-  if (!Array.isArray(result.features) || result.features.length !== 3) {
-    throw new Error(`Expected 3 features, got ${JSON.stringify(result.features)}`);
+  if (!Array.isArray(result.options) || result.options.length !== 3) {
+    throw new Error(`Expected 3 options, got ${JSON.stringify(result.options)}`);
   }
   
-  if (!result.features.includes('auth') || !result.features.includes('database') || !result.features.includes('testing')) {
-    throw new Error(`Missing expected features in ${JSON.stringify(result.features)}`);
+  if (!result.options.includes('auth') || !result.options.includes('database') || !result.options.includes('testing')) {
+    throw new Error(`Missing expected options in ${JSON.stringify(result.options)}`);
   }
 });
 
@@ -339,7 +339,7 @@ runner.test('validateAllInputs: accumulates multiple validation errors', () => {
     repo: 'javascript:alert("xss")',
     branch: 'main; rm -rf /',
     ide: 'evil-ide',
-    features: 'auth,../malicious,database'
+    options: 'auth,../malicious,database'
   };
 
   try {
@@ -412,17 +412,17 @@ runner.test('Parameters do not expose system environment variables', () => {
       }
     }
 
-    // Test features parameter
+    // Test options parameter
     try {
-      const featuresResult = validateFeaturesParameter(attempt);
-      for (const feature of featuresResult) {
-        if (feature.includes('/') || feature.includes('\\')) {
-          throw new Error(`Features parameter may have exposed environment variable: ${feature}`);
+      const optionsResult = validateOptionsParameter(attempt);
+      for (const option of optionsResult) {
+        if (option.includes('/') || option.includes('\\')) {
+          throw new Error(`Options parameter may have exposed environment variable: ${option}`);
         }
       }
     } catch (error) {
       if (!(error instanceof ValidationError)) {
-        throw new Error(`Unexpected error type for features env var test: ${error.constructor.name}`);
+        throw new Error(`Unexpected error type for options env var test: ${error.constructor.name}`);
       }
     }
   }
@@ -454,13 +454,13 @@ runner.test('Validation functions do not leak system information', () => {
       }
     }
 
-    // Test features parameter - should reject all system paths
+    // Test options parameter - should reject all system paths
     try {
-      validateFeaturesParameter(attempt);
-      throw new Error(`Features parameter should have rejected system path attempt: ${attempt}`);
+      validateOptionsParameter(attempt);
+      throw new Error(`Options parameter should have rejected system path attempt: ${attempt}`);
     } catch (error) {
       if (!(error instanceof ValidationError)) {
-        throw new Error(`Expected ValidationError for features system path test, got ${error.constructor.name}: ${error.message}`);
+        throw new Error(`Expected ValidationError for options system path test, got ${error.constructor.name}: ${error.message}`);
       }
     }
   }
@@ -477,13 +477,13 @@ runner.test('Validation functions do not leak system information', () => {
       }
     }
 
-    // Test features parameter - should reject IP addresses
+    // Test options parameter - should reject IP addresses
     try {
-      validateFeaturesParameter(attempt);
-      throw new Error(`Features parameter should have rejected IP address: ${attempt}`);
+      validateOptionsParameter(attempt);
+      throw new Error(`Options parameter should have rejected IP address: ${attempt}`);
     } catch (error) {
       if (!(error instanceof ValidationError)) {
-        throw new Error(`Expected ValidationError for features IP test, got ${error.constructor.name}: ${error.message}`);
+        throw new Error(`Expected ValidationError for options IP test, got ${error.constructor.name}: ${error.message}`);
       }
     }
   }
@@ -513,13 +513,13 @@ runner.test('Input sanitization handles Unicode and encoding attacks', () => {
       }
     }
 
-    // Test features parameter
+    // Test options parameter
     try {
-      validateFeaturesParameter(attempt);
-      throw new Error(`Features parameter should have rejected Unicode attack: ${JSON.stringify(attempt)}`);
+      validateOptionsParameter(attempt);
+      throw new Error(`Options parameter should have rejected Unicode attack: ${JSON.stringify(attempt)}`);
     } catch (error) {
       if (!(error instanceof ValidationError)) {
-        throw new Error(`Expected ValidationError for features Unicode test, got ${error.constructor.name}: ${error.message}`);
+        throw new Error(`Expected ValidationError for options Unicode test, got ${error.constructor.name}: ${error.message}`);
       }
     }
   }

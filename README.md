@@ -15,11 +15,11 @@ npm create @m5nv/scaffold my-app -- --from-template react-vite
 # Create with IDE-specific customization
 npm create @m5nv/scaffold my-app -- --from-template react-vite --ide kiro
 
-# Create with specific features enabled
-npm create @m5nv/scaffold my-app -- --from-template react-vite --features "auth,database,testing"
+# Create with specific options enabled
+npm create @m5nv/scaffold my-app -- --from-template react-vite --options "auth,database,testing"
 
-# Create with both IDE and features
-npm create @m5nv/scaffold my-app -- --from-template react-vite --ide vscode --features "auth,uploads"
+# Create with both IDE and options
+npm create @m5nv/scaffold my-app -- --from-template react-vite --ide vscode --options "auth,uploads"
 
 # Create from custom repository
 npm create @m5nv/scaffold my-api -- --from-template express --repo myorg/templates
@@ -52,7 +52,7 @@ This pattern allows for a clean, semantic command structure where `npm create @m
 | `--repo, -r`     | Repository (default: `million-views/templates`) |
 | `--branch, -b`   | Git branch                                      |
 | `--ide, -i`      | Target IDE (kiro, vscode, cursor, windsurf)    |
-| `--features, -f` | Comma-separated feature list                    |
+| `--options, -o`  | Comma-separated option list                     |
 | `--list-templates` | Display available templates from repository    |
 | `--dry-run`      | Preview operations without executing them       |
 | `--log-file`     | Enable detailed logging to specified file      |
@@ -88,17 +88,17 @@ npm create @m5nv/scaffold cursor-project -- --from-template react-vite --ide cur
 npm create @m5nv/scaffold windsurf-project -- --from-template react-vite --ide windsurf
 ```
 
-### Feature-Based Customization
+### Option-Based Customization
 
 ```bash
-# Enable authentication features
-npm create @m5nv/scaffold auth-app -- --from-template react-vite --features "auth"
+# Enable authentication options
+npm create @m5nv/scaffold auth-app -- --from-template react-vite --options "auth"
 
-# Enable multiple features
-npm create @m5nv/scaffold full-app -- --from-template react-vite --features "auth,database,testing"
+# Enable multiple options
+npm create @m5nv/scaffold full-app -- --from-template react-vite --options "auth,database,testing"
 
 # Enable file upload capabilities
-npm create @m5nv/scaffold upload-app -- --from-template react-vite --features "file-upload,image-processing"
+npm create @m5nv/scaffold upload-app -- --from-template react-vite --options "file-upload,image-processing"
 ```
 
 ### Combined Usage
@@ -108,13 +108,13 @@ npm create @m5nv/scaffold upload-app -- --from-template react-vite --features "f
 npm create @m5nv/scaffold enterprise-app -- \
   --from-template react-vite \
   --ide kiro \
-  --features "auth,database,testing,monitoring"
+  --options "auth,database,testing,monitoring"
 
-# Create API with specific IDE and features
+# Create API with specific IDE and options
 npm create @m5nv/scaffold api-server -- \
   --from-template express \
   --ide vscode \
-  --features "auth,database,swagger"
+  --options "auth,database,swagger"
 ```
 
 ### Custom Repositories
@@ -189,10 +189,10 @@ npm create @m5nv/scaffold -- --list-templates --log-file discovery.log
 - **Cursor**: Opt for AI-powered development workflow optimizations
 - **Windsurf**: Use for collaborative development environment setup
 
-### Feature Planning
-- Start with core features: `auth`, `database`
+### Option Planning
+- Start with core options: `auth`, `database`
 - Add development tools: `testing`, `linting`, `formatting`
-- Include deployment features: `docker`, `ci-cd`
+- Include deployment options: `docker`, `ci-cd`
 - Consider monitoring: `logging`, `analytics`, `monitoring`
 
 ### Template Selection

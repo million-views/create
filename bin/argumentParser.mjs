@@ -7,7 +7,7 @@ import {
   validateRepoUrl, 
   sanitizeBranchName,
   validateIdeParameter,
-  validateFeaturesParameter,
+  validateOptionsParameter,
   validateLogFilePath,
   validateCacheTtl,
   ValidationError 
@@ -41,10 +41,10 @@ export function parseArguments(argv = process.argv.slice(2)) {
         short: 'i',
         description: 'Target IDE (kiro, vscode, cursor, windsurf)'
       },
-      features: {
+      options: {
         type: 'string',
-        short: 'f',
-        description: 'Comma-separated list of features to enable'
+        short: 'o',
+        description: 'Comma-separated list of options to enable'
       },
       'log-file': {
         type: 'string',
@@ -90,7 +90,7 @@ export function parseArguments(argv = process.argv.slice(2)) {
       repo: values.repo,
       branch: values.branch,
       ide: values.ide,
-      features: values.features,
+      options: values.options,
       logFile: values['log-file'],
       listTemplates: values['list-templates'],
       dryRun: values['dry-run'],
@@ -177,9 +177,9 @@ export function validateArguments(args) {
     handleValidationError(validateIdeParameter, args.ide, errors, 'IDE parameter validation failed');
   }
 
-  // Validate features parameter if provided
-  if (args.features) {
-    handleValidationError(validateFeaturesParameter, args.features, errors, 'Features parameter validation failed');
+  // Validate options parameter if provided
+  if (args.options) {
+    handleValidationError(validateOptionsParameter, args.options, errors, 'Options parameter validation failed');
   }
 
   // Validate log file path if provided
@@ -229,8 +229,11 @@ OPTIONS:
   -b, --branch <branch>  Git branch to use (default: main/master)
   -i, --ide <ide>        Target IDE for template customization
                          Supported: kiro, vscode, cursor, windsurf
-  -f, --features <list>  Comma-separated list of features to enable
-                         Example: auth,database,testing
+  -o, --options <list>   Comma-separated contextual options for template customization
+                         Templates use these to adapt behavior to your specific needs
+                         Common options: monorepo, no-git, mvp, prototype, typescript,
+                         minimal, full-featured, testing-focused, ci-ready, docker-ready
+                         Example: --options monorepo,no-git,mvp
 
 PERFORMANCE & CACHING:
       --no-cache         Bypass cache system and clone directly from remote
@@ -258,15 +261,17 @@ EXAMPLES:
     # Use a custom repository
     npm create @m5nv/scaffold my-app -- --from-template nextjs --repo custom-user/templates
 
-  IDE & Features:
+  IDE & Options:
     # Create project with IDE-specific customization
     npm create @m5nv/scaffold my-app -- --from-template react --ide kiro
 
-    # Enable specific features
-    npm create @m5nv/scaffold my-app -- --from-template fullstack --features auth,database,testing
+    # Contextual options for different scenarios
+    npm create @m5nv/scaffold my-app -- --from-template react --options monorepo,no-git,typescript
+    npm create @m5nv/scaffold my-api -- --from-template fastify --options mvp,minimal,testing-focused
+    npm create @m5nv/scaffold my-lib -- --from-template library --options prototype,ci-ready,docker-ready
 
-    # Combine IDE and features
-    npm create @m5nv/scaffold my-app -- --from-template react --ide vscode --features auth,testing
+    # Combine IDE and contextual options
+    npm create @m5nv/scaffold my-app -- --from-template react --ide vscode --options full-featured,typescript
 
   Template Discovery:
     # List available templates from default repository
@@ -310,6 +315,34 @@ TEMPLATE REPOSITORIES:
   - Templates are cached locally for faster subsequent operations
   - Cache entries expire after 24 hours by default
   - Use --no-cache to bypass cache and get latest version
+
+CONTEXTUAL OPTIONS:
+  The --options parameter enables template customization based on your specific
+  context and preferences. Templates can use these hints to:
+  
+  Project Stage Options:
+    poc          - Proof of concept setup with minimal dependencies
+    prototype    - Prototype development with rapid iteration focus
+    mvp          - Minimum viable product with essential functionality only
+    production   - Production-ready setup with full tooling
+  
+  Environment Context:
+    monorepo     - Part of a monorepo structure (affects paths, configs)
+    standalone   - Standalone project (full independent setup)
+    existing-project - Adding to existing codebase (minimal conflicts)
+  
+  Development Preferences:
+    no-git       - Skip git initialization and related setup
+    minimal      - Minimal dependencies and configuration
+    full-featured - Include all available functionality and tooling
+    typescript   - TypeScript-focused configuration and dependencies
+    testing-focused - Comprehensive test setup and utilities
+    ci-ready     - Include CI/CD configuration files
+    docker-ready - Include Docker configuration and setup
+  
+  Templates define their own option vocabularies, so check template
+  documentation for supported options. Options are passed to setup
+  scripts as an array for custom processing.
 
 SETUP SCRIPTS:
   Templates may include a _setup.mjs file that runs after copying.

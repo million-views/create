@@ -176,9 +176,9 @@ async function main() {
     const repoUrl = validatedInputs.repo;
     const branchName = validatedInputs.branch;
     
-    // Extract ide and features from validated arguments
+    // Extract ide and options from validated arguments
     const ide = args.ide;
-    const features = args.features;
+    const options = args.options;
 
     // Run comprehensive preflight checks
     await runAllPreflightChecks(args, repoUrl);
@@ -212,7 +212,7 @@ async function main() {
     tempDir = null; // Mark as cleaned up
 
     // Execute setup script if it exists
-    await executeSetupScript(projectDirectory, projectDirectory, ide, features, logger);
+    await executeSetupScript(projectDirectory, projectDirectory, ide, options, logger);
 
     console.log('\n✅ Project created successfully!');
     console.log(`\n📂 Next steps:`);
@@ -495,7 +495,7 @@ async function copyRecursive(src, dest, logger) {
 /**
  * Execute optional setup script if it exists
  */
-async function executeSetupScript(projectDirectory, projectName, ide, features, logger) {
+async function executeSetupScript(projectDirectory, projectName, ide, options, logger) {
   const setupScriptPath = path.join(projectDirectory, SETUP_SCRIPT);
 
   // Check if setup script exists
@@ -511,7 +511,7 @@ async function executeSetupScript(projectDirectory, projectName, ide, features, 
       setupScriptPath,
       projectDirectory,
       ide,
-      features
+      options
     });
   }
 
@@ -529,7 +529,7 @@ async function executeSetupScript(projectDirectory, projectName, ide, features, 
       projectName,
       cwd: process.cwd(),
       ide,
-      features
+      options
     });
 
     // Validate that setup script exports a default function

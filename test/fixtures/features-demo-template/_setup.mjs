@@ -19,32 +19,33 @@ export default async function setup(env) {
     throw new Error('Setup script must receive Environment_Object parameter');
   }
   
-  const { projectDir, projectName, ide, features } = env;
+  const { projectDir, projectName, ide, options } = env;
   
   console.log(`📁 Project: ${projectName}`);
   console.log(`🎯 IDE: ${ide || 'none specified'}`);
-  console.log(`⚡ Features: ${features?.length ? features.join(', ') : 'none'}`);
+  console.log(`⚡ Options: ${options?.length ? options.join(', ') : 'none'}`);
   
-  // Create feature-specific modules
-  if (features && features.length > 0) {
-    await createFeatureModules(projectDir, features);
+  // Create option-specific modules
+  if (options && options.length > 0) {
+    await createFeatureModules(projectDir, options);
   } else {
-    console.log('ℹ️  No features specified, using basic setup');
+    console.log('ℹ️  No options specified, using basic setup');
   }
   
-  // Update package.json with feature information
-  await updatePackageJson(projectDir, features);
+  // Update package.json with option information
+  await updatePackageJson(projectDir, options);
   
-  console.log('✅ Features setup completed successfully!');
-}/**
- * C
-reates feature-specific modules and files
+  console.log('✅ Options setup completed successfully!');
+}
+
+/**
+ * Creates option-specific modules and files
  */
-async function createFeatureModules(projectDir, features) {
+async function createFeatureModules(projectDir, options) {
   const srcDir = path.join(projectDir, 'src');
   await fs.mkdir(srcDir, { recursive: true });
   
-  for (const feature of features) {
+  for (const option of options) {
     switch (feature.toLowerCase()) {
       case 'auth':
         await createAuthFeature(projectDir);
@@ -65,7 +66,7 @@ async function createFeatureModules(projectDir, features) {
         await createConfigFeature(projectDir);
         break;
       default:
-        console.log(`⚠️  Unknown feature: ${feature}, skipping`);
+        console.log(`⚠️  Unknown option: ${option}, skipping`);
     }
   }
 }
@@ -753,30 +754,30 @@ export default ConfigManager;
 }
 
 /**
- * Updates package.json with feature information
+ * Updates package.json with option information
  */
-async function updatePackageJson(projectDir, features) {
+async function updatePackageJson(projectDir, options) {
   const packageJsonPath = path.join(projectDir, 'package.json');
   
   try {
     const packageContent = await fs.readFile(packageJsonPath, 'utf8');
     const packageJson = JSON.parse(packageContent);
     
-    // Add feature information to package.json
-    packageJson.features = {
-      enabled: features || [],
+    // Add option information to package.json
+    packageJson.options = {
+      enabled: options || [],
       configuredAt: new Date().toISOString()
     };
     
-    // Add feature-specific dependencies and scripts
-    if (features && features.length > 0) {
+    // Add option-specific dependencies and scripts
+    if (options && options.length > 0) {
       packageJson.scripts = packageJson.scripts || {};
       
-      if (features.includes('testing')) {
+      if (options.includes('testing')) {
         packageJson.scripts.test = 'node tests/example.test.js';
       }
       
-      if (features.includes('api')) {
+      if (options.includes('api')) {
         packageJson.scripts.api = 'node src/api/server.js';
       }
     }
@@ -786,7 +787,7 @@ async function updatePackageJson(projectDir, features) {
       JSON.stringify(packageJson, null, 2)
     );
     
-    console.log('📦 Updated package.json with feature information');
+    console.log('📦 Updated package.json with option information');
   } catch (error) {
     console.warn('⚠️  Could not update package.json:', error.message);
   }

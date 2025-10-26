@@ -551,57 +551,57 @@ export function validateIdeParameter(ide) {
 }
 
 /**
- * Validate features parameter with parsing and validation
- * @param {string|null|undefined} features - Features parameter value
- * @returns {string[]} - Array of validated feature names or empty array
- * @throws {ValidationError} - If features parameter is invalid
+ * Validate options parameter with parsing and validation
+ * @param {string|null|undefined} options - Options parameter value
+ * @returns {string[]} - Array of validated option names or empty array
+ * @throws {ValidationError} - If options parameter is invalid
  */
-export function validateFeaturesParameter(features) {
+export function validateOptionsParameter(options) {
   // Return empty array for undefined, null, or empty values
-  if (features === undefined || features === null) {
+  if (options === undefined || options === null) {
     return [];
   }
 
-  if (typeof features !== 'string') {
-    throw new ValidationError('Features parameter must be a string', 'features');
+  if (typeof options !== 'string') {
+    throw new ValidationError('Options parameter must be a string', 'options');
   }
 
   // Remove any null bytes
-  if (features.includes('\0')) {
-    throw new ValidationError('Features parameter contains null bytes', 'features');
+  if (options.includes('\0')) {
+    throw new ValidationError('Options parameter contains null bytes', 'options');
   }
 
-  const trimmedFeatures = features.trim();
+  const trimmedOptions = options.trim();
   
   // Return empty array for empty strings
-  if (!trimmedFeatures) {
+  if (!trimmedOptions) {
     return [];
   }
 
-  // Parse comma-separated feature names
-  const featureList = trimmedFeatures.split(',').map(f => f.trim()).filter(f => f.length > 0);
+  // Parse comma-separated option names
+  const optionList = trimmedOptions.split(',').map(f => f.trim()).filter(f => f.length > 0);
   
-  // Regex validation for feature names (alphanumeric, hyphens, underscores)
-  const validFeaturePattern = /^[a-zA-Z0-9_-]+$/;
+  // Regex validation for option names (alphanumeric, hyphens, underscores)
+  const validOptionPattern = /^[a-zA-Z0-9_-]+$/;
   
-  for (const feature of featureList) {
-    if (!validFeaturePattern.test(feature)) {
+  for (const option of optionList) {
+    if (!validOptionPattern.test(option)) {
       throw new ValidationError(
-        `Invalid feature name: "${feature}". Feature names must contain only letters, numbers, hyphens, and underscores`,
-        'features'
+        `Invalid option name: "${option}". Option names must contain only letters, numbers, hyphens, and underscores`,
+        'options'
       );
     }
     
-    // Check feature name length
-    if (feature.length > 50) {
+    // Check option name length
+    if (option.length > 50) {
       throw new ValidationError(
-        `Feature name too long: "${feature}". Maximum 50 characters allowed`,
-        'features'
+        `Option name too long: "${option}". Maximum 50 characters allowed`,
+        'options'
       );
     }
   }
 
-  return featureList;
+  return optionList;
 }
 
 /**
@@ -743,8 +743,8 @@ export function validateAllInputs(inputs) {
   }
 
   try {
-    if (inputs.features !== undefined) {
-      validated.features = validateFeaturesParameter(inputs.features);
+    if (inputs.options !== undefined) {
+      validated.options = validateOptionsParameter(inputs.options);
     }
   } catch (error) {
     errors.push(error.message);

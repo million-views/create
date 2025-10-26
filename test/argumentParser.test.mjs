@@ -77,10 +77,10 @@ runner.test('parseArguments: parses -i short flag for IDE', () => {
   }
 });
 
-runner.test('parseArguments: parses --features argument', () => {
-  const result = parseArguments(['test-project', '--from-template', 'basic', '--features', 'auth,testing']);
+runner.test('parseArguments: parses --options argument', () => {
+  const result = parseArguments(['test-project', '--from-template', 'basic', '--options', 'auth,testing']);
   
-  if (result.features !== 'auth,testing') {
+  if (result.options !== 'auth,testing') {
     throw new Error(`Expected features 'auth,testing', got '${result.features}'`);
   }
 });
@@ -98,7 +98,7 @@ runner.test('parseArguments: handles both new arguments together', () => {
     'test-project', 
     '--from-template', 'basic', 
     '--ide', 'cursor', 
-    '--features', 'auth,database,testing'
+    '--options', 'auth,database,testing'
   ]);
   
   if (result.ide !== 'cursor') {
@@ -216,42 +216,42 @@ runner.test('validateArguments: validates valid feature names', () => {
     const args = {
       projectDirectory: 'test-project',
       template: 'basic',
-      features: features
+      options: features
     };
     
     const result = validateArguments(args);
     if (!result.isValid) {
-      throw new Error(`Valid features '${features}' were rejected: ${result.errors.join(', ')}`);
+      throw new Error(`Valid options '${features}' were rejected: ${result.errors.join(', ')}`);
     }
   }
 });
 
-runner.test('validateArguments: rejects invalid feature names', () => {
-  const invalidFeatures = [
-    'feature@invalid',
-    'feature with spaces',
-    'feature.with.dots',
-    'feature/with/slashes',
-    'feature:with:colons'
+runner.test('validateArguments: rejects invalid option names', () => {
+  const invalidOptions = [
+    'option@invalid',
+    'option with spaces',
+    'option.with.dots',
+    'option/with/slashes',
+    'option:with:colons'
   ];
   
-  for (const features of invalidFeatures) {
+  for (const options of invalidOptions) {
     const args = {
       projectDirectory: 'test-project',
       template: 'basic',
-      features: features
+      options: options
     };
     
     const result = validateArguments(args);
     if (result.isValid) {
-      throw new Error(`Invalid features '${features}' were accepted`);
+      throw new Error(`Invalid options '${options}' were accepted`);
     }
     
-    const hasFeatureError = result.errors.some(error => 
-      error.includes('Invalid feature name') || error.includes('alphanumeric')
+    const hasOptionError = result.errors.some(error => 
+      error.includes('Invalid option name') || error.includes('alphanumeric')
     );
-    if (!hasFeatureError) {
-      throw new Error(`Expected feature validation error for '${features}', got: ${result.errors.join(', ')}`);
+    if (!hasOptionError) {
+      throw new Error(`Expected option validation error for '${options}', got: ${result.errors.join(', ')}`);
     }
   }
 });
@@ -283,12 +283,12 @@ runner.test('validateArguments: allows undefined IDE and features', () => {
   const args = {
     projectDirectory: 'test-project',
     template: 'basic'
-    // ide and features are undefined
+    // ide and options are undefined
   };
   
   const result = validateArguments(args);
   if (!result.isValid) {
-    throw new Error(`Should accept undefined IDE and features: ${result.errors.join(', ')}`);
+    throw new Error(`Should accept undefined IDE and options: ${result.errors.join(', ')}`);
   }
 });
 
@@ -320,7 +320,7 @@ runner.test('validateArguments: combines multiple validation errors', () => {
     projectDirectory: '../invalid',
     template: '../invalid-template',
     ide: 'invalid-ide',
-    features: 'invalid@feature'
+    options: 'invalid@option'
   };
   
   const result = validateArguments(args);
@@ -347,11 +347,11 @@ runner.test('generateHelpText: includes --ide argument', () => {
   }
 });
 
-runner.test('generateHelpText: includes --features argument', () => {
+runner.test('generateHelpText: includes --options argument', () => {
   const helpText = generateHelpText();
   
-  if (!helpText.includes('--features')) {
-    throw new Error('Help text should include --features argument');
+  if (!helpText.includes('--options')) {
+    throw new Error('Help text should include --options argument');
   }
   
   if (!helpText.includes('-f,')) {
@@ -377,8 +377,8 @@ runner.test('generateHelpText: includes usage examples with new arguments', () =
     throw new Error('Help text should include usage examples with --ide');
   }
   
-  if (!helpText.includes('--features')) {
-    throw new Error('Help text should include usage examples with --features');
+  if (!helpText.includes('--options')) {
+    throw new Error('Help text should include usage examples with --options');
   }
 });
 
