@@ -3,7 +3,7 @@
 import { spawn } from 'child_process';
 import fs from 'fs/promises';
 import path from 'path';
-import { sanitizeErrorMessage, getPackageName, generateInstallationInstructions, validatePackageIdentity } from './security.mjs';
+import { sanitizeErrorMessage, getPackageName, validatePackageIdentity } from './security.mjs';
 
 /**
  * Comprehensive preflight checks module
