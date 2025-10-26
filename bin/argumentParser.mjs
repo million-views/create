@@ -18,7 +18,7 @@ import {
 export function parseArguments(argv = process.argv.slice(2)) {
   try {
     const options = {
-      template: {
+      'from-template': {
         type: 'string',
         short: 't',
         description: 'Template name to use for scaffolding'
@@ -63,7 +63,7 @@ export function parseArguments(argv = process.argv.slice(2)) {
     // Return parsed arguments in expected format
     return {
       projectDirectory,
-      template: values.template,
+      template: values['from-template'],
       repo: values.repo,
       branch: values.branch,
       ide: values.ide,
@@ -118,7 +118,7 @@ export function validateArguments(args) {
 
   // Validate required template flag
   if (!args.template) {
-    errors.push('--template flag is required');
+    errors.push('--from-template flag is required');
   } else {
     try {
       validateTemplateName(args.template);
@@ -195,17 +195,17 @@ export function validateArguments(args) {
  */
 export function generateHelpText() {
   return `
-@m5nv/create - Project scaffolding CLI for Million Views templates
+@m5nv/create-scaffold - Project scaffolding CLI for Million Views templates
 
 USAGE:
-  npm create @m5nv/create <project-directory> -- --template <template-name> [options]
-  npx @m5nv/create@1.0.0 <project-directory> --template <template-name> [options]
+  npm create @m5nv/scaffold <project-directory> -- --from-template <template-name> [options]
+  npx @m5nv/create-scaffold@latest <project-directory> --from-template <template-name> [options]
 
 ARGUMENTS:
   <project-directory>    Name of the directory to create for your project
 
 OPTIONS:
-  -t, --template <name>  Template name to use for scaffolding (required)
+  -t, --from-template <name>  Template name to use for scaffolding (required)
   -r, --repo <repo>      Repository URL or user/repo format
                          Default: million-views/templates
                          Examples: 
@@ -221,25 +221,22 @@ OPTIONS:
 
 EXAMPLES:
   # Create a new React project using the default repository
-  npm create @m5nv/create my-app -- --template react
+  npm create @m5nv/scaffold my-app -- --from-template react
 
   # Use a custom repository
-  npm create @m5nv/create my-app -- --template nextjs --repo custom-user/templates
+  npm create @m5nv/scaffold my-app -- --from-template nextjs --repo custom-user/templates
 
   # Create project with IDE-specific customization
-  npm create @m5nv/create my-app -- --template react --ide kiro
+  npm create @m5nv/scaffold my-app -- --from-template react --ide kiro
 
   # Enable specific features
-  npm create @m5nv/create my-app -- --template fullstack --features auth,database,testing
+  npm create @m5nv/scaffold my-app -- --from-template fullstack --features auth,database,testing
 
   # Combine IDE and features
-  npm create @m5nv/create my-app -- --template react --ide vscode --features auth,testing
-
-  # Use a specific version
-  npm create @m5nv/create@1.0.0 my-app -- --template vue --branch development
+  npm create @m5nv/scaffold my-app -- --from-template react --ide vscode --features auth,testing
 
   # Using npx directly
-  npx @m5nv/create@1.0.0 my-app --template react --repo user/templates
+  npx @m5nv/create-scaffold@latest my-app --from-template react --repo user/templates
 
 TEMPLATE REPOSITORIES:
   Templates are organized as subdirectories within git repositories.

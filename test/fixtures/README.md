@@ -1,6 +1,6 @@
 # Test Fixtures
 
-This directory contains test fixtures for the @m5nv/create CLI tool, including example templates that demonstrate the new Environment_Object interface for setup scripts.
+This directory contains test fixtures for the @m5nv/create-scaffold CLI tool, including example templates that demonstrate the new Environment_Object interface for setup scripts.
 
 ## Template Structure
 

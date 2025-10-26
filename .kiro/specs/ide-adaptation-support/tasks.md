@@ -41,6 +41,7 @@
 
   - Add --ide/-i argument with string type
   - Add --features/-f argument with string type
+  - Add --from-template/-t argument (rename from --template)
   - Update argument configuration object
   - _Requirements: 1.1, 2.1_
 
@@ -54,6 +55,7 @@
 - [x] 4.3 Update help text generation
 
   - Add --ide and --features to generateHelpText function
+  - Update --template to --from-template in help text
   - Include usage examples with new arguments
   - Document supported IDE values and feature format
   - _Requirements: 6.1, 6.2_
@@ -128,6 +130,7 @@
 - [x] 8.1 Update README.md with new CLI usage examples
 
   - Add examples showing --ide and --features usage
+  - Update examples to use --from-template instead of --template
   - Include common use cases and best practices
   - Update installation and usage sections
   - _Requirements: 6.1, 6.2_

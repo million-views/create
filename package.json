@@ -1,11 +1,11 @@
 {
-    "name": "@m5nv/create",
+    "name": "@m5nv/create-scaffold",
     "version": "0.1.0",
     "private": false,
     "type": "module",
-    "description": "Project scaffolding CLI for Million Views templates and custom git-based template repos.",
+    "description": "Scaffolds new projects for million-views using templates",
     "bin": {
-        "m5nv-create": "./bin/index.mjs"
+        "create-scaffold": "./bin/index.mjs"
     },
     "exports": {
         ".": "./bin/index.mjs"
@@ -15,10 +15,12 @@
     },
     "keywords": [
         "scaffold",
+        "scaffolding",
         "templates",
         "cli",
         "esm",
-        "million-views"
+        "million-views",
+        "project-generator"
     ],
     "license": "MIT",
     "repository": {

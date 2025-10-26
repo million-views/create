@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * Comprehensive smoke test for @m5nv/create CLI tool
+ * Comprehensive smoke test for @m5nv/create-scaffold CLI tool
  * Tests the CLI tool end-to-end with real repositories and scenarios
  */
 
@@ -185,7 +185,7 @@ async function runSmokeTests() {
       throw new Error(`Help command failed with exit code ${result.exitCode}`);
     }
     
-    if (!result.stdout.includes('USAGE:') || !result.stdout.includes('--template')) {
+    if (!result.stdout.includes('USAGE:') || !result.stdout.includes('--from-template')) {
       throw new Error('Help output missing expected content');
     }
     
@@ -201,7 +201,7 @@ async function runSmokeTests() {
   try {
     console.log('  ▶ Input validation and security');
     
-    const result = await SmokeTestUtils.execCLI(['../malicious-dir', '--template', '../../../etc/passwd']);
+    const result = await SmokeTestUtils.execCLI(['../malicious-dir', '--from-template', '../../../etc/passwd']);
     
     if (result.exitCode !== 1) {
       throw new Error(`Expected validation failure, got exit code ${result.exitCode}`);
@@ -233,7 +233,7 @@ async function runSmokeTests() {
     const projectName = 'smoke-test-project';
     const result = await SmokeTestUtils.execCLI([
       projectName,
-      '--template', 'basic',
+      '--from-template', 'basic',
       '--repo', mockRepoPath
     ]);
     
@@ -315,7 +315,7 @@ export default function setup(envOrLegacy) {
     const projectName = 'smoke-test-setup-project';
     const result = await SmokeTestUtils.execCLI([
       projectName,
-      '--template', 'with-setup',
+      '--from-template', 'with-setup',
       '--repo', mockRepoPath
     ]);
     
@@ -360,7 +360,7 @@ export default function setup(envOrLegacy) {
     // Test with nonexistent repository
     const result = await SmokeTestUtils.execCLI([
       'smoke-test-error-project',
-      '--template', 'basic',
+      '--from-template', 'basic',
       '--repo', 'definitely-does-not-exist/no-such-repo'
     ], { timeout: 15000 });
     
@@ -400,7 +400,7 @@ export default function setup(envOrLegacy) {
     }
     
     // Verify correct bin entry
-    if (!packageJson.bin || !packageJson.bin['m5nv-create'] || packageJson.bin['m5nv-create'] !== './bin/index.mjs') {
+    if (!packageJson.bin || !packageJson.bin['create-scaffold'] || packageJson.bin['create-scaffold'] !== './bin/index.mjs') {
       throw new Error('Incorrect bin entry in package.json');
     }
     

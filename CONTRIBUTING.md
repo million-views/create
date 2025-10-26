@@ -1,6 +1,6 @@
-# Contributing to @m5nv/create
+# Contributing to @m5nv/create-scaffold
 
-Hi there! We're thrilled that you'd like to contribute to @m5nv/create. Your contributions help make project scaffolding more secure and accessible for everyone.
+Hi there! We're thrilled that you'd like to contribute to @m5nv/create-scaffold. Your contributions help make project scaffolding more secure and accessible for everyone.
 
 Please note that this project is released with a [Contributor Code of Conduct](CODE_OF_CONDUCT.md). By participating in this project you agree to abide by its terms.
 
@@ -27,8 +27,8 @@ npm test
 
 # Test the CLI locally
 npm link
-npm create @m5nv/create my-test-app -- --template react-vite
-npm unlink -g @m5nv/create
+npm create @m5nv/scaffold my-test-app -- --from-template react-vite
+npm unlink -g @m5nv/create-scaffold
 ```
 
 ## Development Standards
@@ -73,8 +73,8 @@ npm run lint              # Zero warnings required
 5. **Test locally**:
    ```bash
    npm link
-   npm create @m5nv/create test-project -- --template some-template
-   npm unlink -g @m5nv/create
+   npm create @m5nv/scaffold test-project -- --from-template some-template
+   npm unlink -g @m5nv/create-scaffold
    ```
 6. **Update documentation** if needed
 7. **Submit pull request** with clear description
@@ -108,8 +108,8 @@ npm test                # Full validation before PR
 
 # Local CLI testing
 npm link                 # Install locally
-npm create @m5nv/create my-test -- --template test-template
-npm unlink -g @m5nv/create  # Cleanup
+npm create @m5nv/scaffold my-test -- --from-template test-template
+npm unlink -g @m5nv/create-scaffold  # Cleanup
 ```
 
 ### Code Organization
@@ -166,13 +166,13 @@ For security-related changes:
 Test your changes with real scenarios:
 ```bash
 # Test with public repository
-npm create @m5nv/create test-app -- --template react-vite
+npm create @m5nv/scaffold test-app -- --from-template react-vite
 
 # Test with custom repository
-npm create @m5nv/create test-app -- --template custom --repo your-org/templates
+npm create @m5nv/scaffold test-app -- --from-template custom --repo your-org/templates
 
 # Test error scenarios
-npm create @m5nv/create ../evil -- --template hack  # Should be blocked
+npm create @m5nv/scaffold ../evil -- --from-template hack  # Should be blocked
 ```
 
 ## Release Process

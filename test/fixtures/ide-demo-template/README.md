@@ -1,6 +1,6 @@
 # IDE Demo Project
 
-This project demonstrates IDE-specific customizations using the @m5nv/create CLI tool.
+This project demonstrates IDE-specific customizations using the @m5nv/create-scaffold CLI tool.
 
 ## IDE Configuration
 
@@ -15,16 +15,16 @@ This template automatically configures itself for your preferred IDE:
 
 ```bash
 # Create project for Kiro
-m5nv-create my-project --template ide-demo --ide kiro
+m5nv-create my-project --from-template ide-demo --ide kiro
 
 # Create project for VSCode
-m5nv-create my-project --template ide-demo --ide vscode
+m5nv-create my-project --from-template ide-demo --ide vscode
 
 # Create project for Cursor
-m5nv-create my-project --template ide-demo --ide cursor
+m5nv-create my-project --from-template ide-demo --ide cursor
 
 # Create project for Windsurf
-m5nv-create my-project --template ide-demo --ide windsurf
+m5nv-create my-project --from-template ide-demo --ide windsurf
 ```
 
 ## Files Created

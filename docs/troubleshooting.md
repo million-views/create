@@ -1,6 +1,6 @@
 # Troubleshooting
 
-Common issues and solutions when using @m5nv/create.
+Common issues and solutions when using @m5nv/create-scaffold.
 
 ## Git Not Found
 

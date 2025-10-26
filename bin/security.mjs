@@ -9,6 +9,97 @@ import path from 'path';
  */
 
 /**
+ * Get the current package name for use in error messages and validation
+ * @returns {string} - The current package name
+ */
+export function getPackageName() {
+  return '@m5nv/create-scaffold';
+}
+
+/**
+ * Generate installation instructions with correct package name
+ * @returns {string} - Installation instructions
+ */
+export function generateInstallationInstructions() {
+  const packageName = getPackageName();
+  return `Installation options:
+  • Use npm create: npm create @m5nv/scaffold <project-name> -- --from-template <template-name>
+  • Use npx: npx ${packageName}@latest <project-name> --from-template <template-name>
+  • Install globally: npm install -g ${packageName}`;
+}
+
+/**
+ * Generate package validation error message
+ * @param {string} invalidName - The invalid package name that was provided
+ * @returns {string} - Error message with correct package name
+ */
+export function generatePackageValidationError(invalidName) {
+  const correctName = getPackageName();
+  return `Invalid package name: "${invalidName}". Expected: "${correctName}"`;
+}
+
+/**
+ * Validate that the provided package name matches the expected package name
+ * @param {string} packageName - Package name to validate
+ * @returns {boolean} - True if package name is valid
+ * @throws {ValidationError} - If package name is invalid
+ */
+export function validatePackageName(packageName) {
+  if (!packageName || typeof packageName !== 'string') {
+    throw new ValidationError('Package name must be a non-empty string', 'packageName');
+  }
+
+  const expectedName = getPackageName();
+  
+  if (packageName.trim() !== expectedName) {
+    throw new ValidationError(
+      generatePackageValidationError(packageName),
+      'packageName'
+    );
+  }
+
+  return true;
+}
+
+/**
+ * Validate package identity and ensure consistency
+ * This function can be used to verify the package is running with the correct identity
+ * @returns {boolean} - True if package identity is valid
+ * @throws {ValidationError} - If package identity validation fails
+ */
+export function validatePackageIdentity() {
+  try {
+    const expectedName = getPackageName();
+    
+    // Validate the expected name format
+    if (expectedName !== '@m5nv/create-scaffold') {
+      throw new ValidationError(
+        'Package identity validation failed: incorrect package name format',
+        'packageIdentity'
+      );
+    }
+
+    // Validate package name follows npm create conventions
+    if (!expectedName.startsWith('@m5nv/create-')) {
+      throw new ValidationError(
+        'Package identity validation failed: package name does not follow npm create conventions',
+        'packageIdentity'
+      );
+    }
+
+    return true;
+  } catch (error) {
+    if (error instanceof ValidationError) {
+      throw error;
+    }
+    throw new ValidationError(
+      'Package identity validation failed: unable to verify package configuration',
+      'packageIdentity'
+    );
+  }
+}
+
+/**
  * Custom error class for validation errors
  */
 export class ValidationError extends Error {

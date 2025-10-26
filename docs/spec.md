@@ -1,10 +1,10 @@
-## Specification: `@m5nv/create` Scaffolding Tool
+## Specification: `@m5nv/create-scaffold` Scaffolding Tool
 
 ### 1. Overview 📜
 
-`@m5nv/create` is a public command-line interface (CLI) tool for scaffolding new software projects using predefined templates. It prioritizes modern JavaScript (ESM only) and leverages the user's local `git` installation for fetching templates. While it defaults to using private templates from the `million-views` organization, it allows users to specify their own public or private template repositories.
+`@m5nv/create-scaffold` is a public command-line interface (CLI) tool for scaffolding new software projects using predefined templates. It prioritizes modern JavaScript (ESM only) and leverages the user's local `git` installation for fetching templates. While it defaults to using private templates from the `million-views` organization, it allows users to specify their own public or private template repositories.
 
-  * **Public Package:** `@m5nv/create` (on npm)
+  * **Public Package:** `@m5nv/create-scaffold` (on npm)
   * **Source Code Repo (Public, currently private during alpha):** `https://github.com/million-views/create`
   * **Default Template Repo (Private):** `https://github.com/million-views/templates`
 
@@ -27,16 +27,19 @@ The tool will be invoked using `npm create` or `npx`.
 
 ```bash
 # Using npm create (preferred)
-npm create @m5nv <project-directory> -- --template <template-name> [--repo <user/repo>] [--branch <branch-name>]
+npm create @m5nv <project-directory> -- --from-template <template-name> [--repo <user/repo>] [--branch <branch-name>]
+
+# Using npm create
+npm create @m5nv/scaffold <project-directory> -- --from-template <template-name> [--repo <user/repo>] [--branch <branch-name>]
 
 # Using npx
-npx @m5nv/create@latest <project-directory> --template <template-name> [--repo <user/repo>] [--branch <branch-name>]
+npx @m5nv/create-scaffold@latest <project-directory> --from-template <template-name> [--repo <user/repo>] [--branch <branch-name>]
 ```
 
 **Arguments:**
 
   * `<project-directory>`: (Required) The name of the directory to create for the new project.
-  * `--template <template-name>`: (Required) The name of the subdirectory within the template repository to use.
+  * `--from-template <template-name>`: (Required) The name of the subdirectory within the template repository to use.
   * `--repo <user/repo>`: (Optional) Specifies a custom template repository (e.g., `my-github-user/my-private-templates`). Defaults to `million-views/templates`. Accepts standard GitHub `<user>/<repo>` format.
   * `--branch <branch-name>`: (Optional) Specifies a branch within the template repository to clone from. Defaults to the repository's default branch (usually `main`).
 
@@ -63,7 +66,7 @@ npx @m5nv/create@latest <project-directory> --template <template-name> [--repo <
 ### 6. Error Handling & Preflight Checks ⚠️
 
   * Check if `git` command is available. If not, exit with instructions.
-  * Validate required arguments (`<project-directory>`, `--template`) are provided.
+  * Validate required arguments (`<project-directory>`, `--from-template`) are provided.
   * Check if `<project-directory>` already exists. Prompt user to overwrite or exit.
   * When cloning, catch errors related to:
       * Repository not found (invalid `--repo` or default repo issue).

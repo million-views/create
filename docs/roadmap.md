@@ -1,6 +1,6 @@
 # Roadmap
 
-Strategic feature development for @m5nv/create, prioritized by user impact and implementation complexity.
+Strategic feature development for @m5nv/create-scaffold, prioritized by user impact and implementation complexity.
 
 ## Phase 1: Core User Experience (v1.1)
 
@@ -45,7 +45,7 @@ Strategic feature development for @m5nv/create, prioritized by user impact and i
 ### 6. Interactive Mode
 
 **Problem:** New users don't know command syntax  
-**Solution:** `npm create @m5nv/create` (no args) prompts for template selection from available options  
+**Solution:** `npm create @m5nv/scaffold` (no args) prompts for template selection from available options  
 **Impact:** Medium - Lowers barrier to entry
 
 ## Phase 3: Advanced Features (v1.3)
@@ -59,7 +59,7 @@ Strategic feature development for @m5nv/create, prioritized by user impact and i
 ### 8. Multi-Template Projects
 
 **Problem:** Complex projects need multiple templates (frontend + backend)  
-**Solution:** `--templates frontend,backend` creates multiple directories with orchestrated setup  
+**Solution:** `--from-templates frontend,backend` creates multiple directories with orchestrated setup  
 **Impact:** Low - Niche use case, high complexity
 
 ## Phase 4: Ecosystem (v2.0)

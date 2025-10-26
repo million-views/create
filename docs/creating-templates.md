@@ -1,6 +1,6 @@
 # Creating Templates
 
-Learn how to create your own template repository for use with @m5nv/create.
+Learn how to create your own template repository for use with @m5nv/create-scaffold.
 
 ## Repository Structure
 
@@ -153,19 +153,19 @@ export default function setup(env) {
 
 ```bash
 # Basic usage
-npm create @m5nv/create my-project -- --template react-vite --repo yourusername/your-templates
+npm create @m5nv/scaffold my-project -- --from-template react-vite --repo yourusername/your-templates
 
 # With IDE-specific customization
-npm create @m5nv/create my-project -- --template react-vite --ide kiro --repo yourusername/your-templates
+npm create @m5nv/scaffold my-project -- --from-template react-vite --ide kiro --repo yourusername/your-templates
 
 # With features enabled
-npm create @m5nv/create my-project -- --template react-vite --features "auth,database" --repo yourusername/your-templates
+npm create @m5nv/scaffold my-project -- --from-template react-vite --features "auth,database" --repo yourusername/your-templates
 
 # Combined IDE and features
-npm create @m5nv/create my-project -- --template react-vite --ide vscode --features "auth,testing,dark-theme" --repo yourusername/your-templates
+npm create @m5nv/scaffold my-project -- --from-template react-vite --ide vscode --features "auth,testing,dark-theme" --repo yourusername/your-templates
 
-# Use specific version
-npm create @m5nv/create@1.0.0 my-project -- --template react-vite --repo yourusername/your-templates
+# Using npx directly
+npx @m5nv/create-scaffold@latest my-project --from-template react-vite --repo yourusername/your-templates
 ```
 
 ## Common Setup Tasks

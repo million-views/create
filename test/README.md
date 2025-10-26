@@ -1,6 +1,6 @@
 # CLI Test Suite Documentation
 
-This directory contains comprehensive functional tests for the @m5nv/create CLI tool. The tests follow a Test-First Development approach and cover all specified functionality.
+This directory contains comprehensive functional tests for the @m5nv/create-scaffold CLI tool. The tests follow a Test-First Development approach and cover all specified functionality.
 
 ## Test Coverage
 

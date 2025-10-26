@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * Unified Test Runner for @m5nv/create CLI tool
+ * Unified Test Runner for @m5nv/create-scaffold CLI tool
  * Coordinates execution of all test suites with comprehensive reporting
  */
 
@@ -82,7 +82,7 @@ class TestRunner {
   }
 
   async runAll() {
-    console.log('🚀 Running Complete Test Suite for @m5nv/create');
+    console.log('🚀 Running Complete Test Suite for @m5nv/create-scaffold');
     console.log('='.repeat(60));
 
     const tests = [
@@ -126,7 +126,7 @@ class TestRunner {
   }
 
   async runQuick() {
-    console.log('⚡ Running Quick Test Suite for @m5nv/create');
+    console.log('⚡ Running Quick Test Suite for @m5nv/create-scaffold');
     console.log('='.repeat(60));
 
     const tests = [

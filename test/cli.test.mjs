@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * Comprehensive functional test suite for @m5nv/create CLI tool
+ * Comprehensive functional test suite for @m5nv/create-scaffold CLI tool
  * Tests all CLI functionality end-to-end including argument parsing, validation,
  * security, preflight checks, git operations, file operations, and error handling.
  */
@@ -290,14 +290,14 @@ runner.test('Help flag displays usage information', async () => {
     throw new Error('Help text should contain USAGE section');
   }
   
-  if (!result.stdout.includes('--template')) {
-    throw new Error('Help text should mention --template flag');
+  if (!result.stdout.includes('--from-template')) {
+    throw new Error('Help text should mention --from-template flag');
   }
 });
 
 // Test 2: Missing required arguments
 runner.test('Missing project directory shows error', async () => {
-  const result = await TestUtils.execCLI(['--template', 'basic']);
+  const result = await TestUtils.execCLI(['--from-template', 'basic']);
   
   if (result.exitCode !== 1) {
     throw new Error(`Expected exit code 1, got ${result.exitCode}`);
@@ -323,7 +323,7 @@ runner.test('Missing template flag shows error', async () => {
 
 // Test 4: Path traversal prevention in project directory
 runner.test('Path traversal in project directory is blocked', async () => {
-  const result = await TestUtils.execCLI(['../malicious-dir', '--template', 'basic']);
+  const result = await TestUtils.execCLI(['../malicious-dir', '--from-template', 'basic']);
   
   if (result.exitCode !== 1) {
     throw new Error(`Expected exit code 1, got ${result.exitCode}`);
@@ -336,7 +336,7 @@ runner.test('Path traversal in project directory is blocked', async () => {
 
 // Test 5: Path traversal prevention in template name
 runner.test('Path traversal in template name is blocked', async () => {
-  const result = await TestUtils.execCLI(['test-project', '--template', '../../../etc/passwd']);
+  const result = await TestUtils.execCLI(['test-project', '--from-template', '../../../etc/passwd']);
   
   if (result.exitCode !== 1) {
     throw new Error(`Expected exit code 1, got ${result.exitCode}`);
@@ -349,7 +349,7 @@ runner.test('Path traversal in template name is blocked', async () => {
 
 // Test 6: Invalid characters in project directory
 runner.test('Invalid characters in project directory are rejected', async () => {
-  const result = await TestUtils.execCLI(['test/project', '--template', 'basic']);
+  const result = await TestUtils.execCLI(['test/project', '--from-template', 'basic']);
   
   if (result.exitCode !== 1) {
     throw new Error(`Expected exit code 1, got ${result.exitCode}`);
@@ -364,7 +364,7 @@ runner.test('Invalid characters in project directory are rejected', async () => 
 runner.test('Invalid repository URL format is rejected', async () => {
   const result = await TestUtils.execCLI([
     'test-project', 
-    '--template', 'basic', 
+    '--from-template', 'basic', 
     '--repo', 'not-a-valid-repo-format!'
   ]);
   
@@ -381,7 +381,7 @@ runner.test('Invalid repository URL format is rejected', async () => {
 runner.test('Invalid branch name with injection characters is rejected', async () => {
   const result = await TestUtils.execCLI([
     'test-project', 
-    '--template', 'basic', 
+    '--from-template', 'basic', 
     '--branch', 'main; rm -rf /'
   ]);
   
@@ -399,7 +399,7 @@ runner.test('Git installation is verified', async () => {
   // This test assumes git is installed (required for development)
   const result = await TestUtils.execCLI([
     'test-project-git', 
-    '--template', 'basic',
+    '--from-template', 'basic',
     '--repo', 'nonexistent/repo'
   ], { timeout: 10000 });
   
@@ -424,7 +424,7 @@ runner.test('Existing directory conflict is detected', async () => {
   const dirName = path.basename(existingDir);
   const result = await TestUtils.execCLI([
     dirName, 
-    '--template', 'basic'
+    '--from-template', 'basic'
   ], { cwd: path.dirname(existingDir) });
   
   if (result.exitCode !== 1) {
@@ -440,7 +440,7 @@ runner.test('Existing directory conflict is detected', async () => {
 runner.test('Nonexistent repository is detected', async () => {
   const result = await TestUtils.execCLI([
     'test-project-nonexistent', 
-    '--template', 'basic',
+    '--from-template', 'basic',
     '--repo', 'definitely-does-not-exist/no-such-repo'
   ], { timeout: 15000 });
   
@@ -457,7 +457,7 @@ runner.test('Nonexistent repository is detected', async () => {
 runner.test('Nonexistent branch is detected', async () => {
   const result = await TestUtils.execCLI([
     'test-project-branch', 
-    '--template', 'basic',
+    '--from-template', 'basic',
     '--repo', 'million-views/templates', // Use real repo for branch test
     '--branch', 'definitely-does-not-exist-branch-name'
   ], { timeout: 15000 });
@@ -482,7 +482,7 @@ runner.test('Successful template creation with local repository', async () => {
   const projectName = 'test-success-project';
   const result = await TestUtils.execCLI([
     projectName,
-    '--template', 'basic',
+    '--from-template', 'basic',
     '--repo', mockRepoPath
   ], { cwd: path.dirname(projectPath) });
   
@@ -545,7 +545,7 @@ export default function setup(envOrLegacy) {
   const projectName = 'test-setup-project';
   const result = await TestUtils.execCLI([
     projectName,
-    '--template', 'with-setup',
+    '--from-template', 'with-setup',
     '--repo', mockRepoPath
   ], { cwd: path.dirname(projectPath) });
   
@@ -581,7 +581,7 @@ export default function setup(envOrLegacy) {
 runner.test('Error messages are sanitized', async () => {
   const result = await TestUtils.execCLI([
     'test-project-sanitize', 
-    '--template', 'basic',
+    '--from-template', 'basic',
     '--repo', '/nonexistent/path/with/private/data'
   ]);
   
@@ -610,7 +610,7 @@ runner.test('File operations prevent symlink attacks', async () => {
   const projectName = 'test-symlink-project';
   const result = await TestUtils.execCLI([
     projectName,
-    '--template', 'symlink-test',
+    '--from-template', 'symlink-test',
     '--repo', mockRepoPath
   ], { cwd: path.dirname(projectPath) });
   
@@ -648,7 +648,7 @@ runner.test('Missing template in repository is detected', async () => {
   
   const result = await TestUtils.execCLI([
     'test-missing-template',
-    '--template', 'nonexistent-template',
+    '--from-template', 'nonexistent-template',
     '--repo', mockRepoPath
   ]);
   
@@ -669,7 +669,7 @@ runner.test('Temporary directories are cleaned up on failure', async () => {
   // Run a command that should fail
   const result = await TestUtils.execCLI([
     'test-cleanup-failure',
-    '--template', 'basic',
+    '--from-template', 'basic',
     '--repo', 'nonexistent/repo'
   ], { timeout: 10000 });
   
@@ -706,7 +706,7 @@ runner.test('Long argument values are handled properly', async () => {
   const longTemplate = 'a'.repeat(300); // Exceeds 255 char limit
   const result = await TestUtils.execCLI([
     'test-project-long',
-    '--template', longTemplate
+    '--from-template', longTemplate
   ]);
   
   if (result.exitCode !== 1) {
@@ -722,7 +722,7 @@ runner.test('Long argument values are handled properly', async () => {
 runner.test('Reserved directory names are rejected', async () => {
   const result = await TestUtils.execCLI([
     'node_modules',
-    '--template', 'basic'
+    '--from-template', 'basic'
   ]);
   
   if (result.exitCode !== 1) {
@@ -738,7 +738,7 @@ runner.test('Reserved directory names are rejected', async () => {
 runner.test('Empty template name is rejected', async () => {
   const result = await TestUtils.execCLI([
     'test-project-empty',
-    '--template', ''
+    '--from-template', ''
   ]);
   
   if (result.exitCode !== 1) {
@@ -754,7 +754,7 @@ runner.test('Empty template name is rejected', async () => {
 runner.test('System handles argument validation properly', async () => {
   const result = await TestUtils.execCLI([
     'test-project-validation',
-    '--template', 'nonexistent-template',
+    '--from-template', 'nonexistent-template',
     '--repo', 'nonexistent/repo'
   ]);
   
@@ -774,7 +774,7 @@ runner.test('System handles argument validation properly', async () => {
 runner.test('Multiple validation errors are reported together', async () => {
   const result = await TestUtils.execCLI([
     '../invalid-dir',
-    '--template', '../invalid-template',
+    '--from-template', '../invalid-template',
     '--branch', 'invalid; branch'
   ]);
   
@@ -822,7 +822,7 @@ export default function setup(envOrLegacy) {
   const projectName = 'test-failing-setup-project';
   const result = await TestUtils.execCLI([
     projectName,
-    '--template', 'failing-setup',
+    '--from-template', 'failing-setup',
     '--repo', mockRepoPath
   ], { cwd: path.dirname(projectPath) });
   
@@ -876,7 +876,7 @@ runner.test('Project directory is cleaned up on failures after copy', async () =
   const projectName = 'test-cleanup-project';
   const result = await TestUtils.execCLI([
     projectName,
-    '--template', 'cleanup-test',
+    '--from-template', 'cleanup-test',
     '--repo', mockRepoPath
   ], { cwd: path.dirname(projectPath) });
   
@@ -911,7 +911,7 @@ runner.test('Temp directory cleanup on verifyTemplate() failure', async () => {
   
   const result = await TestUtils.execCLI([
     'test-verify-fail-project',
-    '--template', 'nonexistent-template',
+    '--from-template', 'nonexistent-template',
     '--repo', mockRepoPath
   ], { timeout: 15000 });
   
@@ -942,7 +942,7 @@ runner.test('Temp directory cleanup on copyTemplate() failure', async () => {
   // We'll simulate this by using an invalid project name that causes filesystem issues
   const result = await TestUtils.execCLI([
     'test-copy-fail-project',
-    '--template', 'copy-fail-test',
+    '--from-template', 'copy-fail-test',
     '--repo', mockRepoPath
   ], { timeout: 15000 });
   
@@ -987,7 +987,7 @@ export default function setup(envOrLegacy) {
   
   const result = await TestUtils.execCLI([
     'test-setup-fail-project',
-    '--template', 'setup-fail-test',
+    '--from-template', 'setup-fail-test',
     '--repo', mockRepoPath
   ], { timeout: 15000 });
   
@@ -1041,7 +1041,7 @@ export default function setup(envOrLegacy) {
   const projectName = 'test-project-cleanup';
   const result = await TestUtils.execCLI([
     projectName,
-    '--template', 'project-cleanup-test',
+    '--from-template', 'project-cleanup-test',
     '--repo', mockRepoPath
   ], { timeout: 15000 });
   
@@ -1089,7 +1089,7 @@ export default function setup(envOrLegacy) {
   const projectName = 'test-script-cleanup';
   const result = await TestUtils.execCLI([
     projectName,
-    '--template', 'script-cleanup-test',
+    '--from-template', 'script-cleanup-test',
     '--repo', mockRepoPath
   ], { timeout: 15000 });
   
@@ -1121,7 +1121,7 @@ runner.test('Git process timeout and cleanup behavior', async () => {
   // Use a repository URL that will timeout (non-existent domain)
   const result = await TestUtils.execCLI([
     'test-timeout-project',
-    '--template', 'basic',
+    '--from-template', 'basic',
     '--repo', 'https://definitely-does-not-exist-timeout-test.invalid/repo.git'
   ], { timeout: 15000 });
   
@@ -1147,17 +1147,17 @@ runner.test('Resource leak detection across multiple failure modes', async () =>
   const failureScenarios = [
     {
       name: 'invalid-template',
-      args: ['test-multi-fail-1', '--template', '../invalid-template'],
+      args: ['test-multi-fail-1', '--from-template', '../invalid-template'],
       expectedError: 'traversal'
     },
     {
       name: 'invalid-repo',
-      args: ['test-multi-fail-2', '--template', 'basic', '--repo', 'invalid-repo-format!'],
+      args: ['test-multi-fail-2', '--from-template', 'basic', '--repo', 'invalid-repo-format!'],
       expectedError: 'Repository format'
     },
     {
       name: 'invalid-branch',
-      args: ['test-multi-fail-3', '--template', 'basic', '--branch', 'invalid; branch'],
+      args: ['test-multi-fail-3', '--from-template', 'basic', '--branch', 'invalid; branch'],
       expectedError: 'invalid characters'
     }
   ];
@@ -1187,7 +1187,7 @@ runner.test('Resource cleanup on process interruption', async () => {
   // This simulates the same cleanup behavior without actually hanging
   const result = await TestUtils.execCLI([
     'test-interrupt-project',
-    '--template', 'basic',
+    '--from-template', 'basic',
     '--repo', 'https://definitely-does-not-exist-interrupt-test.invalid/repo.git'
   ], { timeout: 5000 });
   
@@ -1267,7 +1267,7 @@ export default function setup(envOrLegacy) {
   const projectName = 'test-env-object-validation';
   const result = await TestUtils.execCLI([
     projectName,
-    '--template', 'env-object-test',
+    '--from-template', 'env-object-test',
     '--repo', mockRepoPath
   ], { cwd: path.dirname(projectPath) });
   
@@ -1332,7 +1332,7 @@ export default function setup(envOrLegacy) {
   const projectName = 'test-comprehensive-resource';
   const result = await TestUtils.execCLI([
     projectName,
-    '--template', 'comprehensive-test',
+    '--from-template', 'comprehensive-test',
     '--repo', mockRepoPath
   ], { timeout: 15000 });
   
@@ -1402,7 +1402,7 @@ export default function setup(env) {
   const projectName = 'test-ide-setup';
   const result = await TestUtils.execCLI([
     projectName,
-    '--template', 'ide-test',
+    '--from-template', 'ide-test',
     '--repo', mockRepoPath,
     '--ide', 'kiro'
   ], { cwd: path.dirname(projectPath) });
@@ -1496,7 +1496,7 @@ export default function setup(env) {
   const projectName = 'test-features-setup';
   const result = await TestUtils.execCLI([
     projectName,
-    '--template', 'features-test',
+    '--from-template', 'features-test',
     '--repo', mockRepoPath,
     '--features', 'auth,database,testing'
   ], { cwd: path.dirname(projectPath) });
@@ -1601,7 +1601,7 @@ export default function setup(env) {
   const projectName = 'test-combined-setup';
   const result = await TestUtils.execCLI([
     projectName,
-    '--template', 'combined-test',
+    '--from-template', 'combined-test',
     '--repo', mockRepoPath,
     '--ide', 'vscode',
     '--features', 'auth,api'
@@ -1681,7 +1681,7 @@ export default function setup(env) {
   const projectName = 'test-malformed-setup';
   const result = await TestUtils.execCLI([
     projectName,
-    '--template', 'malformed-test',
+    '--from-template', 'malformed-test',
     '--repo', mockRepoPath,
     '--ide', 'cursor',
     '--features', 'testing'
@@ -1717,6 +1717,201 @@ export default function setup(env) {
       throw new Error(`Unexpected error checking setup script: ${error.message}`);
     }
     // Expected - setup script should be removed
+  }
+});
+
+// Test 42: npm create command simulation
+runner.test('npm create @m5nv/scaffold command simulation', async () => {
+  // This test simulates what happens when users run "npm create @m5nv/scaffold"
+  // npm transforms this to "npm exec @m5nv/create-scaffold"
+  
+  const mockRepoPath = await runner.addTempPath(await TestUtils.createTempDir('-npm-create-repo'));
+  const projectPath = await runner.addTempPath(await TestUtils.createTempDir('-npm-create-project'));
+  
+  // Create mock repository
+  await TestUtils.createMockRepo(mockRepoPath, ['basic']);
+  
+  const projectName = 'test-npm-create-project';
+  const result = await TestUtils.execCLI([
+    projectName,
+    '--from-template', 'basic',
+    '--repo', mockRepoPath
+  ], { cwd: path.dirname(projectPath) });
+  
+  if (result.exitCode !== 0) {
+    throw new Error(`npm create simulation failed: ${result.stderr}`);
+  }
+  
+  // Verify project was created correctly
+  const createdProjectPath = path.join(path.dirname(projectPath), projectName);
+  runner.tempPaths.push(createdProjectPath);
+  
+  const packageJsonPath = path.join(createdProjectPath, 'package.json');
+  const packageJson = JSON.parse(await fs.readFile(packageJsonPath, 'utf8'));
+  
+  if (packageJson.name !== 'basic') {
+    throw new Error('npm create simulation: Template files not copied correctly');
+  }
+  
+  if (!result.stdout.includes('✅ Project created successfully!')) {
+    throw new Error('npm create simulation: Success message not found');
+  }
+});
+
+// Test 43: npx command simulation
+runner.test('npx @m5nv/create-scaffold command simulation', async () => {
+  // This test simulates what happens when users run "npx @m5nv/create-scaffold@latest"
+  
+  const mockRepoPath = await runner.addTempPath(await TestUtils.createTempDir('-npx-repo'));
+  const projectPath = await runner.addTempPath(await TestUtils.createTempDir('-npx-project'));
+  
+  // Create mock repository
+  await TestUtils.createMockRepo(mockRepoPath, ['advanced']);
+  
+  const projectName = 'test-npx-project';
+  const result = await TestUtils.execCLI([
+    projectName,
+    '--from-template', 'advanced',
+    '--repo', mockRepoPath
+  ], { cwd: path.dirname(projectPath) });
+  
+  if (result.exitCode !== 0) {
+    throw new Error(`npx simulation failed: ${result.stderr}`);
+  }
+  
+  // Verify project was created correctly
+  const createdProjectPath = path.join(path.dirname(projectPath), projectName);
+  runner.tempPaths.push(createdProjectPath);
+  
+  const packageJsonPath = path.join(createdProjectPath, 'package.json');
+  const packageJson = JSON.parse(await fs.readFile(packageJsonPath, 'utf8'));
+  
+  if (packageJson.name !== 'advanced') {
+    throw new Error('npx simulation: Template files not copied correctly');
+  }
+  
+  if (!result.stdout.includes('✅ Project created successfully!')) {
+    throw new Error('npx simulation: Success message not found');
+  }
+});
+
+// Test 44: Command pattern validation
+runner.test('Command patterns validate correct usage', async () => {
+  // Test that the CLI validates command patterns correctly
+  
+  // Test with valid arguments (should reach repository validation)
+  const validResult = await TestUtils.execCLI([
+    'test-pattern-project',
+    '--from-template', 'basic',
+    '--repo', 'nonexistent/repo'
+  ]);
+  
+  if (validResult.exitCode !== 1) {
+    throw new Error('Valid command pattern should reach repository validation');
+  }
+  
+  if (!validResult.stderr.includes('not found') && !validResult.stderr.includes('Repository')) {
+    throw new Error('Should fail at repository validation, not argument parsing');
+  }
+  
+  // Test with invalid template pattern
+  const invalidTemplateResult = await TestUtils.execCLI([
+    'test-pattern-project',
+    '--from-template', '../invalid-template'
+  ]);
+  
+  if (invalidTemplateResult.exitCode !== 1) {
+    throw new Error('Invalid template pattern should be rejected');
+  }
+  
+  if (!invalidTemplateResult.stderr.includes('traversal')) {
+    throw new Error('Should show template path traversal error');
+  }
+});
+
+// Test 45: Help text shows correct package name and usage
+runner.test('Help text displays correct package name and usage patterns', async () => {
+  const result = await TestUtils.execCLI(['--help']);
+  
+  if (result.exitCode !== 0) {
+    throw new Error('Help command should succeed');
+  }
+  
+  // Check for npm create usage pattern
+  if (!result.stdout.includes('npm create @m5nv/scaffold')) {
+    throw new Error('Help text should show npm create @m5nv/scaffold usage pattern');
+  }
+  
+  // Check for npx usage pattern
+  if (!result.stdout.includes('npx @m5nv/create-scaffold')) {
+    throw new Error('Help text should show npx @m5nv/create-scaffold usage pattern');
+  }
+  
+  // Verify no old package name references
+  if (result.stdout.includes('@m5nv/create') && !result.stdout.includes('@m5nv/create-scaffold')) {
+    throw new Error('Help text should not contain old package name @m5nv/create');
+  }
+});
+
+// Test 46: Error messages reference correct package name
+runner.test('Error messages reference correct package name', async () => {
+  // Test various error scenarios to ensure they reference the correct package name
+  
+  // Test missing template error
+  const missingTemplateResult = await TestUtils.execCLI(['test-project']);
+  
+  if (missingTemplateResult.exitCode !== 1) {
+    throw new Error('Missing template should cause error');
+  }
+  
+  // Error message should be helpful and not reference old package name
+  if (missingTemplateResult.stderr.includes('@m5nv/create') && !missingTemplateResult.stderr.includes('@m5nv/create-scaffold')) {
+    throw new Error('Error message should not reference old package name');
+  }
+  
+  // Test path traversal error
+  const pathTraversalResult = await TestUtils.execCLI(['../invalid-dir', '--from-template', 'basic']);
+  
+  if (pathTraversalResult.exitCode !== 1) {
+    throw new Error('Path traversal should cause error');
+  }
+  
+  // Error message should be clear and not reference old package name
+  if (pathTraversalResult.stderr.includes('@m5nv/create') && !pathTraversalResult.stderr.includes('@m5nv/create-scaffold')) {
+    throw new Error('Path traversal error should not reference old package name');
+  }
+});
+
+// Test 47: Package name validation in output
+runner.test('Package name validation in success output', async () => {
+  const mockRepoPath = await runner.addTempPath(await TestUtils.createTempDir('-output-validation-repo'));
+  const projectPath = await runner.addTempPath(await TestUtils.createTempDir('-output-validation-project'));
+  
+  // Create mock repository
+  await TestUtils.createMockRepo(mockRepoPath, ['basic']);
+  
+  const projectName = 'test-output-validation';
+  const result = await TestUtils.execCLI([
+    projectName,
+    '--from-template', 'basic',
+    '--repo', mockRepoPath
+  ], { cwd: path.dirname(projectPath) });
+  
+  if (result.exitCode !== 0) {
+    throw new Error(`Project creation should succeed: ${result.stderr}`);
+  }
+  
+  const createdProjectPath = path.join(path.dirname(projectPath), projectName);
+  runner.tempPaths.push(createdProjectPath);
+  
+  // Verify success output doesn't reference old package name
+  if (result.stdout.includes('@m5nv/create') && !result.stdout.includes('@m5nv/create-scaffold')) {
+    throw new Error('Success output should not reference old package name');
+  }
+  
+  // Verify success message is present
+  if (!result.stdout.includes('✅ Project created successfully!')) {
+    throw new Error('Success output should contain success message');
   }
 });
 

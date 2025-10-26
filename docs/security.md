@@ -1,6 +1,6 @@
 # Security
 
-Security features and best practices for @m5nv/create.
+Security features and best practices for @m5nv/create-scaffold.
 
 ## Built-in Security Features
 

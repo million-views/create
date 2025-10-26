@@ -3,7 +3,7 @@
 import { spawn } from 'child_process';
 import fs from 'fs/promises';
 import path from 'path';
-import { sanitizeErrorMessage } from './security.mjs';
+import { sanitizeErrorMessage, getPackageName, generateInstallationInstructions, validatePackageIdentity } from './security.mjs';
 
 /**
  * Comprehensive preflight checks module
@@ -55,7 +55,7 @@ export async function checkGitInstallation() {
     if (error.code === 'ENOENT') {
       throw new PreflightError(
         'Git is not installed or not available in PATH.\n\n' +
-        'Git is required to clone template repositories.\n\n' +
+        'Git is required to clone template repositories for @m5nv/create-scaffold.\n\n' +
         'Installation instructions:\n' +
         '  • macOS: Install Xcode Command Line Tools or use Homebrew (brew install git)\n' +
         '  • Windows: Download from https://git-scm.com/download/win\n' +
@@ -101,7 +101,7 @@ export async function validateAllArguments(args) {
 
   // Validate template requirement
   if (!args.template) {
-    errors.push('Template name is required (use --template or -t flag)');
+    errors.push('Template name is required (use --from-template or -t flag)');
   } else if (typeof args.template !== 'string' || args.template.trim().length === 0) {
     errors.push('Template name must be a non-empty string');
   }
@@ -126,10 +126,13 @@ export async function validateAllArguments(args) {
   }
 
   if (errors.length > 0) {
+    const packageName = getPackageName();
     throw new PreflightError(
       'Invalid command line arguments:\n' +
       errors.map(error => `  • ${error}`).join('\n') + '\n\n' +
-      'Use --help for usage information and examples.',
+      `Use --help for usage information and examples.\n\n` +
+      `Correct usage: npm create @m5nv/scaffold <project-name> -- --from-template <template-name>\n` +
+      `Alternative: npx ${packageName}@latest <project-name> --from-template <template-name>`,
       'INVALID_ARGUMENTS'
     );
   }
@@ -456,19 +459,31 @@ function execCommand(command, args, options = {}) {
 export async function runAllPreflightChecks(args, repoUrl) {
   console.log('🔍 Running preflight checks...\n');
 
-  // 1. Check git installation
+  // 1. Validate package identity
+  console.log('  ✓ Validating package identity...');
+  try {
+    validatePackageIdentity();
+  } catch (error) {
+    throw new PreflightError(
+      `Package identity validation failed: ${error.message}\n\n` +
+      'This indicates a configuration issue with the CLI tool.',
+      'PACKAGE_IDENTITY_ERROR'
+    );
+  }
+
+  // 2. Check git installation
   console.log('  ✓ Checking git installation...');
   await checkGitInstallation();
 
-  // 2. Validate all arguments
+  // 3. Validate all arguments
   console.log('  ✓ Validating arguments...');
   await validateAllArguments(args);
 
-  // 3. Check project directory conflicts
+  // 4. Check project directory conflicts
   console.log('  ✓ Checking project directory...');
   await checkProjectDirectoryConflicts(args.projectDirectory);
 
-  // 4. Validate repository accessibility
+  // 5. Validate repository accessibility
   console.log('  ✓ Validating repository access...');
   await validateRepositoryAccessibility(repoUrl, args.branch);
 

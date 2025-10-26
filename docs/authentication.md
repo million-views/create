@@ -60,7 +60,7 @@ git ls-remote https://github.com/yourorg/private-templates.git
 Once authenticated, use private repositories normally:
 
 ```bash
-npm create @m5nv my-app -- --template react --repo yourorg/private-templates
+npm create @m5nv my-app -- --from-template react --repo yourorg/private-templates
 ```
 
 ## Troubleshooting

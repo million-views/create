@@ -1,39 +1,54 @@
-# @m5nv/create
+# @m5nv/create-scaffold
 
-A secure, zero-dependency CLI for creating projects from git-based templates.
+[![npm version](https://badge.fury.io/js/@m5nv%2Fcreate-scaffold.svg)](https://badge.fury.io/js/@m5nv%2Fcreate-scaffold)
+[![npm downloads](https://img.shields.io/npm/dm/@m5nv/create-scaffold.svg)](https://www.npmjs.com/package/@m5nv/create-scaffold)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+A secure, zero-dependency CLI for scaffolding projects from git-based templates.
 
 ## Quick Start
 
 ```bash
 # Create a basic project
-npm create @m5nv/create my-app -- --template react-vite
+npm create @m5nv/scaffold my-app -- --from-template react-vite
 
 # Create with IDE-specific customization
-npm create @m5nv/create my-app -- --template react-vite --ide kiro
+npm create @m5nv/scaffold my-app -- --from-template react-vite --ide kiro
 
 # Create with specific features enabled
-npm create @m5nv/create my-app -- --template react-vite --features "auth,database,testing"
+npm create @m5nv/scaffold my-app -- --from-template react-vite --features "auth,database,testing"
 
 # Create with both IDE and features
-npm create @m5nv/create my-app -- --template react-vite --ide vscode --features "auth,uploads"
+npm create @m5nv/scaffold my-app -- --from-template react-vite --ide vscode --features "auth,uploads"
 
 # Create from custom repository
-npm create @m5nv/create my-api -- --template express --repo myorg/templates
+npm create @m5nv/scaffold my-api -- --from-template express --repo myorg/templates
 ```
 
 ## Usage
 
 ```bash
-# Use latest version (default)
-npm create @m5nv/create <project-name> -- --template <template-name> [options]
+# Primary usage (recommended)
+npm create @m5nv/scaffold <project-name> -- --from-template <template-name> [options]
 
-# Use specific version
-npm create @m5nv/create@1.0.0 <project-name> -- --template <template-name> [options]
+# Alternative using npx
+npx @m5nv/create-scaffold@latest <project-name> --from-template <template-name> [options]
 ```
+
+### How npm create Works
+
+The `npm create @m5nv/scaffold` command works due to npm's package naming convention:
+
+1. **Command Transformation**: When you run `npm create @m5nv/scaffold`, npm automatically transforms this to `npm exec @m5nv/create-scaffold`
+2. **Package Installation**: npm temporarily installs the `@m5nv/create-scaffold` package if not already available
+3. **Binary Execution**: npm executes the `create-scaffold` binary defined in the package's `bin` field
+4. **Cleanup**: The temporary installation is cleaned up after execution
+
+This pattern allows for a clean, semantic command structure where `npm create @m5nv/scaffold` clearly indicates you're scaffolding a project using Million Views templates.
 
 | Option           | Description                                     |
 | ---------------- | ----------------------------------------------- |
-| `--template, -t` | Template name (required)                        |
+| `--from-template, -t` | Template name (required)                        |
 | `--repo, -r`     | Repository (default: `million-views/templates`) |
 | `--branch, -b`   | Git branch                                      |
 | `--ide, -i`      | Target IDE (kiro, vscode, cursor, windsurf)    |
@@ -46,53 +61,53 @@ npm create @m5nv/create@1.0.0 <project-name> -- --template <template-name> [opti
 
 ```bash
 # Create a simple React project
-npm create @m5nv/create my-react-app -- --template react-vite
+npm create @m5nv/scaffold my-react-app -- --from-template react-vite
 
 # Create a Node.js API
-npm create @m5nv/create my-api -- --template express
+npm create @m5nv/scaffold my-api -- --from-template express
 ```
 
 ### IDE-Specific Customization
 
 ```bash
 # Create project optimized for Kiro IDE
-npm create @m5nv/create kiro-project -- --template react-vite --ide kiro
+npm create @m5nv/scaffold kiro-project -- --from-template react-vite --ide kiro
 
 # Create project with VSCode settings
-npm create @m5nv/create vscode-project -- --template react-vite --ide vscode
+npm create @m5nv/scaffold vscode-project -- --from-template react-vite --ide vscode
 
 # Create project for Cursor IDE
-npm create @m5nv/create cursor-project -- --template react-vite --ide cursor
+npm create @m5nv/scaffold cursor-project -- --from-template react-vite --ide cursor
 
 # Create project for Windsurf IDE
-npm create @m5nv/create windsurf-project -- --template react-vite --ide windsurf
+npm create @m5nv/scaffold windsurf-project -- --from-template react-vite --ide windsurf
 ```
 
 ### Feature-Based Customization
 
 ```bash
 # Enable authentication features
-npm create @m5nv/create auth-app -- --template react-vite --features "auth"
+npm create @m5nv/scaffold auth-app -- --from-template react-vite --features "auth"
 
 # Enable multiple features
-npm create @m5nv/create full-app -- --template react-vite --features "auth,database,testing"
+npm create @m5nv/scaffold full-app -- --from-template react-vite --features "auth,database,testing"
 
 # Enable file upload capabilities
-npm create @m5nv/create upload-app -- --template react-vite --features "file-upload,image-processing"
+npm create @m5nv/scaffold upload-app -- --from-template react-vite --features "file-upload,image-processing"
 ```
 
 ### Combined Usage
 
 ```bash
 # Create a full-featured project for Kiro IDE
-npm create @m5nv/create enterprise-app -- \
-  --template react-vite \
+npm create @m5nv/scaffold enterprise-app -- \
+  --from-template react-vite \
   --ide kiro \
   --features "auth,database,testing,monitoring"
 
 # Create API with specific IDE and features
-npm create @m5nv/create api-server -- \
-  --template express \
+npm create @m5nv/scaffold api-server -- \
+  --from-template express \
   --ide vscode \
   --features "auth,database,swagger"
 ```
@@ -101,13 +116,13 @@ npm create @m5nv/create api-server -- \
 
 ```bash
 # Use your organization's templates
-npm create @m5nv/create company-app -- \
-  --template corporate-react \
+npm create @m5nv/scaffold company-app -- \
+  --from-template corporate-react \
   --repo mycompany/project-templates
 
 # Use specific branch
-npm create @m5nv/create beta-app -- \
-  --template react-vite \
+npm create @m5nv/scaffold beta-app -- \
+  --from-template react-vite \
   --repo myorg/templates \
   --branch experimental
 ```

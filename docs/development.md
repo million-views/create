@@ -1,6 +1,6 @@
 # Development Guide
 
-Complete guide for developing and testing @m5nv/create locally.
+Complete guide for developing and testing @m5nv/create-scaffold locally.
 
 ## Setup
 
@@ -24,11 +24,11 @@ Creates a global symlink for testing the full user experience:
 npm link
 
 # Test as users would use it
-npm create @m5nv/create my-test-app -- --template react-vite
-npm create @m5nv/create@1.0.0 my-api -- --template express --repo myorg/templates
+npm create @m5nv/scaffold my-test-app -- --from-template react-vite
+npm create @m5nv/scaffold@1.0.0 my-api -- --from-template express --repo myorg/templates
 
 # Cleanup when done
-npm unlink -g @m5nv/create
+npm unlink -g @m5nv/create-scaffold
 ```
 
 ### 2. Local npm Install
@@ -40,10 +40,10 @@ Install your local version globally:
 npm install -g .
 
 # Use normally
-npm create @m5nv/create my-app -- --template some-template
+npm create @m5nv/scaffold my-app -- --from-template some-template
 
 # Uninstall when done
-npm uninstall -g @m5nv/create
+npm uninstall -g @m5nv/create-scaffold
 ```
 
 ## Running Tests
@@ -152,11 +152,11 @@ node bin/index.mjs --help  # Test CLI directly
 
 ```bash
 # Enable debug output (if implemented)
-DEBUG=* node bin/index.mjs my-app --template test
+DEBUG=* node bin/index.mjs my-app --from-template test
 
 # Test specific scenarios
-node bin/index.mjs test-debug --template nonexistent  # Error handling
-node bin/index.mjs ../test --template hack            # Security validation
+node bin/index.mjs test-debug --from-template nonexistent  # Error handling
+node bin/index.mjs ../test --from-template hack            # Security validation
 ```
 
 ## Contributing
@@ -198,7 +198,7 @@ git push origin v1.0.0
 
 **CLI not working with npm link:**
 
-- Unlink and relink: `npm unlink -g @m5nv/create && npm link`
+- Unlink and relink: `npm unlink -g @m5nv/create-scaffold && npm link`
 - Check global npm modules: `npm list -g --depth=0`
 
 **Permission issues:**

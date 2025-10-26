@@ -120,7 +120,7 @@ async function runResourceLeakTests() {
     
     const result = await ResourceTestUtils.execCLI([
       'test-invalid-template',
-      '--template', '../invalid-template'
+      '--from-template', '../invalid-template'
     ]);
     
     if (result.exitCode !== 1) {
@@ -151,7 +151,7 @@ async function runResourceLeakTests() {
     
     const result = await ResourceTestUtils.execCLI([
       'test-invalid-repo',
-      '--template', 'basic',
+      '--from-template', 'basic',
       '--repo', 'invalid-repo-format!'
     ]);
     
@@ -183,7 +183,7 @@ async function runResourceLeakTests() {
     
     const result = await ResourceTestUtils.execCLI([
       'test-nonexistent-repo',
-      '--template', 'basic',
+      '--from-template', 'basic',
       '--repo', 'definitely-does-not-exist/no-such-repo'
     ], { timeout: 15000 });
     
@@ -214,9 +214,9 @@ async function runResourceLeakTests() {
     const beforeSnapshot = await ResourceTestUtils.getResourceSnapshot();
     
     const scenarios = [
-      ['test-multi-1', '--template', '../invalid'],
-      ['test-multi-2', '--template', 'basic', '--repo', 'invalid!'],
-      ['test-multi-3', '--template', 'basic', '--branch', 'invalid; branch']
+      ['test-multi-1', '--from-template', '../invalid'],
+      ['test-multi-2', '--from-template', 'basic', '--repo', 'invalid!'],
+      ['test-multi-3', '--from-template', 'basic', '--branch', 'invalid; branch']
     ];
     
     for (const args of scenarios) {

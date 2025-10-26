@@ -1,6 +1,6 @@
 # Features Demo Project
 
-This project demonstrates feature-based customizations using the @m5nv/create CLI tool.
+This project demonstrates feature-based customizations using the @m5nv/create-scaffold CLI tool.
 
 ## Available Features
 
@@ -17,13 +17,13 @@ This template supports the following optional features:
 
 ```bash
 # Create project with authentication
-m5nv-create my-project --template features-demo --features auth
+m5nv-create my-project --from-template features-demo --features auth
 
 # Create project with multiple features
-m5nv-create my-project --template features-demo --features auth,database,api
+m5nv-create my-project --from-template features-demo --features auth,database,api
 
 # Create project with all features
-m5nv-create my-project --template features-demo --features auth,database,api,testing,logging,config
+m5nv-create my-project --from-template features-demo --features auth,database,api,testing,logging,config
 ```
 
 ## Files Created

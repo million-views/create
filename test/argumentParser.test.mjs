@@ -62,7 +62,7 @@ const runner = new TestRunner();
 // ===== Argument Parsing Tests =====
 
 runner.test('parseArguments: parses --ide argument', () => {
-  const result = parseArguments(['test-project', '--template', 'basic', '--ide', 'kiro']);
+  const result = parseArguments(['test-project', '--from-template', 'basic', '--ide', 'kiro']);
   
   if (result.ide !== 'kiro') {
     throw new Error(`Expected ide 'kiro', got '${result.ide}'`);
@@ -70,7 +70,7 @@ runner.test('parseArguments: parses --ide argument', () => {
 });
 
 runner.test('parseArguments: parses -i short flag for IDE', () => {
-  const result = parseArguments(['test-project', '--template', 'basic', '-i', 'vscode']);
+  const result = parseArguments(['test-project', '--from-template', 'basic', '-i', 'vscode']);
   
   if (result.ide !== 'vscode') {
     throw new Error(`Expected ide 'vscode', got '${result.ide}'`);
@@ -78,7 +78,7 @@ runner.test('parseArguments: parses -i short flag for IDE', () => {
 });
 
 runner.test('parseArguments: parses --features argument', () => {
-  const result = parseArguments(['test-project', '--template', 'basic', '--features', 'auth,testing']);
+  const result = parseArguments(['test-project', '--from-template', 'basic', '--features', 'auth,testing']);
   
   if (result.features !== 'auth,testing') {
     throw new Error(`Expected features 'auth,testing', got '${result.features}'`);
@@ -86,7 +86,7 @@ runner.test('parseArguments: parses --features argument', () => {
 });
 
 runner.test('parseArguments: parses -f short flag for features', () => {
-  const result = parseArguments(['test-project', '--template', 'basic', '-f', 'database,api']);
+  const result = parseArguments(['test-project', '--from-template', 'basic', '-f', 'database,api']);
   
   if (result.features !== 'database,api') {
     throw new Error(`Expected features 'database,api', got '${result.features}'`);
@@ -96,7 +96,7 @@ runner.test('parseArguments: parses -f short flag for features', () => {
 runner.test('parseArguments: handles both new arguments together', () => {
   const result = parseArguments([
     'test-project', 
-    '--template', 'basic', 
+    '--from-template', 'basic', 
     '--ide', 'cursor', 
     '--features', 'auth,database,testing'
   ]);
@@ -111,7 +111,7 @@ runner.test('parseArguments: handles both new arguments together', () => {
 });
 
 runner.test('parseArguments: handles missing IDE and features (undefined)', () => {
-  const result = parseArguments(['test-project', '--template', 'basic']);
+  const result = parseArguments(['test-project', '--from-template', 'basic']);
   
   if (result.ide !== undefined) {
     throw new Error(`Expected ide undefined, got '${result.ide}'`);
@@ -125,7 +125,7 @@ runner.test('parseArguments: handles missing IDE and features (undefined)', () =
 runner.test('parseArguments: preserves existing argument parsing', () => {
   const result = parseArguments([
     'test-project', 
-    '--template', 'react', 
+    '--from-template', 'react', 
     '--repo', 'user/repo', 
     '--branch', 'main'
   ]);
@@ -149,7 +149,7 @@ runner.test('parseArguments: preserves existing argument parsing', () => {
 
 runner.test('parseArguments: rejects unknown arguments', () => {
   try {
-    parseArguments(['test-project', '--template', 'basic', '--unknown', 'value']);
+    parseArguments(['test-project', '--from-template', 'basic', '--unknown', 'value']);
     throw new Error('Should have rejected unknown argument');
   } catch (error) {
     if (!(error instanceof ArgumentError)) {
@@ -392,7 +392,7 @@ runner.test('generateHelpText: preserves existing help content', () => {
     }
   }
   
-  const existingOptions = ['--template', '--repo', '--branch', '--help'];
+  const existingOptions = ['--from-template', '--repo', '--branch', '--help'];
   for (const option of existingOptions) {
     if (!helpText.includes(option)) {
       throw new Error(`Help text should preserve existing option: ${option}`);
