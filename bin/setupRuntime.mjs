@@ -410,6 +410,174 @@ async function renderFile(root, sourceRelative, targetRelative, data) {
   await fs.writeFile(target, rendered, UTF8);
 }
 
+function parseJsonPath(pathExpression) {
+  if (typeof pathExpression !== 'string' || !pathExpression.trim()) {
+    throw new SetupSandboxError('JSON path must be a non-empty string');
+  }
+
+  const segments = [];
+  const parts = pathExpression.split('.');
+  const tokenRegex = /([^\[\]]+)|\[(\d+)\]/g;
+
+  for (const part of parts) {
+    const matches = Array.from(part.matchAll(tokenRegex));
+    if (matches.length === 0) {
+      throw new SetupSandboxError(`Invalid JSON path segment "${part}" in "${pathExpression}"`);
+    }
+    for (const match of matches) {
+      if (match[1]) {
+        segments.push(match[1]);
+      } else if (match[2]) {
+        segments.push(Number(match[2]));
+      }
+    }
+  }
+
+  if (segments.length === 0 || typeof segments[0] === 'number') {
+    throw new SetupSandboxError(`JSON path must start with an object property: "${pathExpression}"`);
+  }
+  return segments;
+}
+
+function ensureArraySize(array, index) {
+  while (array.length <= index) {
+    array.push(undefined);
+  }
+}
+
+function deepEqual(a, b) {
+  return JSON.stringify(a) === JSON.stringify(b);
+}
+
+function resolveParentForPath(target, segments, { createMissing } = { createMissing: false }) {
+  let current = target;
+  for (let i = 0; i < segments.length - 1; i++) {
+    const key = segments[i];
+    const nextKey = segments[i + 1];
+
+    if (typeof key === 'number') {
+      if (!Array.isArray(current)) {
+        throw new SetupSandboxError('JSON path expected an array segment but found non-array value');
+      }
+      ensureArraySize(current, key);
+      let next = current[key];
+      if (next === undefined || next === null || typeof next !== 'object') {
+        if (!createMissing) {
+          return null;
+        }
+        next = typeof nextKey === 'number' ? [] : {};
+        current[key] = next;
+      }
+      current = next;
+    } else {
+      if (current[key] === undefined || current[key] === null || typeof current[key] !== 'object') {
+        if (!createMissing) {
+          return null;
+        }
+        current[key] = typeof nextKey === 'number' ? [] : {};
+      } else if (typeof nextKey === 'number' && !Array.isArray(current[key])) {
+        if (!createMissing) {
+          throw new SetupSandboxError('JSON path expected an array segment but found non-array value');
+        }
+        current[key] = [];
+      }
+      current = current[key];
+    }
+  }
+
+  return { parent: current, key: segments[segments.length - 1] };
+}
+
+function setAtPath(target, segments, value) {
+  const resolved = resolveParentForPath(target, segments, { createMissing: true });
+  const { parent, key } = resolved;
+  if (typeof key === 'number') {
+    if (!Array.isArray(parent)) {
+      throw new SetupSandboxError('JSON path expected an array segment but found non-array value');
+    }
+    ensureArraySize(parent, key);
+    parent[key] = value;
+  } else {
+    parent[key] = value;
+  }
+}
+
+function removeAtPath(target, segments) {
+  const resolved = resolveParentForPath(target, segments, { createMissing: false });
+  if (!resolved) {
+    return false;
+  }
+  const { parent, key } = resolved;
+  if (typeof key === 'number') {
+    if (!Array.isArray(parent) || key < 0 || key >= parent.length) {
+      return false;
+    }
+    parent.splice(key, 1);
+    return true;
+  }
+  if (parent && Object.prototype.hasOwnProperty.call(parent, key)) {
+    delete parent[key];
+    return true;
+  }
+  return false;
+}
+
+function addToArrayAtPath(target, segments, value, unique) {
+  const resolved = resolveParentForPath(target, segments, { createMissing: true });
+  const { parent, key } = resolved;
+  if (parent[key] === undefined) {
+    parent[key] = [];
+  }
+  if (!Array.isArray(parent[key])) {
+    throw new SetupSandboxError('JSON path expected an array but found an object');
+  }
+  if (unique && parent[key].some(item => deepEqual(item, value))) {
+    return;
+  }
+  parent[key].push(value);
+}
+
+function mergeArrayAtPath(target, segments, items, unique) {
+  if (!Array.isArray(items)) {
+    throw new SetupSandboxError('json.mergeArray requires an array of items');
+  }
+  const resolved = resolveParentForPath(target, segments, { createMissing: true });
+  const { parent, key } = resolved;
+  if (parent[key] === undefined) {
+    parent[key] = [];
+  }
+  if (!Array.isArray(parent[key])) {
+    throw new SetupSandboxError('JSON path expected an array but found an object');
+  }
+  for (const item of items) {
+    if (unique && parent[key].some(existing => deepEqual(existing, item))) {
+      continue;
+    }
+    parent[key].push(item);
+  }
+}
+
+async function editJsonFile(root, relativePath, mutator, { allowCreate = true } = {}) {
+  const absolute = resolveProjectPath(root, relativePath, 'JSON path');
+  let data;
+  try {
+    const raw = await fs.readFile(absolute, UTF8);
+    data = JSON.parse(raw);
+  } catch (error) {
+    if (error.code === 'ENOENT' && allowCreate) {
+      data = {};
+    } else if (error.code === 'ENOENT') {
+      throw new SetupSandboxError(`JSON file not found: ${relativePath}`);
+    } else {
+      throw new SetupSandboxError(`Failed to read JSON (${relativePath}): ${error.message}`);
+    }
+  }
+  const draft = structuredClone(data);
+  mutator(draft);
+  await writeJson(root, relativePath, draft);
+  return draft;
+}
+
 function createLoggerApi(logger) {
   return Object.freeze({
     info(message, data) {
@@ -450,41 +618,6 @@ function createOptionsApi(options) {
       return optionList.slice();
     }
   });
-}
-
-async function loadAstGrepAdapter() {
-  try {
-    const mod = await import('@ast-grep/napi');
-    const runFn = typeof mod.run === 'function'
-      ? mod.run
-      : typeof mod.default === 'function'
-        ? mod.default
-        : null;
-    const transformFn = typeof mod.transform === 'function' ? mod.transform : null;
-
-    return Object.freeze({
-      available: true,
-      async run(query, options = {}) {
-        if (!runFn) {
-          throw new SetupSandboxError('ast-grep run API is not available in the installed module.');
-        }
-        return runFn(query, options);
-      },
-      async transform(config) {
-        if (!transformFn) {
-          throw new SetupSandboxError('ast-grep transform API is not available in the installed module.');
-        }
-        return transformFn(config);
-      }
-    });
-  } catch (error) {
-    return Object.freeze({
-      available: false,
-      reason: error.code === 'ERR_MODULE_NOT_FOUND'
-        ? 'ast-grep adapter not installed'
-        : error.message
-    });
-  }
 }
 
 function createIdeApi(ctx, root) {
@@ -551,6 +684,38 @@ function buildFileApi(root) {
     },
     async move(fromRelative, toRelative, options = {}) {
       await moveEntry(root, fromRelative, toRelative, options);
+    },
+    async write(relativePath, content, options = {}) {
+      const absolute = resolveProjectPath(root, relativePath, 'file path');
+      if (options.overwrite === false) {
+        try {
+          await fs.access(absolute);
+          throw new SetupSandboxError(`File already exists: ${relativePath}`);
+        } catch (error) {
+          if (error.code !== 'ENOENT') {
+            throw new SetupSandboxError(`Failed to access ${relativePath}: ${error.message}`);
+          }
+        }
+      }
+
+      const data = Array.isArray(content)
+        ? content.join('\n')
+        : typeof content === 'string' || content instanceof Buffer
+          ? content
+          : (() => { throw new SetupSandboxError('files.write content must be a string, array of strings, or Buffer'); })();
+
+      await ensureParentDirectory(absolute);
+      await fs.writeFile(absolute, data, typeof data === 'string' ? UTF8 : undefined);
+    },
+    async copyTemplateDir(fromRelative, toRelative, options = {}) {
+      const source = resolveProjectPath(root, fromRelative, 'source path');
+      const destination = resolveProjectPath(root, toRelative, 'destination path');
+      await ensureParentDirectory(destination);
+      await fs.cp(source, destination, {
+        recursive: true,
+        force: options.overwrite === true,
+        errorOnExist: options.overwrite !== true
+      });
     }
   });
 }
@@ -565,6 +730,30 @@ function buildJsonApi(root) {
     },
     async update(relativePath, updater) {
       return await updateJson(root, relativePath, updater);
+    },
+    async set(relativePath, pathExpression, value) {
+      const segments = parseJsonPath(pathExpression);
+      return await editJsonFile(root, relativePath, (draft) => {
+        setAtPath(draft, segments, value);
+      });
+    },
+    async remove(relativePath, pathExpression) {
+      const segments = parseJsonPath(pathExpression);
+      return await editJsonFile(root, relativePath, (draft) => {
+        removeAtPath(draft, segments);
+      }, { allowCreate: false });
+    },
+    async addToArray(relativePath, pathExpression, value, options = {}) {
+      const segments = parseJsonPath(pathExpression);
+      return await editJsonFile(root, relativePath, (draft) => {
+        addToArrayAtPath(draft, segments, value, options.unique === true);
+      });
+    },
+    async mergeArray(relativePath, pathExpression, items, options = {}) {
+      const segments = parseJsonPath(pathExpression);
+      return await editJsonFile(root, relativePath, (draft) => {
+        mergeArrayAtPath(draft, segments, items, options.unique === true);
+      });
     }
   });
 }
@@ -585,6 +774,202 @@ function buildTemplateApi(root) {
         throw new SetupSandboxError('templates.renderFile requires a data object');
       }
       await renderFile(root, sourceRelative, targetRelative, data);
+    }
+  });
+}
+
+function normalizeTextInput(input, label) {
+  if (Array.isArray(input)) {
+    for (const line of input) {
+      if (typeof line !== 'string') {
+        throw new SetupSandboxError(`${label} array entries must be strings`);
+      }
+    }
+    return input.join('\n');
+  }
+  if (typeof input !== 'string') {
+    throw new SetupSandboxError(`${label} must be a string or array of strings`);
+  }
+  return input;
+}
+
+function ensureLeadingNewline(block) {
+  return block.startsWith('\n') ? block : `\n${block}`;
+}
+
+function ensureTrailingNewline(block) {
+  return block.endsWith('\n') ? block : `${block}\n`;
+}
+
+function stripDuplicateNewlines(left, block, right) {
+  let result = block;
+  if (!left.endsWith('\n')) {
+    result = `\n${result}`;
+  }
+  if (!right.startsWith('\n')) {
+    result = `${result}\n`;
+  }
+  return result;
+}
+
+function buildTextApi(root) {
+  return Object.freeze({
+    async insertAfter({ file, marker, block }) {
+      if (typeof marker !== 'string' || !marker) {
+        throw new SetupSandboxError('text.insertAfter requires a non-empty marker string');
+      }
+      const absolute = resolveProjectPath(root, file, 'text file');
+      let content;
+      try {
+        content = await fs.readFile(absolute, UTF8);
+      } catch (error) {
+        if (error.code === 'ENOENT') {
+          throw new SetupSandboxError(`Text insert target not found: ${file}`);
+        }
+        throw new SetupSandboxError(`Failed to read ${file}: ${error.message}`);
+      }
+
+      const normalizedBlock = normalizeTextInput(block, 'text.insertAfter block');
+      if (content.includes(normalizedBlock.trim())) {
+        return;
+      }
+
+      const index = content.indexOf(marker);
+      if (index === -1) {
+        throw new SetupSandboxError(`Marker "${marker}" not found in ${file}`);
+      }
+
+      const markerEnd = index + marker.length;
+      const before = content.slice(0, markerEnd);
+      const after = content.slice(markerEnd);
+
+      const insertion = stripDuplicateNewlines(before, ensureTrailingNewline(normalizedBlock), after);
+      const updated = before + insertion + after;
+      await fs.writeFile(absolute, updated, UTF8);
+    },
+
+    async ensureBlock({ file, marker, block }) {
+      const absolute = resolveProjectPath(root, file, 'text file');
+      let content;
+      try {
+        content = await fs.readFile(absolute, UTF8);
+      } catch (error) {
+        if (error.code === 'ENOENT') {
+          throw new SetupSandboxError(`Text ensure target not found: ${file}`);
+        }
+        throw new SetupSandboxError(`Failed to read ${file}: ${error.message}`);
+      }
+
+      const normalizedBlock = normalizeTextInput(block, 'text.ensureBlock block');
+      if (content.includes(normalizedBlock.trim())) {
+        return;
+      }
+
+      await this.insertAfter({ file, marker, block: normalizedBlock });
+    },
+
+    async replaceBetween({ file, start, end, block }) {
+      if (typeof start !== 'string' || !start || typeof end !== 'string' || !end) {
+        throw new SetupSandboxError('text.replaceBetween requires non-empty start and end markers');
+      }
+      const absolute = resolveProjectPath(root, file, 'text file');
+      let content;
+      try {
+        content = await fs.readFile(absolute, UTF8);
+      } catch (error) {
+        if (error.code === 'ENOENT') {
+          throw new SetupSandboxError(`Text replace target not found: ${file}`);
+        }
+        throw new SetupSandboxError(`Failed to read ${file}: ${error.message}`);
+      }
+
+      const startIndex = content.indexOf(start);
+      if (startIndex === -1) {
+        throw new SetupSandboxError(`Start marker "${start}" not found in ${file}`);
+      }
+      const startEnd = startIndex + start.length;
+      const endIndex = content.indexOf(end, startEnd);
+      if (endIndex === -1) {
+        throw new SetupSandboxError(`End marker "${end}" not found in ${file}`);
+      }
+
+      const before = content.slice(0, startEnd);
+      const after = content.slice(endIndex);
+      let replacement = normalizeTextInput(block, 'text.replaceBetween block');
+      if (replacement.length > 0) {
+        replacement = ensureTrailingNewline(ensureLeadingNewline(replacement));
+      } else {
+        replacement = '\n';
+      }
+
+      const updated = before + replacement + after;
+      await fs.writeFile(absolute, updated, UTF8);
+    },
+
+    async appendLines({ file, lines }) {
+      const absolute = resolveProjectPath(root, file, 'text file');
+      let content = '';
+      try {
+        content = await fs.readFile(absolute, UTF8);
+      } catch (error) {
+        if (error.code !== 'ENOENT') {
+          throw new SetupSandboxError(`Failed to read ${file}: ${error.message}`);
+        }
+      }
+
+      let block = normalizeTextInput(lines, 'text.appendLines lines');
+      block = ensureTrailingNewline(block);
+
+      if (content.length > 0 && !content.endsWith('\n')) {
+        content += '\n';
+      }
+
+      const updated = content + block;
+      await ensureParentDirectory(absolute);
+      await fs.writeFile(absolute, updated, UTF8);
+    },
+
+    async replace({ file, search, replace, ensureMatch = false }) {
+      if (typeof replace !== 'string') {
+        throw new SetupSandboxError('text.replace requires the replacement value to be a string');
+      }
+
+      const absolute = resolveProjectPath(root, file, 'text file');
+      let content;
+      try {
+        content = await fs.readFile(absolute, UTF8);
+      } catch (error) {
+        if (error.code === 'ENOENT') {
+          throw new SetupSandboxError(`Text replace target not found: ${file}`);
+        }
+        throw new SetupSandboxError(`Failed to read ${file}: ${error.message}`);
+      }
+
+      let pattern;
+      if (typeof search === 'string') {
+        pattern = new RegExp(escapeRegExp(search), 'g');
+      } else if (search instanceof RegExp) {
+        pattern = search;
+      } else {
+        throw new SetupSandboxError('text.replace requires search to be a string or RegExp');
+      }
+
+      let matchCount = 0;
+      const updated = content.replace(pattern, (...args) => {
+        matchCount++;
+        return replace;
+      });
+
+      if (matchCount === 0) {
+        if (ensureMatch) {
+          throw new SetupSandboxError(`text.replace could not find a match in ${file}`);
+        }
+        return;
+      }
+
+      if (updated !== content) {
+        await fs.writeFile(absolute, updated, UTF8);
+      }
     }
   });
 }
@@ -624,16 +1009,14 @@ export async function createSetupTools({ projectDirectory, projectName, logger, 
     options: Array.isArray(context?.options) ? context.options.slice() : []
   };
 
-  const astGrep = await loadAstGrepAdapter();
-
   return Object.freeze({
     placeholders: buildPlaceholderApi(root),
     files: buildFileApi(root),
     json: buildJsonApi(root),
     templates: buildTemplateApi(root),
+    text: buildTextApi(root),
     logger: createLoggerApi(logger),
     ide: createIdeApi(ctx, root),
-    options: createOptionsApi(ctx.options),
-    astGrep
+    options: createOptionsApi(ctx.options)
   });
 }

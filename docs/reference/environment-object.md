@@ -8,6 +8,7 @@ prerequisites:
   - "Basic understanding of @m5nv/create-scaffold template workflow"
 related_docs:
   - "../creating-templates.md"
+  - "../how-to/setup-recipes.md"
   - "cli-reference.md"
 last_updated: "2024-11-05"
 ---
@@ -57,6 +58,16 @@ The `tools` object exposes high-level utilities. Each module is scoped to the pr
 await tools.placeholders.replaceAll({ PROJECT_NAME: ctx.projectName }, ['README.md', 'src/**/*.ts']);
 ```
 
+### `tools.text`
+
+| Method | Description |
+|--------|-------------|
+| `insertAfter({ file, marker, block })` | Insert a block immediately after a marker if it is not already present. |
+| `ensureBlock({ file, marker, block })` | Guarantee a block exists after the marker (idempotent). |
+| `replaceBetween({ file, start, end, block })` | Replace the content bounded by two markers while preserving the markers themselves. |
+| `appendLines({ file, lines })` | Append lines (string or array) with automatic newline handling. |
+| `replace({ file, search, replace, ensureMatch })` | String/regex replacement with optional guard to ensure a match. |
+
 ### `tools.files`
 
 | Method | Description |
@@ -65,6 +76,8 @@ await tools.placeholders.replaceAll({ PROJECT_NAME: ctx.projectName }, ['README.
 | `copy(from, to, { overwrite })` | Copy files or directories within the project. |
 | `move(from, to, { overwrite })` | Move files or directories. Cross-device moves fall back to copy + remove. |
 | `remove(path)` | Remove a file or directory (recursive). |
+| `write(file, content, { overwrite })` | Write text content (string/array/Buffer) to a file, optionally refusing to overwrite existing files. |
+| `copyTemplateDir(from, to, { overwrite })` | Copy a project-local directory tree to a new location inside the project. |
 
 ### `tools.json`
 
@@ -73,6 +86,10 @@ await tools.placeholders.replaceAll({ PROJECT_NAME: ctx.projectName }, ['README.
 | `read(path)` | Read and parse a JSON file. Throws if it does not exist. |
 | `merge(path, patch)` | Deep-merge a JSON object into an existing file. Creates the file when missing. Arrays are replaced whole. |
 | `update(path, updater)` | Provide a function that receives a mutable clone of the JSON data. Return a new object or mutate the draft. |
+| `set(path, value)` | Assign a value at a dot-path (e.g. `scripts.dev`). Intermediate objects/arrays are created automatically. |
+| `remove(path)` | Remove a property or array entry addressed by the dot-path. |
+| `addToArray(path, value, { unique })` | Push a value into an array addressed by the dot-path, optionally enforcing uniqueness. |
+| `mergeArray(path, items, { unique })` | Merge multiple values into an array, optionally enforcing uniqueness. |
 
 ### `tools.templates`
 
@@ -104,45 +121,33 @@ Simple logger routed through the CLI output and optional log file:
 | `has(name)` | Boolean check for a specific option. |
 | `when(name, fn)` | Execute `fn` only when the option is present. Supports `async` callbacks. |
 
-### `tools.astGrep`
-
-The AST helpers are available when `@ast-grep/napi` is installed in the CLI runtime. Detect availability before using:
-
-```javascript
-if (tools.astGrep.available) {
-  await tools.astGrep.transform({
-    rule: 'ts-interface-add-property',
-    target: 'src/app.ts',
-    newProperty: 'loggingEnabled: boolean'
-  });
-}
-```
-
-If the module is missing, `tools.astGrep.available` is `false` and a `reason` is provided.
-
 ## Example Setup Script
 
 ```javascript
 // _setup.mjs
 export default async function setup(ctx, tools) {
-  tools.logger.info(`Preparing ${ctx.projectName}`);
-
   await tools.placeholders.replaceAll(
     { PROJECT_NAME: ctx.projectName },
-    ['README.md', 'package.json', 'src/**/*.ts']
+    ['README.md', 'package.json']
   );
 
-  await tools.json.merge('package.json', {
-    scripts: { dev: 'node index.js' }
+  await tools.text.insertAfter({
+    file: 'README.md',
+    marker: '# {{PROJECT_NAME}}',
+    block: ['## Next steps', '- npm install', '- npm run dev']
   });
+
+  await tools.json.set('package.json', 'scripts.dev', 'node index.js');
+  await tools.json.addToArray('package.json', 'keywords', ctx.projectName, { unique: true });
 
   await tools.options.when('docs', async () => {
     await tools.files.ensureDirs('docs');
-    await tools.templates.renderFile(
-      'templates/docs.md.tpl',
-      'docs/index.md',
-      { PROJECT_NAME: ctx.projectName }
-    );
+    await tools.text.replaceBetween({
+      file: 'docs/overview.md',
+      start: '<!-- docs:start -->',
+      end: '<!-- docs:end -->',
+      block: [`Generated for ${ctx.projectName}`]
+    });
   });
 
   if (ctx.ide) {
@@ -169,4 +174,5 @@ When the user passes unsupported options, the CLI emits a warning (but still com
 ## Additional Reading
 
 - [Creating Templates](../creating-templates.md) – guided walkthrough with practical examples.
+- [Setup Script Recipes](../how-to/setup-recipes.md) – copy-ready snippets for frequent helper tasks.
 - [CLI Reference](cli-reference.md) – command-line switches such as `--ide`, `--options`, and logging.

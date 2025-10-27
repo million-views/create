@@ -11,11 +11,13 @@ export default async function setup(ctx, tools) {
   await tools.files.copy('README.md', 'docs/overview.md', { overwrite: true });
   await tools.files.remove('seed');
 
-  await tools.json.update('package.json', (pkg) => {
-    const next = structuredClone(pkg);
-    next.scripts = next.scripts || {};
-    next.scripts.lint = 'echo "lint placeholder"';
-    return next;
+  await tools.json.set('package.json', 'scripts.lint', 'echo "lint placeholder"');
+  await tools.text.appendLines({
+    file: 'docs/overview.md',
+    lines: [
+      '## Project Notes',
+      `Generated on: ${new Date().toISOString().split('T')[0]}`
+    ]
   });
 
   await tools.options.when('docs', async () => {
@@ -24,6 +26,11 @@ export default async function setup(ctx, tools) {
       'docs/index.md',
       { PROJECT_NAME: ctx.projectName }
     );
+    await tools.text.ensureBlock({
+      file: 'docs/index.md',
+      marker: `# ${ctx.projectName} Documentation`,
+      block: ['## Contents', '- Overview', '- Next Steps']
+    });
   });
 
   if (ctx.ide) {

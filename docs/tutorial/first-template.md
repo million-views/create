@@ -11,7 +11,8 @@ related_docs:
   - "getting-started.md"
   - "../creating-templates.md"
   - "../reference/environment-object.md"
-last_updated: "2024-10-26"
+  - "../how-to/setup-recipes.md"
+last_updated: "2024-11-05"
 ---
 
 # Your First Template - Hands-On Examples
@@ -219,6 +220,64 @@ feature-demo/
 - ✅ `integration-config.json` shows how features connect
 - ✅ Package.json includes scripts for each feature
 - ✅ IDE configuration is optimized for all enabled features
+
+## Setup Deep Dive: Using the Helper Toolkit
+
+Let’s pause and customize the `feature-demo` project you just generated. The
+setup script lives at `templates/react-vite/_setup.mjs` inside your template
+repository and receives `(ctx, tools)` from the sandbox.
+
+1. **Open the setup script** shipped with the template (inside your template
+   repository). For example:
+   ```bash
+   sed -n '1,160p' templates/react-vite/_setup.mjs
+   ```
+
+2. **Identify helper usage:** The template relies on the curated helper toolkit.
+   A typical script now looks like:
+   ```javascript
+   export default async function setup(ctx, tools) {
+     await tools.placeholders.replaceAll(
+       { PROJECT_NAME: ctx.projectName },
+       ['README.md', 'package.json']
+     );
+
+     await tools.text.ensureBlock({
+       file: 'README.md',
+       marker: '# {{PROJECT_NAME}}',
+       block: ['## Getting Started', '- npm install', '- npm run dev']
+     });
+
+     await tools.json.set('package.json', 'scripts.dev', 'vite dev');
+     await tools.json.mergeArray('package.json', 'keywords', ['scaffold'], { unique: true });
+
+     await tools.options.when('docs', async () => {
+       await tools.files.ensureDirs('docs');
+       await tools.templates.renderFile('templates/docs.tpl', 'docs/README.md', {
+         PROJECT_NAME: ctx.projectName
+       });
+     });
+
+     if (ctx.ide) {
+       await tools.ide.applyPreset(ctx.ide);
+     }
+   }
+   ```
+
+3. **Understand what changed:**
+   - `tools.text.ensureBlock` inserts a README block once and keeps it
+     idempotent.
+   - `tools.json.set` and `tools.json.mergeArray` mutate `package.json`
+     without manual parsing.
+   - `tools.files.ensureDirs` + `tools.templates.renderFile` handle asset
+     creation without exposing raw `fs`.
+
+4. **Experiment:** Edit `_setup.mjs` and rerun the CLI. Because helpers are
+   idempotent, re-running the script produces deterministic output and keeps
+   dry-run previews accurate.
+
+5. **Need more patterns?** The [Setup Script Recipes](../how-to/setup-recipes.md)
+   how-to guide contains copy-ready snippets that build on these helpers.
 
 ## Example 4: Team Project (Production-Ready Setup)
 

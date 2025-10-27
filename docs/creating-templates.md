@@ -11,7 +11,8 @@ related_docs:
   - "tutorial/getting-started.md"
   - "reference/cli-reference.md"
   - "reference/environment-object.md"
-last_updated: "2024-01-15"
+  - "how-to/setup-recipes.md"
+last_updated: "2024-11-05"
 ---
 
 # How to Create Templates
@@ -139,18 +140,19 @@ import Node built-ins:
 ```javascript
 // _setup.mjs
 export default async function setup(ctx, tools) {
-  tools.logger.info(`Setting up ${ctx.projectName}`);
-
   await tools.placeholders.replaceAll(
     { PROJECT_NAME: ctx.projectName },
-    ['README.md', 'package.json', 'src/**/*.tsx']
+    ['README.md', 'package.json']
   );
 
-  await tools.json.merge('package.json', {
-    scripts: {
-      dev: 'node index.js'
-    }
+  await tools.text.insertAfter({
+    file: 'README.md',
+    marker: '# {{PROJECT_NAME}}',
+    block: ['## Commands', '- npm install', '- npm run dev']
   });
+
+  await tools.json.set('package.json', 'scripts.dev', 'node index.js');
+  await tools.json.addToArray('package.json', 'keywords', 'scaffold', { unique: true });
 
   await tools.options.when('testing', async () => {
     await tools.files.ensureDirs('tests');
@@ -177,6 +179,9 @@ Key ideas:
 
 Refer to the [Environment Object Reference](reference/environment-object.md)
 for the exhaustive list of helpers.
+
+> Need more examples? Jump to the [Setup Script Recipes](how-to/setup-recipes.md)
+> guide for copy-ready snippets that build on the helpers shown here.
 
 ### Supported options metadata
 
@@ -238,11 +243,11 @@ for details.
 | `ctx.ide` | Target IDE (`kiro`, `vscode`, `cursor`, `windsurf`, or `null`). Pair with `tools.ide.applyPreset()`. |
 | `ctx.options` | Array of options from `--options`. Use `tools.options.when()` for feature toggles. |
 | `tools.placeholders` | Replace `{{TOKEN}}` strings across one or many files. |
-| `tools.files` | Safe copy/move/remove utilities scoped to the project directory. |
-| `tools.json` | Read, merge, or update JSON files without manual parsing. |
+| `tools.text` | Insert/ensure blocks, replace between markers, append lines, or run guarded search/replace. |
+| `tools.files` | Ensure directories, copy/move/remove paths, write files, or copy directory trees. |
+| `tools.json` | Read, set, remove, or merge JSON values using dot-path helpers. |
 | `tools.templates` | Render project-local template files with placeholder values. |
 | `tools.logger` | Emit informational messages during setup. |
-| `tools.astGrep` | Optional AST helpers when `@ast-grep/napi` is available. |
 
 The helpers are designed to be composable—prefer building small reusable
 operations over reaching for raw filesystem APIs.

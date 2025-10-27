@@ -7,9 +7,11 @@ prerequisites: []
 related_docs: 
   - "../creating-templates.md"
   - "../tutorial/getting-started.md"
+  - "../tutorial/first-template.md"
+  - "../how-to/setup-recipes.md"
   - "environment-object.md"
   - "error-codes.md"
-last_updated: "2024-01-15"
+last_updated: "2024-11-05"
 ---
 
 # CLI Reference
@@ -166,19 +168,19 @@ npm create @m5nv/scaffold my-app -- --from-template react --dry-run --log-file .
 🔍 DRY RUN MODE - Preview of planned operations (no changes will be made)
 
 📦 Template: react
+🌐 Repository: user/templates
 📁 Target Directory: my-app
+🗂️ Template Path: ~/.m5nv/cache/XXXXXXXXXXXX/react
 
 📄 Summary:
    • Directories: 2
    • Files: 5
    • Setup Scripts: 1
 
-📋 File Copy (5 operations):
-   📄 Copy: package.json
-   📄 Copy: README.md
-   📄 Copy: src/index.js
-   📄 Copy: src/utils.js
-   📄 Copy: public/index.html
+📋 File Copy (5 total):
+   • ./ (2 files)
+   • src/ (2 files)
+   • public/ (1 file)
 
 📁 Directory Creation (2 operations):
    📁 Ensure directory: src
@@ -186,6 +188,9 @@ npm create @m5nv/scaffold my-app -- --from-template react --dry-run --log-file .
 
 ⚙️ Setup Script (1 operations):
    ⚙️ Execute setup script: _setup.mjs
+
+📊 Total operations: 8
+💡 Dry run only – no changes will be made.
 
 🌲 Template structure (depth 2):
 my-app

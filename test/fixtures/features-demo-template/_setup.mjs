@@ -4,6 +4,9 @@ export default async function setup(ctx, tools) {
     ['README.md', 'package.json', 'index.js']
   );
 
+  await tools.json.set('package.json', 'scripts.dev', 'node index.js');
+  await tools.json.set('package.json', 'm5nv.features', []);
+
   const selected = [];
 
   await tools.options.when('api', async () => {
@@ -14,6 +17,7 @@ export default async function setup(ctx, tools) {
       'src/api/index.js',
       { PROJECT_NAME: ctx.projectName }
     );
+    await tools.json.addToArray('package.json', 'm5nv.features', 'api', { unique: true });
   });
 
   await tools.options.when('auth', async () => {
@@ -24,6 +28,7 @@ export default async function setup(ctx, tools) {
       'src/auth/service.js',
       { PROJECT_NAME: ctx.projectName }
     );
+    await tools.json.addToArray('package.json', 'm5nv.features', 'auth', { unique: true });
   });
 
   await tools.options.when('testing', async () => {
@@ -34,14 +39,16 @@ export default async function setup(ctx, tools) {
       'tests/sanity.spec.js',
       { PROJECT_NAME: ctx.projectName }
     );
+    await tools.json.addToArray('package.json', 'm5nv.features', 'testing', { unique: true });
   });
 
-  await tools.json.merge('package.json', {
-    scripts: {
-      dev: 'node index.js'
-    },
-    m5nv: {
-      features: selected
-    }
-  });
+  if (selected.length) {
+    await tools.text.appendLines({
+      file: 'README.md',
+      lines: [
+        '## Enabled Features',
+        ...selected.map(feature => `- ${feature}`)
+      ]
+    });
+  }
 }

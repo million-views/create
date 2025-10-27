@@ -10,7 +10,8 @@ related_docs:
   - "../creating-templates.md"
   - "../reference/environment-object.md"
   - "template-system.md"
-last_updated: "2024-10-26"
+  - "../how-to/setup-recipes.md"
+last_updated: "2024-11-05"
 ---
 
 # IDE Integration Philosophy Explained
@@ -59,18 +60,10 @@ create-scaffold my-project --from-template user/repo
 
 ### Environment Object Integration
 
-Templates receive IDE context through the Environment_Object:
+Templates receive IDE context through `ctx.ide` inside the setup sandbox:
 
 ```javascript
 // In template _setup.mjs
-const Environment_Object = {
-  projectDir: "/path/to/project",
-  projectName: "my-project", 
-  cwd: "/current/directory",
-  ide: "vscode",        // or "kiro", "cursor", "windsurf", null
-  options: ["typescript"]
-};
-
 export default async function setup(ctx, tools) {
   if (ctx.ide) {
     await tools.ide.applyPreset(ctx.ide);
@@ -151,11 +144,12 @@ Currently supported IDEs with their characteristics:
 
 **Progressive Enhancement:**
 ```javascript
-// Base functionality for all environments
-await setupBasicProject();
+export default async function setup(ctx, tools) {
+  // Base functionality for all environments
+  await setupBasicProject(tools);
 
-// Enhanced functionality for specific IDEs
-switch (Environment_Object.ide) {
+  // Enhanced functionality for specific IDEs
+  switch (ctx.ide) {
   case 'vscode':
     await enhanceForVSCode();
     break;
@@ -165,21 +159,24 @@ switch (Environment_Object.ide) {
   // ... other IDEs
   default:
     // No additional enhancement needed
+    break;
+  }
 }
 ```
 
 **Feature Detection:**
 ```javascript
-// Check for IDE-specific capabilities
-const hasDebugSupport = ['vscode', 'kiro'].includes(Environment_Object.ide);
-const hasAIAssistance = ['kiro', 'cursor'].includes(Environment_Object.ide);
+export default async function setup(ctx, tools) {
+  const hasDebugSupport = ['vscode', 'kiro'].includes(ctx.ide);
+  const hasAIAssistance = ['kiro', 'cursor'].includes(ctx.ide);
 
-if (hasDebugSupport) {
-  await setupDebugConfiguration();
-}
+  if (hasDebugSupport) {
+    await setupDebugConfiguration(tools);
+  }
 
-if (hasAIAssistance) {
-  await setupAIOptimizedStructure();
+  if (hasAIAssistance) {
+    await setupAIOptimizedStructure(tools);
+  }
 }
 ```
 
@@ -202,7 +199,7 @@ if (hasAIAssistance) {
 - **Universal Compatibility**: Templates should work well without IDE-specific features
 - **Progressive Enhancement**: Add IDE-specific features as enhancements, not requirements
 - **Testing Across IDEs**: Consider testing templates with different IDE contexts
-- **Documentation**: Document IDE-specific features and their benefits
+- **Documentation**: Document IDE-specific features and their benefits, and reference helper APIs (for example, `tools.ide.applyPreset`) instead of bespoke implementations
 
 ### For Users
 

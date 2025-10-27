@@ -10,7 +10,8 @@ related_docs:
   - "../tutorial/first-template.md"
   - "../creating-templates.md"
   - "../reference/environment-object.md"
-last_updated: "2024-10-26"
+  - "../how-to/setup-recipes.md"
+last_updated: "2024-11-05"
 ---
 
 # Template System Architecture Explained
@@ -93,7 +94,7 @@ template-repository/
 ```
 
 **Special Files:**
-- **`_setup.mjs`**: Post-scaffolding automation script
+- **`_setup.mjs`**: Optional post-scaffolding automation script executed inside a sandbox that exposes only the curated helper toolkit. Scripts must export `default async function setup(ctx, tools)` and cannot import Node built-ins.
 - **`README.md`**: Template documentation and usage instructions
 - **`.gitignore`**: Patterns for files to exclude during scaffolding
 
@@ -102,18 +103,27 @@ template-repository/
 The Environment Object provides templates with context about the scaffolding operation:
 
 ```javascript
-// Available in _setup.mjs
-const Environment_Object = {
-  projectDir: "/absolute/path/to/new/project",
-  projectName: "my-new-project",
-  cwd: "/absolute/path/to/current/directory", 
-  ide: "vscode",           // or "kiro", "cursor", "windsurf", null
-  options: ["typescript"]  // array of option names, or empty array
-};
+export default async function setup(ctx, tools) {
+  await tools.placeholders.replaceAll(
+    { PROJECT_NAME: ctx.projectName },
+    ['README.md', 'package.json']
+  );
+
+  await tools.text.ensureBlock({
+    file: 'README.md',
+    marker: '# {{PROJECT_NAME}}',
+    block: ['## Getting Started', '- npm install', '- npm run dev']
+  });
+
+  await tools.json.set('package.json', 'scripts.dev', 'vite dev');
+
+  if (ctx.ide) {
+    await tools.ide.applyPreset(ctx.ide);
+  }
+}
 ```
 
-
-Setup scripts run in the sandbox and also receive the `tools` helper library. Refer to the [Environment Object Reference](../reference/environment-object.md) for the complete list of helpers such as `tools.placeholders`, `tools.json`, and `tools.ide`.
+Setup scripts run in a resource-restricted sandbox and rely exclusively on the curated helper library (`tools.placeholders`, `tools.text`, `tools.json`, `tools.files`, `tools.ide`, `tools.options`, `tools.templates`, `tools.logger`). Refer to the [Environment Object Reference](../reference/environment-object.md) and the [Setup Script Recipes how-to](../how-to/setup-recipes.md) for a complete catalogue of helper capabilities.
 **Design Rationale:**
 - **Immutable**: Prevents accidental modification during setup
 - **Validated**: All values are security-validated before creation
@@ -201,7 +211,7 @@ Setup scripts run in the sandbox and also receive the `tools` helper library. Re
 1. **Input Processing**: CLI arguments → validation → sanitization
 2. **Repository Resolution**: Template source → repository access → template location
 3. **Template Processing**: Template files → project directory → file operations
-4. **Environment Creation**: Context gathering → Environment_Object → setup script
+4. **Environment Creation**: Context gathering → `ctx` object → setup script
 5. **Cleanup**: Temporary files → cache management → completion
 
 ### Error Handling Strategy
@@ -219,8 +229,8 @@ Setup scripts run in the sandbox and also receive the `tools` helper library. Re
 - **Simple Structure**: No complex manifest files or special packaging required
 - **Git Workflow**: Use standard git operations for versioning and distribution
 - **Flexible Organization**: Organize templates hierarchically within repositories
-- **Powerful Setup**: Access to full Node.js capabilities in setup scripts
-- **Environment Awareness**: Templates can adapt to different development contexts
+- **Curated Setup Tools**: Apply text, JSON, file, IDE, and templating helpers without importing Node built-ins or third-party code
+- **Environment Awareness**: Adapt scaffolds using `ctx.ide`, `ctx.options`, and other contextual data
 
 ### For Users
 
@@ -273,4 +283,4 @@ Current architectural limitations that users should understand:
 
 - 📚 [First Template Tutorial](../tutorial/first-template.md) - Create your first template
 - 🛠️ [Creating Templates Guide](../creating-templates.md) - Comprehensive template creation guide
-- 📖 [Environment Object Reference](../reference/environment-object.md) - Complete Environment_Object documentation
+- 📖 [Environment Object Reference](../reference/environment-object.md) - Complete `ctx` and `tools` documentation

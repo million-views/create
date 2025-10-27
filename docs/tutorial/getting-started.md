@@ -11,7 +11,9 @@ related_docs:
   - "../creating-templates.md"
   - "../reference/cli-reference.md"
   - "../guides/troubleshooting.md"
-last_updated: "2024-10-26"
+  - "first-template.md"
+  - "../how-to/setup-recipes.md"
+last_updated: "2024-11-05"
 ---
 
 # Getting Started with @m5nv/create-scaffold
@@ -256,21 +258,25 @@ You'll see a detailed preview of all operations that would be performed:
 🔍 DRY RUN MODE - Preview of planned operations (no changes will be made)
 
 📦 Template: express
+🌐 Repository: million-views/templates
 📁 Target Directory: preview-app
+🗂️ Template Path: ~/.m5nv/cache/XXXXXXXXXXXX/express
 
 📄 Summary:
    • Directories: 2
    • Files: 6
    • Setup Scripts: 1
 
-📋 File Copy (... operations):
-   📄 Copy: package.json
-   📄 Copy: README.md
-   📄 Copy: src/index.js
-   ...
+📋 File Copy (6 total):
+   • ./ (3 files)
+   • src/ (2 files)
+   • public/ (1 file)
 
 ⚙️ Setup Script (1 operations):
    ⚙️ Execute setup script: _setup.mjs
+
+📊 Total operations: 9
+💡 Dry run only – no changes will be made.
 
 🌲 Template structure (depth 2):
 preview-app

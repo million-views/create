@@ -169,4 +169,98 @@ export default async function setup() {
   }
 });
 
+runner.test('Text and JSON helpers perform structured updates', async () => {
+  const baseDir = await runner.createTempDir('runtime-helpers');
+  const projectName = 'helper-demo';
+  const projectDir = path.join(baseDir, projectName);
+  await fs.mkdir(projectDir, { recursive: true });
+
+  await fs.writeFile(path.join(projectDir, 'layout.md'), '# Header\n<!-- tools:start -->\nOld block\n<!-- tools:end -->\n# Footer\n');
+  await fs.writeFile(path.join(projectDir, 'package.json'), JSON.stringify({
+    name: 'helper-demo',
+    keywords: ['scaffold'],
+    unused: true
+  }, null, 2));
+
+  const setupScriptPath = path.join(projectDir, '_setup.mjs');
+  await fs.writeFile(setupScriptPath, `
+export default async function setup(ctx, tools) {
+  await tools.files.write('notes.txt', ['First line', 'Second line']);
+  await tools.text.insertAfter({
+    file: 'layout.md',
+    marker: '# Header',
+    block: ['Intro section', '- item 1']
+  });
+  await tools.text.replaceBetween({
+    file: 'layout.md',
+    start: '<!-- tools:start -->',
+    end: '<!-- tools:end -->',
+    block: ['Fresh content', 'Configured via tools.text']
+  });
+  await tools.text.appendLines({ file: 'layout.md', lines: 'Appended line' });
+  await tools.text.replace({
+    file: 'layout.md',
+    search: 'Appended line',
+    replace: 'Final append',
+    ensureMatch: true
+  });
+
+  await tools.json.set('package.json', 'scripts.test', 'node test.js');
+  await tools.json.addToArray('package.json', 'keywords', 'helpers', { unique: true });
+  await tools.json.mergeArray('package.json', 'keywords', ['helpers', 'scaffold'], { unique: true });
+  await tools.json.remove('package.json', 'unused');
+}
+`);
+
+  const previousCwd = process.cwd();
+  process.chdir(baseDir);
+  try {
+    const ctx = createEnvironmentObject({
+      projectDirectory: projectName,
+      projectName,
+      cwd: baseDir,
+      ide: null,
+      options: []
+    });
+
+    const tools = await createSetupTools({
+      projectDirectory: projectDir,
+      projectName,
+      logger: null,
+      context: ctx
+    });
+
+    await loadSetupScript(setupScriptPath, ctx, tools);
+  } finally {
+    process.chdir(previousCwd);
+  }
+
+  const notes = await fs.readFile(path.join(projectDir, 'notes.txt'), 'utf8');
+  if (!notes.includes('Second line')) {
+    throw new Error('files.write did not write expected content');
+  }
+
+  const layout = await fs.readFile(path.join(projectDir, 'layout.md'), 'utf8');
+  if (!layout.includes('Intro section')) {
+    throw new Error('text.insertAfter did not inject block');
+  }
+  if (!layout.includes('Fresh content')) {
+    throw new Error('text.replaceBetween did not replace block');
+  }
+  if (!layout.includes('Final append')) {
+    throw new Error('text.appendLines/replace did not update content');
+  }
+
+  const pkg = JSON.parse(await fs.readFile(path.join(projectDir, 'package.json'), 'utf8'));
+  if (pkg.unused !== undefined) {
+    throw new Error('json.remove failed to delete property');
+  }
+  if (pkg.scripts.test !== 'node test.js') {
+    throw new Error('json.set failed to assign value');
+  }
+  if (!Array.isArray(pkg.keywords) || pkg.keywords.filter(k => k === 'helpers').length !== 1) {
+    throw new Error('json.addToArray/json.mergeArray failed to manage array');
+  }
+});
+
 await runner.run();
