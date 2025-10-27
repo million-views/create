@@ -51,6 +51,8 @@
         "mv .kiro/steering/documentation-maintenance.md .kiro/steering/documentation-standards.md",
         "mkdir -p rules tests",
         "chmod +x scripts/comprehensive-validation.mjs",
-        "node scripts/comprehensive-validation.mjs --docs-only"
+        "node scripts/comprehensive-validation.mjs --docs-only",
+        "rm -rf tests utils",
+        "git diff sgconfig.yml"
     ]
 }
