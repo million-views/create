@@ -170,15 +170,22 @@ class DryRunEngineTestSuite {
       const operations = await dryRunEngine.previewFileCopy(templateDir, projectDir);
       
       assert(Array.isArray(operations), 'Should return operations array');
-      assert(operations.length >= 4, 'Should have operations for all files');
+      assert(operations.length >= 4, 'Should have operations for files and directories');
       
-      // Check that all operations are file_copy type
-      operations.forEach(op => {
-        assert.strictEqual(op.type, 'file_copy', 'All operations should be file_copy type');
-        assert(op.source, 'Should have source path');
-        assert(op.destination, 'Should have destination path');
-        assert(op.source.startsWith(templateDir), 'Source should be in template directory');
-        assert(op.destination.startsWith(projectDir), 'Destination should be in project directory');
+      const fileOps = operations.filter(op => op.type === 'file_copy');
+      const dirOps = operations.filter(op => op.type === 'directory_create');
+      
+      assert(fileOps.length >= 4, 'Should include file copy operations for all template files');
+      fileOps.forEach(op => {
+        assert(op.source, 'File operation should include source path');
+        assert(op.destination, 'File operation should include destination path');
+        assert(op.source.startsWith(templateDir), 'File source should reside in template directory');
+        assert(op.destination.startsWith(projectDir), 'File destination should target project directory');
+      });
+      dirOps.forEach(op => {
+        assert(op.path || op.destination, 'Directory operation should include destination path');
+        const destPath = op.path || op.destination;
+        assert(destPath.startsWith(projectDir), 'Directory destination should target project directory');
       });
       
       // Should not actually copy files
@@ -264,14 +271,34 @@ class DryRunEngineTestSuite {
         }
       ];
       
-      const output = dryRunEngine.displayPreview(operations);
+      const output = dryRunEngine.displayPreview({
+        operations,
+        summary: {
+          directories: ['src'],
+          files: [
+            { source: '/template/package.json', destination: '/project/package.json', relative: 'package.json' }
+          ],
+          setupScripts: [{ scriptPath: '/project/_setup.mjs', relative: '_setup.mjs' }],
+          fileBuckets: {
+            './': 1
+          },
+          counts: {
+            directories: 1,
+            files: 1,
+            setupScripts: 1
+          }
+        }
+      });
       
       assert(typeof output === 'string', 'Should return formatted string');
-      assert(output.includes('DRY RUN') || output.includes('PREVIEW'), 'Should indicate dry run mode');
-      assert(output.includes('file_copy') || output.includes('Copy') || output.includes('copy'), 'Should show file operations');
-      assert(output.includes('setup_script') || output.includes('Setup') || output.includes('setup'), 'Should show setup operations');
-      assert(output.includes('package.json'), 'Should show specific files');
-      assert(output.includes('_setup.mjs'), 'Should show setup script');
+      assert(output.includes('DRY RUN') || output.includes('Preview'), 'Should indicate dry run mode');
+      assert(output.includes('Files: 1'), 'Should include file count');
+      assert(output.includes('Directories: 1'), 'Should include directory count');
+      assert(output.includes('Setup Scripts: 1'), 'Should include setup script count');
+      assert(output.includes('File Copy (1 total)'), 'Should summarize file copy section');
+      assert(output.includes('• ./ (1 file)'), 'Should group files by directory');
+      assert(output.includes('• ./ (1 file)'), 'Should summarize root files');
+      assert(output.includes('_setup.mjs'), 'Should mention setup script');
     });
 
     await this.test('formatOperation creates formatted output with source and destination paths', async () => {
@@ -344,15 +371,34 @@ class DryRunEngineTestSuite {
         }
       ];
       
-      const output = dryRunEngine.displayPreview(operations);
+      const output = dryRunEngine.displayPreview({
+        operations,
+        summary: {
+          directories: [{ path: '/project/src', relative: 'src' }],
+          files: [
+            { source: '/template/package.json', destination: '/project/package.json', relative: 'package.json' },
+            { source: '/template/src/index.js', destination: '/project/src/index.js', relative: 'src/index.js' }
+          ],
+          setupScripts: [{ scriptPath: '/project/_setup.mjs', relative: '_setup.mjs' }],
+          fileBuckets: {
+            './': 1,
+            'src/': 1
+          },
+          counts: {
+            directories: 1,
+            files: 2,
+            setupScripts: 1
+          }
+        }
+      });
       
       assert(typeof output === 'string', 'Should return formatted string');
       
       // Should show operation counts or categories
       const lines = output.split('\n');
-      const hasDirectoryOps = lines.some(line => line.toLowerCase().includes('directory') || line.toLowerCase().includes('create'));
-      const hasFileOps = lines.some(line => line.toLowerCase().includes('file') || line.toLowerCase().includes('copy'));
-      const hasSetupOps = lines.some(line => line.toLowerCase().includes('setup') || line.toLowerCase().includes('script'));
+      const hasDirectoryOps = lines.some(line => line.toLowerCase().includes('directory creation'));
+      const hasFileOps = lines.some(line => line.includes('• ./') || line.includes('File Copy'));
+      const hasSetupOps = lines.some(line => line.toLowerCase().includes('setup script'));
       
       assert(hasDirectoryOps, 'Should categorize directory operations');
       assert(hasFileOps, 'Should categorize file operations');
@@ -367,7 +413,20 @@ class DryRunEngineTestSuite {
       const logger = new Logger(path.join(tempLogDir, 'test.log'));
       const dryRunEngine = new DryRunEngine(cacheManager, logger);
       
-      const output = dryRunEngine.displayPreview([]);
+      const output = dryRunEngine.displayPreview({
+        operations: [],
+        summary: {
+          directories: [],
+          files: [],
+          setupScripts: [],
+          fileBuckets: {},
+          counts: {
+            directories: 0,
+            files: 0,
+            setupScripts: 0
+          }
+        }
+      });
       
       assert(typeof output === 'string', 'Should return formatted string');
       assert(output.includes('No operations') || output.includes('nothing'), 'Should indicate no operations');
@@ -418,19 +477,32 @@ class DryRunEngineTestSuite {
       const endTime = Date.now();
       
       assert(Array.isArray(preview.operations), 'Should return operations array');
+      assert(preview.summary && typeof preview.summary === 'object', 'Should return summary object');
       assert(preview.operations.length > 0, 'Should have preview operations');
-      
+
       // Should be fast (using cache, not network)
       const duration = endTime - startTime;
       assert(duration < 1000, 'Should be fast using cached repository');
-      
+
       // Verify it used the cached content
       const fileCopyOps = preview.operations.filter(op => op.type === 'file_copy');
+      assert.strictEqual(preview.summary.counts.files, fileCopyOps.length, 'Summary file count should match operations');
+      assert(preview.summary.counts.directories >= 1, 'Summary directory count should include cached subdirectories');
+      assert.strictEqual(preview.summary.counts.setupScripts, 0, 'Summary setup script count should be zero when none detected');
+      assert(preview.summary.fileBuckets && typeof preview.summary.fileBuckets === 'object', 'Summary should include file buckets');
+      assert.strictEqual(preview.summary.fileBuckets['./'], 1, 'Root bucket should count package.json');
       const hasPackageJson = fileCopyOps.some(op => op.source.includes('package.json'));
       const hasIndexJs = fileCopyOps.some(op => op.source.includes('index.js'));
       
       assert(hasPackageJson, 'Should include cached package.json');
       assert(hasIndexJs, 'Should include cached index.js');
+      if (Array.isArray(preview.summary.files)) {
+        const summaryMatches = preview.summary.files.some(item => {
+          const value = typeof item === 'string' ? item : (item.relative || item.destination || item.source || '');
+          return value.includes('package.json');
+        });
+        assert(summaryMatches, 'Summary files should record copied package.json');
+      }
     });
 
     await this.test('previewScaffolding resolves template paths using cached repositories', async () => {
@@ -474,8 +546,22 @@ class DryRunEngineTestSuite {
       const preview = await dryRunEngine.previewScaffolding(repoUrl, branchName, templateName, projectDir);
       
       assert(Array.isArray(preview.operations), 'Should return operations array');
+      assert(preview.summary && typeof preview.summary === 'object', 'Should return summary object for nested template');
       
       const fileCopyOps = preview.operations.filter(op => op.type === 'file_copy');
+      assert(preview.summary.counts.files >= fileCopyOps.length, 'Summary file count should include all file operations');
+      assert(preview.summary.counts.directories >= 2, 'Summary directory count should include nested folders');
+      if (Array.isArray(preview.summary.directories)) {
+        const directoryMatches = preview.summary.directories.some(item => {
+          const value = typeof item === 'string' ? item : (item.relative || item.path || '');
+          return value.includes('src') && !value.includes('App.js');
+        });
+        assert(directoryMatches, 'Summary should track key directories');
+      }
+      assert(preview.summary.fileBuckets && typeof preview.summary.fileBuckets === 'object', 'Summary should include file buckets for nested template');
+      const bucketKeys = Object.keys(preview.summary.fileBuckets).sort();
+      assert(bucketKeys.includes('./'), 'File buckets should include root directory');
+      assert(bucketKeys.includes('src/'), 'File buckets should include src directory');
       
       // Should resolve all nested paths correctly
       const hasNestedComponent = fileCopyOps.some(op => 
@@ -624,7 +710,20 @@ class DryRunEngineTestSuite {
         { source: '/test', destination: '/test' }, // Missing type
       ];
       
-      const output = dryRunEngine.displayPreview(malformedOperations);
+      const output = dryRunEngine.displayPreview({
+        operations: malformedOperations,
+        summary: {
+          directories: [],
+          files: [],
+          setupScripts: [],
+          fileBuckets: {},
+          counts: {
+            directories: 0,
+            files: 0,
+            setupScripts: 0
+          }
+        }
+      });
       
       assert(typeof output === 'string', 'Should return formatted string even with malformed operations');
       assert(output.length > 0, 'Should provide some output');

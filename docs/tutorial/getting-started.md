@@ -253,25 +253,36 @@ Before creating projects, you can preview what will happen using dry run mode.
 You'll see a detailed preview of all operations that would be performed:
 
 ```
-🔍 DRY RUN MODE - Preview of operations (no changes will be made)
+🔍 DRY RUN MODE - Preview of planned operations (no changes will be made)
 
-📋 Planned Operations:
-┌─────────────────────────────────────────────────────────────────┐
-│ Operation: Copy Template Files                                  │
-│ Source: express template from million-views/templates          │
-│ Target: ./preview-app/                                         │
-│ Files: 12 files, 3 directories                                │
-└─────────────────────────────────────────────────────────────────┘
+📦 Template: express
+📁 Target Directory: preview-app
 
-┌─────────────────────────────────────────────────────────────────┐
-│ Operation: Execute Setup Script                                 │
-│ Script: _setup.mjs                                             │
-│ IDE: vscode                                                     │
-│ Options: api, logging                                          │
-└─────────────────────────────────────────────────────────────────┘
+📄 Summary:
+   • Directories: 2
+   • Files: 6
+   • Setup Scripts: 1
+
+📋 File Copy (... operations):
+   📄 Copy: package.json
+   📄 Copy: README.md
+   📄 Copy: src/index.js
+   ...
+
+⚙️ Setup Script (1 operations):
+   ⚙️ Execute setup script: _setup.mjs
+
+🌲 Template structure (depth 2):
+preview-app
+├── package.json
+├── README.md
+└── src
+    └── index.js
 
 ✅ Dry run completed - no actual changes were made
 ```
+
+If the `tree` command is not available, you'll see a message explaining that the tree preview was skipped instead of the directory listing.
 
 **What's useful about dry run?**
 - See exactly what files will be created

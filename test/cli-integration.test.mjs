@@ -276,9 +276,21 @@ runner.test('--dry-run flag shows preview without execution', async () => {
     throw new Error(`Expected exit code 0, got ${result.exitCode}. Stderr: ${result.stderr}`);
   }
   
-  // Should show dry run preview
+  // Should show dry run summary and operation details
   if (!result.stdout.includes('DRY RUN') && !result.stdout.includes('Preview')) {
     throw new Error('Should indicate dry run mode');
+  }
+  if (!result.stdout.includes('Files:')) {
+    throw new Error('Dry run summary should include file count');
+  }
+  if (!result.stdout.includes('File Copy') || !result.stdout.includes('• ./')) {
+    throw new Error('Dry run output should aggregate files by directory');
+  }
+  if (!result.stdout.includes('Directories:')) {
+    throw new Error('Dry run summary should include directory count');
+  }
+  if (!result.stdout.includes('Operations') && !result.stdout.includes('Copy')) {
+    throw new Error('Dry run should list planned operations');
   }
   
   // Should not create actual project directory
@@ -290,6 +302,63 @@ runner.test('--dry-run flag shows preview without execution', async () => {
       throw error;
     }
     // Expected - directory should not exist
+  }
+});
+
+// Test 2b: tree preview when custom tree command available
+runner.test('--dry-run includes tree preview when tree command available', async () => {
+  const mockRepoPath = await runner.addTempPath(await IntegrationTestUtils.createTempDir('-dry-run-tree-repo'));
+  await IntegrationTestUtils.createMockRepo(mockRepoPath, ['basic']);
+
+  const treeStubDir = await runner.addTempPath(await IntegrationTestUtils.createTempDir('-tree-stub'));
+  const treeStubPath = path.join(treeStubDir, 'tree');
+  await fs.writeFile(treeStubPath, '#!/usr/bin/env node\nconsole.log("stub tree output");\n');
+  await fs.chmod(treeStubPath, 0o755);
+
+  const result = await IntegrationTestUtils.execCLI([
+    'test-dry-run-tree-project',
+    '--from-template', 'basic',
+    '--repo', mockRepoPath,
+    '--dry-run'
+  ], {
+    env: {
+      ...process.env,
+      CREATE_SCAFFOLD_TREE_COMMAND: treeStubPath
+    }
+  });
+
+  if (result.exitCode !== 0) {
+    throw new Error(`Expected exit code 0, got ${result.exitCode}. Stderr: ${result.stderr}`);
+  }
+
+  if (!result.stdout.includes('stub tree output')) {
+    throw new Error('Dry run should include tree output when tree command is available');
+  }
+});
+
+// Test 2c: tree preview skip message when tree command missing
+runner.test('--dry-run warns when tree command is unavailable', async () => {
+  const mockRepoPath = await runner.addTempPath(await IntegrationTestUtils.createTempDir('-dry-run-no-tree-repo'));
+  await IntegrationTestUtils.createMockRepo(mockRepoPath, ['basic']);
+
+  const result = await IntegrationTestUtils.execCLI([
+    'test-dry-run-no-tree-project',
+    '--from-template', 'basic',
+    '--repo', mockRepoPath,
+    '--dry-run'
+  ], {
+    env: {
+      ...process.env,
+      CREATE_SCAFFOLD_TREE_COMMAND: '__nonexistent_tree_binary__'
+    }
+  });
+
+  if (result.exitCode !== 0) {
+    throw new Error(`Expected exit code 0, got ${result.exitCode}. Stderr: ${result.stderr}`);
+  }
+
+  if (!result.stdout.toLowerCase().includes('tree') || !result.stdout.toLowerCase().includes('unavailable')) {
+    throw new Error('Dry run should mention tree command unavailability');
   }
 });
 
@@ -422,6 +491,15 @@ runner.test('Combined flags work together correctly', async () => {
   if (!result.stdout.includes('DRY RUN') && !result.stdout.includes('Preview')) {
     throw new Error('Should indicate dry run mode');
   }
+  if (!result.stdout.includes('Files:')) {
+    throw new Error('Dry run summary should include file count');
+  }
+  if (!result.stdout.includes('• ./')) {
+    throw new Error('Dry run output should aggregate files by directory');
+  }
+  if (!result.stdout.includes('Directories:')) {
+    throw new Error('Dry run summary should include directory count');
+  }
   
   // Should not create actual project directory
   try {
@@ -438,8 +516,11 @@ runner.test('Combined flags work together correctly', async () => {
   try {
     const logContent = await fs.readFile(logFilePath, 'utf8');
     
-    if (!logContent.includes('dry_run') && !logContent.includes('preview')) {
-      throw new Error('Log file should contain dry run operation logs');
+    if (!logContent.includes('"operation":"dry_run_preview"')) {
+      throw new Error('Log file should record dry run preview operations');
+    }
+    if (!logContent.includes('"summary"')) {
+      throw new Error('Dry run log should include summary counts');
     }
     
   } catch (error) {

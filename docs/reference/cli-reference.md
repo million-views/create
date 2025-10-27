@@ -163,20 +163,44 @@ npm create @m5nv/scaffold my-app -- --from-template react --dry-run --log-file .
 
 **Dry run output:**
 ```
-🔍 DRY RUN MODE - Preview of operations (no changes will be made)
+🔍 DRY RUN MODE - Preview of planned operations (no changes will be made)
 
-Planned Operations:
-📁 Create directory: my-app
-📋 Copy template files: react → my-app
-  ├── 📄 package.json
-  ├── 📄 README.md
-  ├── 📁 src/
-  └── 📄 _setup.mjs
-⚙️  Execute setup script: _setup.mjs
-🧹 Remove setup script: _setup.mjs
+📦 Template: react
+📁 Target Directory: my-app
+
+📄 Summary:
+   • Directories: 2
+   • Files: 5
+   • Setup Scripts: 1
+
+📋 File Copy (5 operations):
+   📄 Copy: package.json
+   📄 Copy: README.md
+   📄 Copy: src/index.js
+   📄 Copy: src/utils.js
+   📄 Copy: public/index.html
+
+📁 Directory Creation (2 operations):
+   📁 Ensure directory: src
+   📁 Ensure directory: public
+
+⚙️ Setup Script (1 operations):
+   ⚙️ Execute setup script: _setup.mjs
+
+🌲 Template structure (depth 2):
+my-app
+├── package.json
+├── README.md
+├── src
+│   ├── index.js
+│   └── utils.js
+└── public
+    └── index.html
 
 ✅ Dry run completed - no actual changes were made
 ```
+
+When the `tree` command is unavailable, the CLI prints `🌲 Tree preview unavailable: tree command unavailable` instead of the directory listing.
 
 ### Cache Management
 

@@ -274,39 +274,44 @@ Dry run mode shows:
 ### Preview Output Format
 
 ```
-🔍 DRY RUN MODE - Preview of operations (no changes will be made)
+🔍 DRY RUN MODE - Preview of planned operations (no changes will be made)
 
-📦 Repository Operations:
-  Clone: https://github.com/million-views/templates.git (main)
-  Cache: Using cached version (expires in 18 hours)
-  
-📁 File Operations:
-  Source: ~/.m5nv/cache/abc123def456/react-typescript/
-  Destination: ./my-app/
-  
-  Files to copy:
-    ✓ package.json → ./my-app/package.json
-    ✓ src/index.tsx → ./my-app/src/index.tsx
-    ✓ src/App.tsx → ./my-app/src/App.tsx
-    ✓ public/index.html → ./my-app/public/index.html
-    ✓ tsconfig.json → ./my-app/tsconfig.json
-    
-  Directories to create:
-    ✓ ./my-app/src/
-    ✓ ./my-app/public/
-    
-⚙️ Setup Script:
-  Script: _setup.mjs
-  Type: ES Module
-  Environment: Node.js with project context
-  
-🎯 Summary:
-  - 5 files to copy
-  - 2 directories to create  
-  - 1 setup script to execute
-  
+📦 Template: react-typescript
+🌐 Repository: https://github.com/million-views/templates.git (main)
+📁 Target Directory: ./my-app/
+
+📄 Summary:
+   • Directories: 2
+   • Files: 5
+   • Setup Scripts: 1
+
+📋 File Copy (5 operations):
+   ✓ package.json → ./my-app/package.json
+   ✓ src/index.tsx → ./my-app/src/index.tsx
+   ✓ src/App.tsx → ./my-app/src/App.tsx
+   ✓ public/index.html → ./my-app/public/index.html
+   ✓ tsconfig.json → ./my-app/tsconfig.json
+
+📁 Directory Creation (2 operations):
+   ✓ ./my-app/src/
+   ✓ ./my-app/public/
+
+⚙️ Setup Script (1 operations):
+   ⚙️ Execute setup script: _setup.mjs
+
+🌲 Template structure (depth 2):
+my-app
+├── package.json
+├── src
+│   ├── App.tsx
+│   └── index.tsx
+└── public
+    └── index.html
+
 To execute these operations, run the same command without --dry-run
 ```
+
+If the machine does not have the `tree` command installed, the CLI reports `Tree preview unavailable` instead of the directory listing.
 
 ### Capabilities and Limitations
 

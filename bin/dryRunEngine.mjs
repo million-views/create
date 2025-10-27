@@ -3,6 +3,7 @@
 import fs from 'fs/promises';
 import path from 'path';
 import { validateDirectoryExists } from './utils/fsUtils.mjs';
+import { execCommand } from './utils/commandUtils.mjs';
 
 /**
  * Dry Run Engine module
@@ -20,126 +21,94 @@ export class DryRunEngine {
    * @param {string} branchName - Git branch name
    * @param {string} templateName - Template name within repository
    * @param {string} projectDir - Target project directory
-   * @returns {Object} - Preview object with operations array
+   * @returns {Object} - Preview object with operations array and summary
    */
   async previewScaffolding(repoUrl, branchName = 'main', templateName, projectDir) {
-    // Get cached repository path
     const cachedRepoPath = await this.cacheManager.getCachedRepo(repoUrl, branchName);
-    
+
     if (!cachedRepoPath) {
       throw new Error(`Repository ${repoUrl} (${branchName}) is not cached. Please cache the repository first.`);
     }
 
-    // Verify cached repository exists
-    try {
-      await validateDirectoryExists(cachedRepoPath, 'Cached repository path');
-    } catch (error) {
-      if (error.message.includes('not found')) {
-        throw new Error(`Cached repository not found or corrupted: ${cachedRepoPath}`);
-      } else if (error.message.includes('not a directory')) {
-        throw new Error(`Cached repository path is corrupted: ${cachedRepoPath}`);
-      }
-      throw error;
-    }
+    await this.verifyDirectory(cachedRepoPath, 'Cached repository path');
 
-    // Verify template exists in cached repository
     const templatePath = path.join(cachedRepoPath, templateName);
-    try {
-      await validateDirectoryExists(templatePath, `Template "${templateName}"`);
-    } catch (error) {
-      if (error.message.includes('not found')) {
-        throw new Error(`Template "${templateName}" not found in cached repository.`);
-      } else if (error.message.includes('not a directory')) {
-        throw new Error(`Template "${templateName}" exists but is not a directory.`);
-      }
-      throw error;
-    }
+    await this.verifyDirectory(templatePath, `Template "${templateName}"`);
 
-    const operations = [];
-
-    // Preview file copy operations
-    const fileCopyOps = await this.previewFileCopy(templatePath, projectDir);
-    operations.push(...fileCopyOps);
-
-    // Preview setup script operation (check in template directory)
-    const setupOp = await this.previewSetupScript(templatePath);
-    if (setupOp) {
-      // Adjust the script path to show where it would be in the project
-      const projectSetupOp = {
-        ...setupOp,
-        scriptPath: path.join(projectDir, '_setup.mjs')
-      };
-      operations.push(projectSetupOp);
-    }
+    const operations = await this.buildOperations(templatePath, projectDir);
+    const summary = this.buildSummary(templatePath, projectDir, operations);
 
     return {
       operations,
       templatePath,
       projectDir,
+      summary,
       totalOperations: operations.length
     };
   }
 
   /**
-   * Preview complete scaffolding process from a repository path
-   * @param {string} repoPath - Path to repository directory
-   * @param {string} templateName - Template name within repository
-   * @param {string} projectDir - Target project directory
-   * @returns {Object} - Preview object with operations array
+   * Preview scaffolding from a provided repository path
    */
   async previewScaffoldingFromPath(repoPath, templateName, projectDir) {
-    // Verify repository path exists
-    await validateDirectoryExists(repoPath, 'Repository path');
+    await this.verifyDirectory(repoPath, 'Repository path');
 
-    // Verify template exists in repository
     const templatePath = path.join(repoPath, templateName);
-    try {
-      await validateDirectoryExists(templatePath, `Template "${templateName}"`);
-    } catch (error) {
-      if (error.message.includes('not found')) {
-        throw new Error(`Template "${templateName}" not found in repository.`);
-      } else if (error.message.includes('not a directory')) {
-        throw new Error(`Template "${templateName}" exists but is not a directory.`);
-      }
-      throw error;
-    }
+    await this.verifyDirectory(templatePath, `Template "${templateName}"`);
 
-    const operations = [];
-
-    // Preview file copy operations
-    const fileCopyOps = await this.previewFileCopy(templatePath, projectDir);
-    operations.push(...fileCopyOps);
-
-    // Preview setup script operation (check in template directory)
-    const setupOp = await this.previewSetupScript(templatePath);
-    if (setupOp) {
-      // Adjust the script path to show where it would be in the project
-      const projectSetupOp = {
-        ...setupOp,
-        scriptPath: path.join(projectDir, '_setup.mjs')
-      };
-      operations.push(projectSetupOp);
-    }
+    const operations = await this.buildOperations(templatePath, projectDir);
+    const summary = this.buildSummary(templatePath, projectDir, operations);
 
     return {
       operations,
       templatePath,
       projectDir,
+      summary,
       totalOperations: operations.length
     };
+  }
+
+  async verifyDirectory(targetPath, description) {
+    try {
+      await validateDirectoryExists(targetPath, description);
+    } catch (error) {
+      if (error.message.includes('not found')) {
+        throw new Error(`${description} not found: ${targetPath}`);
+      }
+      if (error.message.includes('not a directory')) {
+        throw new Error(`${description} exists but is not a directory: ${targetPath}`);
+      }
+      throw error;
+    }
+  }
+
+  async buildOperations(templatePath, projectDir) {
+    const operations = [];
+
+    const fileAndDirectoryOps = await this.previewFileCopy(templatePath, projectDir);
+    operations.push(...fileAndDirectoryOps);
+
+    const setupPreview = await this.previewSetupScript(templatePath);
+    if (setupPreview) {
+      operations.push({
+        type: 'setup_script',
+        scriptPath: path.join(projectDir, '_setup.mjs'),
+        relative: '_setup.mjs',
+        detected: true
+      });
+    }
+
+    return operations;
   }
 
   /**
    * Preview file copy operations without execution
-   * @param {string} templatePath - Path to template directory
-   * @param {string} projectDir - Target project directory
-   * @returns {Array} - Array of file copy operations
    */
   async previewFileCopy(templatePath, projectDir) {
     const operations = [];
 
     try {
-      await this.collectFileCopyOperations(templatePath, projectDir, templatePath, operations);
+      await this.collectFileCopyOperations(templatePath, projectDir, templatePath, operations, new Set());
     } catch (error) {
       if (error.code === 'ENOENT') {
         throw new Error(`Template directory not found: ${templatePath}`);
@@ -150,160 +119,306 @@ export class DryRunEngine {
     return operations;
   }
 
-  /**
-   * Recursively collect file copy operations
-   * @param {string} currentPath - Current directory being processed
-   * @param {string} projectDir - Target project directory
-   * @param {string} templateRoot - Root template directory
-   * @param {Array} operations - Array to collect operations
-   */
-  async collectFileCopyOperations(currentPath, projectDir, templateRoot, operations) {
+  async collectFileCopyOperations(currentPath, projectDir, templateRoot, operations, directorySet) {
     const entries = await fs.readdir(currentPath, { withFileTypes: true });
 
     for (const entry of entries) {
       const sourcePath = path.join(currentPath, entry.name);
-      
-      // Calculate relative path from template root
       const relativePath = path.relative(templateRoot, sourcePath);
       const destinationPath = path.join(projectDir, relativePath);
 
       if (entry.isDirectory()) {
-        // Skip .git directories and other common non-template directories
         if (entry.name === '.git') {
           continue;
         }
 
-        // Recursively process directory contents first
-        await this.collectFileCopyOperations(sourcePath, projectDir, templateRoot, operations);
-      } else {
-        // Skip setup scripts (they're handled separately)
-        if (entry.name === '_setup.mjs') {
-          continue;
+        if (relativePath && !directorySet.has(relativePath)) {
+          directorySet.add(relativePath);
+          operations.push({
+            type: 'directory_create',
+            path: destinationPath,
+            destination: destinationPath,
+            relative: relativePath
+          });
         }
 
-        // Add file copy operation
-        operations.push({
-          type: 'file_copy',
-          source: sourcePath,
-          destination: destinationPath
-        });
+        await this.collectFileCopyOperations(sourcePath, projectDir, templateRoot, operations, directorySet);
+        continue;
       }
+
+      if (entry.name === '_setup.mjs') {
+        continue;
+      }
+
+      operations.push({
+        type: 'file_copy',
+        source: sourcePath,
+        destination: destinationPath,
+        relative: relativePath
+      });
     }
   }
 
-  /**
-   * Preview setup script detection without execution
-   * @param {string} projectDir - Project directory to check for setup script
-   * @returns {Object|null} - Setup script operation or null if not found
-   */
-  async previewSetupScript(projectDir) {
-    const setupScriptPath = path.join(projectDir, '_setup.mjs');
-
+  async previewSetupScript(templateDir) {
+    const setupScriptPath = path.join(templateDir, '_setup.mjs');
     try {
       await fs.access(setupScriptPath);
-      
       return {
         type: 'setup_script',
         scriptPath: setupScriptPath,
+        relative: '_setup.mjs',
         detected: true
       };
-    } catch (error) {
-      // Setup script doesn't exist - this is fine
+    } catch {
       return null;
     }
   }
 
   /**
    * Display preview with clear visual indicators for dry run mode
-   * @param {Array} operations - Array of operations to display
+   * @param {Object|Array} preview - Preview payload or operations array
    * @returns {string} - Formatted preview output
    */
-  displayPreview(operations) {
+  displayPreview(preview) {
+    let operations = [];
+    let summary = null;
+    let templateName = null;
+    let repoUrl = null;
+    let projectDir = null;
+    let templatePath = null;
+
+    if (Array.isArray(preview)) {
+      operations = preview;
+    } else if (preview && typeof preview === 'object') {
+      operations = Array.isArray(preview.operations) ? preview.operations : [];
+      summary = preview.summary || null;
+      templateName = preview.templateName || null;
+      repoUrl = preview.repoUrl || null;
+      projectDir = preview.projectDir || summary?.projectDir || null;
+      templatePath = preview.templatePath || summary?.templatePath || null;
+    }
+
     if (!operations || operations.length === 0) {
       return '🔍 DRY RUN MODE - No operations to preview\n';
     }
 
-    let output = '🔍 DRY RUN MODE - Preview of planned operations:\n\n';
+    let output = '🔍 DRY RUN MODE - Preview of planned operations (no changes will be made)\n\n';
 
-    // Categorize operations
-    const categories = {
-      directory_create: [],
-      file_copy: [],
-      setup_script: []
-    };
+    if (templateName) {
+      output += `📦 Template: ${templateName}\n`;
+    }
+    if (repoUrl) {
+      output += `🌐 Repository: ${repoUrl}\n`;
+    }
+    if (projectDir) {
+      output += `📁 Target Directory: ${projectDir}\n`;
+    }
+    if (templatePath) {
+      output += `🗂️ Template Path: ${templatePath}\n`;
+    }
+    if (templateName || repoUrl || projectDir || templatePath) {
+      output += '\n';
+    }
 
-    operations.forEach(op => {
-      if (op && op.type) {
-        if (categories[op.type]) {
-          categories[op.type].push(op);
-        }
+    const counts = summary?.counts ?? operations.reduce((acc, op) => {
+      if (!op || !op.type) {
+        return acc;
       }
-    });
+      if (op.type === 'directory_create') {
+        acc.directories++;
+      } else if (op.type === 'file_copy') {
+        acc.files++;
+      } else if (op.type === 'setup_script') {
+        acc.setupScripts++;
+      }
+      return acc;
+    }, { directories: 0, files: 0, setupScripts: 0 });
 
-    // Display file copy operations first (most common)
-    if (categories.file_copy.length > 0) {
-      output += `📋 File Copy (${categories.file_copy.length} operations):\n`;
-      categories.file_copy.forEach(op => {
-        output += `   ${this.formatOperation(op)}\n`;
+    output += '📄 Summary:\n';
+    output += `   • Directories: ${counts.directories}\n`;
+    output += `   • Files: ${counts.files}\n`;
+    output += `   • Setup Scripts: ${counts.setupScripts}\n\n`;
+
+    const categorize = type => operations.filter(op => op && op.type === type);
+
+    const categoryOutput = [
+      { label: '📁 Directory Creation', items: categorize('directory_create') },
+      { label: '⚙️ Setup Script', items: categorize('setup_script') }
+    ];
+
+    const fileBuckets = summary?.fileBuckets || this.aggregateFileBuckets(operations, projectDir);
+    const bucketKeys = Object.keys(fileBuckets);
+    if (bucketKeys.length > 0) {
+      const sortedBuckets = bucketKeys.sort((a, b) => {
+        if (a === './') return -1;
+        if (b === './') return 1;
+        return a.localeCompare(b);
+      });
+      output += `📋 File Copy (${counts.files} total):\n`;
+      sortedBuckets.forEach(dir => {
+        const bucketCount = fileBuckets[dir];
+        const label = bucketCount === 1 ? 'file' : 'files';
+        output += `   • ${dir} (${bucketCount} ${label})\n`;
       });
       output += '\n';
     }
 
-    // Display directory operations
-    if (categories.directory_create.length > 0) {
-      output += `📁 Directory Creation (${categories.directory_create.length} operations):\n`;
-      categories.directory_create.forEach(op => {
-        output += `   ${this.formatOperation(op)}\n`;
-      });
-      output += '\n';
-    }
-
-    // Display setup script operations
-    if (categories.setup_script.length > 0) {
-      output += `⚙️ Setup Script (${categories.setup_script.length} operations):\n`;
-      categories.setup_script.forEach(op => {
-        output += `   ${this.formatOperation(op)}\n`;
+    for (const category of categoryOutput) {
+      if (category.items.length === 0) {
+        continue;
+      }
+      output += `${category.label} (${category.items.length} operations):\n`;
+      category.items.forEach(item => {
+        output += `   ${this.formatOperation(item)}\n`;
       });
       output += '\n';
     }
 
     output += `📊 Total operations: ${operations.length}\n`;
-    output += '💡 No actual changes will be made in dry run mode.\n';
-
+    output += '💡 Dry run only – no changes will be made.\n';
     return output;
   }
 
-  /**
-   * Format individual operation for display
-   * @param {Object} operation - Operation object to format
-   * @returns {string} - Formatted operation string
-   */
+  buildSummary(templatePath, projectDir, operations) {
+    const summary = {
+      directories: [],
+      files: [],
+      setupScripts: [],
+      fileBuckets: {},
+      counts: {
+        directories: 0,
+        files: 0,
+        setupScripts: 0
+      },
+      templatePath,
+      projectDir
+    };
+
+    for (const op of operations) {
+      if (!op || !op.type) {
+        continue;
+      }
+
+      switch (op.type) {
+        case 'directory_create': {
+          summary.directories.push({
+            path: op.path,
+            relative: op.relative ?? path.relative(projectDir, op.path)
+          });
+          summary.counts.directories++;
+          break;
+        }
+
+        case 'file_copy': {
+          summary.files.push({
+            source: op.source,
+            destination: op.destination,
+            relative: op.relative ?? path.relative(projectDir, op.destination)
+          });
+          summary.counts.files++;
+          const bucketKey = this.resolveBucket(summary.files[summary.files.length - 1].relative);
+          summary.fileBuckets[bucketKey] = (summary.fileBuckets[bucketKey] || 0) + 1;
+          break;
+        }
+
+        case 'setup_script': {
+          summary.setupScripts.push({
+            scriptPath: op.scriptPath,
+            relative: op.relative ?? path.relative(projectDir, op.scriptPath)
+          });
+          summary.counts.setupScripts++;
+          break;
+        }
+
+        default:
+          break;
+      }
+    }
+
+    return summary;
+  }
+
   formatOperation(operation) {
     if (!operation || !operation.type) {
       return '❓ Unknown operation';
     }
 
     switch (operation.type) {
-      case 'file_copy':
+      case 'file_copy': {
+        if (operation.relative) {
+          return `📄 Copy: ${operation.relative}`;
+        }
         if (operation.source && operation.destination) {
           return `📄 Copy: ${operation.source} → ${operation.destination}`;
         }
         return '📄 Copy: [missing source/destination]';
+      }
 
-      case 'directory_create':
-        if (operation.path) {
-          return `📁 Create directory: ${operation.path}`;
+      case 'directory_create': {
+        if (operation.relative) {
+          return `📁 Ensure directory: ${operation.relative}`;
         }
-        return '📁 Create directory: [missing path]';
+        if (operation.path) {
+          return `📁 Ensure directory: ${operation.path}`;
+        }
+        return '📁 Ensure directory: [missing path]';
+      }
 
-      case 'setup_script':
+      case 'setup_script': {
+        if (operation.relative) {
+          return `⚙️ Execute setup script: ${operation.relative}`;
+        }
         if (operation.scriptPath) {
           return `⚙️ Execute setup script: ${operation.scriptPath}`;
         }
         return '⚙️ Execute setup script: [missing path]';
+      }
 
       default:
         return `❓ Unknown operation type: ${operation.type}`;
+    }
+  }
+
+  resolveBucket(relativePath = '') {
+    const normalized = relativePath.replace(/\\/g, '/');
+    const dir = normalized.includes('/') ? normalized.slice(0, normalized.lastIndexOf('/') + 1) : '';
+    return dir === '' ? './' : dir;
+  }
+
+  aggregateFileBuckets(operations, projectDir) {
+    return operations
+      .filter(op => op && op.type === 'file_copy')
+      .reduce((acc, op) => {
+        const relative = op.relative ?? path.relative(projectDir, op.destination || '');
+        const bucket = this.resolveBucket(relative);
+        acc[bucket] = (acc[bucket] || 0) + 1;
+        return acc;
+      }, {});
+  }
+
+  async generateTreePreview(templatePath) {
+    const treeCommand = process.env.CREATE_SCAFFOLD_TREE_COMMAND || 'tree';
+    const args = ['-L', '2', '--noreport', templatePath];
+
+    try {
+      const output = await execCommand(treeCommand, args, {
+        timeout: 5000,
+        stdio: ['ignore', 'pipe', 'pipe']
+      });
+
+      return {
+        available: true,
+        output: output.trim()
+      };
+    } catch (error) {
+      const reason = error.code === 'ENOENT'
+        ? 'tree command unavailable'
+        : error.message;
+
+      return {
+        available: false,
+        reason
+      };
     }
   }
 }

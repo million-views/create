@@ -342,23 +342,36 @@ Finally, let's explore advanced usage patterns including dry runs, caching, and 
 
 **Dry run output shows planned operations:**
 ```
-🔍 DRY RUN MODE - Preview of operations (no changes will be made)
+🔍 DRY RUN MODE - Preview of planned operations (no changes will be made)
 
-📋 Planned Operations:
-┌─────────────────────────────────────────────────────────────────┐
-│ Operation: Copy Template Files                                  │
-│ Source: react-vite template from million-views/templates       │
-│ Target: ./preview-project/                                     │
-│ Files: 15 files, 4 directories                                │
-└─────────────────────────────────────────────────────────────────┘
+📦 Template: react-vite
+📁 Target Directory: preview-project
 
-┌─────────────────────────────────────────────────────────────────┐
-│ Operation: Execute Setup Script                                 │
-│ Script: _setup.mjs                                             │
-│ IDE: cursor                                                     │
-│ Options: auth, database, api, testing, logging, config        │
-└─────────────────────────────────────────────────────────────────┘
+📄 Summary:
+   • Directories: 3
+   • Files: 8
+   • Setup Scripts: 1
+
+📋 File Copy (... operations):
+   📄 Copy: package.json
+   📄 Copy: src/main.tsx
+   📄 Copy: src/App.tsx
+   ...
+
+⚙️ Setup Script (1 operations):
+   ⚙️ Execute setup script: _setup.mjs
+
+🌲 Template structure (depth 2):
+preview-project
+├── package.json
+├── src
+│   ├── App.tsx
+│   └── main.tsx
+└── public
+    └── index.html
 ```
+
+If the `tree` command is missing, the CLI explains that the tree view was skipped so you still know why it’s absent.
 
 **Template discovery shows all options:**
 ```

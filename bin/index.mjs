@@ -121,30 +121,48 @@ async function main() {
       const branchName = args.branch;
       
       try {
-        console.log('🔍 DRY RUN MODE - Preview of operations (no changes will be made)\n');
-        
-        // First ensure repository is cached
         const cachedRepoPath = await ensureRepositoryCached(repoUrl, branchName, cacheManager, logger);
-        
+
         const preview = await dryRunEngine.previewScaffoldingFromPath(
           cachedRepoPath,
-          args.template, 
+          args.template,
           args.projectDirectory
         );
-        
-        dryRunEngine.displayPreview(preview.operations);
-        
+
+        const previewOutput = dryRunEngine.displayPreview({
+          operations: preview.operations,
+          summary: preview.summary,
+          templateName: args.template,
+          repoUrl,
+          projectDir: args.projectDirectory,
+          templatePath: preview.templatePath
+        });
+
+        console.log(previewOutput);
+
+        const treePreview = await dryRunEngine.generateTreePreview(preview.templatePath);
+        if (treePreview.available && treePreview.output) {
+          console.log('🌲 Template structure (depth 2):');
+          console.log(`${treePreview.output}\n`);
+        } else {
+          console.log(`🌲 Tree preview unavailable: ${treePreview.reason}\n`);
+        }
+
+        console.log('✅ Dry run completed - no actual changes were made');
+
         if (logger) {
           await logger.logOperation('dry_run_preview', {
             repoUrl,
             branchName,
             template: args.template,
             projectDirectory: args.projectDirectory,
-            operationCount: preview.operations.length
+            operationCount: preview.operations.length,
+            summary: preview.summary?.counts || null,
+            treePreview: treePreview.available
+              ? { available: true }
+              : { available: false, reason: treePreview.reason }
           });
         }
-        
-        console.log('\n✅ Dry run completed - no actual changes were made');
       } catch (error) {
         const sanitizedMessage = sanitizeErrorMessage(error.message);
         console.error(`❌ Error in dry run: ${sanitizedMessage}`);
