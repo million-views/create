@@ -1,0 +1,8 @@
+id: avoid-hardcoded-test-counts
+message: "Avoid hardcoded test counts in test descriptions"
+severity: info
+language: javascript
+rule:
+  pattern: describe($DESC, $$$)
+  has:
+    regex: '\d+.*tests?'

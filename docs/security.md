@@ -1,3 +1,17 @@
+---
+title: "Security Features and Best Practices"
+type: "explanation"
+audience: "all"
+estimated_time: "5 minutes read"
+prerequisites: 
+  - "Basic understanding of CLI tools and security concepts"
+related_docs: 
+  - "explanation/security-model.md"
+  - "guides/troubleshooting.md"
+  - "tutorial/getting-started.md"
+last_updated: "2024-10-26"
+---
+
 # Security
 
 Security features and best practices for @m5nv/create-scaffold.
@@ -83,3 +97,11 @@ For security vulnerabilities:
 - Email security concerns privately
 - Include detailed reproduction steps
 - Allow time for responsible disclosure
+
+## What's Next
+
+Now that you understand the security features, you might want to:
+
+- 💡 **Deep dive into security**: [Security Model Explained](explanation/security-model.md) - Comprehensive security architecture
+- 🚨 **Handle issues**: [Troubleshooting Guide](guides/troubleshooting.md) - Security-related problem resolution
+- 🎯 **Get started safely**: [Getting Started Tutorial](tutorial/getting-started.md) - Hands-on introduction with security best practices

@@ -45,6 +45,12 @@
         "sed -i '' 's/features: env\\.features/options: env.options/g' test/cli.test.mjs",
         "node test/argumentParser.test.mjs",
         "node test/security.test.mjs",
-        "node test/spec-compliance-verification.mjs"
+        "node test/spec-compliance-verification.mjs",
+        "chmod +x scripts/validate-docs.mjs",
+        "node scripts/validate-docs.mjs",
+        "mv .kiro/steering/documentation-maintenance.md .kiro/steering/documentation-standards.md",
+        "mkdir -p rules tests",
+        "chmod +x scripts/comprehensive-validation.mjs",
+        "node scripts/comprehensive-validation.mjs --docs-only"
     ]
 }

@@ -1,3 +1,18 @@
+---
+title: "Phase 1 Core UX Features"
+type: "reference"
+audience: "all"
+estimated_time: "N/A (reference)"
+prerequisites: 
+  - "Basic familiarity with @m5nv/create-scaffold"
+related_docs: 
+  - "tutorial/getting-started.md"
+  - "reference/cli-reference.md"
+  - "guides/troubleshooting.md"
+  - "explanation/caching-strategy.md"
+last_updated: "2024-10-26"
+---
+
 # Phase 1 Core UX Features
 
 This document provides comprehensive documentation for the Phase 1 Core User Experience features introduced in @m5nv/create-scaffold v0.3. These features focus on improving performance, debugging capabilities, template discoverability, and user confidence.
@@ -362,11 +377,11 @@ All Phase 1 features include comprehensive error handling:
 - **Network Failures**: Graceful fallback to direct operations
 - **Log File Issues**: Alternative logging strategies
 
-## Migration Guide
+## Usage Guide
 
-### From Previous Versions
+### Getting Started
 
-Phase 1 features are fully backward compatible:
+Phase 1 features work seamlessly with existing workflows:
 
 - All existing commands work unchanged
 - New features are opt-in via CLI flags
@@ -424,7 +439,7 @@ Phase 1 features are fully backward compatible:
 
 ## Troubleshooting
 
-See the main [Troubleshooting Guide](./troubleshooting.md) for general issues, plus these Phase 1 specific solutions:
+See the main [Troubleshooting Guide](guides/troubleshooting.md) for general issues, plus these Phase 1 specific solutions:
 
 ### Cache Issues
 - **Permission denied**: Check `~/.m5nv/cache` permissions
@@ -442,3 +457,12 @@ See the main [Troubleshooting Guide](./troubleshooting.md) for general issues, p
 ### Dry Run Issues
 - **Template access failed**: Use `--no-cache` to bypass cache issues
 - **Path resolution errors**: Verify project directory path is valid
+
+## What's Next
+
+Now that you understand Phase 1 features, you might want to:
+
+- 🎯 **Try them hands-on**: [Getting Started Tutorial](tutorial/getting-started.md) - Use caching, logging, discovery, and dry run
+- 📖 **Get complete CLI details**: [CLI Reference](reference/cli-reference.md) - All parameters and options
+- 🚨 **Troubleshoot issues**: [Troubleshooting Guide](guides/troubleshooting.md) - Resolve Phase 1 feature problems
+- 💡 **Understand caching deeply**: [Caching Strategy Explained](explanation/caching-strategy.md) - Architecture and design decisions

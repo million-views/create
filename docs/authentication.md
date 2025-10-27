@@ -1,3 +1,18 @@
+---
+title: "Authentication Setup"
+type: "guide"
+audience: "intermediate"
+estimated_time: "10 minutes"
+prerequisites: 
+  - "Git installed and configured"
+  - "Access to git provider (GitHub, GitLab, etc.)"
+related_docs: 
+  - "tutorial/getting-started.md"
+  - "guides/troubleshooting.md"
+  - "security.md"
+last_updated: "2024-10-26"
+---
+
 # Authentication
 
 Setting up git access for private template repositories.
@@ -73,3 +88,11 @@ npm create @m5nv my-app -- --from-template react --repo yourorg/private-template
 - Check repository name and organization
 - Verify you have access to the repository
 - Ensure authentication is properly configured
+
+## What's Next
+
+Now that you have authentication set up, you might want to:
+
+- 🎯 **Create your first project**: [Getting Started Tutorial](tutorial/getting-started.md) - Use your authenticated access
+- 🚨 **Resolve auth issues**: [Troubleshooting Guide](guides/troubleshooting.md) - Fix authentication problems
+- 🔒 **Learn about security**: [Security Features](security.md) - Understand how authentication fits into our security model

@@ -1,3 +1,16 @@
+---
+title: "Project Roadmap"
+type: "explanation"
+audience: "all"
+estimated_time: "5 minutes read"
+prerequisites: []
+related_docs: 
+  - "phase-1-features.md"
+  - "development.md"
+  - "../CONTRIBUTING.md"
+last_updated: "2024-10-26"
+---
+
 # Roadmap
 
 Strategic feature development for @m5nv/create-scaffold, prioritized by user impact and implementation complexity.
@@ -91,7 +104,7 @@ Strategic feature development for @m5nv/create-scaffold, prioritized by user imp
 
 - Maintain zero external dependencies
 - All features must pass comprehensive security review
-- Backward compatibility required
+- Clean, modern implementation required
 - Each feature needs comprehensive test coverage
 
 ## Non-Goals
@@ -100,3 +113,11 @@ Strategic feature development for @m5nv/create-scaffold, prioritized by user imp
 - **Template Hosting** - Use existing git infrastructure
 - **Package Management** - Not competing with npm/yarn
 - **Build System Integration** - Templates handle their own build setup
+
+## What's Next
+
+Interested in the roadmap? Here's how to get involved:
+
+- 📦 **Try Phase 1 features**: [Phase 1 Core UX Features](phase-1-features.md) - Current feature set
+- 🛠️ **Contribute to development**: [Development Guide](development.md) - Help build future features
+- 🤝 **Join the community**: [Contributing Guidelines](../CONTRIBUTING.md) - Shape the project's direction

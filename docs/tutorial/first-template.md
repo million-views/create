@@ -1,0 +1,456 @@
+---
+title: "Your First Template - Hands-On Examples"
+type: "tutorial"
+audience: "beginner"
+estimated_time: "20 minutes"
+prerequisites: 
+  - "Completed Getting Started tutorial"
+  - "Node.js (latest LTS) installed"
+  - "Git installed and configured"
+related_docs: 
+  - "getting-started.md"
+  - "../creating-templates.md"
+  - "../reference/environment-object.md"
+last_updated: "2024-10-26"
+---
+
+# Your First Template - Hands-On Examples
+
+## What you'll learn
+
+In this hands-on tutorial, you'll build progressively complex projects using @m5nv/create-scaffold, starting with the simplest possible example and gradually adding complexity. By the end, you'll understand how templates adapt to different scenarios and how to leverage advanced features.
+
+## What you'll build
+
+You'll create five projects with increasing complexity:
+1. **Minimal Project** - Simplest possible setup
+2. **IDE-Optimized Project** - Enhanced for your development environment  
+3. **Feature-Rich Project** - Multiple integrated features
+4. **Team Project** - Production-ready with full tooling
+5. **Custom Workflow** - Advanced template usage patterns
+
+## Prerequisites
+
+Before starting this tutorial, make sure you have:
+
+- **Completed the [Getting Started tutorial](getting-started.md)**
+- **Node.js (latest LTS)** and **Git** installed and working
+- **20 minutes** available for hands-on practice
+- **A code editor** ready (preferably Kiro, VSCode, or Cursor)
+
+## Example 1: Minimal Project (Simplest Start)
+
+Let's begin with the absolute simplest example to understand the core workflow.
+
+### Instructions
+
+1. **Create the most basic project possible:**
+   ```bash
+   npm create @m5nv/scaffold minimal-demo -- --from-template react-vite
+   ```
+
+2. **Navigate and explore:**
+   ```bash
+   cd minimal-demo
+   ls -la
+   ```
+
+3. **Verify it works:**
+   ```bash
+   npm install
+   npm run dev
+   ```
+
+4. **Stop the dev server** (Ctrl+C) and **examine the structure:**
+   ```bash
+   tree -L 2  # or use 'find . -type d -maxdepth 2' if tree isn't available
+   ```
+
+### Expected Result
+
+You'll see a clean React project with Vite:
+
+```
+minimal-demo/
+├── package.json
+├── vite.config.js
+├── index.html
+├── src/
+│   ├── App.jsx
+│   ├── main.jsx
+│   └── index.css
+└── public/
+    └── vite.svg
+```
+
+**Key Learning:** This is the baseline - a working project with zero customization. The template provides a solid foundation that "just works."
+
+### Verification Steps
+
+- ✅ `npm install` completes without errors
+- ✅ `npm run dev` starts a development server
+- ✅ Opening `http://localhost:5173` shows a React app
+- ✅ The project structure follows modern React conventions
+
+## Example 2: IDE-Optimized Project (Adding Intelligence)
+
+Now let's add IDE-specific optimizations to enhance your development experience.
+
+### Instructions
+
+1. **Create an IDE-optimized project** (choose your IDE):
+   ```bash
+   # For Kiro users:
+   npm create @m5nv/scaffold kiro-demo -- --from-template react-vite --ide kiro
+   
+   # For VSCode users:
+   npm create @m5nv/scaffold vscode-demo -- --from-template react-vite --ide vscode
+   
+   # For Cursor users:
+   npm create @m5nv/scaffold cursor-demo -- --from-template react-vite --ide cursor
+   ```
+
+2. **Navigate to your project:**
+   ```bash
+   cd kiro-demo  # or vscode-demo, cursor-demo
+   ```
+
+3. **Explore the IDE-specific additions:**
+   ```bash
+   # Look for IDE configuration directories
+   ls -la | grep -E '\.(kiro|vscode|cursor)'
+   
+   # Examine the IDE configuration
+   find . -name "*.json" -path "./.kiro/*" -o -path "./.vscode/*" -o -path "./.cursor/*"
+   ```
+
+4. **Open the project in your IDE** and notice the enhanced experience
+
+### Expected Result
+
+Your project now includes IDE-specific configuration:
+
+**For Kiro users:**
+```
+.kiro/
+├── settings.json     # Kiro-specific editor settings
+└── tasks.json        # Kiro task definitions
+```
+
+**For VSCode users:**
+```
+.vscode/
+├── settings.json     # VSCode workspace settings
+├── extensions.json   # Recommended extensions
+└── launch.json       # Debug configurations
+```
+
+**Key Learning:** IDE optimization provides immediate productivity benefits - better syntax highlighting, debugging support, and recommended extensions.
+
+### Verification Steps
+
+- ✅ IDE recognizes the project with enhanced features
+- ✅ Recommended extensions are suggested (VSCode)
+- ✅ Debug configurations are available
+- ✅ Code formatting and linting work seamlessly
+
+## Example 3: Feature-Rich Project (Integrated Functionality)
+
+Let's add multiple features that work together to create a more complete application.
+
+### Instructions
+
+1. **Create a project with integrated features:**
+   ```bash
+   npm create @m5nv/scaffold feature-demo -- \
+     --from-template react-vite \
+     --ide kiro \
+     --options "auth,database,testing,logging"
+   ```
+
+2. **Navigate and explore the enhanced structure:**
+   ```bash
+   cd feature-demo
+   tree -L 3  # or use find for deeper exploration
+   ```
+
+3. **Examine feature-specific files:**
+   ```bash
+   # Look for authentication files
+   find . -name "*auth*" -type f
+   
+   # Look for database files  
+   find . -name "*database*" -o -name "*db*" -type f
+   
+   # Look for testing files
+   find . -name "*test*" -o -name "*spec*" -type f
+   ```
+
+4. **Check the integrated package.json:**
+   ```bash
+   cat package.json | jq '.scripts'  # or just: grep -A 10 '"scripts"' package.json
+   ```
+
+### Expected Result
+
+Your project now has a rich feature set:
+
+```
+feature-demo/
+├── src/
+│   ├── auth/           # Authentication system
+│   │   └── auth.js
+│   ├── database/       # Database connectivity
+│   │   └── database.js
+│   └── logging/        # Structured logging
+│       └── logger.js
+├── tests/              # Testing utilities
+│   └── utils.js
+├── config/             # Configuration management
+│   └── default.json
+└── integration-config.json  # Feature integration settings
+```
+
+**Key Learning:** Features work together intelligently. The auth system integrates with the database, logging captures authentication events, and tests cover the integrated functionality.
+
+### Verification Steps
+
+- ✅ Multiple feature directories are created
+- ✅ `integration-config.json` shows how features connect
+- ✅ Package.json includes scripts for each feature
+- ✅ IDE configuration is optimized for all enabled features
+
+## Example 4: Team Project (Production-Ready Setup)
+
+Now let's create a project ready for team development with full tooling.
+
+### Instructions
+
+1. **Create a comprehensive team project:**
+   ```bash
+   npm create @m5nv/scaffold team-project -- \
+     --from-template react-vite \
+     --ide vscode \
+     --options "auth,database,api,testing,logging,config"
+   ```
+
+2. **Navigate and examine the comprehensive setup:**
+   ```bash
+   cd team-project
+   ls -la
+   ```
+
+3. **Explore the API integration:**
+   ```bash
+   # Look at API structure
+   find . -path "*/api/*" -type f
+   
+   # Check for configuration files
+   find . -name "*.json" -o -name "*.config.*" | head -10
+   ```
+
+4. **Review the team-ready package.json:**
+   ```bash
+   cat package.json | jq '.scripts, .features, .ideConfiguration'
+   ```
+
+5. **Test the integrated features:**
+   ```bash
+   npm install
+   # Try running different scripts
+   npm run test 2>/dev/null || echo "Tests configured but need implementation"
+   npm run api 2>/dev/null || echo "API configured but needs startup"
+   ```
+
+### Expected Result
+
+A production-ready project with comprehensive tooling:
+
+```
+team-project/
+├── src/
+│   ├── auth/           # Authentication with API integration
+│   ├── database/       # Database with connection pooling
+│   ├── api/            # RESTful API endpoints
+│   └── logging/        # Production logging
+├── tests/              # Comprehensive test suite
+├── config/             # Environment-based configuration
+├── .vscode/            # Team VSCode settings
+│   ├── settings.json   # Shared workspace settings
+│   ├── extensions.json # Required extensions for team
+│   └── launch.json     # Debug configurations
+└── integration-config.json  # Cross-feature integration
+```
+
+**Key Learning:** All features are designed to work together as a cohesive system. Authentication protects API endpoints, database operations are logged, and everything is testable.
+
+### Verification Steps
+
+- ✅ All features are present and integrated
+- ✅ VSCode workspace is configured for team development
+- ✅ Package.json includes comprehensive scripts
+- ✅ Configuration supports different environments
+
+## Example 5: Custom Workflow (Advanced Patterns)
+
+Finally, let's explore advanced usage patterns including dry runs, caching, and custom repositories.
+
+### Instructions
+
+1. **First, preview a complex project without creating it:**
+   ```bash
+   npm create @m5nv/scaffold preview-project -- \
+     --from-template react-vite \
+     --ide cursor \
+     --options "auth,database,api,testing,logging,config" \
+     --dry-run
+   ```
+
+2. **Explore template discovery:**
+   ```bash
+   # List all available templates
+   npm create @m5nv/scaffold -- --list-templates
+   
+   # Get fresh template list (bypass cache)
+   npm create @m5nv/scaffold -- --list-templates --no-cache
+   ```
+
+3. **Create a project with custom caching:**
+   ```bash
+   npm create @m5nv/scaffold cached-project -- \
+     --from-template express \
+     --ide kiro \
+     --options "api,logging" \
+     --cache-ttl 48
+   ```
+
+4. **Enable detailed logging for debugging:**
+   ```bash
+   npm create @m5nv/scaffold logged-project -- \
+     --from-template react-vite \
+     --ide vscode \
+     --options "testing" \
+     --log-file ./scaffold-debug.log
+   ```
+
+5. **Examine the detailed log:**
+   ```bash
+   cat scaffold-debug.log | head -20
+   ```
+
+### Expected Result
+
+**Dry run output shows planned operations:**
+```
+🔍 DRY RUN MODE - Preview of operations (no changes will be made)
+
+📋 Planned Operations:
+┌─────────────────────────────────────────────────────────────────┐
+│ Operation: Copy Template Files                                  │
+│ Source: react-vite template from million-views/templates       │
+│ Target: ./preview-project/                                     │
+│ Files: 15 files, 4 directories                                │
+└─────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────┐
+│ Operation: Execute Setup Script                                 │
+│ Script: _setup.mjs                                             │
+│ IDE: cursor                                                     │
+│ Options: auth, database, api, testing, logging, config        │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+**Template discovery shows all options:**
+```
+📋 Discovering templates from million-views/templates...
+
+Available Templates:
+┌─────────────────┬──────────────────────────────────────────────┐
+│ Template        │ Description                                  │
+├─────────────────┼──────────────────────────────────────────────┤
+│ react-vite      │ Modern React app with Vite build system     │
+│ express         │ Node.js Express API server                  │
+│ nextjs          │ Full-stack React framework                  │
+│ library         │ JavaScript/TypeScript library template      │
+│ fastify         │ High-performance Node.js web framework      │
+└─────────────────┴──────────────────────────────────────────────┘
+```
+
+**Key Learning:** Advanced features give you complete control over the scaffolding process - preview before creating, manage caching for performance, and debug with detailed logging.
+
+### Verification Steps
+
+- ✅ Dry run shows exactly what would be created
+- ✅ Template discovery reveals all available options
+- ✅ Custom cache TTL improves performance for repeated operations
+- ✅ Detailed logging helps debug any issues
+
+## Progressive Complexity Summary
+
+Let's review what we built and the complexity progression:
+
+| Example | Complexity | Features | Use Case |
+|---------|------------|----------|----------|
+| **Minimal** | ⭐ | Basic template only | Quick prototypes, learning |
+| **IDE-Optimized** | ⭐⭐ | + IDE configuration | Personal development |
+| **Feature-Rich** | ⭐⭐⭐ | + Multiple integrated features | Small team projects |
+| **Team Project** | ⭐⭐⭐⭐ | + All features + team settings | Production applications |
+| **Custom Workflow** | ⭐⭐⭐⭐⭐ | + Advanced CLI features | Enterprise/automation |
+
+## What you accomplished
+
+Excellent work! You've now mastered:
+
+✅ **Progressive complexity** - From simple to advanced project setups  
+✅ **IDE integration** - Optimizing projects for your development environment  
+✅ **Feature composition** - Combining multiple features intelligently  
+✅ **Team workflows** - Creating production-ready, team-friendly projects  
+✅ **Advanced patterns** - Dry runs, caching, logging, and debugging  
+
+You understand how templates scale from simple prototypes to complex, production-ready applications while maintaining consistency and best practices.
+
+## Next steps
+
+Now that you've mastered hands-on template usage, consider:
+
+- 🛠️ **[Creating Your Own Templates](../creating-templates.md)** - Build custom templates for your specific needs
+- 📖 **[Environment Object Reference](../reference/environment-object.md)** - Understand how setup scripts receive context
+- 🔧 **[CLI Reference](../reference/cli-reference.md)** - Learn all available options and parameters
+- 🏗️ **[Template System Architecture](../explanation/template-system.md)** - Deep dive into how the system works
+- 🚨 **[Troubleshooting Complex Setups](../guides/troubleshooting.md)** - Debug advanced scenarios
+
+## Key Takeaways
+
+### Template Selection Strategy
+
+**Choose templates based on your project needs:**
+- **react-vite**: Modern React applications
+- **express**: API servers and backends  
+- **nextjs**: Full-stack React applications
+- **library**: Reusable JavaScript/TypeScript packages
+
+### IDE Optimization Benefits
+
+**IDE flags provide immediate value:**
+- **Kiro**: Advanced debugging and task integration
+- **VSCode**: Extension recommendations and workspace settings
+- **Cursor**: AI-powered development optimizations
+- **Windsurf**: Collaborative development features
+
+### Feature Composition Principles
+
+**Features work best when combined thoughtfully:**
+- **auth + api**: Secure API endpoints
+- **database + auth**: Persistent user management
+- **logging + all features**: Comprehensive observability
+- **testing + all features**: Quality assurance coverage
+
+### Advanced Usage Patterns
+
+**Power features for sophisticated workflows:**
+- **--dry-run**: Always preview complex setups
+- **--list-templates**: Discover available options
+- **--log-file**: Debug issues with detailed logging
+- **--cache-ttl**: Optimize performance for repeated operations
+
+Remember: Start simple and add complexity as needed. The scaffolding tool grows with your project requirements!

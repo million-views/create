@@ -1,3 +1,18 @@
+---
+title: "CLI Tool Specification"
+type: "reference"
+audience: "advanced"
+estimated_time: "N/A (reference)"
+prerequisites: 
+  - "Software development experience"
+  - "Understanding of CLI tools and scaffolding"
+related_docs: 
+  - "spec-driven-development.md"
+  - "development.md"
+  - "reference/cli-reference.md"
+last_updated: "2024-10-26"
+---
+
 ## Specification: `@m5nv/create-scaffold` Scaffolding Tool
 
 ### 1. Overview 📜

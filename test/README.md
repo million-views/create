@@ -155,7 +155,7 @@ Error handling tests follow the pattern:
 
 ### Updating Tests
 
-1. Maintain backward compatibility
+1. Implement optimal test design
 2. Update documentation when changing behavior
 3. Ensure all edge cases are covered
 4. Verify tests pass in clean environment

@@ -1,8 +1,25 @@
+---
+title: "Development Guide"
+type: "guide"
+audience: "advanced"
+estimated_time: "30 minutes setup, reference thereafter"
+prerequisites:
+  - "Modern Node.js development experience (latest LTS)"
+  - "Git and npm familiarity"
+  - "Command line proficiency"
+related_docs:
+  - "spec-driven-development.md"
+  - "../CONTRIBUTING.md"
+  - "guides/troubleshooting.md"
+  - "reference/cli-reference.md"
+last_updated: "2024-10-26"
+---
+
 # Development Guide
 
 Complete guide for developing and testing @m5nv/create-scaffold locally.
 
-## Setup
+## Quick Start
 
 ```bash
 # Clone the repository
@@ -11,13 +28,160 @@ cd create
 
 # Install development dependencies
 npm install
+
+# Run tests to verify setup
+npm test
+
+# Test CLI locally
+npm link
+npm create @m5nv/scaffold test-project -- --from-template react-vite
+npm unlink -g @m5nv/create-scaffold
 ```
+
+## Codebase Architecture
+
+### Module Organization
+
+The codebase follows a modular architecture with clear separation of concerns:
+
+```
+create/
+├── bin/                           # Core CLI modules
+│   ├── index.mjs                 # Main entry point and CLI orchestration
+│   ├── argumentParser.mjs        # Native argument parsing with util.parseArgs
+│   ├── preflightChecks.mjs       # Validation and system checks
+│   ├── security.mjs              # Input validation and security controls
+│   ├── cacheManager.mjs          # Template repository caching system
+│   ├── logger.mjs                # Structured logging with file output
+│   ├── templateDiscovery.mjs     # Template listing and metadata parsing
+│   ├── dryRunEngine.mjs          # Preview mode for planned operations
+│   ├── environmentFactory.mjs    # Environment_Object creation and validation
+│   └── utils/                    # Shared utility modules
+│       ├── commandUtils.mjs      # Git command execution utilities
+│       ├── fsUtils.mjs           # File system operation utilities
+│       └── validationUtils.mjs   # Input validation and sanitization
+├── docs/                         # User and developer documentation
+├── test/                         # Comprehensive test suites
+├── scripts/                      # Development and testing utilities
+└── .kiro/specs/                  # Feature specifications and design docs
+```
+
+### Core Design Principles
+
+**Zero Dependencies**: The project uses only Node.js built-in modules to minimize attack surface and ensure reliability.
+
+**Security First**: All user inputs are validated and sanitized. No external code execution without explicit user consent.
+
+**ES Modules Only**: Modern JavaScript patterns throughout, with `type: "module"` in package.json.
+
+**Test-Driven Development**: Comprehensive test coverage across multiple specialized test suites.
+
+### Key Modules
+
+#### CLI Entry Point (`bin/index.mjs`)
+
+- Orchestrates the entire CLI workflow
+- Handles argument parsing and validation
+- Coordinates between all other modules
+- Manages error handling and user feedback
+
+#### Argument Parser (`bin/argumentParser.mjs`)
+
+- Uses native `util.parseArgs` for robust CLI argument handling
+- Supports all CLI flags: `--help`, `--from-template`, `--repo`, `--branch`, `--log-file`, `--dry-run`, `--no-cache`
+- Provides comprehensive help text and usage information
+
+#### Security Module (`bin/security.mjs`)
+
+- Validates all user inputs for security compliance
+- Prevents path traversal attacks (`../` sequences)
+- Blocks command injection in repository URLs and branch names
+- Sanitizes error messages to prevent information disclosure
+
+#### Cache Manager (`bin/cacheManager.mjs`)
+
+- Manages local template repository caching in `~/.m5nv/cache`
+- Implements TTL-based cache expiration (24-hour default)
+- Provides cache bypass with `--no-cache` flag
+- Handles cache corruption recovery automatically
+
+#### Logger (`bin/logger.mjs`)
+
+- Structured logging with timestamps and operation tracking
+- Async file writing for performance
+- Logs git operations, file copying, and setup script execution
+- Sanitizes log data to prevent information disclosure
+
+## Testing Strategy
+
+### Test Suite Architecture
+
+The project maintains comprehensive test coverage across multiple specialized test suites:
+
+#### 1. Functional Tests (`test/cli.test.mjs`)
+
+- Comprehensive end-to-end CLI behavior tests
+- Argument parsing, validation, security, git operations
+- Error handling and user feedback scenarios
+- Real-world usage patterns and edge cases
+
+#### 2. Spec Compliance Tests (`test/spec-compliance-verification.mjs`)
+
+- Comprehensive specification compliance verification
+- Requirements traceability and feature completeness
+- Automated validation of spec-driven development
+- Ensures all documented features work as specified
+
+#### 3. Resource Leak Tests (`test/resource-leak-test.mjs`)
+
+- Resource management validation tests
+- Temporary directory cleanup verification
+- Memory and file handle leak detection
+- Process cleanup and error recovery testing
+
+#### 4. Smoke Tests (`scripts/smoke-test.mjs`)
+
+- Production readiness validation tests
+- End-to-end integration with real repositories
+- Performance and reliability under realistic conditions
+- User experience validation with actual workflows
+
+### Testing Methodology
+
+**Test-First Development**: All functionality is developed using strict TDD:
+
+1. Write failing tests that define expected behavior
+2. Implement minimal code to make tests pass
+3. Refactor while maintaining green tests
+4. Validate with comprehensive test suites
+
+**Security Testing**: Every security feature is thoroughly tested:
+
+- Path traversal prevention with malicious inputs
+- Command injection blocking with crafted payloads
+- Input validation with edge cases and boundary conditions
+- Error message sanitization to prevent information disclosure
 
 ## Testing the CLI Locally
 
-### 1. npm link (Recommended)
+### 1. Direct Node Execution (Development)
 
-Creates a global symlink for testing the full user experience:
+Test changes immediately without installation:
+
+```bash
+# Test CLI directly during development
+node bin/index.mjs --help
+node bin/index.mjs my-test-app --from-template react-vite
+node bin/index.mjs test-project --from-template custom --repo myorg/templates
+
+# Test specific scenarios
+node bin/index.mjs --list-templates --repo myorg/templates
+node bin/index.mjs test-app --dry-run --from-template express
+```
+
+### 2. npm link (Full User Experience)
+
+Creates a global symlink for testing the complete user workflow:
 
 ```bash
 # Link your local package globally
@@ -25,15 +189,19 @@ npm link
 
 # Test as users would use it
 npm create @m5nv/scaffold my-test-app -- --from-template react-vite
-npm create @m5nv/scaffold@1.0.0 my-api -- --from-template express --repo myorg/templates
+npm create @m5nv/scaffold my-api -- --from-template express --repo myorg/templates
+
+# Test new features
+npm create @m5nv/scaffold test-project -- --from-template react --log-file ./build.log
+npm create @m5nv/scaffold preview-app -- --dry-run --from-template vue
 
 # Cleanup when done
 npm unlink -g @m5nv/create-scaffold
 ```
 
-### 2. Local npm Install
+### 3. Local Installation (Production Simulation)
 
-Install your local version globally:
+Install your local version globally to simulate production:
 
 ```bash
 # Install from current directory
@@ -48,7 +216,7 @@ npm uninstall -g @m5nv/create-scaffold
 
 ## Running Tests
 
-### Test Suites
+### Complete Test Suite
 
 ```bash
 # Run all test suites with unified reporting
@@ -61,152 +229,584 @@ npm run test:all
 npm run test:quick
 
 # Run individual test suites
-npm run test:functional    # 36 end-to-end CLI behavior tests
-npm run test:spec         # 32 specification compliance tests
-npm run test:leaks        # 4 resource management tests
-npm run test:smoke        # 6 production readiness tests
+npm run test:functional    # End-to-end CLI behavior tests
+npm run test:spec         # Specification compliance tests
+npm run test:leaks        # Resource management tests
+npm run test:smoke        # Production readiness tests
 ```
 
-### Test Coverage
-
-- **78 total tests** across 4 specialized test suites
-- **Functional Tests**: CLI argument parsing, validation, security, git operations
-- **Spec Compliance Tests**: Verification against all specification requirements
-- **Resource Leak Tests**: Temporary directory cleanup, resource management
-- **Smoke Tests**: End-to-end integration and production readiness
-
-### Development Testing
+### Development Testing Workflow
 
 ```bash
 # Quick validation during development
 npm run test:quick
 
-# Lint code
+# Lint code (zero warnings required)
 npm run lint
 
-# Run specific test file
+# Run specific test file for focused development
 node test/cli.test.mjs
+node test/argumentParser.test.mjs
+node test/security.test.mjs
 node test/spec-compliance-verification.mjs
+
+# Test specific functionality
+node test/cacheManager.test.mjs
+node test/logger.test.mjs
+node test/templateDiscovery.test.mjs
 ```
 
-## Code Quality
+### Test Output Interpretation
 
-### Linting
+**Successful Test Run**:
+
+```
+🧪 Functional Tests
+   36 end-to-end CLI behavior tests
+✅ Functional Tests - 1247ms
+
+🧪 Spec Compliance Tests
+   32 specification compliance tests
+✅ Spec Compliance Tests - 892ms
+
+📊 TEST SUITE SUMMARY
+✅ Functional Tests              1247ms
+✅ Spec Compliance Tests         892ms
+✅ Resource Leak Tests           156ms
+✅ Smoke Tests                   2341ms
+
+📈 Results: 4 passed, 0 failed
+⏱️  Total time: 4636ms
+🎉 CLI tool is ready for production!
+```
+
+**Failed Test Analysis**:
+
+- Review specific test failures in the output
+- Check error messages for validation failures
+- Verify security tests haven't been compromised
+- Ensure all spec compliance tests pass before release
+
+## Build and Release Process
+
+### Pre-Release Validation
+
+Before any release, the following validation must pass:
 
 ```bash
-# Check for lint issues
-npm run lint
+# 1. Code quality validation
+npm run lint                    # Must show zero warnings
 
-# The project maintains zero lint warnings
-# All code follows strict ESLint rules
-```
+# 2. Complete test suite validation
+npm test                       # Complete test suite must pass
 
-### Security Standards
-
-- **Zero external dependencies** - Only Node.js built-ins allowed
-- **Comprehensive input validation** - All user inputs sanitized
-- **Security-first error handling** - No information disclosure
-- **Path traversal prevention** - All file operations bounded
-
-## Project Structure
-
-```
-create/
-├── bin/
-│   ├── index.mjs              # Main CLI entry point
-│   ├── argumentParser.mjs     # Native argument parsing
-│   ├── preflightChecks.mjs    # Validation and checks
-│   └── security.mjs           # Input validation and security
-├── docs/                      # User documentation
-├── scripts/
-│   ├── test-runner.mjs        # Unified test coordinator
-│   └── smoke-test.mjs         # Production readiness tests
-├── test/
-│   ├── cli.test.mjs           # Functional tests
-│   ├── spec-compliance-verification.mjs
-│   └── resource-leak-test.mjs
-└── .kiro/specs/               # Development specifications
-```
-
-## Development Workflow
-
-### Making Changes
-
-1. **Write tests first** - Add tests for new functionality
-2. **Implement changes** - Modify code to pass tests
-3. **Run test suite** - Ensure all tests pass
-4. **Test locally** - Use `node bin/index.mjs` or `npm link`
-5. **Lint code** - Fix any linting issues
-6. **Update docs** - Keep documentation current
-
-### Testing Changes
-
-```bash
-# Full validation workflow
-npm run lint          # Check code quality
-npm test             # Run all tests
-node bin/index.mjs --help  # Test CLI directly
-```
-
-### Debugging
-
-```bash
-# Enable debug output (if implemented)
-DEBUG=* node bin/index.mjs my-app --from-template test
-
-# Test specific scenarios
-node bin/index.mjs test-debug --from-template nonexistent  # Error handling
-node bin/index.mjs ../test --from-template hack            # Security validation
-```
-
-## Contributing
-
-See [CONTRIBUTING.md](../CONTRIBUTING.md) for detailed contribution guidelines, code standards, and pull request process.
-
-## Release Process
-
-### Pre-release Validation
-
-```bash
-# Complete validation before release
-npm run lint                    # Zero warnings required
-npm test                       # All tests must pass
+# 3. Specification compliance validation
 npm run test:spec              # 100% spec compliance required
-node bin/index.mjs --help      # Manual CLI validation
+
+# 4. Manual CLI validation
+node bin/index.mjs --help      # Verify help output
+npm link                       # Test installation process
+npm create @m5nv/scaffold test-release -- --from-template react-vite
+npm unlink -g @m5nv/create-scaffold
 ```
 
 ### Version Management
 
 ```bash
-# Update version
-npm version patch|minor|major
+# Update version (automatically updates package.json and creates git tag)
+npm version patch              # Bug fixes: 1.0.0 → 1.0.1
+npm version minor              # New features: 1.0.0 → 1.1.0
+npm version major              # Breaking changes: 1.0.0 → 2.0.0
 
-# Tag release
-git tag v1.0.0
-git push origin v1.0.0
+# Push release to repository
+git push origin main --tags
+
+# Publish to npm (if applicable)
+npm publish
+```
+
+### Release Checklist
+
+- [ ] All tests pass (`npm test`)
+- [ ] Zero lint warnings (`npm run lint`)
+- [ ] 100% spec compliance (`npm run test:spec`)
+- [ ] Manual CLI testing completed
+- [ ] Documentation updated for new features
+- [ ] CHANGELOG.md updated with changes
+- [ ] Version bumped appropriately
+- [ ] Git tags created and pushed
+
+## Code Quality Standards
+
+### Linting and Formatting
+
+```bash
+# Check for lint issues (must show zero warnings)
+npm run lint
+
+# The project maintains strict code quality:
+# - ESLint with comprehensive rules
+# - ES Modules only (no CommonJS)
+# - Modern JavaScript patterns
+# - Consistent code formatting
+```
+
+### Security Standards
+
+The project follows strict security guidelines:
+
+- **Zero External Dependencies**: Only Node.js built-ins to minimize attack surface
+- **Comprehensive Input Validation**: All user inputs sanitized and validated
+- **Security-First Error Handling**: No information disclosure in error messages
+- **Path Traversal Prevention**: All file operations bounded to safe directories
+- **Command Injection Prevention**: Safe argument passing to child processes
+- **Setup Script Isolation**: User scripts run in project context, not CLI context
+
+### Code Review Requirements
+
+All code changes must meet these standards:
+
+- **Security Review**: All input validation and error handling reviewed
+- **Test Coverage**: New functionality must include comprehensive tests
+- **Documentation**: Public APIs and complex logic must be documented
+- **Performance**: No unnecessary dependencies or blocking operations
+- **Compatibility**: Must work on supported Node.js versions across platforms
+
+## Coding Standards
+
+### JavaScript/Node.js Standards
+
+**ES Modules Only**:
+
+```javascript
+// ✅ Correct: Use ES module imports
+import { readFile } from "fs/promises";
+import path from "path";
+
+// ❌ Incorrect: No CommonJS patterns
+const fs = require("fs");
+```
+
+**Async/Await Patterns**:
+
+```javascript
+// ✅ Correct: Use async/await for all async operations
+async function processTemplate(templatePath) {
+  try {
+    const content = await readFile(templatePath, "utf8");
+    return processContent(content);
+  } catch (error) {
+    throw new Error(`Failed to process template: ${error.message}`);
+  }
+}
+
+// ❌ Incorrect: No callback patterns
+fs.readFile(templatePath, (err, data) => {
+  /* ... */
+});
+```
+
+**Error Handling**:
+
+```javascript
+// ✅ Correct: Comprehensive error handling with context
+try {
+  await gitClone(repoUrl, targetPath);
+} catch (error) {
+  throw new Error(`Git clone failed for ${repoUrl}: ${error.message}`);
+}
+
+// ❌ Incorrect: Generic error handling
+try {
+  await gitClone(repoUrl, targetPath);
+} catch (error) {
+  throw error; // No context added
+}
+```
+
+**Input Validation**:
+
+```javascript
+// ✅ Correct: Validate all inputs
+function validateProjectName(name) {
+  if (!name || typeof name !== "string") {
+    throw new Error("Project name must be a non-empty string");
+  }
+  if (name.includes("..") || name.includes("/")) {
+    throw new Error("Project name contains invalid characters");
+  }
+  return name.trim();
+}
+
+// ❌ Incorrect: No validation
+function createProject(name) {
+  // Direct usage without validation
+  return fs.mkdir(name);
+}
+```
+
+### File Organization Standards
+
+**Module Structure**:
+
+```javascript
+// File header with purpose
+/**
+ * Cache Manager for Template Repositories
+ * Handles local caching with TTL support and corruption recovery
+ */
+
+// Imports (Node.js built-ins only)
+import fs from "fs/promises";
+import path from "path";
+import crypto from "crypto";
+
+// Class or function definitions
+export class CacheManager {
+  // Implementation
+}
+
+// Default export (if applicable)
+export default CacheManager;
+```
+
+**Function Documentation**:
+
+```javascript
+/**
+ * Retrieves a cached repository or clones it if not cached/expired
+ * @param {string} repoUrl - Git repository URL
+ * @param {string} branchName - Git branch name
+ * @param {Object} options - Cache options
+ * @param {boolean} options.bypassCache - Skip cache and clone directly
+ * @param {number} options.ttlHours - Cache TTL in hours
+ * @returns {Promise<string>} Path to cached repository
+ * @throws {Error} If repository cannot be accessed or cached
+ */
+async getCachedRepo(repoUrl, branchName, options = {}) {
+  // Implementation
+}
+```
+
+## Development Workflow
+
+### Spec-Driven Development Process
+
+This project follows a rigorous spec-driven development methodology. See [Spec-Driven Development Workflow](spec-driven-development.md) for complete details.
+
+**Quick Overview**:
+
+1. **Requirements Phase**: Write EARS-compliant requirements with user stories
+2. **Design Phase**: Create comprehensive technical design
+3. **Implementation Phase**: Break design into actionable coding tasks
+4. **Execution Phase**: Implement tasks with test-first development
+
+### Making Changes
+
+#### 1. Test-First Development (Mandatory)
+
+```bash
+# ALWAYS write tests first
+# 1. Search existing codebase for similar functionality
+grep -r "similar_function" bin/ test/
+
+# 2. Write failing tests that define expected behavior
+# Edit appropriate test file in test/
+
+# 3. Run tests to confirm they fail (RED)
+npm run test:functional
+
+# 4. Implement minimal code to make tests pass (GREEN)
+# Edit implementation files in bin/
+
+# 5. Run tests to confirm they pass
+npm run test:functional
+
+# 6. Refactor if needed while keeping tests green
+```
+
+#### 2. Implementation Workflow
+
+```bash
+# Full development workflow
+npm run lint          # Check code quality first
+npm run test:quick    # Quick validation during development
+node bin/index.mjs --help  # Test CLI directly
+
+# After changes
+npm test             # Run complete test suite
+npm run lint         # Verify code quality
+```
+
+#### 3. Feature Development Process
+
+For new features, follow the spec-driven process:
+
+```bash
+# 1. Create feature specification
+mkdir -p .kiro/specs/feature-name
+# Write requirements.md, design.md, tasks.md
+
+# 2. Implement following tasks.md
+# Mark tasks complete as you go
+
+# 3. Validate implementation
+npm run test:spec    # Verify spec compliance
+```
+
+### Debugging and Troubleshooting
+
+#### Development Debugging
+
+```bash
+# Test specific scenarios during development
+node bin/index.mjs test-debug --from-template nonexistent  # Error handling
+node bin/index.mjs ../test --from-template hack            # Security validation
+node bin/index.mjs valid-project --dry-run --from-template react  # Preview mode
+
+# Test with logging enabled
+node bin/index.mjs my-app --from-template react --log-file debug.log
+cat debug.log  # Review detailed operation logs
+```
+
+#### Test Debugging
+
+```bash
+# Run specific test suites for focused debugging
+node test/cli.test.mjs                    # Functional tests
+node test/security.test.mjs               # Security validation
+node test/cacheManager.test.mjs           # Cache functionality
+
+# Debug test failures
+npm run test:functional 2>&1 | grep -A 10 "FAILED"
+```
+
+#### Common Development Issues
+
+**Tests failing after changes**:
+
+- Run `npm run test:quick` for faster feedback
+- Check specific test output for validation failures
+- Ensure security tests still pass (critical for releases)
+
+**CLI not working with npm link**:
+
+- Unlink and relink: `npm unlink -g @m5nv/create-scaffold && npm link`
+- Check global npm modules: `npm list -g --depth=0`
+- Verify bin file permissions: `chmod +x bin/index.mjs`
+
+**Permission issues during testing**:
+
+- Ensure test directories are writable
+- Check temporary directory cleanup in tests
+- Verify git configuration for test repositories
+
+### Performance Considerations
+
+#### Optimization Guidelines
+
+- **Minimize I/O Operations**: Use caching and batch operations where possible
+- **Async Operations**: Never block the event loop with sync operations
+- **Memory Management**: Clean up temporary resources and large objects
+- **Git Operations**: Use shallow clones (`--depth 1`) for template repositories
+
+#### Performance Testing
+
+```bash
+# Test performance with large repositories
+time node bin/index.mjs perf-test --from-template large-template
+
+# Test cache performance
+node bin/index.mjs test1 --from-template react  # First run (clone)
+time node bin/index.mjs test2 --from-template react  # Second run (cached)
+
+# Test with multiple templates
+npm run test:smoke  # Includes performance validation
+```
+
+## Contributing to the Project
+
+### Quick Contribution Guide
+
+See [CONTRIBUTING.md](../CONTRIBUTING.md) for complete contribution guidelines.
+
+**Essential Steps**:
+
+1. Fork and clone the repository
+2. Create a feature branch: `git checkout -b feature/description`
+3. Follow test-first development: write tests, then implementation
+4. Ensure all tests pass: `npm test`
+5. Verify code quality: `npm run lint`
+6. Test locally: `npm link` and manual testing
+7. Submit pull request with clear description
+
+### Contribution Standards
+
+**Code Requirements**:
+
+- Zero external dependencies (Node.js built-ins only)
+- ES Modules only (no CommonJS)
+- Comprehensive test coverage for new functionality
+- Security-first approach with input validation
+- Documentation updates for public APIs
+
+**Testing Requirements**:
+
+- Complete test suite must pass
+- New functionality must include tests
+- Security tests must not be compromised
+- Manual CLI testing required
+
+### Development Environment Setup
+
+```bash
+# Complete setup for contributors
+git clone https://github.com/million-views/create.git
+cd create
+npm install
+
+# Verify setup
+npm test                       # Should pass all tests
+npm run lint                   # Should show zero warnings
+node bin/index.mjs --help      # Should display help
+
+# Test contribution workflow
+npm link
+npm create @m5nv/scaffold test-contrib -- --from-template react-vite
+npm unlink -g @m5nv/create-scaffold
 ```
 
 ## Troubleshooting Development Issues
 
 ### Common Development Problems
 
-**Tests failing after changes:**
+**Tests failing after changes**:
 
-- Run `npm run test:quick` for faster feedback
-- Check specific test output for details
-- Ensure all security validations still pass
+```bash
+# Quick diagnosis
+npm run test:quick              # Faster feedback loop
+npm run test:functional         # Focus on CLI behavior
+node test/security.test.mjs     # Verify security isn't compromised
 
-**CLI not working with npm link:**
+# Check specific failures
+npm test 2>&1 | grep -A 5 "FAILED"
+```
 
-- Unlink and relink: `npm unlink -g @m5nv/create-scaffold && npm link`
-- Check global npm modules: `npm list -g --depth=0`
+**CLI not working with npm link**:
 
-**Permission issues:**
+```bash
+# Fix linking issues
+npm unlink -g @m5nv/create-scaffold
+npm link
+npm list -g --depth=0          # Verify global installation
 
-- Ensure bin file is executable: `chmod +x bin/index.mjs`
-- Check file permissions in test scenarios
+# Alternative: direct installation
+npm install -g .
+```
 
-**Git authentication in tests:**
+**Permission issues during development**:
 
-- Tests use mock repositories, not real git operations
-- For manual testing, ensure git credentials are configured
+```bash
+# Fix bin file permissions
+chmod +x bin/index.mjs
+
+# Check test directory permissions
+ls -la test/
+ls -la bin/
+
+# Verify git configuration
+git config --list | grep user
+```
+
+**Performance issues during testing**:
+
+```bash
+# Clear test artifacts
+rm -rf /tmp/create-scaffold-* 2>/dev/null || true
+rm -rf ~/.m5nv/cache/*
+
+# Check disk space
+df -h
+
+# Monitor resource usage
+npm run test:leaks              # Check for resource leaks
+```
+
+**Git authentication in tests**:
+
+- Tests use mock repositories and don't require real git authentication
+- For manual testing with private repositories, ensure git credentials are configured
+- Use `git config --global credential.helper` to check credential configuration
+
+### Advanced Debugging
+
+**Memory and Performance Analysis**:
+
+```bash
+# Profile memory usage
+node --inspect bin/index.mjs my-app --from-template react
+# Open chrome://inspect in Chrome
+
+# Check for memory leaks
+npm run test:leaks
+
+# Performance profiling
+time npm run test:smoke
+```
+
+**Security Testing**:
+
+```bash
+# Test security validations
+node bin/index.mjs "../evil" --from-template hack     # Should be blocked
+node bin/index.mjs "test; rm -rf /tmp" --from-template safe  # Should be blocked
+node bin/index.mjs test --from-template "hack; evil"  # Should be blocked
+```
+
+**Cache Debugging**:
+
+```bash
+# Inspect cache state
+ls -la ~/.m5nv/cache/
+cat ~/.m5nv/cache/*/metadata.json
+
+# Clear cache for testing
+rm -rf ~/.m5nv/cache/*
+
+# Test cache functionality
+node bin/index.mjs test1 --from-template react        # Should clone
+node bin/index.mjs test2 --from-template react        # Should use cache
+node bin/index.mjs test3 --from-template react --no-cache  # Should clone
+```
+
+## Additional Resources
+
+### Documentation
+
+- [Spec-Driven Development Workflow](spec-driven-development.md) - Complete guide to the project's development methodology
+- [CONTRIBUTING.md](../CONTRIBUTING.md) - Contribution guidelines and standards
+- [User Documentation](../README.md) - User-facing documentation and guides
+
+### Project Specifications
+
+- [Phase 1 Core UX Spec](../.kiro/specs/phase-1-core-ux/) - Caching, logging, discovery, dry-run features
+- [Documentation Overhaul Spec](../.kiro/specs/documentation-overhaul-diataxis/) - Documentation restructuring project
+- [CLI Compliance Update Spec](../.kiro/specs/cli-compliance-update/) - CLI standards compliance
+
+### External Resources
+
+- [Node.js Documentation](https://nodejs.org/docs/) - Official Node.js API documentation
+- [ESLint Configuration](https://eslint.org/docs/) - Code quality and linting standards
+- [EARS Requirements](https://alistairmavin.com/ears/) - Requirements writing methodology
+- [Diátaxis Framework](https://diataxis.fr/) - Documentation structure methodology
+
+This development guide provides comprehensive information for contributing to @m5nv/create-scaffold. For questions not covered here, please open an issue or start a discussion in the project repository.
+
+## What's Next
+
+Now that you have the development environment set up, you might want to:
+
+- 💡 **Understand the methodology**: [Spec-Driven Development Workflow](spec-driven-development.md) - Learn our development process
+- 🤝 **Make your first contribution**: [Contributing Guidelines](../CONTRIBUTING.md) - Step-by-step contribution process
+- 🚨 **Debug issues**: [Troubleshooting Guide](guides/troubleshooting.md) - Resolve development and runtime problems
+- 📖 **Understand the CLI**: [CLI Reference](reference/cli-reference.md) - Complete command documentation

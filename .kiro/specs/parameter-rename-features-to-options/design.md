@@ -7,6 +7,7 @@ This design outlines the complete replacement of the `--features` parameter with
 ## Architecture
 
 ### Parameter Flow Architecture
+
 ```
 User Input (--options a,b,c)
     ↓
@@ -20,6 +21,7 @@ Template Setup Script Execution
 ```
 
 ### Affected Components
+
 - **argumentParser.mjs**: Update parseArgs configuration and validation calls
 - **security.mjs**: Rename validation function and update references
 - **environmentFactory.mjs**: Update Environment_Object property name
@@ -31,6 +33,7 @@ Template Setup Script Execution
 ### Argument Parser Updates
 
 **Current State:**
+
 ```javascript
 features: {
   type: 'string',
@@ -39,9 +42,10 @@ features: {
 ```
 
 **New State:**
+
 ```javascript
 options: {
-  type: 'string', 
+  type: 'string',
   short: 'o'
 }
 ```
@@ -49,6 +53,7 @@ options: {
 ### Security Validation Updates
 
 **Function Rename:**
+
 - `validateFeaturesParameter()` → `validateOptionsParameter()`
 - Update all internal references and error messages
 - Maintain identical validation logic (security rules remain the same)
@@ -56,6 +61,7 @@ options: {
 ### Environment_Object Updates
 
 **Current Structure:**
+
 ```javascript
 {
   projectDirectory: string,
@@ -68,6 +74,7 @@ options: {
 ```
 
 **New Structure:**
+
 ```javascript
 {
   projectDirectory: string,
@@ -102,13 +109,13 @@ export function validateOptionsParameter(optionsString) {
 
 ```javascript
 const EnvironmentObjectSchema = {
-  projectDirectory: 'string (required)',
-  templateName: 'string (required)', 
-  repositoryUrl: 'string (required)',
-  branchName: 'string (required)',
-  ide: 'string | null (optional)',
-  options: 'string[] (required, empty array if not provided)'
-}
+  projectDirectory: "string (required)",
+  templateName: "string (required)",
+  repositoryUrl: "string (required)",
+  branchName: "string (required)",
+  ide: "string | null (optional)",
+  options: "string[] (required, empty array if not provided)",
+};
 ```
 
 ## Error Handling
@@ -118,11 +125,13 @@ const EnvironmentObjectSchema = {
 Update all error messages to reference "options" instead of "features":
 
 **Before:**
+
 - "Features parameter validation failed"
 - "Invalid feature name format"
 - "Feature name too long"
 
 **After:**
+
 - "Options parameter validation failed"
 - "Invalid option name format"
 - "Option name too long"
@@ -142,17 +151,20 @@ npx @m5nv/create-scaffold my-api --template fastify --options monorepo,no-git
 ### Test File Updates Required
 
 1. **Functional Tests (test/functional.test.mjs)**
+
    - Update all `--features` references to `--options`
    - Update short flag tests from `-f` to `-o`
    - Update Environment_Object assertions
    - Update error message expectations
 
 2. **Security Tests (test/security.test.mjs)**
+
    - Rename test descriptions and function calls
    - Update validation error message expectations
    - Maintain all security test scenarios
 
 3. **Environment Factory Tests (test/environmentFactory.test.mjs)**
+
    - Update Environment_Object property assertions
    - Update validation function calls
    - Update test data and expectations
@@ -168,27 +180,30 @@ Update all test fixtures and mock data:
 
 ```javascript
 // Before:
-const mockArgs = { features: 'typescript,react' };
+const mockArgs = { features: "typescript,react" };
 
 // After:
-const mockArgs = { options: 'typescript,react' };
+const mockArgs = { options: "typescript,react" };
 ```
 
 ## Implementation Approach
 
 ### Phase 1: Core Parameter Rename
+
 1. Update argumentParser.mjs configuration
 2. Rename security validation function
 3. Update Environment_Object construction
 4. Update help text and usage examples
 
 ### Phase 2: Test Suite Updates
+
 1. Update all test files systematically
 2. Update test assertions and expectations
 3. Update mock data and fixtures
 4. Verify all tests pass
 
 ### Phase 3: Documentation Updates
+
 1. Update README.md examples
 2. Update inline code comments
 3. Update error message text
@@ -199,23 +214,27 @@ const mockArgs = { options: 'typescript,react' };
 ### Contextual Options Examples
 
 **Project Stage:**
+
 - `poc` - Proof of concept setup
 - `prototype` - Prototype development setup
 - `mvp` - Minimum viable product setup
 - `production` - Production-ready setup
 
 **Environment Context:**
+
 - `monorepo` - Part of a monorepo structure
 - `standalone` - Standalone project
 - `existing-project` - Adding to existing codebase
 
 **Preference Indicators:**
+
 - `no-git` - Skip git initialization
 - `minimal` - Minimal dependencies/setup
 - `full-featured` - Include all available features
 - `typescript-strict` - Strict TypeScript configuration
 
 **Development Preferences:**
+
 - `testing-focused` - Include comprehensive test setup
 - `ci-ready` - Include CI/CD configuration
 - `docker-ready` - Include Docker configuration

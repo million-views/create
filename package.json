@@ -48,6 +48,9 @@
         "test:functional": "node ./test/cli.test.mjs",
         "test:spec": "node ./test/spec-compliance-verification.mjs",
         "test:leaks": "node ./test/resource-leak-test.mjs",
-        "test:smoke": "node ./scripts/smoke-test.mjs"
+        "test:smoke": "node ./scripts/smoke-test.mjs",
+        "validate": "node ./scripts/comprehensive-validation.mjs",
+        "validate:docs": "node ./scripts/validate-docs.mjs",
+        "validate:code": "ast-grep scan bin/ test/"
     }
 }
