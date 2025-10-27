@@ -5,6 +5,7 @@ import fs from 'fs/promises';
 import path from 'path';
 import os from 'os';
 import { CacheManager } from '../bin/cacheManager.mjs';
+import { execCommand } from '../bin/utils/commandUtils.mjs';
 
 /**
  * Test suite for Cache Manager module
@@ -65,6 +66,7 @@ class CacheManagerTestSuite {
 
       // Test 2.2: Core cache operations
       await this.testCoreOperations();
+      await this.testCachePopulation();
 
       // Test 2.3: Cache corruption recovery and cleanup
       await this.testCorruptionRecovery();
@@ -361,6 +363,79 @@ class CacheManagerTestSuite {
       
       // Test with override TTL parameter
       assert.strictEqual(cacheManager.isExpired(customMetadata, 8), true, 'Should be expired with shorter TTL override');
+    });
+  }
+
+  async testCachePopulation() {
+    console.log('📦 Testing cache population and refresh...');
+
+    await this.test('populateCache clones repository into cache directory with metadata', async () => {
+      const tempCacheDir = await this.createTempDir('-populate-cache');
+      const cacheManager = new CacheManager(tempCacheDir);
+
+      const sourceRepoDir = await this.createTempDir('-populate-source');
+      await execCommand('git', ['init'], { cwd: sourceRepoDir });
+      await execCommand('git', ['checkout', '-b', 'main'], { cwd: sourceRepoDir });
+      await execCommand('git', ['config', 'user.name', 'Cache Tester'], { cwd: sourceRepoDir });
+      await execCommand('git', ['config', 'user.email', 'cache@test.com'], { cwd: sourceRepoDir });
+
+      await fs.writeFile(path.join(sourceRepoDir, 'README.md'), '# Test Repo');
+      await execCommand('git', ['add', '.'], { cwd: sourceRepoDir });
+      await execCommand('git', ['commit', '-m', 'Initial commit'], { cwd: sourceRepoDir });
+
+      const repoPath = await cacheManager.populateCache(sourceRepoDir, 'main');
+      const { repoHash, repoDir } = cacheManager.resolveRepoDirectory(sourceRepoDir, 'main');
+
+      assert.strictEqual(repoPath, repoDir, 'populateCache should return cache directory path');
+
+      const cachedReadme = await fs.readFile(path.join(repoDir, 'README.md'), 'utf8');
+      assert.strictEqual(cachedReadme.trim(), '# Test Repo', 'Cached repository should mirror source content');
+
+      const metadata = await cacheManager.getCacheMetadata(repoHash);
+      assert(metadata, 'Metadata should be written after population');
+      assert.strictEqual(metadata.repoUrl, sourceRepoDir, 'Metadata should store original repo URL');
+      assert.strictEqual(metadata.branchName, 'main', 'Metadata should store branch name');
+      assert.strictEqual(metadata.ttlHours, 24, 'Default TTL should be 24 hours');
+    });
+
+    await this.test('refreshCache replaces cached repository and preserves TTL', async () => {
+      const tempCacheDir = await this.createTempDir('-refresh-cache');
+      const cacheManager = new CacheManager(tempCacheDir);
+
+      const sourceRepoDir = await this.createTempDir('-refresh-source');
+      await execCommand('git', ['init'], { cwd: sourceRepoDir });
+      await execCommand('git', ['checkout', '-b', 'main'], { cwd: sourceRepoDir });
+      await execCommand('git', ['config', 'user.name', 'Cache Tester'], { cwd: sourceRepoDir });
+      await execCommand('git', ['config', 'user.email', 'cache@test.com'], { cwd: sourceRepoDir });
+
+      await fs.writeFile(path.join(sourceRepoDir, 'file.txt'), 'version-1');
+      await execCommand('git', ['add', '.'], { cwd: sourceRepoDir });
+      await execCommand('git', ['commit', '-m', 'First version'], { cwd: sourceRepoDir });
+
+      const initialPath = await cacheManager.populateCache(sourceRepoDir, 'main', { ttlHours: 12 });
+      const { repoHash, repoDir } = cacheManager.resolveRepoDirectory(sourceRepoDir, 'main');
+      assert.strictEqual(initialPath, repoDir, 'Initial population should return cache directory path');
+
+      const firstMetadata = await cacheManager.getCacheMetadata(repoHash);
+      assert.strictEqual(firstMetadata.ttlHours, 12, 'Initial TTL override should be preserved');
+
+      // Update source repository
+      await fs.writeFile(path.join(sourceRepoDir, 'file.txt'), 'version-2');
+      await fs.writeFile(path.join(sourceRepoDir, 'new.txt'), 'new-file');
+      await execCommand('git', ['add', '.'], { cwd: sourceRepoDir });
+      await execCommand('git', ['commit', '-m', 'Second version'], { cwd: sourceRepoDir });
+
+      const refreshedPath = await cacheManager.refreshCache(sourceRepoDir, 'main');
+      assert.strictEqual(refreshedPath, repoDir, 'refreshCache should return cache directory path');
+
+      const cachedFile = await fs.readFile(path.join(repoDir, 'file.txt'), 'utf8');
+      const cachedNewFile = await fs.readFile(path.join(repoDir, 'new.txt'), 'utf8');
+      assert.strictEqual(cachedFile.trim(), 'version-2', 'Refreshed cache should include updated content');
+      assert.strictEqual(cachedNewFile.trim(), 'new-file', 'Refreshed cache should include new files');
+
+      const refreshedMetadata = await cacheManager.getCacheMetadata(repoHash);
+      assert.strictEqual(refreshedMetadata.ttlHours, 12, 'TTL should be preserved when not overridden');
+      assert.notStrictEqual(refreshedMetadata.lastUpdated, firstMetadata.lastUpdated, 'lastUpdated should change after refresh');
     });
   }
 

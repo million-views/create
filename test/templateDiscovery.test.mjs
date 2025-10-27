@@ -383,6 +383,56 @@ tags:
       assert.deepStrictEqual(template.tags, ['express', 'typescript', 'rest', 'api'], 'Should include tags');
     });
 
+    await this.test('listTemplates falls back to package.json metadata when template.json missing', async () => {
+      const tempCacheDir = await this.createTempDir('-pkg-metadata');
+      const cacheManager = new CacheManager(tempCacheDir);
+      const discovery = new TemplateDiscovery(cacheManager);
+
+      const repoUrl = 'https://github.com/user/templates.git';
+      const branchName = 'main';
+      const repoHash = cacheManager.generateRepoHash(repoUrl, branchName);
+      const repoDir = path.join(tempCacheDir, repoHash);
+
+      const templateDir = path.join(repoDir, 'next-app');
+      await fs.mkdir(templateDir, { recursive: true });
+
+      const packageMetadata = {
+        name: '@samples/next-app',
+        description: 'Next.js starter with Tailwind and TypeScript',
+        version: '3.4.5',
+        author: {
+          name: 'Template Team',
+          email: 'templates@example.com'
+        },
+        keywords: ['nextjs', 'typescript', 'tailwind']
+      };
+
+      await fs.writeFile(
+        path.join(templateDir, 'package.json'),
+        JSON.stringify(packageMetadata, null, 2)
+      );
+
+      const cacheMetadata = {
+        repoUrl,
+        branchName,
+        lastUpdated: new Date().toISOString(),
+        ttlHours: 24,
+        repoHash,
+        size: 2048000,
+        templateCount: 1
+      };
+      await cacheManager.updateCacheMetadata(repoHash, cacheMetadata);
+
+      const templateList = await discovery.listTemplates(repoUrl, branchName);
+      assert.strictEqual(templateList.length, 1, 'Should find one template');
+
+      const template = templateList[0];
+      assert.strictEqual(template.description, 'Next.js starter with Tailwind and TypeScript', 'Should use package.json description');
+      assert.strictEqual(template.version, '3.4.5', 'Should use package.json version');
+      assert.strictEqual(template.author, 'Template Team <templates@example.com>', 'Should normalize package.json author');
+      assert.deepStrictEqual(template.tags, ['nextjs', 'typescript', 'tailwind'], 'Should use package.json keywords for tags');
+    });
+
     await this.test('listTemplates handles empty repositories gracefully', async () => {
       const tempCacheDir = await this.createTempDir('-empty-repo');
       const cacheManager = new CacheManager(tempCacheDir);

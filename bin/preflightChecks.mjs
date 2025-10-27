@@ -340,7 +340,10 @@ export async function validateRepositoryAccessibility(repoUrl, branchName = null
     
     if (error.message.includes('Repository not found') || 
         error.message.includes('not found') ||
-        error.message.includes('404')) {
+        error.message.includes('404') ||
+        error.message.includes('Could not resolve host') ||
+        error.message.includes('ENOTFOUND') ||
+        error.message.includes('Name or service not known')) {
       throw new PreflightError(
         `Repository not found: ${repoUrl}\n\n` +
         'Please verify that:\n' +

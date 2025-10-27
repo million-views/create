@@ -19,12 +19,14 @@ import { spawn } from 'child_process';
 export function execCommand(command, args, options = {}) {
   const { 
     timeout = 30000,
-    stdio = ['ignore', 'pipe', 'pipe']
+    stdio = ['ignore', 'pipe', 'pipe'],
+    cwd
   } = options;
   
   return new Promise((resolve, reject) => {
     const child = spawn(command, args, {
-      stdio
+      stdio,
+      cwd
     });
 
     let stdout = '';

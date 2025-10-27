@@ -115,13 +115,50 @@ export class TemplateDiscovery {
       metadata = { ...metadata, ...templateJson };
     }
 
+    // Supplement metadata from package.json when available
+    const packageJson = await this.parsePackageJson(templatePath);
+    if (packageJson) {
+      if (packageJson.name && (metadata.name === templateName || !metadata.name)) {
+        metadata.name = packageJson.name;
+      }
+
+      if (
+        packageJson.description &&
+        (!metadata.description || metadata.description === 'No description available')
+      ) {
+        metadata.description = packageJson.description;
+      }
+
+      if (packageJson.version && !metadata.version) {
+        metadata.version = packageJson.version;
+      }
+
+      const packageAuthor = this.normalizePackageAuthor(packageJson.author);
+      if (packageAuthor && !metadata.author) {
+        metadata.author = packageAuthor;
+      }
+
+      if (
+        Array.isArray(packageJson.keywords) &&
+        packageJson.keywords.length > 0 &&
+        (!metadata.tags || metadata.tags.length === 0)
+      ) {
+        metadata.tags = packageJson.keywords;
+      }
+    }
+
     // Try to get additional metadata from README frontmatter
     const readmeFrontmatter = await this.parseReadmeFrontmatter(templatePath);
     if (readmeFrontmatter) {
       // Merge frontmatter, but template.json takes priority for existing keys
       for (const [key, value] of Object.entries(readmeFrontmatter)) {
-        if (metadata[key] === null || metadata[key] === undefined || 
-            (Array.isArray(metadata[key]) && metadata[key].length === 0)) {
+        const noDescriptionFallback = metadata[key] === 'No description available';
+        if (
+          metadata[key] === null ||
+          metadata[key] === undefined ||
+          noDescriptionFallback ||
+          (Array.isArray(metadata[key]) && metadata[key].length === 0)
+        ) {
           metadata[key] = value;
         }
       }
@@ -137,7 +174,56 @@ export class TemplateDiscovery {
    */
   async parseTemplateJson(templatePath) {
     const templateJsonPath = path.join(templatePath, 'template.json');
-    return await readJsonFile(templateJsonPath, null, 'template.json');
+    try {
+      return await readJsonFile(templateJsonPath, null, 'template.json');
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * Parse package.json file for template metadata
+   * @param {string} templatePath - Path to template directory
+   * @returns {Object|null} - Parsed package metadata or null if not found/invalid
+   */
+  async parsePackageJson(templatePath) {
+    const packageJsonPath = path.join(templatePath, 'package.json');
+    try {
+      return await readJsonFile(packageJsonPath, null, 'package.json');
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * Normalize package.json author field to a string
+   * @param {string|Object} author - Author field from package.json
+   * @returns {string|null} - Normalized author string or null
+   */
+  normalizePackageAuthor(author) {
+    if (!author) {
+      return null;
+    }
+
+    if (typeof author === 'string') {
+      return author;
+    }
+
+    if (typeof author === 'object') {
+      const parts = [];
+      if (author.name) {
+        parts.push(author.name);
+      }
+      if (author.email) {
+        parts.push(`<${author.email}>`);
+      }
+      if (author.url) {
+        parts.push(author.url);
+      }
+      return parts.length > 0 ? parts.join(' ') : null;
+    }
+
+    return null;
   }
 
   /**

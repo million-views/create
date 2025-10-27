@@ -29,7 +29,8 @@ const SETUP_SCRIPT = '_setup.mjs';
  * Main function to orchestrate the scaffolding process
  */
 async function main() {
-  let tempDir = null;
+  let repositoryPath = null;
+  let cleanupRepository = false;
   let projectDirectory = null;
   let projectCreated = false;
 
@@ -192,15 +193,17 @@ async function main() {
     console.log('');
 
     // Clone the template repository using cache-aware operations
-    tempDir = await cloneTemplateRepo(repoUrl, branchName, { 
+    const cloneResult = await cloneTemplateRepo(repoUrl, branchName, { 
       noCache: args.noCache, 
       cacheTtl: args.cacheTtl ? parseInt(args.cacheTtl) : undefined,
       cacheManager,
       logger 
     });
+    repositoryPath = cloneResult.path;
+    cleanupRepository = cloneResult.temporary;
 
     // Verify template exists
-    const templatePath = path.join(tempDir, templateName);
+    const templatePath = path.join(repositoryPath, templateName);
     await verifyTemplate(templatePath, templateName);
 
     // Copy template to project directory
@@ -208,8 +211,11 @@ async function main() {
     projectCreated = true;
 
     // Clean up temp directory after successful copy
-    await safeCleanup(tempDir);
-    tempDir = null; // Mark as cleaned up
+    if (cleanupRepository) {
+      await safeCleanup(repositoryPath);
+      repositoryPath = null;
+      cleanupRepository = false;
+    }
 
     // Execute setup script if it exists
     await executeSetupScript(projectDirectory, projectDirectory, ide, options, logger);
@@ -221,8 +227,8 @@ async function main() {
 
   } catch (error) {
     // Clean up resources on any error
-    if (tempDir) {
-      await safeCleanup(tempDir);
+    if (cleanupRepository && repositoryPath) {
+      await safeCleanup(repositoryPath);
     }
 
     // Clean up partially created project directory if it was created but process failed
@@ -247,8 +253,9 @@ async function main() {
 /**
  * Ensure repository is cached and return the cached path
  */
-async function ensureRepositoryCached(repoUrl, branchName, cacheManager, logger) {
-  // Check if repository is already cached
+async function ensureRepositoryCached(repoUrl, branchName, cacheManager, logger, options = {}) {
+  const ttlHours = typeof options.ttlHours === 'number' ? options.ttlHours : undefined;
+
   const cachedRepoPath = await cacheManager.getCachedRepo(repoUrl, branchName);
   
   if (cachedRepoPath) {
@@ -262,15 +269,41 @@ async function ensureRepositoryCached(repoUrl, branchName, cacheManager, logger)
     return cachedRepoPath;
   }
 
-  // Repository not cached, clone it directly and return the path
+  const { repoHash, repoDir } = cacheManager.resolveRepoDirectory(repoUrl, branchName);
+  const priorMetadata = await cacheManager.getCacheMetadata(repoHash);
+
   if (logger) {
-    await logger.logOperation('cache_miss', {
+    await logger.logOperation(priorMetadata ? 'cache_refresh' : 'cache_miss', {
       repoUrl,
-      branchName
+      branchName,
+      cachePath: repoDir
     });
   }
 
-  return await directCloneRepo(repoUrl, branchName, logger);
+  try {
+    const cachePath = await cacheManager.populateCache(repoUrl, branchName, {
+      ttlHours
+    });
+
+    if (logger) {
+      await logger.logOperation('cache_populate_complete', {
+        repoUrl,
+        branchName,
+        cachedPath: cachePath
+      });
+    }
+
+    return cachePath;
+  } catch (error) {
+    if (logger) {
+      await logger.logError(error, {
+        operation: 'cache_population',
+        repoUrl,
+        branchName
+      });
+    }
+    throw error;
+  }
 }
 
 /**
@@ -291,13 +324,30 @@ async function cloneTemplateRepo(repoUrl, branchName, options = {}) {
   // If cache is disabled, use direct cloning
   if (noCache) {
     console.log('📥 Cloning template repository (cache disabled)...');
-    return await directCloneRepo(repoUrl, branchName, logger);
+    const tempPath = await directCloneRepo(repoUrl, branchName, logger);
+    return {
+      path: tempPath,
+      temporary: true
+    };
   }
 
   // Use cache-aware repository access
   try {
     console.log('📥 Accessing template repository...');
-    return await ensureRepositoryCached(repoUrl, branchName, cacheManager, logger);
+    const cachedPath = await ensureRepositoryCached(
+      repoUrl,
+      branchName,
+      cacheManager,
+      logger,
+      {
+        ttlHours: cacheTtl
+      }
+    );
+
+    return {
+      path: cachedPath,
+      temporary: false
+    };
   } catch (error) {
     if (logger) {
       await logger.logError(error, { 

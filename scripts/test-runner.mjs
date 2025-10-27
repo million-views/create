@@ -7,21 +7,34 @@
 
 import { spawn } from 'child_process';
 import { performance } from 'perf_hooks';
+import os from 'os';
+import path from 'path';
+import fs from 'fs/promises';
 
 class TestRunner {
   constructor() {
     this.results = [];
     this.totalStartTime = performance.now();
+    this.homeBaseDir = path.join(os.tmpdir(), 'create-scaffold-test-homes');
   }
 
-  async runTest(name, command, description) {
+  async runTest(test) {
+    const { name, command, description, homeSuffix } = test;
+
     console.log(`\n🧪 ${name}`);
     console.log(`   ${description}`);
     
     const startTime = performance.now();
+    const homeDir = path.join(
+      this.homeBaseDir,
+      (homeSuffix || name).toLowerCase().replace(/[^a-z0-9]+/g, '-')
+    );
+
+    await fs.rm(homeDir, { recursive: true, force: true });
+    await fs.mkdir(homeDir, { recursive: true });
     
     try {
-      await this.execCommand('node', [command]);
+      await this.execCommand('node', [command], homeDir);
       const duration = Math.round(performance.now() - startTime);
       console.log(`✅ ${name} - ${duration}ms`);
       this.results.push({ name, status: 'PASSED', duration });
@@ -32,13 +45,19 @@ class TestRunner {
       console.log(`   Error: ${error.message}`);
       this.results.push({ name, status: 'FAILED', duration, error: error.message });
       return false;
+    } finally {
+      await fs.rm(homeDir, { recursive: true, force: true }).catch(() => {});
     }
   }
 
-  async execCommand(command, args) {
+  async execCommand(command, args, homeDir) {
     return new Promise((resolve, reject) => {
       const child = spawn(command, args, {
-        stdio: ['inherit', 'inherit', 'inherit']
+        stdio: ['inherit', 'inherit', 'inherit'],
+        env: {
+          ...process.env,
+          HOME: homeDir
+        }
       });
 
       child.on('close', (code) => {
@@ -84,42 +103,53 @@ class TestRunner {
   async runAll() {
     console.log('🚀 Running Complete Test Suite for @m5nv/create-scaffold');
     console.log('='.repeat(60));
+    await fs.rm(this.homeBaseDir, { recursive: true, force: true });
+    await fs.mkdir(this.homeBaseDir, { recursive: true });
 
     const tests = [
       {
         name: 'Environment Factory Tests',
         command: './test/environmentFactory.test.mjs',
-        description: 'Unit tests for Environment_Object factory and validation'
+        description: 'Unit tests for Environment_Object factory and validation',
+        homeSuffix: 'environment'
       },
       {
         name: 'Security Tests',
         command: './test/security.test.mjs',
-        description: 'Security validation for new IDE and features parameters'
+        description: 'Security validation for new IDE and features parameters',
+        homeSuffix: 'security'
       },
       {
         name: 'Functional Tests',
         command: './test/cli.test.mjs',
-        description: 'Comprehensive end-to-end CLI behavior validation'
+        description: 'Comprehensive end-to-end CLI behavior validation',
+        homeSuffix: 'functional'
       },
       {
         name: 'Spec Compliance Tests', 
         command: './test/spec-compliance-verification.mjs',
-        description: 'Verification against all specification requirements'
+        description: 'Verification against all specification requirements',
+        homeSuffix: 'spec'
       },
       {
         name: 'Resource Leak Tests',
         command: './test/resource-leak-test.mjs', 
-        description: 'Resource management and cleanup validation'
+        description: 'Resource management and cleanup validation',
+        homeSuffix: 'resource'
       },
       {
         name: 'Smoke Tests',
         command: './scripts/smoke-test.mjs',
-        description: 'Production readiness and integration validation'
+        description: 'Production readiness and integration validation',
+        homeSuffix: 'smoke'
       }
     ];
 
     for (const test of tests) {
-      await this.runTest(test.name, test.command, test.description);
+      const passed = await this.runTest(test);
+      if (!passed) {
+        break;
+      }
     }
 
     this.printSummary();
@@ -133,22 +163,28 @@ class TestRunner {
       {
         name: 'Environment Factory Tests',
         command: './test/environmentFactory.test.mjs',
-        description: 'Unit tests for Environment_Object factory and validation'
+        description: 'Unit tests for Environment_Object factory and validation',
+        homeSuffix: 'quick-environment'
       },
       {
         name: 'Functional Tests',
         command: './test/cli.test.mjs',
-        description: 'Core CLI functionality validation'
+        description: 'Core CLI functionality validation',
+        homeSuffix: 'quick-functional'
       },
       {
         name: 'Smoke Tests',
         command: './scripts/smoke-test.mjs',
-        description: 'Basic integration validation'
+        description: 'Basic integration validation',
+        homeSuffix: 'quick-smoke'
       }
     ];
 
     for (const test of tests) {
-      await this.runTest(test.name, test.command, test.description);
+      const passed = await this.runTest(test);
+      if (!passed) {
+        break;
+      }
     }
 
     this.printSummary();

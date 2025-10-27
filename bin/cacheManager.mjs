@@ -5,6 +5,7 @@ import path from 'path';
 import crypto from 'crypto';
 import os from 'os';
 import { ensureDirectory, safeCleanup, readJsonFile, writeJsonFile } from './utils/fsUtils.mjs';
+import { execCommand } from './utils/commandUtils.mjs';
 
 /**
  * Cache Manager for template repositories
@@ -13,6 +14,35 @@ import { ensureDirectory, safeCleanup, readJsonFile, writeJsonFile } from './uti
 export class CacheManager {
   constructor(cacheDir = path.join(os.homedir(), '.m5nv', 'cache')) {
     this.cacheDir = cacheDir;
+  }
+
+  /**
+   * Resolve repository directory information
+   * @param {string} repoUrl - Repository URL or shorthand
+   * @param {string} branchName - Git branch name
+   * @returns {{ repoHash: string, repoDir: string }}
+   */
+  resolveRepoDirectory(repoUrl, branchName) {
+    const repoHash = this.generateRepoHash(repoUrl, branchName);
+    const repoDir = path.join(this.cacheDir, repoHash);
+    return { repoHash, repoDir };
+  }
+
+  /**
+   * Normalize repository URL to a format git clone accepts
+   * @param {string} repoUrl - Repository URL or shorthand
+   * @returns {string} - Normalized repository URL
+   */
+  normalizeRepoUrl(repoUrl) {
+    if (repoUrl.startsWith('/') || repoUrl.startsWith('.') || repoUrl.startsWith('~')) {
+      return repoUrl;
+    }
+
+    if (repoUrl.includes('://')) {
+      return repoUrl;
+    }
+
+    return `https://github.com/${repoUrl.replace(/\.git$/, '')}.git`;
   }
 
   /**
@@ -33,20 +63,105 @@ export class CacheManager {
   }
 
   /**
+   * Populate cache entry by cloning repository into cache directory
+   * @param {string} repoUrl - Repository URL or shorthand
+    * @param {string} branchName - Git branch name
+   * @param {Object} options - Population options
+   * @param {number} options.ttlHours - TTL override in hours
+   * @returns {Promise<string>} - Path to cached repository
+   */
+  async populateCache(repoUrl, branchName = null, options = {}) {
+    const { ttlHours, cloneTimeout = 60000 } = options;
+    const { repoHash, repoDir } = this.resolveRepoDirectory(repoUrl, branchName);
+    const targetBranch = branchName && branchName !== '' ? branchName : null;
+
+    await this.ensureCacheDirectory();
+
+    const existingMetadata = await this.getCacheMetadata(repoHash);
+
+    // Ensure previous state is removed before cloning
+    await safeCleanup(repoDir, { recursive: true, force: true });
+
+    const args = ['clone', '--depth', '1'];
+    if (targetBranch) {
+      args.push('--branch', targetBranch);
+    }
+
+    const normalizedUrl = this.normalizeRepoUrl(repoUrl);
+    args.push(normalizedUrl, repoDir);
+
+    try {
+      await execCommand('git', args, { timeout: cloneTimeout, stdio: ['inherit', 'pipe', 'pipe'] });
+    } catch (error) {
+      await safeCleanup(repoDir, { recursive: true, force: true });
+      throw error;
+    }
+
+    try {
+      // Record metadata for the cached repository
+      const effectiveTtl = typeof ttlHours === 'number'
+        ? ttlHours
+        : (existingMetadata?.ttlHours ?? 24);
+
+      const metadata = {
+        repoUrl,
+        branchName: targetBranch,
+        repoHash,
+        lastUpdated: new Date().toISOString(),
+        ttlHours: effectiveTtl,
+        cacheVersion: existingMetadata?.cacheVersion || '1.0'
+      };
+
+      await this.updateCacheMetadata(repoHash, metadata);
+    } catch (error) {
+      await safeCleanup(repoDir, { recursive: true, force: true });
+      throw error;
+    }
+
+    return repoDir;
+  }
+
+  /**
+   * Refresh an existing cache entry by re-cloning into cache directory
+   * @param {string} repoUrl - Repository URL or shorthand
+   * @param {string} branchName - Git branch name
+   * @param {Object} options - Refresh options
+   * @returns {Promise<string>} - Path to refreshed cache entry
+   */
+  async refreshCache(repoUrl, branchName = null, options = {}) {
+    const { repoHash, repoDir } = this.resolveRepoDirectory(repoUrl, branchName);
+    const existingMetadata = await this.getCacheMetadata(repoHash);
+
+    await safeCleanup(repoDir, { recursive: true, force: true });
+
+    const populateOptions = {
+      ...options
+    };
+
+    if (populateOptions.ttlHours === undefined && existingMetadata?.ttlHours !== undefined) {
+      populateOptions.ttlHours = existingMetadata.ttlHours;
+    }
+
+    return await this.populateCache(repoUrl, branchName, populateOptions);
+  }
+
+  /**
    * Generate unique hash for repository URL and branch combination
    * @param {string} repoUrl - Repository URL or user/repo format
    * @param {string} branchName - Git branch name
    * @returns {string} - Unique hash for the repository/branch combination
    */
-  generateRepoHash(repoUrl, branchName = 'main') {
+  generateRepoHash(repoUrl, branchName) {
     // Normalize user/repo format to full GitHub URL
     let normalizedUrl = repoUrl;
     if (!repoUrl.includes('://') && !repoUrl.startsWith('/') && !repoUrl.startsWith('.')) {
       normalizedUrl = `https://github.com/${repoUrl}.git`;
     }
 
+    const normalizedBranch = branchName && branchName !== '' ? branchName : '__default__';
+
     // Create hash from normalized URL and branch
-    const hashInput = `${normalizedUrl}#${branchName}`;
+    const hashInput = `${normalizedUrl}#${normalizedBranch}`;
     return crypto.createHash('sha256').update(hashInput).digest('hex').slice(0, 16);
   }
 
@@ -79,7 +194,7 @@ export class CacheManager {
    * @param {boolean} options.noCache - Bypass cache if true
    * @returns {string|null} - Path to cached repository or null if not cached/expired
    */
-  async getCachedRepo(repoUrl, branchName = 'main', options = {}) {
+  async getCachedRepo(repoUrl, branchName = null, options = {}) {
     // Bypass cache if noCache option is set
     if (options.noCache) {
       return null;
