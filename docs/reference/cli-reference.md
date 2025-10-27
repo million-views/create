@@ -241,9 +241,22 @@ The `--repo` parameter accepts multiple formats:
 
 ## Contextual Options
 
-The `--options` parameter enables template customization based on your specific context and preferences. Templates can use these hints to adapt their behavior:
+`--options` accepts a comma-separated list. The CLI sanitizes the values and
+passes them to setup scripts as `ctx.options` (and through
+`tools.options`). Templates can declare the vocabulary they understand by
+adding `setup.supportedOptions` to `template.json`; the CLI prints a warning
+when a user supplies an unknown option, but scaffolding still succeeds.
 
-### Project Stage Options
+```json
+{
+  "name": "react-vite",
+  "setup": {
+    "supportedOptions": ["testing", "docs", "docker"]
+  }
+}
+```
+
+### Project stage suggestions
 
 | Option | Description |
 |--------|-------------|
@@ -252,7 +265,7 @@ The `--options` parameter enables template customization based on your specific 
 | `mvp` | Minimum viable product with essential functionality only |
 | `production` | Production-ready setup with full tooling |
 
-### Environment Context
+### Environment context
 
 | Option | Description |
 |--------|-------------|
@@ -260,7 +273,7 @@ The `--options` parameter enables template customization based on your specific 
 | `standalone` | Standalone project (full independent setup) |
 | `existing-project` | Adding to existing codebase (minimal conflicts) |
 
-### Development Preferences
+### Development preferences
 
 | Option | Description |
 |--------|-------------|
@@ -268,11 +281,13 @@ The `--options` parameter enables template customization based on your specific 
 | `minimal` | Minimal dependencies and configuration |
 | `full-featured` | Include all available functionality and tooling |
 | `typescript` | TypeScript-focused configuration and dependencies |
-| `testing-focused` | Comprehensive test setup and utilities |
+| `testing` | Comprehensive test setup and utilities |
 | `ci-ready` | Include CI/CD configuration files |
+| `docs` | Generate documentation skeletons |
 | `docker-ready` | Include Docker configuration and setup |
 
-**Note:** Templates define their own option vocabularies, so check template documentation for supported options. Options are passed to setup scripts as an array for custom processing.
+**Reminder:** Option names are template-defined. Always consult the template's
+README or `template.json` for the authoritative list.
 
 ## Cache System
 

@@ -1,13 +1,9 @@
 {
-  "name": "full-demo-project",
+  "name": "{{PROJECT_NAME}}",
   "version": "1.0.0",
-  "description": "Demo project showcasing both IDE and feature-based customizations",
-  "main": "index.js",
+  "description": "Composite demo for the setup runtime",
+  "type": "module",
   "scripts": {
-    "start": "node index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "keywords": ["demo", "ide", "features", "template"],
-  "author": "",
-  "license": "MIT"
+    "start": "node index.js"
+  }
 }

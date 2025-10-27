@@ -605,6 +605,59 @@ export function validateOptionsParameter(options) {
 }
 
 /**
+ * Validate template-declared supported options metadata
+ * @param {any} options - Metadata value
+ * @returns {string[]} - Normalized list of option names
+ * @throws {ValidationError} - If metadata is invalid
+ */
+export function validateSupportedOptionsMetadata(options) {
+  if (options === undefined || options === null) {
+    return [];
+  }
+
+  if (!Array.isArray(options)) {
+    throw new ValidationError('setup.supportedOptions must be an array of option names', 'supportedOptions');
+  }
+
+  const normalized = [];
+  const seen = new Set();
+  const validOptionPattern = /^[a-zA-Z0-9_-]+$/;
+
+  for (const rawOption of options) {
+    if (typeof rawOption !== 'string') {
+      throw new ValidationError('setup.supportedOptions entries must be strings', 'supportedOptions');
+    }
+
+    const trimmed = rawOption.trim();
+
+    if (!trimmed) {
+      throw new ValidationError('setup.supportedOptions entries cannot be empty strings', 'supportedOptions');
+    }
+
+    if (!validOptionPattern.test(trimmed)) {
+      throw new ValidationError(
+        `Invalid option name in setup.supportedOptions: "${rawOption}"`,
+        'supportedOptions'
+      );
+    }
+
+    if (trimmed.length > 50) {
+      throw new ValidationError(
+        `Option name in setup.supportedOptions is too long: "${trimmed}"`,
+        'supportedOptions'
+      );
+    }
+
+    if (!seen.has(trimmed)) {
+      seen.add(trimmed);
+      normalized.push(trimmed);
+    }
+  }
+
+  return normalized;
+}
+
+/**
  * Validate log file path parameter
  * @param {string|null|undefined} logFile - Log file path parameter
  * @returns {string|null} - Validated log file path or null

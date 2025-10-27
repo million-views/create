@@ -290,20 +290,10 @@ async function runSmokeTests() {
     // Add setup script to template
     const setupScriptPath = path.join(mockRepoPath, 'with-setup', '_setup.mjs');
     const setupScript = `
-export default function setup(envOrLegacy) {
-  // Support both new Environment_Object and legacy destructured interface
-  const env = envOrLegacy.projectDir ? envOrLegacy : {
-    projectDir: envOrLegacy.projectDirectory,
-    projectName: envOrLegacy.projectName,
-    cwd: envOrLegacy.cwd,
-    ide: null,
-    features: []
-  };
-  
-  console.log('Setup script executed for:', env.projectName);
-  // Create a marker file to prove setup ran
-  import('fs').then(fs => {
-    fs.writeFileSync(env.projectDir + '/setup-completed.txt', 'Setup completed successfully');
+export default async function setup(ctx, tools) {
+  await tools.json.merge('setup-state.json', {
+    project: ctx.projectName,
+    completed: true
   });
 }
 `;
@@ -328,9 +318,9 @@ export default function setup(envOrLegacy) {
     tempPaths.push(projectPath);
     
     // Verify setup script ran
-    const markerPath = path.join(projectPath, 'setup-completed.txt');
-    const markerContent = await fs.readFile(markerPath, 'utf8');
-    if (!markerContent.includes('Setup completed successfully')) {
+    const markerPath = path.join(projectPath, 'setup-state.json');
+    const markerContent = JSON.parse(await fs.readFile(markerPath, 'utf8'));
+    if (!markerContent.completed || markerContent.project !== projectName) {
       throw new Error('Setup script did not execute properly');
     }
     

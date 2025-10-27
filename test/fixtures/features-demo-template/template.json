@@ -1,0 +1,7 @@
+{
+  "name": "features-demo-template",
+  "description": "Fixture exercising feature-driven setup",
+  "setup": {
+    "supportedOptions": ["api", "auth", "testing"]
+  }
+}

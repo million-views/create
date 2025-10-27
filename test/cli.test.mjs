@@ -15,6 +15,7 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const CLI_PATH = path.join(__dirname, '..', 'bin', 'index.mjs');
+const FIXTURE_ROOT = path.join(__dirname, 'fixtures');
 
 // Test configuration
 const TEST_TIMEOUT = 30000; // 30 seconds for git operations
@@ -169,17 +170,21 @@ class TestUtils {
     // Create template directories
     for (const template of templates) {
       const templatePath = path.join(repoPath, template);
-      await fs.mkdir(templatePath, { recursive: true });
-      
-      // Create basic template files
-      await fs.writeFile(
-        path.join(templatePath, 'package.json'),
-        JSON.stringify({ name: template, version: '1.0.0' }, null, 2)
-      );
-      await fs.writeFile(
-        path.join(templatePath, 'README.md'),
-        `# ${template} Template\n\nThis is a test template.`
-      );
+      const fixturePath = path.join(FIXTURE_ROOT, template);
+
+      if (await fs.access(fixturePath).then(() => true).catch(() => false)) {
+        await fs.cp(fixturePath, templatePath, { recursive: true });
+      } else {
+        await fs.mkdir(templatePath, { recursive: true });
+        await fs.writeFile(
+          path.join(templatePath, 'package.json'),
+          JSON.stringify({ name: template, version: '1.0.0' }, null, 2)
+        );
+        await fs.writeFile(
+          path.join(templatePath, 'README.md'),
+          `# ${template} Template\n\nThis is a test template.`
+        );
+      }
     }
 
     // Commit the templates
@@ -511,64 +516,37 @@ runner.test('Successful template creation with local repository', async () => {
 
 // Test 14: Setup script execution
 runner.test('Setup script execution and cleanup', async () => {
-  const mockRepoPath = await runner.addTempPath(await TestUtils.createTempDir('-setup-repo'));
-  const projectPath = await runner.addTempPath(await TestUtils.createTempDir('-setup-project'));
-  
-  // Create mock repository with setup script
-  await TestUtils.createMockRepo(mockRepoPath, ['with-setup']);
-  
-  // Add setup script to template
-  const setupScriptPath = path.join(mockRepoPath, 'with-setup', '_setup.mjs');
-  const setupScript = `
-export default function setup(envOrLegacy) {
-  // Support both new Environment_Object and legacy destructured interface
-  const env = envOrLegacy.projectDir ? envOrLegacy : {
-    projectDir: envOrLegacy.projectDirectory,
-    projectName: envOrLegacy.projectName,
-    cwd: envOrLegacy.cwd,
-    ide: null,
-    options: []
-  };
-  
-  console.log('Setup script executed for:', env.projectName);
-  // Create a marker file to prove setup ran
-  import('fs').then(fs => {
-    fs.writeFileSync(env.projectDir + '/setup-marker.txt', 'setup completed');
-  });
-}
-`;
-  await fs.writeFile(setupScriptPath, setupScript);
-  
-  // Commit the setup script
-  await TestUtils.execCommand('git', ['add', '.'], { cwd: mockRepoPath });
-  await TestUtils.execCommand('git', ['commit', '-m', 'Add setup script'], { cwd: mockRepoPath });
-  
+  const mockRepoPath = await runner.addTempPath(await TestUtils.createTempDir('-ide-template-repo'));
+  const projectParent = await runner.addTempPath(await TestUtils.createTempDir('-setup-parent'));
+
+  await TestUtils.createMockRepo(mockRepoPath, ['ide-demo-template']);
+
   const projectName = 'test-setup-project';
   const result = await TestUtils.execCLI([
     projectName,
-    '--from-template', 'with-setup',
-    '--repo', mockRepoPath
-  ], { cwd: path.dirname(projectPath) });
-  
+    '--from-template', 'ide-demo-template',
+    '--repo', mockRepoPath,
+    '--ide', 'vscode'
+  ], { cwd: projectParent });
+
   if (result.exitCode !== 0) {
     throw new Error(`Expected exit code 0, got ${result.exitCode}. Stderr: ${result.stderr}`);
   }
-  
-  const createdProjectPath = path.join(path.dirname(projectPath), projectName);
+
+  const createdProjectPath = path.join(projectParent, projectName);
   runner.tempPaths.push(createdProjectPath);
-  
-  // Verify setup script ran
-  const markerPath = path.join(createdProjectPath, 'setup-marker.txt');
-  try {
-    const markerContent = await fs.readFile(markerPath, 'utf8');
-    if (!markerContent.includes('setup completed')) {
-      throw new Error('Setup script did not execute properly');
-    }
-  } catch {
-    throw new Error('Setup script marker file not found');
+
+  const readme = await fs.readFile(path.join(createdProjectPath, 'README.md'), 'utf8');
+  if (!readme.includes(projectName)) {
+    throw new Error('Placeholders were not replaced by setup script');
   }
-  
-  // Verify setup script was removed
+
+  const vscodeSettingsPath = path.join(createdProjectPath, '.vscode', 'settings.json');
+  const settings = JSON.parse(await fs.readFile(vscodeSettingsPath, 'utf8'));
+  if (settings['editor.formatOnSave'] !== true) {
+    throw new Error('IDE preset was not applied');
+  }
+
   const setupScriptInProject = path.join(createdProjectPath, '_setup.mjs');
   try {
     await fs.access(setupScriptInProject);
@@ -801,16 +779,7 @@ runner.test('Setup script failure is handled gracefully with warnings', async ()
   // Add setup script that will fail
   const setupScriptPath = path.join(mockRepoPath, 'failing-setup', '_setup.mjs');
   const setupScript = `
-export default function setup(envOrLegacy) {
-  // Support both new Environment_Object and legacy destructured interface
-  const env = envOrLegacy.projectDir ? envOrLegacy : {
-    projectDir: envOrLegacy.projectDirectory,
-    projectName: envOrLegacy.projectName,
-    cwd: envOrLegacy.cwd,
-    ide: null,
-    options: []
-  };
-  
+export default async function setup() {
   throw new Error('Setup script intentionally failed');
 }
 `;
@@ -833,7 +802,7 @@ export default function setup(envOrLegacy) {
   }
   
   // Should contain warning about setup script failure
-  if (!result.stderr.includes('Warning: Setup script execution failed')) {
+  if (!result.stderr.includes('Setup script execution failed')) {
     throw new Error('Should show warning about setup script failure');
   }
   
@@ -970,16 +939,7 @@ runner.test('Temp directory cleanup on executeSetupScript() failure', async () =
   
   // Create mock repository with failing setup script
   const failingSetupScript = `
-export default function setup(envOrLegacy) {
-  // Support both new Environment_Object and legacy destructured interface
-  const env = envOrLegacy.projectDir ? envOrLegacy : {
-    projectDir: envOrLegacy.projectDirectory,
-    projectName: envOrLegacy.projectName,
-    cwd: envOrLegacy.cwd,
-    ide: null,
-    options: []
-  };
-  
+export default async function setup() {
   throw new Error('Setup script intentionally failed for resource leak test');
 }
 `;
@@ -998,7 +958,7 @@ export default function setup(envOrLegacy) {
   }
   
   // Should contain warning about setup script failure
-  if (!result.stderr.includes('Warning: Setup script execution failed')) {
+  if (!result.stderr.includes('Setup script execution failed')) {
     throw new Error('Should show warning about setup script failure');
   }
   
@@ -1019,20 +979,8 @@ runner.test('Project directory cleanup when setup script fails after copy', asyn
   
   // Create mock repository with setup script that fails
   const failingSetupScript = `
-export default function setup(envOrLegacy) {
-  // Support both new Environment_Object and legacy destructured interface
-  const env = envOrLegacy.projectDir ? envOrLegacy : {
-    projectDir: envOrLegacy.projectDirectory,
-    projectName: envOrLegacy.projectName,
-    cwd: envOrLegacy.cwd,
-    ide: null,
-    options: []
-  };
-  
-  // Create a marker to prove we got this far
-  import('fs').then(fs => {
-    fs.writeFileSync(env.projectDir + '/setup-started.txt', 'setup started');
-  });
+export default async function setup(ctx, tools) {
+  await tools.json.merge('setup-state.json', { started: true, project: ctx.projectName });
   throw new Error('Setup script failed after project creation');
 }
 `;
@@ -1071,16 +1019,7 @@ runner.test('Setup script file cleanup on execution failure', async () => {
   
   // Create mock repository with failing setup script
   const failingSetupScript = `
-export default function setup(envOrLegacy) {
-  // Support both new Environment_Object and legacy destructured interface
-  const env = envOrLegacy.projectDir ? envOrLegacy : {
-    projectDir: envOrLegacy.projectDirectory,
-    projectName: envOrLegacy.projectName,
-    cwd: envOrLegacy.cwd,
-    ide: null,
-    options: []
-  };
-  
+export default async function setup() {
   throw new Error('Setup script failed - should still be cleaned up');
 }
 `;
@@ -1211,50 +1150,36 @@ runner.test('Setup script receives Environment_Object with correct properties', 
   await TestUtils.createMockRepo(mockRepoPath, ['env-object-test']);
   
   const setupScript = `
-export default function setup(envOrLegacy) {
-  // Support both new Environment_Object and legacy destructured interface
-  const env = envOrLegacy.projectDir ? envOrLegacy : {
-    projectDir: envOrLegacy.projectDirectory,
-    projectName: envOrLegacy.projectName,
-    cwd: envOrLegacy.cwd,
-    ide: null,
-    options: []
-  };
-  
-  // Validate Environment_Object properties
+export default async function setup(ctx, tools) {
   const requiredProps = ['projectDir', 'projectName', 'cwd', 'ide', 'options'];
-  const missingProps = requiredProps.filter(prop => !(prop in env));
+  const missingProps = requiredProps.filter(prop => !(prop in ctx));
   
   if (missingProps.length > 0) {
     throw new Error('Missing Environment_Object properties: ' + missingProps.join(', '));
   }
   
-  // Validate property types
-  if (typeof env.projectDir !== 'string') {
-    throw new Error('env.projectDir must be a string');
+  if (typeof ctx.projectDir !== 'string') {
+    throw new Error('ctx.projectDir must be a string');
   }
-  if (typeof env.projectName !== 'string') {
-    throw new Error('env.projectName must be a string');
+  if (typeof ctx.projectName !== 'string') {
+    throw new Error('ctx.projectName must be a string');
   }
-  if (typeof env.cwd !== 'string') {
-    throw new Error('env.cwd must be a string');
+  if (typeof ctx.cwd !== 'string') {
+    throw new Error('ctx.cwd must be a string');
   }
-  if (env.ide !== null && typeof env.ide !== 'string') {
-    throw new Error('env.ide must be null or string');
+  if (ctx.ide !== null && typeof ctx.ide !== 'string') {
+    throw new Error('ctx.ide must be null or string');
   }
-  if (!Array.isArray(env.options)) {
-    throw new Error('env.options must be an array');
+  if (!Array.isArray(ctx.options)) {
+    throw new Error('ctx.options must be an array');
   }
   
-  // Create validation marker
-  import('fs').then(fs => {
-    fs.writeFileSync(env.projectDir + '/env-validation-passed.txt', JSON.stringify({
-      projectDir: env.projectDir,
-      projectName: env.projectName,
-      cwd: env.cwd,
-      ide: env.ide,
-      options: env.options
-    }, null, 2));
+  await tools.json.merge('env-validation.json', {
+    projectDir: ctx.projectDir,
+    projectName: ctx.projectName,
+    cwd: ctx.cwd,
+    ide: ctx.ide,
+    options: ctx.options
   });
 }
 `;
@@ -1280,7 +1205,7 @@ export default function setup(envOrLegacy) {
   runner.tempPaths.push(createdProjectPath);
   
   // Verify Environment_Object validation passed
-  const validationMarkerPath = path.join(createdProjectPath, 'env-validation-passed.txt');
+  const validationMarkerPath = path.join(createdProjectPath, 'env-validation.json');
   try {
     const validationData = JSON.parse(await fs.readFile(validationMarkerPath, 'utf8'));
     
@@ -1314,17 +1239,11 @@ runner.test('Comprehensive resource management validation', async () => {
   
   // Create mock repository with setup script
   const setupScript = `
-export default function setup(envOrLegacy) {
-  // Support both new Environment_Object and legacy destructured interface
-  const env = envOrLegacy.projectDir ? envOrLegacy : {
-    projectDir: envOrLegacy.projectDirectory,
-    projectName: envOrLegacy.projectName,
-    cwd: envOrLegacy.cwd,
-    ide: null,
-    options: []
-  };
-  
-  console.log('Setup completed successfully for comprehensive test');
+export default async function setup(ctx, tools) {
+  await tools.json.merge('setup.json', {
+    project: ctx.projectName,
+    success: true
+  });
 }
 `;
   
@@ -1359,303 +1278,137 @@ export default function setup(envOrLegacy) {
 // Test 38: Setup script execution with IDE parameter
 runner.test('Setup script receives IDE parameter in Environment_Object', async () => {
   const mockRepoPath = await runner.addTempPath(await TestUtils.createTempDir('-ide-setup-repo'));
-  const projectPath = await runner.addTempPath(await TestUtils.createTempDir('-ide-setup-project'));
-  
-  // Create mock repository with setup script that uses IDE parameter
-  await TestUtils.createMockRepo(mockRepoPath, ['ide-test']);
-  
-  const setupScript = `
-export default function setup(env) {
-  // Validate Environment_Object structure
-  if (!env || typeof env !== 'object') {
-    throw new Error('Setup script must receive Environment_Object');
-  }
-  
-  // Validate IDE parameter
-  if (env.ide !== 'kiro') {
-    throw new Error('Expected IDE to be "kiro", got: ' + env.ide);
-  }
-  
-  // Create IDE-specific configuration
-  import('fs').then(fs => {
-    import('path').then(path => {
-      const ideConfigDir = path.join(env.projectDir, '.kiro');
-      fs.mkdirSync(ideConfigDir, { recursive: true });
-      fs.writeFileSync(path.join(ideConfigDir, 'settings.json'), JSON.stringify({
-        ide: env.ide,
-        configured: true
-      }, null, 2));
-      
-      // Create marker file
-      fs.writeFileSync(path.join(env.projectDir, 'ide-setup-marker.txt'), 
-        'IDE setup completed for: ' + env.ide);
-    });
-  });
-}
-`;
-  
-  await fs.writeFile(path.join(mockRepoPath, 'ide-test', '_setup.mjs'), setupScript);
-  
-  // Commit the setup script
-  await TestUtils.execCommand('git', ['add', '.'], { cwd: mockRepoPath });
-  await TestUtils.execCommand('git', ['commit', '-m', 'Add IDE setup script'], { cwd: mockRepoPath });
-  
+  const projectParent = await runner.addTempPath(await TestUtils.createTempDir('-ide-setup-parent'));
+
+  await TestUtils.createMockRepo(mockRepoPath, ['ide-demo-template']);
+
   const projectName = 'test-ide-setup';
   const result = await TestUtils.execCLI([
     projectName,
-    '--from-template', 'ide-test',
+    '--from-template', 'ide-demo-template',
     '--repo', mockRepoPath,
     '--ide', 'kiro'
-  ], { cwd: path.dirname(projectPath) });
-  
+  ], { cwd: projectParent });
+
   if (result.exitCode !== 0) {
     throw new Error(`Expected exit code 0, got ${result.exitCode}. Stderr: ${result.stderr}`);
   }
-  
-  const createdProjectPath = path.join(path.dirname(projectPath), projectName);
+
+  const createdProjectPath = path.join(projectParent, projectName);
   runner.tempPaths.push(createdProjectPath);
-  
-  // Verify IDE-specific setup was executed
-  const markerPath = path.join(createdProjectPath, 'ide-setup-marker.txt');
-  try {
-    const markerContent = await fs.readFile(markerPath, 'utf8');
-    if (!markerContent.includes('IDE setup completed for: kiro')) {
-      throw new Error('IDE setup script did not execute properly');
-    }
-  } catch {
-    throw new Error('IDE setup marker file not found');
-  }
-  
-  // Verify IDE-specific configuration was created
-  const ideConfigPath = path.join(createdProjectPath, '.kiro', 'settings.json');
-  try {
-    const configContent = JSON.parse(await fs.readFile(ideConfigPath, 'utf8'));
-    if (configContent.ide !== 'kiro' || !configContent.configured) {
-      throw new Error('IDE configuration not created properly');
-    }
-  } catch {
-    throw new Error('IDE configuration file not found');
+
+  const kiroSettingsPath = path.join(createdProjectPath, '.kiro', 'settings.json');
+  const settings = JSON.parse(await fs.readFile(kiroSettingsPath, 'utf8'));
+  if (settings['kiro.projectName'] !== projectName) {
+    throw new Error('IDE-specific configuration not created correctly');
   }
 });
 
 // Test 39: Setup script execution with options parameter
 runner.test('Setup script receives options parameter in Environment_Object', async () => {
   const mockRepoPath = await runner.addTempPath(await TestUtils.createTempDir('-options-setup-repo'));
-  const projectPath = await runner.addTempPath(await TestUtils.createTempDir('-options-setup-project'));
-  
-  // Create mock repository with setup script that uses options parameter
-  await TestUtils.createMockRepo(mockRepoPath, ['options-test']);
-  
-  const setupScript = `
-export default function setup(env) {
-  // Validate Environment_Object structure
-  if (!env || typeof env !== 'object') {
-    throw new Error('Setup script must receive Environment_Object');
-  }
-  
-  // Validate options parameter
-  if (!Array.isArray(env.options)) {
-    throw new Error('Expected options to be an array, got: ' + typeof env.options);
-  }
-  
-  const expectedOptions = ['auth', 'database', 'testing'];
-  if (env.options.length !== expectedOptions.length) {
-    throw new Error('Expected ' + expectedOptions.length + ' options, got: ' + env.options.length);
-  }
-  
-  for (const option of expectedOptions) {
-    if (!env.options.includes(option)) {
-      throw new Error('Expected option "' + option + '" not found in: ' + env.options.join(', '));
-    }
-  }
-  
-  // Create feature-specific files
-  import('fs').then(fs => {
-    import('path').then(path => {
-      const optionsDir = path.join(env.projectDir, 'options');
-      fs.mkdirSync(optionsDir, { recursive: true });
-      
-      for (const option of env.options) {
-        fs.writeFileSync(path.join(optionsDir, option + '.js'), 
-          '// ' + option + ' option implementation\\nexport default {};\\n');
-      }
-      
-      // Create marker file
-      fs.writeFileSync(path.join(env.projectDir, 'options-setup-marker.txt'), 
-        'Options setup completed for: ' + env.options.join(', '));
-    });
-  });
-}
-`;
-  
-  await fs.writeFile(path.join(mockRepoPath, 'options-test', '_setup.mjs'), setupScript);
-  
-  // Commit the setup script
-  await TestUtils.execCommand('git', ['add', '.'], { cwd: mockRepoPath });
-  await TestUtils.execCommand('git', ['commit', '-m', 'Add options setup script'], { cwd: mockRepoPath });
-  
+  const projectParent = await runner.addTempPath(await TestUtils.createTempDir('-options-setup-parent'));
+
+  await TestUtils.createMockRepo(mockRepoPath, ['features-demo-template']);
+
   const projectName = 'test-options-setup';
   const result = await TestUtils.execCLI([
     projectName,
-    '--from-template', 'options-test',
+    '--from-template', 'features-demo-template',
     '--repo', mockRepoPath,
-    '--options', 'auth,database,testing'
-  ], { cwd: path.dirname(projectPath) });
-  
+    '--options', 'api,testing'
+  ], { cwd: projectParent });
+
   if (result.exitCode !== 0) {
     throw new Error(`Expected exit code 0, got ${result.exitCode}. Stderr: ${result.stderr}`);
   }
-  
-  const createdProjectPath = path.join(path.dirname(projectPath), projectName);
+
+  const createdProjectPath = path.join(projectParent, projectName);
   runner.tempPaths.push(createdProjectPath);
-  
-  // Verify options setup was executed
-  const markerPath = path.join(createdProjectPath, 'options-setup-marker.txt');
+
+  const featureFile = path.join(createdProjectPath, 'src', 'api', 'index.js');
   try {
-    const markerContent = await fs.readFile(markerPath, 'utf8');
-    if (!markerContent.includes('Options setup completed for: auth, database, testing')) {
-      throw new Error('Options setup script did not execute properly');
-    }
+    await fs.access(featureFile);
   } catch {
-    throw new Error('Options setup marker file not found');
+    throw new Error('API feature file not created by setup script');
   }
-  
-  // Verify option-specific files were created
-  const expectedOptions = ['auth', 'database', 'testing'];
-  for (const option of expectedOptions) {
-    const optionFilePath = path.join(createdProjectPath, 'options', option + '.js');
-    try {
-      const optionContent = await fs.readFile(optionFilePath, 'utf8');
-      if (!optionContent.includes(option + ' option implementation')) {
-        throw new Error(`Option file ${option}.js does not contain expected content`);
-      }
-    } catch {
-      throw new Error(`Feature file ${feature}.js not found`);
-    }
+
+  const packageJson = JSON.parse(await fs.readFile(path.join(createdProjectPath, 'package.json'), 'utf8'));
+  if (!Array.isArray(packageJson.m5nv?.features) || !packageJson.m5nv.features.includes('api')) {
+    throw new Error('Feature metadata not updated correctly');
+  }
+});
+
+runner.test('Warns when options are unsupported by template metadata', async () => {
+  const mockRepoPath = await runner.addTempPath(await TestUtils.createTempDir('-unsupported-options-repo'));
+  const projectParent = await runner.addTempPath(await TestUtils.createTempDir('-unsupported-options-parent'));
+
+  await TestUtils.createMockRepo(mockRepoPath, ['features-demo-template']);
+
+  const projectName = 'test-unsupported-options';
+  const result = await TestUtils.execCLI([
+    projectName,
+    '--from-template', 'features-demo-template',
+    '--repo', mockRepoPath,
+    '--options', 'api,unknown'
+  ], { cwd: projectParent });
+
+  if (result.exitCode !== 0) {
+    throw new Error(`Expected exit code 0, got ${result.exitCode}. Stderr: ${result.stderr}`);
+  }
+
+  if (!result.stderr.includes('does not declare support for: unknown')) {
+    throw new Error('Should warn about unsupported options');
+  }
+
+  const createdProjectPath = path.join(projectParent, projectName);
+  runner.tempPaths.push(createdProjectPath);
+
+  const apiFile = path.join(createdProjectPath, 'src', 'api', 'index.js');
+  try {
+    await fs.access(apiFile);
+  } catch {
+    throw new Error('Supported option content was not generated');
   }
 });
 
 // Test 40: Setup script execution with both IDE and options parameters
 runner.test('Setup script receives both IDE and options in Environment_Object', async () => {
   const mockRepoPath = await runner.addTempPath(await TestUtils.createTempDir('-combined-setup-repo'));
-  const projectPath = await runner.addTempPath(await TestUtils.createTempDir('-combined-setup-project'));
-  
-  // Create mock repository with setup script that uses both IDE and options
-  await TestUtils.createMockRepo(mockRepoPath, ['combined-test']);
-  
-  const setupScript = `
-export default function setup(env) {
-  // Validate Environment_Object structure
-  if (!env || typeof env !== 'object') {
-    throw new Error('Setup script must receive Environment_Object');
-  }
-  
-  // Validate IDE parameter
-  if (env.ide !== 'vscode') {
-    throw new Error('Expected IDE to be "vscode", got: ' + env.ide);
-  }
-  
-  // Validate options parameter
-  if (!Array.isArray(env.options) || env.options.length !== 2) {
-    throw new Error('Expected 2 options, got: ' + (env.options ? env.options.length : 'null'));
-  }
-  
-  if (!env.options.includes('auth') || !env.options.includes('api')) {
-    throw new Error('Expected auth and api options, got: ' + env.options.join(', '));
-  }
-  
-  // Create IDE and option-specific configuration
-  import('fs').then(fs => {
-    import('path').then(path => {
-      // Create IDE-specific directory
-      const ideDir = path.join(env.projectDir, '.vscode');
-      fs.mkdirSync(ideDir, { recursive: true });
-      fs.writeFileSync(path.join(ideDir, 'settings.json'), JSON.stringify({
-        ide: env.ide,
-        options: env.options
-      }, null, 2));
-      
-      // Create option-specific files
-      const srcDir = path.join(env.projectDir, 'src');
-      fs.mkdirSync(srcDir, { recursive: true });
-      
-      for (const option of env.options) {
-        fs.writeFileSync(path.join(srcDir, option + '.ts'), 
-          '// ' + option + ' module for ' + env.ide + '\\nexport class ' + 
-          option.charAt(0).toUpperCase() + option.slice(1) + ' {}\\n');
-      }
-      
-      // Create marker file
-      fs.writeFileSync(path.join(env.projectDir, 'combined-setup-marker.txt'), 
-        'Combined setup completed for IDE: ' + env.ide + ', options: ' + env.options.join(', '));
-    });
-  });
-}
-`;
-  
-  await fs.writeFile(path.join(mockRepoPath, 'combined-test', '_setup.mjs'), setupScript);
-  
-  // Commit the setup script
-  await TestUtils.execCommand('git', ['add', '.'], { cwd: mockRepoPath });
-  await TestUtils.execCommand('git', ['commit', '-m', 'Add combined setup script'], { cwd: mockRepoPath });
-  
+  const projectParent = await runner.addTempPath(await TestUtils.createTempDir('-combined-setup-parent'));
+
+  await TestUtils.createMockRepo(mockRepoPath, ['full-demo-template']);
+
   const projectName = 'test-combined-setup';
   const result = await TestUtils.execCLI([
     projectName,
-    '--from-template', 'combined-test',
+    '--from-template', 'full-demo-template',
     '--repo', mockRepoPath,
     '--ide', 'vscode',
-    '--options', 'auth,api'
-  ], { cwd: path.dirname(projectPath) });
-  
+    '--options', 'docs'
+  ], { cwd: projectParent });
+
   if (result.exitCode !== 0) {
     throw new Error(`Expected exit code 0, got ${result.exitCode}. Stderr: ${result.stderr}`);
   }
-  
-  const createdProjectPath = path.join(path.dirname(projectPath), projectName);
+
+  const createdProjectPath = path.join(projectParent, projectName);
   runner.tempPaths.push(createdProjectPath);
-  
-  // Verify combined setup was executed
-  const markerPath = path.join(createdProjectPath, 'combined-setup-marker.txt');
+
+  const docsIndex = path.join(createdProjectPath, 'docs', 'index.md');
   try {
-    const markerContent = await fs.readFile(markerPath, 'utf8');
-    if (!markerContent.includes('Combined setup completed for IDE: vscode, options: auth, api')) {
-      throw new Error('Combined setup script did not execute properly');
-    }
+    await fs.access(docsIndex);
   } catch {
-    throw new Error('Combined setup marker file not found');
+    throw new Error('Docs option file not generated');
   }
-  
-  // Verify IDE-specific configuration
-  const ideConfigPath = path.join(createdProjectPath, '.vscode', 'settings.json');
-  try {
-    const configContent = JSON.parse(await fs.readFile(ideConfigPath, 'utf8'));
-    if (configContent.ide !== 'vscode') {
-      throw new Error('IDE configuration incorrect');
-    }
-    if (!Array.isArray(configContent.options) || configContent.options.length !== 2) {
-      throw new Error('Options configuration incorrect');
-    }
-  } catch {
-    throw new Error('IDE configuration file not found');
-  }
-  
-  // Verify feature-specific files
-  const expectedFeatures = ['auth', 'api'];
-  for (const feature of expectedFeatures) {
-    const featureFilePath = path.join(createdProjectPath, 'src', feature + '.ts');
-    try {
-      const featureContent = await fs.readFile(featureFilePath, 'utf8');
-      if (!featureContent.includes(feature + ' module for vscode')) {
-        throw new Error(`Feature file ${feature}.ts does not contain expected content`);
-      }
-    } catch {
-      throw new Error(`Feature file ${feature}.ts not found`);
-    }
+
+  const vscodeSettingsPath = path.join(createdProjectPath, '.vscode', 'settings.json');
+  const settings = JSON.parse(await fs.readFile(vscodeSettingsPath, 'utf8'));
+  if (settings['editor.formatOnSave'] !== true) {
+    throw new Error('IDE preset not applied for combined test');
   }
 });
 
-// Test 41: Setup script error handling with malformed Environment_Object usage
 runner.test('Setup script error handling with malformed setup scripts', async () => {
   const mockRepoPath = await runner.addTempPath(await TestUtils.createTempDir('-malformed-setup-repo'));
   const projectPath = await runner.addTempPath(await TestUtils.createTempDir('-malformed-setup-project'));
@@ -1664,12 +1417,9 @@ runner.test('Setup script error handling with malformed setup scripts', async ()
   await TestUtils.createMockRepo(mockRepoPath, ['malformed-test']);
   
   const malformedSetupScript = `
-export default function setup(env) {
+export default async function setup(ctx) {
   // Try to access non-existent property
-  console.log('Accessing invalid property:', env.nonExistentProperty.someMethod());
-  
-  // This should cause an error
-  throw new Error('Malformed setup script error');
+  console.log('Accessing invalid property:', ctx.nonExistentProperty.someMethod());
 }
 `;
   
@@ -1694,7 +1444,7 @@ export default function setup(env) {
   }
   
   // Should contain warning about setup script failure
-  if (!result.stderr.includes('Warning: Setup script execution failed')) {
+  if (!result.stderr.includes('Setup script execution failed')) {
     throw new Error('Should show warning about setup script failure');
   }
   

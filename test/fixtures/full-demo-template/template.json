@@ -1,0 +1,7 @@
+{
+  "name": "full-demo-template",
+  "description": "Fixture combining files, JSON, and IDE utilities",
+  "setup": {
+    "supportedOptions": ["docs"]
+  }
+}

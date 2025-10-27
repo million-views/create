@@ -15,6 +15,7 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const CLI_PATH = path.join(__dirname, '..', 'bin', 'index.mjs');
+const FIXTURE_ROOT = path.join(__dirname, 'fixtures');
 
 // Test configuration
 const TEST_TIMEOUT = 30000; // 30 seconds for git operations
@@ -105,29 +106,32 @@ class IntegrationTestUtils {
     // Create template directories
     for (const template of templates) {
       const templatePath = path.join(repoPath, template);
-      await fs.mkdir(templatePath, { recursive: true });
-      
-      // Create basic template files
-      await fs.writeFile(
-        path.join(templatePath, 'package.json'),
-        JSON.stringify({ name: template, version: '1.0.0' }, null, 2)
-      );
-      await fs.writeFile(
-        path.join(templatePath, 'README.md'),
-        `# ${template} Template\n\nThis is a test template.`
-      );
+      const fixturePath = path.join(FIXTURE_ROOT, template);
 
-      // Add template.json for some templates
-      if (template === 'react') {
+      if (await fs.access(fixturePath).then(() => true).catch(() => false)) {
+        await fs.cp(fixturePath, templatePath, { recursive: true });
+      } else {
+        await fs.mkdir(templatePath, { recursive: true });
         await fs.writeFile(
-          path.join(templatePath, 'template.json'),
-          JSON.stringify({
-            name: 'React Template',
-            description: 'Modern React application with TypeScript',
-            version: '1.0.0',
-            tags: ['react', 'typescript']
-          }, null, 2)
+          path.join(templatePath, 'package.json'),
+          JSON.stringify({ name: template, version: '1.0.0' }, null, 2)
         );
+        await fs.writeFile(
+          path.join(templatePath, 'README.md'),
+          `# ${template} Template\n\nThis is a test template.`
+        );
+
+        if (template === 'react') {
+          await fs.writeFile(
+            path.join(templatePath, 'template.json'),
+            JSON.stringify({
+              name: 'React Template',
+              description: 'Modern React application with TypeScript',
+              version: '1.0.0',
+              tags: ['react', 'typescript']
+            }, null, 2)
+          );
+        }
       }
     }
 

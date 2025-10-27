@@ -1,13 +1,9 @@
 {
-  "name": "ide-demo-project",
+  "name": "{{PROJECT_NAME}}",
   "version": "1.0.0",
-  "description": "Demo project showcasing IDE-specific customizations",
-  "main": "index.js",
+  "description": "IDE demo fixture",
+  "type": "module",
   "scripts": {
-    "start": "node index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "keywords": ["demo", "ide", "template"],
-  "author": "",
-  "license": "MIT"
+    "start": "node index.js"
+  }
 }

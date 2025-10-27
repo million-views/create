@@ -11,6 +11,7 @@ import {
 import { 
   validateIdeParameter, 
   validateOptionsParameter,
+  validateSupportedOptionsMetadata,
   ValidationError 
 } from '../bin/security.mjs';
 
@@ -280,6 +281,36 @@ runner.test('validateOptionsParameter: rejects null bytes', () => {
     }
     if (!error.message.includes('null bytes')) {
       throw new Error(`Expected "null bytes" in error message, got: ${error.message}`);
+    }
+  }
+});
+
+// ===== Supported Options Metadata Tests =====
+
+runner.test('validateSupportedOptionsMetadata: accepts valid option arrays', () => {
+  const result = validateSupportedOptionsMetadata(['auth', 'testing']);
+  if (JSON.stringify(result) !== JSON.stringify(['auth', 'testing'])) {
+    throw new Error('Supported options metadata should return normalized array');
+  }
+});
+
+runner.test('validateSupportedOptionsMetadata: deduplicates entries', () => {
+  const result = validateSupportedOptionsMetadata(['auth', 'auth', 'testing']);
+  if (JSON.stringify(result) !== JSON.stringify(['auth', 'testing'])) {
+    throw new Error('Supported options metadata should deduplicate values');
+  }
+});
+
+runner.test('validateSupportedOptionsMetadata: rejects invalid values', () => {
+  const invalid = [123, 'bad option!', ''];
+  for (const value of invalid) {
+    try {
+      validateSupportedOptionsMetadata([value]);
+      throw new Error('Should have rejected invalid metadata value');
+    } catch (error) {
+      if (!(error instanceof ValidationError)) {
+        throw new Error(`Expected ValidationError, got ${error.constructor.name}`);
+      }
     }
   }
 });

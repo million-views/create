@@ -71,17 +71,12 @@ const Environment_Object = {
   options: ["typescript"]
 };
 
-// Template can adapt based on IDE
-if (Environment_Object.ide === 'vscode') {
-  // Create VS Code specific configuration
-  await createVSCodeSettings();
-  await installRecommendedExtensions();
-} else if (Environment_Object.ide === 'kiro') {
-  // Create Kiro specific configuration
-  await createKiroConfiguration();
-} else {
-  // Create generic configuration that works everywhere
-  await createGenericConfiguration();
+export default async function setup(ctx, tools) {
+  if (ctx.ide) {
+    await tools.ide.applyPreset(ctx.ide);
+  } else {
+    tools.logger.info('No IDE preset requested');
+  }
 }
 ```
 

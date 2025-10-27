@@ -112,6 +112,8 @@ const Environment_Object = {
 };
 ```
 
+
+Setup scripts run in the sandbox and also receive the `tools` helper library. Refer to the [Environment Object Reference](../reference/environment-object.md) for the complete list of helpers such as `tools.placeholders`, `tools.json`, and `tools.ide`.
 **Design Rationale:**
 - **Immutable**: Prevents accidental modification during setup
 - **Validated**: All values are security-validated before creation

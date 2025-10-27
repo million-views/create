@@ -114,6 +114,12 @@ class TestRunner {
         homeSuffix: 'environment'
       },
       {
+        name: 'Setup Runtime Tests',
+        command: './test/setupRuntime.test.mjs',
+        description: 'Sandbox and tools runtime verification',
+        homeSuffix: 'setup-runtime'
+      },
+      {
         name: 'Security Tests',
         command: './test/security.test.mjs',
         description: 'Security validation for new IDE and features parameters',
@@ -165,6 +171,12 @@ class TestRunner {
         command: './test/environmentFactory.test.mjs',
         description: 'Unit tests for Environment_Object factory and validation',
         homeSuffix: 'quick-environment'
+      },
+      {
+        name: 'Setup Runtime Tests',
+        command: './test/setupRuntime.test.mjs',
+        description: 'Sandbox and tools runtime verification',
+        homeSuffix: 'quick-runtime'
       },
       {
         name: 'Functional Tests',

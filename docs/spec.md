@@ -97,12 +97,12 @@ npx @m5nv/create-scaffold@latest <project-directory> --from-template <template-n
 
   * Templates reside as subdirectories within the specified template repository (e.g., `/react-vite`, `/express-api`).
   * After copying the template files, the script **must** look for an optional setup file named `_setup.mjs` within the **root** of the *copied* template directory.
-  * If `_setup.mjs` exists, the main script should execute it using `child_process.fork` or dynamic `import()`.
-  * The `_setup.mjs` script will receive context (e.g., project directory path, project name) and can perform tasks like:
-      * Renaming files/folders based on the `<project-directory>` name.
-      * Replacing placeholder values (e.g., `{{PROJECT_NAME}}`) in files like `package.json` or `README.md`.
-      * Running initial commands like `npm install`.
-      * Printing template-specific final instructions.
+  * Setup scripts run inside the managed sandbox. Each script **must** export a default async function with signature `(ctx, tools)` and may only use the provided helper APIs.
+  * The sandbox provides the context (`ctx.projectDir`, `ctx.projectName`, `ctx.ide`, `ctx.options`) and the curated helper toolkit (`tools.placeholders`, `tools.files`, `tools.json`, `tools.ide`, `tools.options`, `tools.astGrep`, `tools.logger`, `tools.templates`).
+  * Typical setup responsibilities include:
+      * Replacing placeholder tokens such as `{{PROJECT_NAME}}` across files.
+      * Moving or generating files based on options/IDE selections.
+      * Printing template-specific follow-up steps.
 
 -----
 

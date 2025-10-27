@@ -14,6 +14,7 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const CLI_PATH = path.join(__dirname, '..', 'bin', 'index.mjs');
+const FIXTURE_ROOT = path.join(__dirname, 'fixtures');
 
 class SpecComplianceVerifier {
   constructor() {
@@ -117,16 +118,21 @@ class SpecComplianceVerifier {
     // Create template directories
     for (const template of templates) {
       const templatePath = path.join(repoPath, template);
-      await fs.mkdir(templatePath, { recursive: true });
+      const fixturePath = path.join(FIXTURE_ROOT, template);
 
-      await fs.writeFile(
-        path.join(templatePath, 'package.json'),
-        JSON.stringify({ name: template, version: '1.0.0' }, null, 2)
-      );
-      await fs.writeFile(
-        path.join(templatePath, 'README.md'),
-        `# ${template} Template\n\nThis is a test template.`
-      );
+      if (await fs.access(fixturePath).then(() => true).catch(() => false)) {
+        await fs.cp(fixturePath, templatePath, { recursive: true });
+      } else {
+        await fs.mkdir(templatePath, { recursive: true });
+        await fs.writeFile(
+          path.join(templatePath, 'package.json'),
+          JSON.stringify({ name: template, version: '1.0.0' }, null, 2)
+        );
+        await fs.writeFile(
+          path.join(templatePath, 'README.md'),
+          `# ${template} Template\n\nThis is a test template.`
+        );
+      }
     }
 
     // Commit the templates
@@ -479,22 +485,15 @@ class SpecComplianceVerifier {
       // Add setup script
       const setupScriptPath = path.join(mockRepoPath, 'with-setup', '_setup.mjs');
       await fs.writeFile(setupScriptPath, `
-export default function setup(envOrLegacy) {
-  // Support both new Environment_Object and legacy destructured interface
-  const env = envOrLegacy.projectDir ? envOrLegacy : {
-    projectDir: envOrLegacy.projectDirectory,
-    projectName: envOrLegacy.projectName,
-    cwd: envOrLegacy.cwd,
-    ide: null,
-    options: []
-  };
-  
-  // Verify options property exists and is an array
-  if (!Array.isArray(env.options)) {
+export default async function setup(ctx, tools) {
+  if (!Array.isArray(ctx.options)) {
     throw new Error('Expected options to be an array');
   }
-  
-  console.log('Setup executed');
+
+  await tools.json.merge('setup-state.json', {
+    project: ctx.projectName,
+    options: ctx.options
+  });
 }
 `);
 
@@ -538,21 +537,11 @@ export default function setup(envOrLegacy) {
       // Add failing setup script
       const setupScriptPath = path.join(mockRepoPath, 'failing-setup', '_setup.mjs');
       await fs.writeFile(setupScriptPath, `
-export default function setup(envOrLegacy) {
-  // Support both new Environment_Object and legacy destructured interface
-  const env = envOrLegacy.projectDir ? envOrLegacy : {
-    projectDir: envOrLegacy.projectDirectory,
-    projectName: envOrLegacy.projectName,
-    cwd: envOrLegacy.cwd,
-    ide: null,
-    options: []
-  };
-  
-  // Verify options property exists and is an array before failing
-  if (!Array.isArray(env.options)) {
+export default async function setup(ctx) {
+  if (!Array.isArray(ctx.options)) {
     throw new Error('Expected options to be an array');
   }
-  
+
   throw new Error('Setup script intentionally failed');
 }
 `);
@@ -568,7 +557,7 @@ export default function setup(envOrLegacy) {
         throw new Error('Should succeed despite setup script failure');
       }
 
-      if (!result.stderr.includes('Warning: Setup script execution failed')) {
+      if (!result.stderr.includes('Setup script execution failed')) {
         throw new Error('Should show warning about setup script failure');
       }
 

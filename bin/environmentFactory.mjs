@@ -6,7 +6,8 @@ import {
   sanitizePath, 
   validateProjectDirectory,
   validateIdeParameter,
-  validateOptionsParameter
+  validateOptionsParameter,
+  validateSupportedOptionsMetadata
 } from './security.mjs';
 
 /**
@@ -55,7 +56,9 @@ export function createEnvironmentObject({ projectDirectory, projectName, cwd, id
   const sanitizedProjectDir = sanitizePath(projectDirectory);
   const sanitizedProjectName = sanitizeProjectName(projectName);
   const validatedIde = validateIdeParameter(ide);
-  const validatedOptions = validateOptionsParameter(options);
+  const validatedOptions = Array.isArray(options)
+    ? validateSupportedOptionsMetadata(options)
+    : validateOptionsParameter(options);
 
   // For cwd, we need to handle it differently since it's already an absolute path
   let sanitizedCwd;

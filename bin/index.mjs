@@ -7,7 +7,8 @@ import {
   validateAllInputs, 
   sanitizeErrorMessage, 
   createSecureTempDir,
-  ValidationError 
+  ValidationError,
+  validateSupportedOptionsMetadata
 } from './security.mjs';
 import { 
   runAllPreflightChecks,
@@ -20,6 +21,7 @@ import { TemplateDiscovery } from './templateDiscovery.mjs';
 import { DryRunEngine } from './dryRunEngine.mjs';
 import { execCommand } from './utils/commandUtils.mjs';
 import { ensureDirectory, safeCleanup, validateDirectoryExists } from './utils/fsUtils.mjs';
+import { loadSetupScript, createSetupTools, SetupSandboxError } from './setupRuntime.mjs';
 
 // Default configuration
 const DEFAULT_REPO = 'million-views/templates';
@@ -187,7 +189,9 @@ async function main() {
       projectDirectory: args.projectDirectory,
       template: args.template,
       repo: args.repo || DEFAULT_REPO,
-      branch: args.branch
+      branch: args.branch,
+      ide: args.ide,
+      options: args.options
     });
 
     projectDirectory = validatedInputs.projectDirectory;
@@ -196,8 +200,8 @@ async function main() {
     const branchName = validatedInputs.branch;
     
     // Extract ide and options from validated arguments
-    const ide = args.ide;
-    const options = args.options;
+    const ide = validatedInputs.ide ?? null;
+    const options = validatedInputs.options ?? [];
 
     // Run comprehensive preflight checks
     await runAllPreflightChecks(args, repoUrl);
@@ -223,6 +227,23 @@ async function main() {
     // Verify template exists
     const templatePath = path.join(repositoryPath, templateName);
     await verifyTemplate(templatePath, templateName);
+
+    const supportedOptions = await readTemplateSupportedOptions(templatePath);
+    if (supportedOptions.length > 0) {
+      const unsupported = options.filter(option => !supportedOptions.includes(option));
+      if (unsupported.length > 0) {
+        console.warn(
+          `⚠️  Template "${templateName}" does not declare support for: ${unsupported.join(', ')}`
+        );
+        if (logger) {
+          await logger.logOperation('template_option_warning', {
+            template: templateName,
+            unsupported,
+            supportedOptions
+          });
+        }
+      }
+    }
 
     // Copy template to project directory
     await copyTemplate(templatePath, projectDirectory, logger);
@@ -488,6 +509,41 @@ async function verifyTemplate(templatePath, templateName) {
 }
 
 /**
+ * Read template-supported options from template.json metadata
+ */
+async function readTemplateSupportedOptions(templatePath) {
+  const templateJsonPath = path.join(templatePath, 'template.json');
+
+  try {
+    const raw = await fs.readFile(templateJsonPath, 'utf8');
+    const data = JSON.parse(raw);
+
+    if (!data || !data.setup || data.setup.supportedOptions === undefined) {
+      return [];
+    }
+
+    return validateSupportedOptionsMetadata(data.setup.supportedOptions);
+  } catch (error) {
+    if (error.code === 'ENOENT') {
+      return [];
+    }
+
+    if (error instanceof SyntaxError) {
+      throw new Error(`template.json contains invalid JSON: ${error.message}`);
+    }
+
+    if (error instanceof ValidationError) {
+      throw new ValidationError(
+        `Invalid setup.supportedOptions metadata: ${error.message}`,
+        'supportedOptions'
+      );
+    }
+
+    throw error;
+  }
+}
+
+/**
  * Copy template files to project directory
  */
 async function copyTemplate(templatePath, projectDirectory, logger) {
@@ -588,11 +644,7 @@ async function executeSetupScript(projectDirectory, projectName, ide, options, l
     console.log('⚙️  Running template setup script...');
 
     // Import and execute the setup script
-    const setupScriptUrl = `file://${path.resolve(setupScriptPath)}`;
-    const setupModule = await import(setupScriptUrl);
-
-    // Create Environment_Object with all necessary context
-    const env = createEnvironmentObject({
+    const ctx = createEnvironmentObject({
       projectDirectory,
       projectName,
       cwd: process.cwd(),
@@ -600,17 +652,14 @@ async function executeSetupScript(projectDirectory, projectName, ide, options, l
       options
     });
 
-    // Validate that setup script exports a default function
-    if (typeof setupModule.default !== 'function') {
-      throw new Error(
-        'Setup script must export a default function\n' +
-        'Example: export default function setup(env) { ... }\n' +
-        'Current export type: ' + typeof setupModule.default
-      );
-    }
+    const tools = await createSetupTools({
+      projectDirectory,
+      projectName,
+      logger,
+      context: ctx
+    });
 
-    // Execute the setup script with Environment_Object
-    await setupModule.default(env);
+    await loadSetupScript(setupScriptPath, ctx, tools, logger);
 
     if (logger) {
       await logger.logSetupScript(setupScriptPath, 'success', 'Setup script executed successfully');
@@ -626,8 +675,14 @@ async function executeSetupScript(projectDirectory, projectName, ide, options, l
       });
     }
 
-    const sanitizedMessage = sanitizeErrorMessage(err.message);
-    console.warn(`⚠️  Warning: Setup script execution failed: ${sanitizedMessage}`);
+    let message = err.message;
+    if (err instanceof SetupSandboxError) {
+      message = err.message;
+    } else {
+      message = sanitizeErrorMessage(message);
+    }
+
+    console.warn(`⚠️  Warning: Setup script execution failed: ${message}`);
     console.warn('Continuing without setup...');
   } finally {
     // Remove the setup script after execution attempt (success or failure)
