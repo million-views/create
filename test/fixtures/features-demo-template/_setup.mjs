@@ -1,4 +1,4 @@
-export default async function setup(ctx, tools) {
+export default async function setup({ ctx, tools }) {
   await tools.placeholders.replaceAll(
     { PROJECT_NAME: ctx.projectName },
     ['README.md', 'package.json', 'index.js']

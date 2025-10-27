@@ -10,7 +10,7 @@ prerequisites:
 related_docs: 
   - "tutorial/getting-started.md"
   - "reference/cli-reference.md"
-  - "reference/environment-object.md"
+  - "reference/environment.md"
   - "how-to/setup-recipes.md"
 last_updated: "2024-11-05"
 ---
@@ -134,12 +134,12 @@ export default App;
 ### Step 3: Add setup script for customization
 
 Create a `_setup.mjs` file that exports a default async function. The runtime
-provides a sandboxed `ctx` object and a `tools` helper library, so you never
-import Node built-ins:
+provides a sandboxed Environment object (`{ ctx, tools }`), so you never import
+Node built-ins:
 
 ```javascript
 // _setup.mjs
-export default async function setup(ctx, tools) {
+export default async function setup({ ctx, tools }) {
   await tools.placeholders.replaceAll(
     { PROJECT_NAME: ctx.projectName },
     ['README.md', 'package.json']
@@ -177,7 +177,7 @@ Key ideas:
 - **Context-aware options.** `tools.options.when()` is the easiest way to
   toggle features.
 
-Refer to the [Environment Object Reference](reference/environment-object.md)
+Refer to the [Environment Reference](reference/environment.md)
 for the exhaustive list of helpers.
 
 > Need more examples? Jump to the [Setup Script Recipes](how-to/setup-recipes.md)
@@ -233,8 +233,8 @@ git push -u origin main
 
 ## Setup Context & Tools quick reference
 
-Every setup script receives `(ctx, tools)`. The table below summarizes the most
-common properties—see the full [Environment Object Reference](reference/environment-object.md)
+Every setup script receives the Environment object (`{ ctx, tools }`). The table below summarizes the most
+common properties—see the full [Environment Reference](reference/environment.md)
 for details.
 
 | Item | Description |

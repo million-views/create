@@ -1,5 +1,5 @@
 ---
-title: "Environment Object Reference"
+title: "Environment Reference"
 type: "reference"
 audience: "template-authors"
 estimated_time: "N/A (reference)"
@@ -13,20 +13,21 @@ related_docs:
 last_updated: "2024-11-05"
 ---
 
-# Environment Object Reference
+# Environment Reference
 
 ## Setup Contract
 
-Template setup scripts (`_setup.mjs`) run inside a secure sandbox. Every script must export a default `async` function that receives two arguments:
+Template setup scripts (`_setup.mjs`) run inside a secure sandbox. Every script must export a default `async` function that receives a single **Environment** object containing `{ ctx, tools }`.
 
 ```javascript
-export default async function setup(ctx, tools) {
+export default async function setup({ ctx, tools }) {
   // ...
 }
 ```
 
 - **`ctx`** – immutable context describing the project being generated.
 - **`tools`** – curated helper library for manipulating the scaffold without importing Node built-ins.
+- You can destructure the Environment object (recommended) or access it as a single parameter (e.g. `export default async function setup(environment)`).
 
 Direct access to `fs`, `path`, `import`, `eval`, or `require` is blocked. All filesystem and transformation work must go through `tools` so that the runtime can remain sandbox-friendly.
 
@@ -125,7 +126,7 @@ Simple logger routed through the CLI output and optional log file:
 
 ```javascript
 // _setup.mjs
-export default async function setup(ctx, tools) {
+export default async function setup({ ctx, tools }) {
   await tools.placeholders.replaceAll(
     { PROJECT_NAME: ctx.projectName },
     ['README.md', 'package.json']

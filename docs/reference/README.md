@@ -25,8 +25,8 @@ Complete command-line interface documentation including all parameters, options,
 - Understand input validation rules
 - Check supported repository formats and options
 
-### [Environment Object Reference](environment-object.md)
-Detailed documentation of the Environment Object passed to template setup scripts.
+### [Environment Reference](environment.md)
+Detailed documentation of the Environment passed to template setup scripts.
 
 **Use when you need to:**
 - Create or modify template setup scripts
@@ -84,7 +84,7 @@ Complete listing of exit codes, error messages, and troubleshooting information.
 - Check [Error Codes Reference](error-codes.md) for troubleshooting
 
 **Template Authors (creating templates):**
-- Focus on [Environment Object Reference](environment-object.md)
+- Focus on [Environment Reference](environment.md)
 - Use [CLI Reference](cli-reference.md) for testing templates
 
 **Maintainers/Contributors:**
@@ -98,7 +98,7 @@ Complete listing of exit codes, error messages, and troubleshooting information.
 2. [Error Codes Reference](error-codes.md) - If issues arise
 
 **Creating templates:**
-1. [Environment Object Reference](environment-object.md) - Setup script context
+1. [Environment Reference](environment.md) - Setup script context
 2. [CLI Reference](cli-reference.md) - Testing your templates
 
 **Troubleshooting:**

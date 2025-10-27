@@ -485,7 +485,7 @@ class SpecComplianceVerifier {
       // Add setup script
       const setupScriptPath = path.join(mockRepoPath, 'with-setup', '_setup.mjs');
       await fs.writeFile(setupScriptPath, `
-export default async function setup(ctx, tools) {
+export default async function setup({ ctx, tools }) {
   if (!Array.isArray(ctx.options)) {
     throw new Error('Expected options to be an array');
   }

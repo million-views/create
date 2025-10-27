@@ -979,7 +979,7 @@ runner.test('Project directory cleanup when setup script fails after copy', asyn
   
   // Create mock repository with setup script that fails
   const failingSetupScript = `
-export default async function setup(ctx, tools) {
+export default async function setup({ ctx, tools }) {
   await tools.json.merge('setup-state.json', { started: true, project: ctx.projectName });
   throw new Error('Setup script failed after project creation');
 }
@@ -1150,7 +1150,7 @@ runner.test('Setup script receives Environment_Object with correct properties', 
   await TestUtils.createMockRepo(mockRepoPath, ['env-object-test']);
   
   const setupScript = `
-export default async function setup(ctx, tools) {
+export default async function setup({ ctx, tools }) {
   const requiredProps = ['projectDir', 'projectName', 'cwd', 'ide', 'options'];
   const missingProps = requiredProps.filter(prop => !(prop in ctx));
   
@@ -1239,7 +1239,7 @@ runner.test('Comprehensive resource management validation', async () => {
   
   // Create mock repository with setup script
   const setupScript = `
-export default async function setup(ctx, tools) {
+export default async function setup({ ctx, tools }) {
   await tools.json.merge('setup.json', {
     project: ctx.projectName,
     success: true

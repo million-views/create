@@ -9,7 +9,7 @@ prerequisites:
 related_docs: 
   - "../tutorial/first-template.md"
   - "../creating-templates.md"
-  - "../reference/environment-object.md"
+  - "../reference/environment.md"
   - "../how-to/setup-recipes.md"
 last_updated: "2024-11-05"
 ---
@@ -94,16 +94,16 @@ template-repository/
 ```
 
 **Special Files:**
-- **`_setup.mjs`**: Optional post-scaffolding automation script executed inside a sandbox that exposes only the curated helper toolkit. Scripts must export `default async function setup(ctx, tools)` and cannot import Node built-ins.
+- **`_setup.mjs`**: Optional post-scaffolding automation script executed inside a sandbox that exposes only the curated helper toolkit. Scripts must export `default async function setup({ ctx, tools })` (or accept the Environment object directly) and cannot import Node built-ins.
 - **`README.md`**: Template documentation and usage instructions
 - **`.gitignore`**: Patterns for files to exclude during scaffolding
 
-### Environment Object System
+### Environment
 
-The Environment Object provides templates with context about the scaffolding operation:
+The Environment object provides templates with context about the scaffolding operation:
 
 ```javascript
-export default async function setup(ctx, tools) {
+export default async function setup({ ctx, tools }) {
   await tools.placeholders.replaceAll(
     { PROJECT_NAME: ctx.projectName },
     ['README.md', 'package.json']
@@ -123,7 +123,7 @@ export default async function setup(ctx, tools) {
 }
 ```
 
-Setup scripts run in a resource-restricted sandbox and rely exclusively on the curated helper library (`tools.placeholders`, `tools.text`, `tools.json`, `tools.files`, `tools.ide`, `tools.options`, `tools.templates`, `tools.logger`). Refer to the [Environment Object Reference](../reference/environment-object.md) and the [Setup Script Recipes how-to](../how-to/setup-recipes.md) for a complete catalogue of helper capabilities.
+Setup scripts run in a resource-restricted sandbox and rely exclusively on the curated helper library (`tools.placeholders`, `tools.text`, `tools.json`, `tools.files`, `tools.ide`, `tools.options`, `tools.templates`, `tools.logger`). Refer to the [Environment Reference](../reference/environment.md) and the [Setup Script Recipes how-to](../how-to/setup-recipes.md) for a complete catalogue of helper capabilities.
 **Design Rationale:**
 - **Immutable**: Prevents accidental modification during setup
 - **Validated**: All values are security-validated before creation
@@ -283,4 +283,4 @@ Current architectural limitations that users should understand:
 
 - 📚 [First Template Tutorial](../tutorial/first-template.md) - Create your first template
 - 🛠️ [Creating Templates Guide](../creating-templates.md) - Comprehensive template creation guide
-- 📖 [Environment Object Reference](../reference/environment-object.md) - Complete `ctx` and `tools` documentation
+- 📖 [Environment Reference](../reference/environment.md) - Complete `ctx` and `tools` documentation

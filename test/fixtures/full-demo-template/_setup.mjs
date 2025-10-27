@@ -1,4 +1,4 @@
-export default async function setup(ctx, tools) {
+export default async function setup({ ctx, tools }) {
   tools.logger.info(`Preparing ${ctx.projectName}`);
 
   await tools.placeholders.replaceAll(

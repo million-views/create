@@ -8,7 +8,7 @@ prerequisites:
   - "Understanding of project scaffolding concepts"
 related_docs: 
   - "../creating-templates.md"
-  - "../reference/environment-object.md"
+  - "../reference/environment.md"
   - "template-system.md"
   - "../how-to/setup-recipes.md"
 last_updated: "2024-11-05"
@@ -64,7 +64,7 @@ Templates receive IDE context through `ctx.ide` inside the setup sandbox:
 
 ```javascript
 // In template _setup.mjs
-export default async function setup(ctx, tools) {
+export default async function setup({ ctx, tools }) {
   if (ctx.ide) {
     await tools.ide.applyPreset(ctx.ide);
   } else {
@@ -144,7 +144,7 @@ Currently supported IDEs with their characteristics:
 
 **Progressive Enhancement:**
 ```javascript
-export default async function setup(ctx, tools) {
+export default async function setup({ ctx, tools }) {
   // Base functionality for all environments
   await setupBasicProject(tools);
 
@@ -166,7 +166,7 @@ export default async function setup(ctx, tools) {
 
 **Feature Detection:**
 ```javascript
-export default async function setup(ctx, tools) {
+export default async function setup({ ctx, tools }) {
   const hasDebugSupport = ['vscode', 'kiro'].includes(ctx.ide);
   const hasAIAssistance = ['kiro', 'cursor'].includes(ctx.ide);
 
@@ -250,5 +250,5 @@ Current limitations in IDE integration approach:
 ## Further Reading
 
 - 📚 [Creating Templates Guide](../creating-templates.md) - How to create IDE-aware templates
-- 🛠️ [Environment Object Reference](../reference/environment-object.md) - Complete Environment_Object documentation
+- 🛠️ [Environment Reference](../reference/environment.md) - Complete Environment documentation
 - 📖 [Template System Architecture](template-system.md) - How IDE integration fits the broader system

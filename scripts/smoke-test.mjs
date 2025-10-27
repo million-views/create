@@ -290,7 +290,7 @@ async function runSmokeTests() {
     // Add setup script to template
     const setupScriptPath = path.join(mockRepoPath, 'with-setup', '_setup.mjs');
     const setupScript = `
-export default async function setup(ctx, tools) {
+export default async function setup({ ctx, tools }) {
   await tools.json.merge('setup-state.json', {
     project: ctx.projectName,
     completed: true

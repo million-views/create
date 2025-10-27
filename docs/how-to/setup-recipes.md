@@ -4,11 +4,11 @@ type: "how-to"
 audience: "template-authors"
 estimated_time: "10 minutes"
 prerequisites:
-  - "Read reference/environment-object.md"
+  - "Read reference/environment.md"
   - "Basic understanding of JavaScript modules"
 related_docs:
   - "../creating-templates.md"
-  - "../reference/environment-object.md"
+  - "../reference/environment.md"
   - "../tutorial/first-template.md"
 last_updated: "2024-11-05"
 ---
@@ -22,7 +22,7 @@ Use these copy-ready snippets to solve common setup tasks without reaching for t
 Create or update entries inside `package.json` with dot-path helpers:
 
 ```javascript
-export default async function setup(ctx, tools) {
+export default async function setup({ ctx, tools }) {
   await tools.json.set('package.json', 'scripts.lint', 'npm run format && npm run typecheck');
   await tools.json.set('package.json', 'scripts.test', 'node --test');
   await tools.json.addToArray('package.json', 'keywords', ctx.projectName, { unique: true });

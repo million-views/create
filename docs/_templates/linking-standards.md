@@ -16,7 +16,7 @@ Tutorials should link to:
 ### From How-to Guides
 
 How-to guides should link to:
-- **Reference**: "See [Environment Object Reference](../reference/environment-object.md) for all available properties"
+- **Reference**: "See [Environment Reference](../reference/environment.md) for all available properties"
 - **Tutorials**: "New to templates? Start with our [Getting Started Tutorial](../tutorial/getting-started.md)"
 - **Other Guides**: "Also see [Troubleshooting Guide](../guides/troubleshooting.md)"
 - **Explanation**: "For background on this approach, see [Security Model Explained](../explanation/security-model.md)"
@@ -72,7 +72,7 @@ Every document should end with appropriate next steps:
 Now that you've [completed this task/learned this concept], you might want to:
 
 - 🎯 **Apply this knowledge**: [How to Create Templates](../creating-templates.md)
-- 📖 **Get complete details**: [Environment Object Reference](../reference/environment-object.md)
+- 📖 **Get complete details**: [Environment Reference](../reference/environment.md)
 - 💡 **Understand the why**: [Template System Explained](../explanation/template-system.md)
 ```
 

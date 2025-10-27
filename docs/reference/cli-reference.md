@@ -9,7 +9,7 @@ related_docs:
   - "../tutorial/getting-started.md"
   - "../tutorial/first-template.md"
   - "../how-to/setup-recipes.md"
-  - "environment-object.md"
+  - "environment.md"
   - "error-codes.md"
 last_updated: "2024-11-05"
 ---
@@ -318,7 +318,7 @@ Templates are cached locally for faster subsequent operations:
 Templates may include a `_setup.mjs` file that runs after copying:
 
 - **Execution Context:** Runs in your project directory
-- **Environment:** Receives [Environment_Object](environment-object.md) with project context
+- **Environment:** Receives the [Environment](environment.md) object containing `{ ctx, tools }`
 - **Cleanup:** Setup script is automatically removed after execution
 - **Error Handling:** Failures are logged but don't stop project creation
 
@@ -360,7 +360,7 @@ All inputs are validated for security and correctness:
 
 ## See Also
 
-- [Environment Object Reference](environment-object.md) - Complete Environment_Object documentation
+- [Environment Reference](environment.md) - Complete Environment contract
 - [Error Codes Reference](error-codes.md) - Exit codes and error messages
 - [Creating Templates Guide](../creating-templates.md) - How to create your own templates
 - [Getting Started Tutorial](../tutorial/getting-started.md) - Step-by-step beginner guide

@@ -113,7 +113,7 @@ function transformModuleSource(source) {
   }
 
   if (!/export\s+default\s+/m.test(source)) {
-    throw new SetupSandboxError('Setup scripts must export a default async function (ctx, tools).');
+    throw new SetupSandboxError('Setup scripts must export a default async function that receives the Environment object ({ ctx, tools }).');
   }
 
   return source.replace(/export\s+default\s+/g, 'module.exports.default = ');
@@ -993,11 +993,18 @@ export async function loadSetupScript(setupPath, ctx, tools, logger = null) {
 
   if (typeof entry !== 'function') {
     throw new SetupSandboxError(
-      'Setup scripts must export a default async function with signature (ctx, tools).'
+      'Setup scripts must export a default async function that receives the Environment object ({ ctx, tools }).'
     );
   }
 
-  return await entry(ctx, tools);
+  if (entry.length >= 2) {
+    throw new SetupSandboxError(
+      'Setup scripts must now accept a single Environment object. Update the signature to `export default async function setup({ ctx, tools })`.'
+    );
+  }
+
+  const environment = Object.freeze({ ctx, tools });
+  return await entry(environment);
 }
 
 export async function createSetupTools({ projectDirectory, projectName, logger, context }) {

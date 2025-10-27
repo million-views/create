@@ -10,7 +10,7 @@ prerequisites:
 related_docs: 
   - "getting-started.md"
   - "../creating-templates.md"
-  - "../reference/environment-object.md"
+  - "../reference/environment.md"
   - "../how-to/setup-recipes.md"
 last_updated: "2024-11-05"
 ---
@@ -225,7 +225,7 @@ feature-demo/
 
 Let’s pause and customize the `feature-demo` project you just generated. The
 setup script lives at `templates/react-vite/_setup.mjs` inside your template
-repository and receives `(ctx, tools)` from the sandbox.
+repository and receives the Environment object (`{ ctx, tools }`) from the sandbox.
 
 1. **Open the setup script** shipped with the template (inside your template
    repository). For example:
@@ -236,7 +236,7 @@ repository and receives `(ctx, tools)` from the sandbox.
 2. **Identify helper usage:** The template relies on the curated helper toolkit.
    A typical script now looks like:
    ```javascript
-   export default async function setup(ctx, tools) {
+   export default async function setup({ ctx, tools }) {
      await tools.placeholders.replaceAll(
        { PROJECT_NAME: ctx.projectName },
        ['README.md', 'package.json']
@@ -486,7 +486,7 @@ You understand how templates scale from simple prototypes to complex, production
 Now that you've mastered hands-on template usage, consider:
 
 - 🛠️ **[Creating Your Own Templates](../creating-templates.md)** - Build custom templates for your specific needs
-- 📖 **[Environment Object Reference](../reference/environment-object.md)** - Understand how setup scripts receive context
+- 📖 **[Environment Reference](../reference/environment.md)** - Understand how setup scripts receive context
 - 🔧 **[CLI Reference](../reference/cli-reference.md)** - Learn all available options and parameters
 - 🏗️ **[Template System Architecture](../explanation/template-system.md)** - Deep dive into how the system works
 - 🚨 **[Troubleshooting Complex Setups](../guides/troubleshooting.md)** - Debug advanced scenarios

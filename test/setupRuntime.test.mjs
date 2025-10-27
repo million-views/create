@@ -77,7 +77,7 @@ runner.test('Placeholder replacement and IDE preset application', async () => {
 
   const setupScriptPath = path.join(projectDir, '_setup.mjs');
   await fs.writeFile(setupScriptPath, `
-export default async function setup(ctx, tools) {
+export default async function setup({ ctx, tools }) {
   await tools.placeholders.replaceAll({ PROJECT_NAME: ctx.projectName }, ['README.md', 'package.json']);
   await tools.ide.applyPreset('vscode');
   await tools.json.merge('runtime-state.json', { done: true });
@@ -121,6 +121,53 @@ export default async function setup(ctx, tools) {
   const state = JSON.parse(await fs.readFile(path.join(projectDir, 'runtime-state.json'), 'utf8'));
   if (!state.done) {
     throw new Error('Runtime state file not written');
+  }
+});
+
+runner.test('Setup scripts using positional arguments fail fast', async () => {
+  const baseDir = await runner.createTempDir('runtime-guard');
+  const projectName = 'guard-demo';
+  const projectDir = path.join(baseDir, projectName);
+  await fs.mkdir(projectDir, { recursive: true });
+
+  const setupScriptPath = path.join(projectDir, '_setup.mjs');
+  await fs.writeFile(setupScriptPath, `
+export default async function setup(ctx, tools) {
+  return tools.logger?.info?.('legacy signature');
+}
+`);
+
+  const previousCwd = process.cwd();
+  process.chdir(baseDir);
+  try {
+    const ctx = createEnvironmentObject({
+      projectDirectory: projectName,
+      projectName,
+      cwd: baseDir,
+      ide: null,
+      options: []
+    });
+
+    const tools = await createSetupTools({
+      projectDirectory: projectDir,
+      projectName,
+      logger: null,
+      context: ctx
+    });
+
+    try {
+      await loadSetupScript(setupScriptPath, ctx, tools);
+      throw new Error('Legacy positional signature should have been rejected');
+    } catch (error) {
+      if (!(error instanceof SetupSandboxError)) {
+        throw error;
+      }
+      if (!error.message.includes('Environment object')) {
+        throw new Error(`Unexpected guard message: ${error.message}`);
+      }
+    }
+  } finally {
+    process.chdir(previousCwd);
   }
 });
 
@@ -184,7 +231,7 @@ runner.test('Text and JSON helpers perform structured updates', async () => {
 
   const setupScriptPath = path.join(projectDir, '_setup.mjs');
   await fs.writeFile(setupScriptPath, `
-export default async function setup(ctx, tools) {
+export default async function setup({ ctx, tools }) {
   await tools.files.write('notes.txt', ['First line', 'Second line']);
   await tools.text.insertAfter({
     file: 'layout.md',
