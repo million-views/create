@@ -4,6 +4,7 @@ import fs from 'fs/promises';
 import path from 'path';
 import { validateDirectoryExists } from './utils/fsUtils.mjs';
 import { execCommand } from './utils/commandUtils.mjs';
+import { shouldIgnoreTemplateEntry, stripIgnoredFromTree } from './utils/templateIgnore.mjs';
 
 /**
  * Dry Run Engine module
@@ -127,10 +128,11 @@ export class DryRunEngine {
       const relativePath = path.relative(templateRoot, sourcePath);
       const destinationPath = path.join(projectDir, relativePath);
 
+      if (shouldIgnoreTemplateEntry(entry.name)) {
+        continue;
+      }
+
       if (entry.isDirectory()) {
-        if (entry.name === '.git') {
-          continue;
-        }
 
         if (relativePath && !directorySet.has(relativePath)) {
           directorySet.add(relativePath);
@@ -406,9 +408,11 @@ export class DryRunEngine {
         stdio: ['ignore', 'pipe', 'pipe']
       });
 
+      const filtered = stripIgnoredFromTree(output.trim());
+
       return {
         available: true,
-        output: output.trim()
+        output: filtered
       };
     } catch (error) {
       const reason = error.code === 'ENOENT'

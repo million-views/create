@@ -22,6 +22,7 @@ import { DryRunEngine } from './dryRunEngine.mjs';
 import { execCommand } from './utils/commandUtils.mjs';
 import { ensureDirectory, safeCleanup, validateDirectoryExists } from './utils/fsUtils.mjs';
 import { loadSetupScript, createSetupTools, SetupSandboxError } from './setupRuntime.mjs';
+import { shouldIgnoreTemplateEntry } from './utils/templateIgnore.mjs';
 
 // Default configuration
 const DEFAULT_REPO = 'million-views/templates';
@@ -661,11 +662,11 @@ async function copyRecursive(src, dest, logger) {
     const srcPath = path.join(src, entry.name);
     const destPath = path.join(dest, entry.name);
 
+    if (shouldIgnoreTemplateEntry(entry.name)) {
+      continue;
+    }
+
     if (entry.isDirectory()) {
-      // Skip .git directories during copy
-      if (entry.name === '.git') {
-        continue;
-      }
       await copyRecursive(srcPath, destPath, logger);
     } else {
       await fs.copyFile(srcPath, destPath);

@@ -80,6 +80,8 @@ await tools.placeholders.replaceAll({ PROJECT_NAME: ctx.projectName }, ['README.
 | `write(file, content, { overwrite })` | Write text content (string/array/Buffer) to a file, optionally refusing to overwrite existing files. |
 | `copyTemplateDir(from, to, { overwrite })` | Copy a project-local directory tree to a new location inside the project. |
 
+> Note: `tools.files.copy`, `tools.files.copyTemplateDir`, and other helpers automatically skip `.template-undo.json` and similar internal artifacts produced by template authoring tools. Template authors do not need to manage these files manually.
+
 ### `tools.json`
 
 | Method | Description |

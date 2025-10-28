@@ -3,6 +3,7 @@
 import fs from 'fs/promises';
 import path from 'path';
 import vm from 'vm';
+import { shouldIgnoreTemplateEntry } from './utils/templateIgnore.mjs';
 
 export class SetupSandboxError extends Error {
   constructor(message) {
@@ -13,6 +14,14 @@ export class SetupSandboxError extends Error {
 
 const UTF8 = 'utf8';
 const DEFAULT_SELECTOR = '**/*';
+
+function includeTemplateCopyEntry(source) {
+  const name = path.basename(source);
+  if (!name) {
+    return true;
+  }
+  return !shouldIgnoreTemplateEntry(name);
+}
 
 const IDE_PRESETS = {
   kiro: (ctx) => [
@@ -274,7 +283,8 @@ async function copyEntry(root, fromRelative, toRelative, { overwrite = false } =
     await fs.cp(src, dest, {
       recursive: true,
       force: !!overwrite,
-      errorOnExist: !overwrite
+      errorOnExist: !overwrite,
+      filter: includeTemplateCopyEntry
     });
   } catch (error) {
     throw new SetupSandboxError(`Copy failed (${fromRelative} → ${toRelative}): ${error.message}`);
@@ -714,7 +724,8 @@ function buildFileApi(root) {
       await fs.cp(source, destination, {
         recursive: true,
         force: options.overwrite === true,
-        errorOnExist: options.overwrite !== true
+        errorOnExist: options.overwrite !== true,
+        filter: includeTemplateCopyEntry
       });
     }
   });

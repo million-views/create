@@ -113,6 +113,7 @@ class DryRunEngineTestSuite {
       await fs.writeFile(path.join(templateDir, 'package.json'), '{"name": "template"}');
       await fs.writeFile(path.join(templateDir, 'src/index.js'), 'console.log("Hello");');
       await fs.writeFile(path.join(templateDir, '_setup.mjs'), 'export default function() {}');
+      await fs.writeFile(path.join(templateDir, '.template-undo.json'), '{}');
       
       // Create cache metadata
       const metadata = {
@@ -134,6 +135,13 @@ class DryRunEngineTestSuite {
       // Should include file copy operations
       const fileCopyOps = preview.operations.filter(op => op.type === 'file_copy');
       assert(fileCopyOps.length > 0, 'Should include file copy operations');
+
+      const undoOps = preview.operations.filter(op => {
+        const relative = op.relative || '';
+        const source = op.source || '';
+        return relative.includes('.template-undo.json') || source.endsWith('.template-undo.json');
+      });
+      assert.strictEqual(undoOps.length, 0, 'Undo artifact should be ignored in preview operations');
       
       // Should include setup script operation
       const setupOps = preview.operations.filter(op => op.type === 'setup_script');
@@ -164,6 +172,7 @@ class DryRunEngineTestSuite {
       await fs.writeFile(path.join(templateDir, 'README.md'), '# Template');
       await fs.writeFile(path.join(templateDir, 'src/index.js'), 'console.log("Hello");');
       await fs.writeFile(path.join(templateDir, 'src/utils.js'), 'export const util = () => {};');
+      await fs.writeFile(path.join(templateDir, '.template-undo.json'), '{}');
       
       const projectDir = path.join(tempCacheDir, 'my-project');
       
@@ -182,6 +191,13 @@ class DryRunEngineTestSuite {
         assert(op.source.startsWith(templateDir), 'File source should reside in template directory');
         assert(op.destination.startsWith(projectDir), 'File destination should target project directory');
       });
+
+      const undoOps = operations.filter(op => {
+        const relative = op.relative || '';
+        const source = op.source || '';
+        return relative.includes('.template-undo.json') || source.endsWith('.template-undo.json');
+      });
+      assert.strictEqual(undoOps.length, 0, 'Undo artifact should not appear in file copy operations');
       dirOps.forEach(op => {
         assert(op.path || op.destination, 'Directory operation should include destination path');
         const destPath = op.path || op.destination;

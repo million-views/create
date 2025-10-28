@@ -133,6 +133,11 @@ class IntegrationTestUtils {
           );
         }
       }
+
+      await fs.writeFile(
+        path.join(templatePath, '.template-undo.json'),
+        JSON.stringify({ files: [], version: 1 }, null, 2)
+      );
     }
 
     // Commit the templates
@@ -296,6 +301,10 @@ runner.test('--dry-run flag shows preview without execution', async () => {
   if (!result.stdout.includes('Operations') && !result.stdout.includes('Copy')) {
     throw new Error('Dry run should list planned operations');
   }
+
+  if (result.stdout.includes('.template-undo.json')) {
+    throw new Error('Dry run output should not mention template undo artifacts');
+  }
   
   // Should not create actual project directory
   try {
@@ -338,6 +347,10 @@ runner.test('--dry-run includes tree preview when tree command available', async
   if (!result.stdout.includes('stub tree output')) {
     throw new Error('Dry run should include tree output when tree command is available');
   }
+
+  if (result.stdout.includes('.template-undo.json')) {
+    throw new Error('Tree preview should not list template undo artifacts');
+  }
 });
 
 // Test 2c: tree preview skip message when tree command missing
@@ -363,6 +376,10 @@ runner.test('--dry-run warns when tree command is unavailable', async () => {
 
   if (!result.stdout.toLowerCase().includes('tree') || !result.stdout.toLowerCase().includes('unavailable')) {
     throw new Error('Dry run should mention tree command unavailability');
+  }
+
+  if (result.stdout.includes('.template-undo.json')) {
+    throw new Error('Dry run output should not reference template undo artifacts');
   }
 });
 
@@ -404,6 +421,15 @@ runner.test('--log-file flag enables detailed logging', async () => {
     }
     throw error;
   }
+
+  try {
+    await fs.access(path.join('test-log-project', '.template-undo.json'));
+    throw new Error('Template undo artifact should not be copied to the project');
+  } catch (error) {
+    if (error.code !== 'ENOENT') {
+      throw error;
+    }
+  }
   
   // Clean up created project
   runner.tempPaths.push('test-log-project');
@@ -438,6 +464,15 @@ runner.test('--no-cache flag bypasses cache system', async () => {
   } catch {
     throw new Error('Project should be created even with --no-cache flag');
   }
+
+  try {
+    await fs.access(path.join(projectPath, '.template-undo.json'));
+    throw new Error('Template undo artifact should not be present in generated project');
+  } catch (error) {
+    if (error.code !== 'ENOENT') {
+      throw error;
+    }
+  }
 });
 
 // Test 5: --cache-ttl flag integration
@@ -467,6 +502,15 @@ runner.test('--cache-ttl flag sets custom TTL', async () => {
     // Project should exist
   } catch {
     throw new Error('Project should be created with custom cache TTL');
+  }
+
+  try {
+    await fs.access(path.join(projectPath, '.template-undo.json'));
+    throw new Error('Template undo artifact should not be copied when using cache TTL');
+  } catch (error) {
+    if (error.code !== 'ENOENT') {
+      throw error;
+    }
   }
 });
 
@@ -574,6 +618,17 @@ runner.test('Cache integration works with existing scaffolding workflow', async 
     await fs.access('test-cache-second-project');
   } catch {
     throw new Error('Both projects should be created successfully');
+  }
+
+  for (const projectName of ['test-cache-first-project', 'test-cache-second-project']) {
+    try {
+      await fs.access(path.join(projectName, '.template-undo.json'));
+      throw new Error(`Template undo artifact should not be copied to ${projectName}`);
+    } catch (error) {
+      if (error.code !== 'ENOENT') {
+        throw error;
+      }
+    }
   }
 });
 
@@ -697,6 +752,15 @@ export default function setup(env) {
     }
     throw error;
   }
+
+  try {
+    await fs.access(path.join('test-logging-integration-project', '.template-undo.json'));
+    throw new Error('Template undo artifact should not be copied when running setup scripts');
+  } catch (error) {
+    if (error.code !== 'ENOENT') {
+      throw error;
+    }
+  }
 });
 
 // Test 11: Early exit modes work correctly
@@ -774,6 +838,15 @@ runner.test('Feature modules are initialized conditionally based on flags', asyn
     await fs.access('test-conditional-project');
   } catch {
     throw new Error('Project should be created successfully');
+  }
+
+  try {
+    await fs.access(path.join('test-conditional-project', '.template-undo.json'));
+    throw new Error('Template undo artifact should not be copied during normal operation');
+  } catch (error) {
+    if (error.code !== 'ENOENT') {
+      throw error;
+    }
   }
 });
 

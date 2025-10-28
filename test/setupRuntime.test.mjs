@@ -216,6 +216,63 @@ export default async function setup() {
   }
 });
 
+runner.test('files copy helpers skip undo artifacts', async () => {
+  const baseDir = await runner.createTempDir('runtime-files-copy');
+  const projectName = 'files-project';
+  const projectDir = path.join(baseDir, projectName);
+  await fs.mkdir(projectDir, { recursive: true });
+
+  const templatePartsDir = path.join(projectDir, 'template-parts', 'feature');
+  await fs.mkdir(templatePartsDir, { recursive: true });
+  await fs.writeFile(path.join(templatePartsDir, 'keep.txt'), 'keep me');
+  await fs.writeFile(path.join(templatePartsDir, '.template-undo.json'), JSON.stringify({ files: [] }));
+
+  const previousCwd = process.cwd();
+  process.chdir(baseDir);
+  try {
+    const ctx = createEnvironmentObject({
+      projectDirectory: projectName,
+      projectName,
+      cwd: baseDir,
+      ide: null,
+      options: []
+    });
+
+    const tools = await createSetupTools({
+      projectDirectory: projectDir,
+      projectName,
+      logger: null,
+      context: ctx
+    });
+
+    await tools.files.copy('template-parts/feature', 'copied-by-copy');
+    await tools.files.copyTemplateDir('template-parts/feature', 'copied-by-template-dir');
+  } finally {
+    process.chdir(previousCwd);
+  }
+
+  const copyKeep = await fs.readFile(path.join(projectDir, 'copied-by-copy', 'keep.txt'), 'utf8');
+  if (!copyKeep.includes('keep')) {
+    throw new Error('files.copy should copy regular files');
+  }
+
+  const templateKeep = await fs.readFile(path.join(projectDir, 'copied-by-template-dir', 'keep.txt'), 'utf8');
+  if (!templateKeep.includes('keep')) {
+    throw new Error('files.copyTemplateDir should copy regular files');
+  }
+
+  for (const target of ['copied-by-copy', 'copied-by-template-dir']) {
+    try {
+      await fs.access(path.join(projectDir, target, '.template-undo.json'));
+      throw new Error(`files helper should not copy undo artifact into ${target}`);
+    } catch (error) {
+      if (error.code !== 'ENOENT') {
+        throw error;
+      }
+    }
+  }
+});
+
 runner.test('Text and JSON helpers perform structured updates', async () => {
   const baseDir = await runner.createTempDir('runtime-helpers');
   const projectName = 'helper-demo';

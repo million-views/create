@@ -72,6 +72,8 @@ my-templates/
     └── _setup.mjs
 ```
 
+> Tip: The make-template workflow also generates a `.template-undo.json` file beside `template.json` and `_setup.mjs`. Commit it with your template—`@m5nv/create-scaffold` automatically ignores this artifact when copying templates, running dry runs, or executing setup helpers.
+
 **Template naming conventions:**
 - Use kebab-case names: `react-vite`, `express-api`, `nextjs-app`
 - Keep names descriptive but concise
