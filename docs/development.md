@@ -32,9 +32,13 @@ npm install
 # Run tests to verify setup
 npm test
 
-# Test CLI locally
+# Test CLI locally (package is not published yet)
+node bin/index.mjs --help
+npx . test-project -- --from-template react-vite
+
+# Optional: expose the create-scaffold binary globally
 npm link
-npm create @m5nv/scaffold test-project -- --from-template react-vite
+create-scaffold scratch-app --from-template react-vite
 npm unlink -g @m5nv/create-scaffold
 ```
 
@@ -179,21 +183,21 @@ node bin/index.mjs --list-templates --repo myorg/templates
 node bin/index.mjs test-app --dry-run --from-template express
 ```
 
-### 2. npm link (Full User Experience)
+### 2. npm link (Global Binary)
 
-Creates a global symlink for testing the complete user workflow:
+Creates a global symlink for the `create-scaffold` binary. **Note:** `npm create @m5nv/scaffold` still attempts to download from npm and will fail until the package is published. Use the `create-scaffold` binary instead.
 
 ```bash
 # Link your local package globally
 npm link
 
-# Test as users would use it
-npm create @m5nv/scaffold my-test-app -- --from-template react-vite
-npm create @m5nv/scaffold my-api -- --from-template express --repo myorg/templates
+# Run the CLI via the linked binary
+create-scaffold my-test-app --from-template react-vite
+create-scaffold my-api --from-template express --repo myorg/templates
 
 # Test new features
-npm create @m5nv/scaffold test-project -- --from-template react --log-file ./build.log
-npm create @m5nv/scaffold preview-app -- --dry-run --from-template vue
+create-scaffold test-project --from-template react --log-file ./build.log
+create-scaffold preview-app --dry-run --from-template vue
 
 # Cleanup when done
 npm unlink -g @m5nv/create-scaffold
@@ -201,14 +205,14 @@ npm unlink -g @m5nv/create-scaffold
 
 ### 3. Local Installation (Production Simulation)
 
-Install your local version globally to simulate production:
+Install your local version globally to simulate a published install. The entry point is still the `create-scaffold` binary.
 
 ```bash
 # Install from current directory
 npm install -g .
 
 # Use normally
-npm create @m5nv/scaffold my-app -- --from-template some-template
+create-scaffold my-app --from-template some-template
 
 # Uninstall when done
 npm uninstall -g @m5nv/create-scaffold
@@ -303,10 +307,11 @@ npm test                       # Complete test suite must pass
 # 3. Specification compliance validation
 npm run test:spec              # 100% spec compliance required
 
-# 4. Manual CLI validation
-node bin/index.mjs --help      # Verify help output
-npm link                       # Test installation process
-npm create @m5nv/scaffold test-release -- --from-template react-vite
+# 4. Manual CLI validation (local execution)
+node bin/index.mjs --help
+npx . test-release -- --from-template react-vite
+npm link
+create-scaffold test-release --from-template react-vite
 npm unlink -g @m5nv/create-scaffold
 ```
 
@@ -591,6 +596,7 @@ npm run test:functional 2>&1 | grep -A 10 "FAILED"
 
 **CLI not working with npm link**:
 
+- Run via `create-scaffold` (not `npm create @m5nv/scaffold`, which still hits npm)
 - Unlink and relink: `npm unlink -g @m5nv/create-scaffold && npm link`
 - Check global npm modules: `npm list -g --depth=0`
 - Verify bin file permissions: `chmod +x bin/index.mjs`
@@ -637,7 +643,7 @@ See [CONTRIBUTING.md](../CONTRIBUTING.md) for complete contribution guidelines.
 3. Follow test-first development: write tests, then implementation
 4. Ensure all tests pass: `npm test`
 5. Verify code quality: `npm run lint`
-6. Test locally: `npm link` and manual testing
+6. Test locally: `node bin/index.mjs`, `npx .`, or `create-scaffold` via `npm link`
 7. Submit pull request with clear description
 
 ### Contribution Standards
@@ -672,7 +678,7 @@ node bin/index.mjs --help      # Should display help
 
 # Test contribution workflow
 npm link
-npm create @m5nv/scaffold test-contrib -- --from-template react-vite
+create-scaffold test-contrib --from-template react-vite
 npm unlink -g @m5nv/create-scaffold
 ```
 
@@ -695,13 +701,14 @@ npm test 2>&1 | grep -A 5 "FAILED"
 **CLI not working with npm link**:
 
 ```bash
-# Fix linking issues
+# Fix linking issues (remember to invoke the CLI via `create-scaffold`)
 npm unlink -g @m5nv/create-scaffold
 npm link
 npm list -g --depth=0          # Verify global installation
 
 # Alternative: direct installation
 npm install -g .
+create-scaffold my-app --from-template react
 ```
 
 **Permission issues during development**:
