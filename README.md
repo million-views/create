@@ -15,79 +15,57 @@ last_updated: "2024-10-26"
 
 # @m5nv/create-scaffold
 
-[![npm version](https://badge.fury.io/js/@m5nv%2Fcreate-scaffold.svg)](https://badge.fury.io/js/@m5nv%2Fcreate-scaffold)
+[![npm version](https://badge.fury.io/js/@m5nv%2Fcreate-scaffold.svg)](https://badge.fury.io/js/@m5nv/create-scaffold)
 [![npm downloads](https://img.shields.io/npm/dm/@m5nv/create-scaffold.svg)](https://www.npmjs.com/package/@m5nv/create-scaffold)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Node.js Version](https://img.shields.io/badge/node-%3E%3D22.0.0-brightgreen.svg)](https://nodejs.org/)
 [![GitHub issues](https://img.shields.io/github/issues/million-views/create.svg)](https://github.com/million-views/create/issues)
 [![GitHub stars](https://img.shields.io/github/stars/million-views/create.svg)](https://github.com/million-views/create/stargazers)
 
-**Create production-ready projects in seconds with secure, git-based templates.**
+`@m5nv/create-scaffold` scaffolds projects from Git repositories. Templates define the files to copy, optional metadata, and a sandboxed `_setup.mjs` script that can tailor the output with a curated helper toolkit. The CLI relies on built-in Node.js modules, validates inputs, and supports template caching.
 
-Zero dependencies. Maximum security. IDE-optimized workflows.
-
-## What is this?
-
-Scaffold new projects from git-based template collections. Create production-ready projects with IDE-specific configurations, customizable options, and secure setup scripts - all from a single command.
-
-## Quick Start
-
-**Get started in 30 seconds:**
+## Quick start
 
 ```bash
-# Create a React project (most common)
+# Create a React project based on the vite-react template
 npm create @m5nv/scaffold my-app -- --from-template react-vite
 
-# ✅ Project created with modern React + Vite setup
-# ✅ Dependencies installed automatically
-# ✅ Ready to run: cd my-app && npm run dev
+# Installs dependencies and prepares the project for npm run dev
+cd my-app
+npm run dev
 ```
 
-**Need more control?**
-
 ```bash
-# Add IDE optimization + options
+# Apply IDE configuration and template options during scaffolding
 npm create @m5nv/scaffold my-app -- \
   --from-template react-vite \
   --ide kiro \
-  --options "mvp,typescript,testing-focused"
+  --options "typescript,testing-focused"
 ```
 
-**See what's available:**
-
 ```bash
-# Browse all templates
+# Discover available templates in the default repository
 npm create @m5nv/scaffold -- --list-templates
 ```
 
-## Why use this?
+## Key capabilities
 
-✅ **Secure by design** - No arbitrary code execution, sandboxed setup scripts  
-✅ **Zero dependencies** - Fast installs, minimal attack surface  
-✅ **IDE-optimized** - Kiro, VSCode, Cursor, Windsurf configurations included  
-✅ **Template caching** - Lightning-fast project creation after first use  
-✅ **Template options** - Enable auth, database, testing with simple options  
-✅ **Git-native** - Any repository can host multiple templates, version with branches
+- Sandboxed setup scripts with structured helpers (files, placeholders, text, JSON, IDE presets)
+- Repository caching under `~/.m5nv/cache` for repeat scaffolds
+- Template-defined metadata (`template.json`) that can expose handoff instructions
+- Dry-run previews with operation summaries and optional tree output
+- CLI argument validation, logging, and preflight checks for Git access
 
-## Next Steps
+## Learn more
 
-**👋 New to project scaffolding?**  
-📚 [Getting Started Tutorial](docs/tutorial/getting-started.md) - Your first project in 5 minutes
+- [Getting Started Tutorial](docs/tutorial/getting-started.md) — first project walkthrough
+- [Template Creation Guide](docs/creating-templates.md) — authoring templates and setup scripts
+- [Complete CLI Reference](docs/reference/cli-reference.md) — command and flag documentation
+- [Troubleshooting Guide](docs/guides/troubleshooting.md) — common failure scenarios
+- [Security Model](docs/explanation/security-model.md) — sandboxing and validation overview
+- [Template System](docs/explanation/template-system.md) — template repository structure
 
-**🛠️ Want to create templates?**  
-📖 [Template Creation Guide](docs/creating-templates.md) - Build reusable project templates
-
-**🔍 Need specific help?**  
-📋 [Complete CLI Reference](docs/reference/cli-reference.md) - All commands and options  
-🚨 [Troubleshooting Guide](docs/guides/troubleshooting.md) - Fix common issues
-
-**🤔 Want to understand the design?**  
-💡 [Security Model](docs/explanation/security-model.md) - How we keep you safe  
-🏗️ [Template System](docs/explanation/template-system.md) - Architecture deep-dive
-
----
-
-## Command Reference
+## Command reference
 
 ```bash
 npm create @m5nv/scaffold <project-name> -- --from-template <template-name> [options]
@@ -100,105 +78,35 @@ npm create @m5nv/scaffold <project-name> -- --from-template <template-name> [opt
 | `--branch, -b`        | Git branch                                      |
 | `--ide, -i`           | Target IDE (kiro, vscode, cursor, windsurf)     |
 | `--options, -o`       | Comma-separated option list                     |
-| `--list-templates`    | Display available templates from repository     |
+| `--list-templates`    | Display available templates                     |
 | `--dry-run`           | Preview operations without executing them       |
-| `--log-file`          | Enable detailed logging to specified file       |
-| `--no-cache`          | Bypass cache system and clone directly          |
-| `--cache-ttl`         | Override default cache TTL (1-720 hours)        |
+| `--log-file`          | Write structured logs to the specified file     |
+| `--no-cache`          | Bypass the local repository cache               |
+| `--cache-ttl`         | Override cache TTL (1–720 hours)                |
 | `--help, -h`          | Show help                                       |
 
-## Common Examples
-
-**Basic projects:**
+## Examples
 
 ```bash
-# React app
-npm create @m5nv/scaffold my-app -- --from-template react-vite
-
-# Node.js API
+# Node.js API template
 npm create @m5nv/scaffold my-api -- --from-template express
-```
 
-**With IDE optimization:**
-
-```bash
-# Optimized for Kiro IDE
-npm create @m5nv/scaffold my-app -- --from-template react-vite --ide kiro
-
-# With VSCode settings
+# React template with VSCode presets
 npm create @m5nv/scaffold my-app -- --from-template react-vite --ide vscode
-```
 
-**With options enabled:**
-
-```bash
-# Monorepo setup with TypeScript
-npm create @m5nv/scaffold my-app -- --from-template react-vite --options "monorepo,typescript"
-
-# Full-featured production setup
-npm create @m5nv/scaffold my-app -- \
-  --from-template react-vite \
-  --ide kiro \
-  --options "production,full-featured,ci-ready"
-```
-
-**Custom templates:**
-
-```bash
-# Your organization's templates
+# Organization template hosted in a custom repository
 npm create @m5nv/scaffold my-app -- \
   --from-template corporate-react \
-  --repo mycompany/templates
+  --repo mycompany/templates \
+  --branch release
 ```
 
-## Advanced Features
+## Community and support
 
-**🚀 Template caching** - Lightning-fast repeat usage  
-**🔍 Template discovery** - Browse available templates with `--list-templates`  
-**👀 Dry run mode** - Preview changes with `--dry-run`  
-**📝 Detailed logging** - Debug with `--log-file scaffold.log`
+- [Report issues](https://github.com/million-views/create/issues/new)
+- [Open discussions](https://github.com/million-views/create/discussions)
+- [Read the contributing guide](CONTRIBUTING.md)
 
-[📖 Complete feature documentation](docs/phase-1-features.md)
-
-## Community & Support
-
-**🐛 Found a bug?** [Report it here](https://github.com/million-views/create/issues/new)  
-**💡 Have an idea?** [Start a discussion](https://github.com/million-views/create/discussions)  
-**🤝 Want to contribute?** [Read our guide](CONTRIBUTING.md)
-
-**📚 Documentation:**
-
-- [Phase 1 Features](docs/phase-1-features.md) - Caching, logging, discovery, and dry run features
-- [Creating Templates](docs/creating-templates.md) - How to build your own template repository
-- [Authentication](docs/authentication.md) - Setting up git access for private repositories
-- [Troubleshooting](docs/guides/troubleshooting.md) - Common issues and solutions
-- [Security](docs/security.md) - Security features and best practices
-- [Development](docs/development.md) - Local development and testing guide
-
-**Requirements:** Node.js (latest LTS) • Git installed and configured
-
----
-
-## Related Documentation
-
-**📚 Learning Path:**
-
-- [Getting Started Tutorial](docs/tutorial/getting-started.md) - Your first project in 15 minutes
-- [Template Creation Guide](docs/creating-templates.md) - Build reusable templates
-- [Complete CLI Reference](docs/reference/cli-reference.md) - All commands and options
-
-**🔍 Advanced Topics:**
-
-- [Phase 1 Features](docs/phase-1-features.md) - Caching, logging, discovery, dry run
-- [Security Model](docs/explanation/security-model.md) - How we keep you safe
-- [Template System](docs/explanation/template-system.md) - Architecture deep-dive
-
-**🛠️ Development:**
-
-- [Development Guide](docs/development.md) - Local development and testing
-- [Contributing Guidelines](CONTRIBUTING.md) - How to contribute
-- [Troubleshooting](docs/guides/troubleshooting.md) - Fix common issues
-
----
+**Requirements:** Node.js (latest LTS) and Git
 
 **License:** MIT • **Maintainer:** [@million-views](https://github.com/million-views)

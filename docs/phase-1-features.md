@@ -355,7 +355,7 @@ npm create @m5nv/scaffold my-app -- --from-template react --dry-run --no-cache
 
 ### Combined Usage Patterns
 
-The Phase 1 features are designed to work together seamlessly:
+The Phase 1 features can be combined in a single workflow:
 
 ```bash
 # Comprehensive debugging session
@@ -393,7 +393,7 @@ All Phase 1 features include comprehensive error handling:
 
 ### Getting Started
 
-Phase 1 features work seamlessly with existing workflows:
+Phase 1 features integrate with existing workflows:
 
 - All existing commands work unchanged
 - New features are opt-in via CLI flags

@@ -88,10 +88,10 @@ minimal-demo/
 
 ### Verification Steps
 
-- ✅ `npm install` completes without errors
-- ✅ `npm run dev` starts a development server
-- ✅ Opening `http://localhost:5173` shows a React app
-- ✅ The project structure follows modern React conventions
+- `npm install` completes without errors
+- `npm run dev` starts a development server
+- Opening `http://localhost:5173` shows a React app
+- The project structure follows modern React conventions
 
 ## Example 2: IDE-Optimized Project (Adding Intelligence)
 
@@ -146,14 +146,14 @@ Your project now includes IDE-specific configuration:
 └── launch.json       # Debug configurations
 ```
 
-**Key Learning:** IDE optimization provides immediate productivity benefits - better syntax highlighting, debugging support, and recommended extensions.
+Result: IDE presets add configuration for syntax highlighting, debugging, and recommended extensions.
 
 ### Verification Steps
 
-- ✅ IDE recognizes the project with enhanced features
-- ✅ Recommended extensions are suggested (VSCode)
-- ✅ Debug configurations are available
-- ✅ Code formatting and linting work seamlessly
+- IDE recognizes the project with enhanced features
+- Recommended extensions are suggested (VSCode)
+- Debug configurations are available
+- Code formatting and linting operate with the new settings
 
 ## Example 3: Feature-Rich Project (Integrated Functionality)
 
@@ -212,14 +212,14 @@ feature-demo/
 └── integration-config.json  # Feature integration settings
 ```
 
-**Key Learning:** Features work together intelligently. The auth system integrates with the database, logging captures authentication events, and tests cover the integrated functionality.
+Result: The auth system integrates with the database, logging captures authentication events, and tests cover the combined functionality.
 
 ### Verification Steps
 
-- ✅ Multiple feature directories are created
-- ✅ `integration-config.json` shows how features connect
-- ✅ Package.json includes scripts for each feature
-- ✅ IDE configuration is optimized for all enabled features
+- Multiple feature directories are created
+- `integration-config.json` shows how features connect
+- `package.json` includes scripts for each feature
+- IDE configuration reflects the enabled features
 
 ## Setup Deep Dive: Using the Helper Toolkit
 
@@ -345,10 +345,10 @@ team-project/
 
 ### Verification Steps
 
-- ✅ All features are present and integrated
-- ✅ VSCode workspace is configured for team development
-- ✅ Package.json includes comprehensive scripts
-- ✅ Configuration supports different environments
+- All features are present and integrated
+- VSCode workspace is configured for team development
+- `package.json` includes comprehensive scripts
+- Configuration supports different environments
 
 ## Example 5: Custom Workflow (Advanced Patterns)
 
@@ -448,14 +448,14 @@ Available Templates:
 └─────────────────┴──────────────────────────────────────────────┘
 ```
 
-**Key Learning:** Advanced features give you complete control over the scaffolding process - preview before creating, manage caching for performance, and debug with detailed logging.
+Observation: Advanced flags make it possible to preview operations, manage cache lifetime, and capture detailed logs before running a scaffold.
 
 ### Verification Steps
 
-- ✅ Dry run shows exactly what would be created
-- ✅ Template discovery reveals all available options
-- ✅ Custom cache TTL improves performance for repeated operations
-- ✅ Detailed logging helps debug any issues
+- Dry run shows exactly what would be created
+- Template discovery reveals available options
+- Custom cache TTL improves performance for repeated operations
+- Detailed logging helps debug any issues
 
 ## Progressive Complexity Summary
 
@@ -471,25 +471,25 @@ Let's review what we built and the complexity progression:
 
 ## What you accomplished
 
-Excellent work! You've now mastered:
+Summary of skills practiced:
 
-✅ **Progressive complexity** - From simple to advanced project setups  
-✅ **IDE integration** - Optimizing projects for your development environment  
-✅ **Feature composition** - Combining multiple features intelligently  
-✅ **Team workflows** - Creating production-ready, team-friendly projects  
-✅ **Advanced patterns** - Dry runs, caching, logging, and debugging  
+- Progressive complexity — From simple to advanced project setups
+- IDE integration — Optimizing projects for specific environments
+- Feature composition — Combining multiple features
+- Team workflows — Creating collaborative project structures
+- Advanced patterns — Dry runs, caching, logging, and debugging
 
-You understand how templates scale from simple prototypes to complex, production-ready applications while maintaining consistency and best practices.
+These examples show how templates scale from simple prototypes to complex applications while maintaining consistent structure.
 
 ## Next steps
 
-Now that you've mastered hands-on template usage, consider:
+Recommended next readings:
 
-- 🛠️ **[Creating Your Own Templates](../creating-templates.md)** - Build custom templates for your specific needs
-- 📖 **[Environment Reference](../reference/environment.md)** - Understand how setup scripts receive context
-- 🔧 **[CLI Reference](../reference/cli-reference.md)** - Learn all available options and parameters
-- 🏗️ **[Template System Architecture](../explanation/template-system.md)** - Deep dive into how the system works
-- 🚨 **[Troubleshooting Complex Setups](../guides/troubleshooting.md)** - Debug advanced scenarios
+- [Creating Your Own Templates](../creating-templates.md) — Build custom templates for specific needs
+- [Environment Reference](../reference/environment.md) — Understand how setup scripts receive context
+- [CLI Reference](../reference/cli-reference.md) — Review available options and parameters
+- [Template System Architecture](../explanation/template-system.md) — Learn how the system is structured
+- [Troubleshooting Complex Setups](../guides/troubleshooting.md) — Debug advanced scenarios
 
 ## Key Takeaways
 
@@ -511,7 +511,7 @@ Now that you've mastered hands-on template usage, consider:
 
 ### Feature Composition Principles
 
-**Features work best when combined thoughtfully:**
+**Feature composition notes:**
 - **auth + api**: Secure API endpoints
 - **database + auth**: Persistent user management
 - **logging + all features**: Comprehensive observability

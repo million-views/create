@@ -326,7 +326,7 @@ You can use templates from any Git repository, not just the default one.
 
 ### Expected Result
 
-For custom repositories, you'd see similar output but pulling from your specified repository and branch. This is powerful for:
+For custom repositories, you'd see similar output but pulling from your specified repository and branch. This approach helps with:
 
 - **Company templates**: Internal project structures
 - **Team standards**: Shared configurations and setups
@@ -334,30 +334,30 @@ For custom repositories, you'd see similar output but pulling from your specifie
 
 ## What you accomplished
 
-Congratulations! You've successfully:
+Summary:
 
-✅ **Created your first project** using @m5nv/create-scaffold  
-✅ **Explored template discovery** with `--list-templates`  
-✅ **Customized projects** with IDE-specific configurations  
-✅ **Added optional features** to enhance your projects  
-✅ **Used dry run mode** to preview operations  
-✅ **Learned about custom repositories** for advanced use cases  
+- Created a project using @m5nv/create-scaffold
+- Explored template discovery with `--list-templates`
+- Customized IDE-specific configuration
+- Applied optional features during setup
+- Ran dry run mode to inspect operations
+- Practiced using custom repositories
 
-You now understand the core workflow:
-1. **Discover** templates with `--list-templates`
-2. **Preview** with `--dry-run` 
-3. **Create** with your chosen template, IDE, and options
-4. **Customize** further as needed
+Core workflow:
+1. Discover templates with `--list-templates`
+2. Preview with `--dry-run`
+3. Create with your chosen template, IDE, and options
+4. Customize further as needed
 
 ## Next steps
 
-Now that you've mastered the basics, you might want to:
+Next steps:
 
-- 📖 **[Create Your Own Templates](../creating-templates.md)** - Build reusable project templates for your team
-- 🔍 **[Complete CLI Reference](../reference/cli-reference.md)** - Explore all available commands and options
-- 🚨 **[Troubleshooting Guide](../guides/troubleshooting.md)** - Fix common issues and problems
-- 💡 **[Security Model](../explanation/security-model.md)** - Understand how the tool keeps you safe
-- 🏗️ **[Template System](../explanation/template-system.md)** - Deep dive into how templates work
+- [Create Your Own Templates](../creating-templates.md) — Build reusable project templates for your team
+- [Complete CLI Reference](../reference/cli-reference.md) — Explore available commands and options
+- [Troubleshooting Guide](../guides/troubleshooting.md) — Address common issues
+- [Security Model](../explanation/security-model.md) — Review the protection mechanisms
+- [Template System](../explanation/template-system.md) — Understand repository structure
 
 ## Troubleshooting
 

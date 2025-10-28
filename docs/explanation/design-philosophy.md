@@ -17,13 +17,13 @@ last_updated: "2024-10-26"
 
 ## Introduction
 
-@m5nv/create-scaffold embodies a specific philosophy about how project scaffolding tools should work in modern development environments. Every design decision reflects our commitment to developer autonomy, security, and simplicity while enabling powerful customization capabilities. Understanding this philosophy helps explain why the tool works the way it does and how it fits into the broader development ecosystem.
+This document outlines the principles that shaped @m5nv/create-scaffold. The design balances developer control, security, and template-driven customization.
 
 ## Core Philosophy
 
 ### Developer Autonomy First
 
-We believe developers should control their tools, not the other way around. This principle influences every aspect of the system:
+The system assumes developers should control their tools. This principle influences every aspect of the design:
 
 - **Choice Preservation**: No lock-in to specific IDEs, hosting platforms, or workflows
 - **Transparent Operations**: Users understand what the tool does and why
@@ -32,7 +32,7 @@ We believe developers should control their tools, not the other way around. This
 
 ### Security as Foundation
 
-Security isn't an afterthought—it's built into the architecture from the ground up:
+Security is treated as a baseline requirement:
 
 - **Defense in Depth**: Multiple security layers protect against different attack vectors
 - **Fail Securely**: When things go wrong, they fail to a safe state
@@ -41,7 +41,7 @@ Security isn't an afterthought—it's built into the architecture from the groun
 
 ### Simplicity Over Features
 
-We prioritize doing core functionality exceptionally well over adding every possible feature:
+The focus stays on core functionality rather than continually expanding the feature set:
 
 - **Single Responsibility**: The tool does project scaffolding, not project management
 - **Minimal Dependencies**: Fewer dependencies mean fewer security risks and faster startup
@@ -88,7 +88,7 @@ if (options.includes('typescript') && options.includes('testing')) {
 ```
 
 **Benefits:**
-- **Template Innovation**: Template authors can create sophisticated option systems
+- **Template Innovation**: Template authors can create option systems suited to their needs
 - **Template Stability**: New options enhance existing templates without disruption
 - **User Discovery**: Users learn options from template documentation
 - **Ecosystem Growth**: Rich option ecosystems can emerge around popular templates
@@ -111,7 +111,7 @@ if (options.includes('typescript') && options.includes('testing')) {
 
 **Impact on Ecosystem:**
 - **Low Barrier to Entry**: Anyone can create templates using existing git knowledge
-- **Viral Distribution**: Templates spread through existing developer networks
+- **Existing Networks**: Templates spread through developer communities and hosting platforms
 - **Platform Independence**: Works with any git hosting solution
 
 ### Decision 2: JavaScript Setup Scripts
@@ -125,7 +125,7 @@ if (options.includes('typescript') && options.includes('testing')) {
 - **Cross-Platform**: Works consistently across operating systems
 
 **Trade-offs:**
-- **Gained**: Powerful scripting capabilities, familiar language, rich ecosystem
+- **Gained**: Full JavaScript scripting capabilities, familiar language, established ecosystem
 - **Given up**: Support for other scripting languages, some performance
 
 **Impact on Templates:**

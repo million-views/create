@@ -100,8 +100,8 @@ For security vulnerabilities:
 
 ## What's Next
 
-Now that you understand the security features, you might want to:
+Next steps:
 
-- 💡 **Deep dive into security**: [Security Model Explained](explanation/security-model.md) - Comprehensive security architecture
-- 🚨 **Handle issues**: [Troubleshooting Guide](guides/troubleshooting.md) - Security-related problem resolution
-- 🎯 **Get started safely**: [Getting Started Tutorial](tutorial/getting-started.md) - Hands-on introduction with security best practices
+- [Security Model Explained](explanation/security-model.md) — Architecture details
+- [Troubleshooting Guide](guides/troubleshooting.md) — Security-related issue handling
+- [Getting Started Tutorial](tutorial/getting-started.md) — Guided introduction with safety checks

@@ -18,7 +18,7 @@ last_updated: "2024-11-05"
 
 ## Introduction
 
-@m5nv/create-scaffold takes a thoughtful approach to IDE integration that respects developer choice while enabling powerful customization. Rather than forcing specific tooling decisions, the system provides templates with context about the development environment, allowing them to adapt intelligently to different IDEs and workflows.
+This guidance explains how @m5nv/create-scaffold exposes IDE context to templates. The CLI does not enforce tooling choices; instead it supplies templates with the requested IDE so authors can opt into editor-specific configuration when it helps.
 
 ## The Problem
 

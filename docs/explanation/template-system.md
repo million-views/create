@@ -18,7 +18,7 @@ last_updated: "2024-11-05"
 
 ## Introduction
 
-@m5nv/create-scaffold implements a flexible, git-based template system that balances simplicity with powerful customization capabilities. The architecture separates concerns between template discovery, processing, and customization while maintaining security and reliability. Understanding this architecture helps you create effective templates and troubleshoot issues.
+@m5nv/create-scaffold implements a git-based template system that balances simplicity with template-driven customization. The architecture separates template discovery, processing, and customization while maintaining security and reliability. Understanding this approach helps template authors and maintainers troubleshoot issues.
 
 ## The Problem
 
