@@ -554,6 +554,97 @@ runner.test('Setup script execution and cleanup', async () => {
   } catch {
     // Expected - setup script should be removed
   }
+
+  if (!result.stdout.includes('📂 Next steps:')) {
+    throw new Error('Next steps section missing');
+  }
+});
+
+runner.test('Next steps include template-provided handoff instructions', async () => {
+  const mockRepoPath = await runner.addTempPath(await TestUtils.createTempDir('-handoff-repo'));
+  const projectParent = await runner.addTempPath(await TestUtils.createTempDir('-handoff-parent'));
+
+  await TestUtils.createMockRepo(mockRepoPath, ['features-demo-template']);
+
+  const projectName = 'handoff-project';
+  const result = await TestUtils.execCLI([
+    projectName,
+    '--from-template', 'features-demo-template',
+    '--repo', mockRepoPath
+  ], { cwd: projectParent });
+
+  if (result.exitCode !== 0) {
+    throw new Error(`Expected exit code 0, got ${result.exitCode}. Stderr: ${result.stderr}`);
+  }
+
+  const nextStepsIndex = result.stdout.indexOf('📂 Next steps:');
+  if (nextStepsIndex === -1) {
+    throw new Error('Next steps section missing');
+  }
+
+  const lines = result.stdout
+    .slice(nextStepsIndex)
+    .split('\n')
+    .map(line => line.trim())
+    .filter(Boolean);
+
+  const handoffLines = lines.slice(1);
+
+  if (!handoffLines.includes(`cd ${projectName}`)) {
+    throw new Error(`cd instruction missing from next steps: ${handoffLines.join(' | ')}`);
+  }
+
+  const expected = [
+    'npm install',
+    'npm run test',
+    'Review docs/overview.md for enabled feature details'
+  ];
+
+  for (const step of expected) {
+    if (!handoffLines.includes(`- ${step}`)) {
+      throw new Error(`Expected handoff instruction "- ${step}" not found. Got: ${handoffLines.join(' | ')}`);
+    }
+  }
+});
+
+runner.test('Next steps fall back to README guidance when metadata absent', async () => {
+  const mockRepoPath = await runner.addTempPath(await TestUtils.createTempDir('-fallback-repo'));
+  const projectParent = await runner.addTempPath(await TestUtils.createTempDir('-fallback-parent'));
+
+  await TestUtils.createMockRepo(mockRepoPath, ['basic']);
+
+  const projectName = 'fallback-project';
+  const result = await TestUtils.execCLI([
+    projectName,
+    '--from-template', 'basic',
+    '--repo', mockRepoPath
+  ], { cwd: projectParent });
+
+  if (result.exitCode !== 0) {
+    throw new Error(`Expected exit code 0, got ${result.exitCode}. Stderr: ${result.stderr}`);
+  }
+
+  const nextStepsIndex = result.stdout.indexOf('📂 Next steps:');
+  if (nextStepsIndex === -1) {
+    throw new Error('Next steps section missing');
+  }
+
+  const lines = result.stdout
+    .slice(nextStepsIndex)
+    .split('\n')
+    .map(line => line.trim())
+    .filter(Boolean);
+
+  const handoffLines = lines.slice(1);
+
+  if (!handoffLines.includes(`cd ${projectName}`)) {
+    throw new Error(`cd instruction missing from next steps: ${handoffLines.join(' | ')}`);
+  }
+
+  const fallbackInstruction = '- Review README.md for additional instructions';
+  if (!handoffLines.includes(fallbackInstruction)) {
+    throw new Error(`Expected fallback instruction "${fallbackInstruction}" not found. Got: ${handoffLines.join(' | ')}`);
+  }
 });
 
 // Test 15: Error message sanitization

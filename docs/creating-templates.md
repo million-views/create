@@ -200,6 +200,30 @@ If your setup logic only understands a specific vocabulary, declare it in
 The scaffold still succeeds when the user provides extra options, but the CLI
 prints a friendly warning.
 
+### Post-create handoff instructions
+
+Help users get productive immediately by adding a `handoff` array to `template.json`.
+Each entry becomes a bullet under “Next steps” after scaffolding.
+
+```json
+{
+  "name": "react-vite",
+  "description": "React starter with Vite",
+  "handoff": [
+    "npm install",
+    "npm run dev",
+    "Open README.md for IDE-specific tips"
+  ],
+  "setup": {
+    "supportedOptions": ["testing", "docs"]
+  }
+}
+```
+
+Keep each instruction short and actionable (commands, follow-up docs, etc.). When
+`handoff` is omitted, the CLI falls back to `cd <project>` and a reminder to review
+the README.
+
 ### Step 4: Test your template
 
 Before publishing, test your template locally:

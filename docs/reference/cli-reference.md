@@ -322,6 +322,27 @@ Templates may include a `_setup.mjs` file that runs after copying:
 - **Cleanup:** Setup script is automatically removed after execution
 - **Error Handling:** Failures are logged but don't stop project creation
 
+## Post-create guidance
+
+After scaffolding, the CLI prints a “Next steps” block:
+
+- `cd <projectDir>` is always listed first.
+- If the template’s `template.json` includes a `handoff` array of strings, each entry is rendered as a bullet.
+- When `handoff` is absent or empty, the CLI falls back to a reminder to review the README.
+
+Example `template.json` snippet:
+
+```json
+{
+  "name": "vite-react",
+  "handoff": [
+    "npm install",
+    "npm run dev",
+    "Open README.md for IDE-specific tips"
+  ]
+}
+```
+
 ## Input Validation
 
 All inputs are validated for security and correctness:

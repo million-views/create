@@ -1,6 +1,11 @@
 {
   "name": "full-demo-template",
   "description": "Fixture combining files, JSON, and IDE utilities",
+  "handoff": [
+    "npm install",
+    "npm run lint",
+    "Open docs/index.md for scaffold overview"
+  ],
   "setup": {
     "supportedOptions": ["docs"]
   }

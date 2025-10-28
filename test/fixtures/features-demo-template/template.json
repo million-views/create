@@ -1,6 +1,11 @@
 {
   "name": "features-demo-template",
   "description": "Fixture exercising feature-driven setup",
+  "handoff": [
+    "npm install",
+    "npm run test",
+    "Review docs/overview.md for enabled feature details"
+  ],
   "setup": {
     "supportedOptions": ["api", "auth", "testing"]
   }

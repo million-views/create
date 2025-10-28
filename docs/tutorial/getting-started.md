@@ -116,6 +116,9 @@ You should see a new directory called `my-first-app` with a complete React proje
 
 📂 Next steps:
   cd my-first-app
+  - npm install
+  - npm run dev
+  - Review README.md for additional instructions
 ```
 
 **What just happened?**

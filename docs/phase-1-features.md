@@ -181,6 +181,7 @@ Templates can include metadata in two formats:
   "version": "1.0.0",
   "author": "Million Views",
   "tags": ["react", "typescript", "vite"],
+  "handoff": ["npm install", "npm run dev"],
   "requirements": {
     "node": ">=18.0.0"
   }
@@ -196,6 +197,9 @@ description: React application with TypeScript and modern tooling
 version: 1.0.0
 author: Million Views
 tags: [react, typescript, vite]
+handoff:
+  - npm install
+  - npm run dev
 requirements:
   node: ">=18.0.0"
 ---
@@ -204,6 +208,9 @@ requirements:
 
 This template provides...
 ```
+
+The optional `handoff` array (shown above) feeds the CLI’s “Next steps” section so
+users immediately see the most relevant follow-up commands.
 
 ### Discovery Output Format
 

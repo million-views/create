@@ -227,6 +227,7 @@ async function main() {
     // Verify template exists
     const templatePath = path.join(repositoryPath, templateName);
     await verifyTemplate(templatePath, templateName);
+    const { handoffSteps } = await loadTemplateMetadata(templatePath, logger);
 
     const supportedOptions = await readTemplateSupportedOptions(templatePath);
     if (supportedOptions.length > 0) {
@@ -262,7 +263,23 @@ async function main() {
     console.log('\n✅ Project created successfully!');
     console.log(`\n📂 Next steps:`);
     console.log(`  cd ${projectDirectory}`);
+
+    const resolvedHandoff = handoffSteps.length > 0
+      ? handoffSteps
+      : ['Review README.md for additional instructions'];
+
+    for (const step of resolvedHandoff) {
+      console.log(`  - ${step}`);
+    }
+
     console.log('');
+
+    if (logger) {
+      await logger.logOperation('handoff_instructions', {
+        projectDirectory,
+        instructions: resolvedHandoff
+      });
+    }
 
   } catch (error) {
     // Clean up resources on any error
@@ -342,6 +359,50 @@ async function ensureRepositoryCached(repoUrl, branchName, cacheManager, logger,
       });
     }
     throw error;
+  }
+}
+
+async function loadTemplateMetadata(templatePath, logger) {
+  const metadataPath = path.join(templatePath, 'template.json');
+
+  try {
+    const raw = await fs.readFile(metadataPath, 'utf8');
+    const metadata = JSON.parse(raw);
+
+    const handoffSteps = Array.isArray(metadata.handoff)
+      ? metadata.handoff
+          .filter(step => typeof step === 'string')
+          .map(step => step.trim())
+          .filter(Boolean)
+      : [];
+
+    if (logger) {
+      await logger.logOperation('template_metadata', {
+        templatePath,
+        handoffCount: handoffSteps.length
+      });
+    }
+
+    return { handoffSteps };
+  } catch (error) {
+    if (error.code === 'ENOENT') {
+      if (logger) {
+        await logger.logOperation('template_metadata_missing', {
+          templatePath
+        });
+      }
+      return { handoffSteps: [] };
+    }
+
+    const sanitized = sanitizeErrorMessage(error.message);
+    console.warn(`⚠️  template.json could not be processed: ${sanitized}`);
+    if (logger) {
+      await logger.logError(error, {
+        operation: 'template_metadata_error',
+        templatePath
+      });
+    }
+    return { handoffSteps: [] };
   }
 }
 
