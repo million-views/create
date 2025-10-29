@@ -581,8 +581,8 @@ export function validateOptionsParameter(options) {
   // Parse comma-separated option names
   const optionList = trimmedOptions.split(',').map(f => f.trim()).filter(f => f.length > 0);
   
-  // Regex validation for option names (alphanumeric, hyphens, underscores)
-  const validOptionPattern = /^[a-zA-Z0-9_-]+$/;
+  // Regex validation for option tokens
+  const validOptionPattern = /^[a-zA-Z0-9_-]+(?:=[a-zA-Z0-9_-]+(?:\+[a-zA-Z0-9_-]+)*)?$/;
   
   for (const option of optionList) {
     if (!validOptionPattern.test(option)) {
@@ -593,9 +593,9 @@ export function validateOptionsParameter(options) {
     }
     
     // Check option name length
-    if (option.length > 50) {
+    if (option.length > 200) {
       throw new ValidationError(
-        `Option name too long: "${option}". Maximum 50 characters allowed`,
+        `Option token too long: "${option}". Maximum 200 characters allowed`,
         'options'
       );
     }
@@ -657,6 +657,359 @@ export function validateSupportedOptionsMetadata(options) {
   return normalized;
 }
 
+/**
+ * Validate authoring mode string
+ * @param {any} mode
+ * @returns {'wysiwyg'|'composable'}
+ */
+export function validateAuthoringMode(mode) {
+  if (mode === undefined || mode === null) {
+    return 'wysiwyg';
+  }
+
+  if (typeof mode !== 'string') {
+    throw new ValidationError('setup.authoringMode must be a string', 'authoringMode');
+  }
+
+  const normalized = mode.trim().toLowerCase();
+  if (normalized === '') {
+    return 'wysiwyg';
+  }
+
+  const allowed = ['wysiwyg', 'composable'];
+  if (!allowed.includes(normalized)) {
+    throw new ValidationError(
+      `setup.authoringMode must be one of: ${allowed.join(', ')}`,
+      'authoringMode'
+    );
+  }
+
+  return normalized;
+}
+
+/**
+ * Validate the author assets directory name.
+ * @param {any} value
+ * @returns {string}
+ */
+export function validateAuthorAssetsDir(value) {
+  const DEFAULT_DIR = '__scaffold__';
+
+  if (value === undefined || value === null) {
+    return DEFAULT_DIR;
+  }
+
+  if (typeof value !== 'string') {
+    throw new ValidationError('setup.authorAssetsDir must be a string', 'authorAssetsDir');
+  }
+
+  const trimmed = value.trim();
+  if (trimmed === '') {
+    return DEFAULT_DIR;
+  }
+
+  if (trimmed.length > 80) {
+    throw new ValidationError('setup.authorAssetsDir must be 80 characters or fewer', 'authorAssetsDir');
+  }
+
+  if (trimmed.includes('/') || trimmed.includes('\\')) {
+    throw new ValidationError('setup.authorAssetsDir cannot contain path separators', 'authorAssetsDir');
+  }
+
+  if (!/^[A-Za-z0-9._-]+$/.test(trimmed)) {
+    throw new ValidationError(
+      'setup.authorAssetsDir may contain only letters, numbers, ".", "-", and "_"',
+      'authorAssetsDir'
+    );
+  }
+
+  return trimmed;
+}
+
+/**
+ * Validate dimensions metadata
+ * @param {any} dimensions
+ * @returns {Record<string, object>}
+ */
+export function validateDimensionsMetadata(dimensions) {
+  if (dimensions === undefined || dimensions === null) {
+    return {};
+  }
+
+  if (typeof dimensions !== 'object' || Array.isArray(dimensions)) {
+    throw new ValidationError('setup.dimensions must be an object', 'dimensions');
+  }
+
+  const normalized = {};
+  const dimensionNamePattern = /^[a-z][a-z0-9_-]{0,49}$/;
+  const valuePattern = /^[a-zA-Z0-9_-]+$/;
+
+  for (const [name, rawDefinition] of Object.entries(dimensions)) {
+    if (!dimensionNamePattern.test(name)) {
+      throw new ValidationError(
+        `Invalid dimension name "${name}". Dimension names must start with a letter and contain only letters, numbers, hyphens, or underscores (max 50 characters).`,
+        'dimensions'
+      );
+    }
+
+    if (typeof rawDefinition !== 'object' || rawDefinition === null || Array.isArray(rawDefinition)) {
+      throw new ValidationError(
+        `Dimension "${name}" must be an object`,
+        'dimensions'
+      );
+    }
+
+    const type = rawDefinition.type === 'multi' ? 'multi' : rawDefinition.type === 'single' ? 'single' : null;
+    if (!type) {
+      throw new ValidationError(
+        `Dimension "${name}" must declare type \"single\" or \"multi\"`,
+        'dimensions'
+      );
+    }
+
+    if (!Array.isArray(rawDefinition.values) || rawDefinition.values.length === 0) {
+      throw new ValidationError(
+        `Dimension "${name}" must declare a non-empty values array`,
+        'dimensions'
+      );
+    }
+
+    const values = [];
+    const seenValues = new Set();
+    for (const rawValue of rawDefinition.values) {
+      if (typeof rawValue !== 'string') {
+        throw new ValidationError(
+          `Dimension "${name}" values must be strings`,
+          'dimensions'
+        );
+      }
+      const trimmed = rawValue.trim();
+      if (!trimmed) {
+        throw new ValidationError(
+          `Dimension "${name}" values cannot be empty`,
+          'dimensions'
+        );
+      }
+      if (!valuePattern.test(trimmed)) {
+        throw new ValidationError(
+          `Dimension "${name}" has invalid value "${rawValue}". Values must contain only letters, numbers, hyphens, or underscores`,
+          'dimensions'
+        );
+      }
+      if (trimmed.length > 50) {
+        throw new ValidationError(
+          `Dimension "${name}" value "${trimmed}" exceeds 50 characters`,
+          'dimensions'
+        );
+      }
+      if (!seenValues.has(trimmed)) {
+        seenValues.add(trimmed);
+        values.push(trimmed);
+      }
+    }
+
+    let defaultValue = rawDefinition.default ?? (type === 'single' ? null : []);
+
+    if (type === 'single') {
+      if (defaultValue !== null) {
+        if (typeof defaultValue !== 'string') {
+          throw new ValidationError(
+            `Dimension "${name}" default must be a string or null`,
+            'dimensions'
+          );
+        }
+        const normalizedDefault = defaultValue.trim();
+        if (normalizedDefault && !values.includes(normalizedDefault)) {
+          throw new ValidationError(
+            `Dimension "${name}" default "${normalizedDefault}" must be one of the declared values`,
+            'dimensions'
+          );
+        }
+        defaultValue = normalizedDefault || null;
+      }
+    } else {
+      if (!Array.isArray(defaultValue)) {
+        defaultValue = [];
+      }
+      const multiDefaults = [];
+      for (const rawDefault of defaultValue) {
+        if (typeof rawDefault !== 'string') {
+          throw new ValidationError(
+            `Dimension "${name}" multi default entries must be strings`,
+            'dimensions'
+          );
+        }
+        const trimmedDefault = rawDefault.trim();
+        if (!values.includes(trimmedDefault)) {
+          throw new ValidationError(
+            `Dimension "${name}" default value "${trimmedDefault}" must be one of the declared values`,
+            'dimensions'
+          );
+        }
+        if (!multiDefaults.includes(trimmedDefault)) {
+          multiDefaults.push(trimmedDefault);
+        }
+      }
+      defaultValue = multiDefaults;
+    }
+
+    const normalizedRequires = {};
+    if (rawDefinition.requires !== undefined) {
+      if (typeof rawDefinition.requires !== 'object' || rawDefinition.requires === null || Array.isArray(rawDefinition.requires)) {
+        throw new ValidationError(
+          `Dimension "${name}" requires must be an object`,
+          'dimensions'
+        );
+      }
+      for (const [value, deps] of Object.entries(rawDefinition.requires)) {
+        if (!values.includes(value)) {
+          throw new ValidationError(
+            `Dimension "${name}" requires references unknown value "${value}"`,
+            'dimensions'
+          );
+        }
+        if (!Array.isArray(deps) || deps.length === 0) {
+          throw new ValidationError(
+            `Dimension "${name}" requires entry for "${value}" must be a non-empty array`,
+            'dimensions'
+          );
+        }
+        const normalizedDeps = [];
+        for (const dep of deps) {
+          if (typeof dep !== 'string') {
+            throw new ValidationError(
+              `Dimension "${name}" requires for "${value}" must be strings`,
+              'dimensions'
+            );
+          }
+          const trimmedDep = dep.trim();
+          if (!values.includes(trimmedDep)) {
+            throw new ValidationError(
+              `Dimension "${name}" requires for "${value}" references unknown value "${trimmedDep}"`,
+              'dimensions'
+            );
+          }
+          if (!normalizedDeps.includes(trimmedDep)) {
+            normalizedDeps.push(trimmedDep);
+          }
+        }
+        normalizedRequires[value] = normalizedDeps;
+      }
+    }
+
+    const normalizedConflicts = {};
+    if (rawDefinition.conflicts !== undefined) {
+      if (typeof rawDefinition.conflicts !== 'object' || rawDefinition.conflicts === null || Array.isArray(rawDefinition.conflicts)) {
+        throw new ValidationError(
+          `Dimension "${name}" conflicts must be an object`,
+          'dimensions'
+        );
+      }
+      for (const [value, conflicts] of Object.entries(rawDefinition.conflicts)) {
+        if (!values.includes(value)) {
+          throw new ValidationError(
+            `Dimension "${name}" conflicts references unknown value "${value}"`,
+            'dimensions'
+          );
+        }
+        if (!Array.isArray(conflicts) || conflicts.length === 0) {
+          throw new ValidationError(
+            `Dimension "${name}" conflicts entry for "${value}" must be a non-empty array`,
+            'dimensions'
+          );
+        }
+        const normalizedConflictsForValue = [];
+        for (const conflict of conflicts) {
+          if (typeof conflict !== 'string') {
+            throw new ValidationError(
+              `Dimension "${name}" conflicts for "${value}" must be strings`,
+              'dimensions'
+            );
+          }
+          const trimmedConflict = conflict.trim();
+          if (!values.includes(trimmedConflict)) {
+            throw new ValidationError(
+              `Dimension "${name}" conflicts for "${value}" references unknown value "${trimmedConflict}"`,
+              'dimensions'
+            );
+          }
+          if (trimmedConflict === value) {
+            throw new ValidationError(
+              `Dimension "${name}" conflicts for "${value}" cannot reference itself`,
+              'dimensions'
+            );
+          }
+          if (!normalizedConflictsForValue.includes(trimmedConflict)) {
+            normalizedConflictsForValue.push(trimmedConflict);
+          }
+        }
+        normalizedConflicts[value] = normalizedConflictsForValue;
+      }
+    }
+
+    let policy = 'strict';
+    if (rawDefinition.policy !== undefined) {
+      if (typeof rawDefinition.policy !== 'string') {
+        throw new ValidationError(
+          `Dimension "${name}" policy must be a string`,
+          'dimensions'
+        );
+      }
+      const normalizedPolicy = rawDefinition.policy.trim().toLowerCase();
+      if (!['strict', 'warn'].includes(normalizedPolicy)) {
+        throw new ValidationError(
+          `Dimension "${name}" policy must be "strict" or "warn"`,
+          'dimensions'
+        );
+      }
+      policy = normalizedPolicy;
+    }
+
+    const builtIn = Boolean(rawDefinition.builtIn);
+    let description = null;
+    if (typeof rawDefinition.description === 'string') {
+      const trimmedDescription = rawDefinition.description.trim();
+      description = trimmedDescription.length > 0 ? trimmedDescription : null;
+    }
+
+    const frozenValues = Object.freeze([...values]);
+    const frozenDefault =
+      type === 'single'
+        ? defaultValue
+        : Object.freeze([...(defaultValue ?? [])]);
+
+    const frozenRequires = Object.freeze(
+      Object.fromEntries(
+        Object.entries(normalizedRequires).map(([key, deps]) => [
+          key,
+          Object.freeze([...deps]),
+        ])
+      )
+    );
+
+    const frozenConflicts = Object.freeze(
+      Object.fromEntries(
+        Object.entries(normalizedConflicts).map(([key, deps]) => [
+          key,
+          Object.freeze([...deps]),
+        ])
+      )
+    );
+
+    normalized[name] = Object.freeze({
+      type,
+      values: frozenValues,
+      default: frozenDefault,
+      requires: frozenRequires,
+      conflicts: frozenConflicts,
+      policy,
+      builtIn,
+      description,
+    });
+  }
+
+  return normalized;
+}
 /**
  * Validate log file path parameter
  * @param {string|null|undefined} logFile - Log file path parameter

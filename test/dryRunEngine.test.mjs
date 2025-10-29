@@ -7,6 +7,7 @@ import os from 'os';
 import { DryRunEngine } from '../bin/dryRunEngine.mjs';
 import { CacheManager } from '../bin/cacheManager.mjs';
 import { Logger } from '../bin/logger.mjs';
+import { createTemplateIgnoreSet } from '../bin/utils/templateIgnore.mjs';
 
 /**
  * Test suite for Dry Run Engine module
@@ -114,7 +115,9 @@ class DryRunEngineTestSuite {
       await fs.writeFile(path.join(templateDir, 'src/index.js'), 'console.log("Hello");');
       await fs.writeFile(path.join(templateDir, '_setup.mjs'), 'export default function() {}');
       await fs.writeFile(path.join(templateDir, '.template-undo.json'), '{}');
-      
+      await fs.mkdir(path.join(templateDir, '__scaffold__', 'snippets'), { recursive: true });
+      await fs.writeFile(path.join(templateDir, '__scaffold__', 'snippets', 'note.md'), 'scaffold note');
+     
       // Create cache metadata
       const metadata = {
         repoUrl,
@@ -176,7 +179,8 @@ class DryRunEngineTestSuite {
       
       const projectDir = path.join(tempCacheDir, 'my-project');
       
-      const operations = await dryRunEngine.previewFileCopy(templateDir, projectDir);
+      const ignoreSet = createTemplateIgnoreSet({ authorAssetsDir: '__scaffold__' });
+      const operations = await dryRunEngine.previewFileCopy(templateDir, projectDir, templateDir, ignoreSet);
       
       assert(Array.isArray(operations), 'Should return operations array');
       assert(operations.length >= 4, 'Should have operations for files and directories');
@@ -198,6 +202,13 @@ class DryRunEngineTestSuite {
         return relative.includes('.template-undo.json') || source.endsWith('.template-undo.json');
       });
       assert.strictEqual(undoOps.length, 0, 'Undo artifact should not appear in file copy operations');
+
+      const scaffoldOps = operations.filter(op => {
+        const relative = op.relative || '';
+        const source = op.source || '';
+        return relative.startsWith('__scaffold__/') || source.includes('__scaffold__');
+      });
+      assert.strictEqual(scaffoldOps.length, 0, '__scaffold__ assets should be excluded from copy preview');
       dirOps.forEach(op => {
         assert(op.path || op.destination, 'Directory operation should include destination path');
         const destPath = op.path || op.destination;
@@ -685,9 +696,10 @@ class DryRunEngineTestSuite {
       
       const nonExistentTemplate = path.join(tempCacheDir, 'does-not-exist');
       const projectDir = path.join(tempCacheDir, 'project');
+      const ignoreSet = createTemplateIgnoreSet();
       
       try {
-        await dryRunEngine.previewFileCopy(nonExistentTemplate, projectDir);
+        await dryRunEngine.previewFileCopy(nonExistentTemplate, projectDir, nonExistentTemplate, ignoreSet);
         assert.fail('Should throw error for missing template directory');
       } catch (error) {
         assert(error.message.includes('not found') || error.message.includes('ENOENT'), 

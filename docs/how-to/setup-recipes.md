@@ -10,17 +10,25 @@ related_docs:
   - "../creating-templates.md"
   - "../reference/environment.md"
   - "../tutorial/first-template.md"
-last_updated: "2024-11-05"
+last_updated: "2024-11-07"
 ---
 
 # Setup Script Recipes
 
-Use these copy-ready snippets to solve common setup tasks without reaching for third-party tooling.
+Use these copy-ready snippets to solve common setup tasks without reaching for third-party tooling. Each recipe shows the **input**, the **setup code**, and the resulting **output** so you know exactly what to expect.
 
 ## Add lint and test scripts
 
-Create or update entries inside `package.json` with dot-path helpers:
+**Input (`package.json`)**
+```json
+{
+  "name": "{{PROJECT_NAME}}",
+  "type": "module",
+  "scripts": {}
+}
+```
 
+**Code**
 ```javascript
 export default async function setup({ ctx, tools }) {
   await tools.json.set('package.json', 'scripts.lint', 'npm run format && npm run typecheck');
@@ -29,10 +37,27 @@ export default async function setup({ ctx, tools }) {
 }
 ```
 
+**Output (`package.json`)**
+```json
+{
+  "name": "{{PROJECT_NAME}}",
+  "type": "module",
+  "scripts": {
+    "lint": "npm run format && npm run typecheck",
+    "test": "node --test"
+  },
+  "keywords": ["{{PROJECT_NAME}}"]
+}
+```
+
 ## Insert a block after a marker
 
-Ensure a README section exists immediately after a heading:
+**Input (`README.md`)**
+```markdown
+# {{PROJECT_NAME}}
+```
 
+**Code**
 ```javascript
 await tools.text.ensureBlock({
   file: 'README.md',
@@ -45,10 +70,24 @@ await tools.text.ensureBlock({
 });
 ```
 
+**Output (`README.md`)**
+```markdown
+# {{PROJECT_NAME}}
+## Getting Started
+- npm install
+- npm run dev
+```
+
 ## Replace content between markers
 
-Keep documentation slots up to date without clobbering the markers:
+**Input (`docs/extras.md`)**
+```markdown
+<!-- integrations:start -->
+Old content
+<!-- integrations:end -->
+```
 
+**Code**
 ```javascript
 await tools.text.replaceBetween({
   file: 'docs/extras.md',
@@ -61,10 +100,23 @@ await tools.text.replaceBetween({
 });
 ```
 
+**Output (`docs/extras.md`)**
+```markdown
+<!-- integrations:start -->
+Project: {{PROJECT_NAME}}
+Generated: 2024-11-07T00:00:00.000Z
+<!-- integrations:end -->
+```
+> Timestamp shown for illustration; actual output reflects the current date.
+
 ## Append scaffold-specific notes
 
-Add a section only once, even if the setup script runs multiple times:
+**Input (`NOTES.md`)**
+```markdown
+# Internal Notes
+```
 
+**Code**
 ```javascript
 await tools.text.appendLines({
   file: 'NOTES.md',
@@ -75,29 +127,70 @@ await tools.text.appendLines({
 });
 ```
 
-## Copy starter assets
-
-Copy a project-local template directory into the final scaffold:
-
-```javascript
-await tools.files.copyTemplateDir('templates/docker', 'infra/docker', { overwrite: false });
+**Output (`NOTES.md`)**
+```markdown
+# Internal Notes
+## Scaffold Notes
+Created by @m5nv/create-scaffold for {{PROJECT_NAME}}
 ```
 
-## Merge feature options into documentation
+## Copy author assets into the project
 
-Reflect selected options inside README bullets:
+**Input (staged during scaffold)**
+```
+__scaffold__/
+└── infra/
+    └── docker-compose.yml
+```
 
+**Code**
+```javascript
+await tools.files.copyTemplateDir('__scaffold__/infra', 'infra', { overwrite: false });
+```
+
+**Output (project directory)**
+```
+infra/
+└── docker-compose.yml
+```
+> The `__scaffold__/` directory itself is removed after setup completes, so only the copied files remain in the generated project.
+
+## Summarize selected capabilities
+
+**Input (`template.json` excerpt)**
+```json
+{
+  "setup": {
+    "dimensions": {
+      "capabilities": {
+        "type": "multi",
+        "values": ["auth", "api", "logging"]
+      }
+    }
+  }
+}
+```
+
+**Code**
 ```javascript
 const enabled = [];
-await tools.options.when('auth', () => enabled.push('Authentication'));
-await tools.options.when('api', () => enabled.push('API'));
+if (tools.options.in('capabilities', 'auth')) enabled.push('Authentication');
+if (tools.options.in('capabilities', 'api')) enabled.push('API');
+if (tools.options.in('capabilities', 'logging')) enabled.push('Structured logging');
 
-if (enabled.length) {
+if (enabled.length > 0) {
   await tools.text.appendLines({
     file: 'README.md',
     lines: ['## Enabled Features', ...enabled.map(item => `- ${item}`)]
   });
 }
+```
+
+**Output (`README.md`)**
+```markdown
+## Enabled Features
+- Authentication
+- Structured logging
 ```
 
 Use these recipes as building blocks—compose them to create richer scaffolding behavior tailored to your team.

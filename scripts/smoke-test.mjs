@@ -352,14 +352,14 @@ export default async function setup({ ctx, tools }) {
     const result = await SmokeTestUtils.execCLI([
       'smoke-test-error-project',
       '--from-template', 'basic',
-      '--repo', 'definitely-does-not-exist/no-such-repo'
-    ], { timeout: 15000 });
+      '--repo', './nonexistent-smoke-repo'
+    ]);
     
     if (result.exitCode !== 1) {
       throw new Error(`Expected error exit code, got ${result.exitCode}`);
     }
     
-    if (!result.stderr.includes('not found')) {
+    if (!result.stderr.includes('does not exist')) {
       throw new Error('Error message not appropriate');
     }
     

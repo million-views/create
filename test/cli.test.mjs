@@ -406,8 +406,8 @@ runner.test('Git installation is verified', async () => {
   const result = await TestUtils.execCLI([
     'test-project-git', 
     '--from-template', 'basic',
-    '--repo', 'nonexistent/repo'
-  ], { timeout: 10000 });
+    '--repo', './nonexistent-git-check-repo'
+  ]);
   
   // Should fail at repository validation, not git check
   if (result.exitCode !== 1) {
@@ -444,35 +444,42 @@ runner.test('Existing directory conflict is detected', async () => {
 
 // Test 11: Repository accessibility validation (nonexistent repo)
 runner.test('Nonexistent repository is detected', async () => {
+  const missingRepoPath = path.join(os.tmpdir(), `missing-repo-${Date.now()}`);
+
   const result = await TestUtils.execCLI([
     'test-project-nonexistent', 
     '--from-template', 'basic',
-    '--repo', 'definitely-does-not-exist/no-such-repo'
-  ], { timeout: 15000 });
-  
+    '--repo', missingRepoPath
+  ]);
+
   if (result.exitCode !== 1) {
     throw new Error(`Expected exit code 1, got ${result.exitCode}`);
   }
-  
-  if (!result.stderr.includes('not found') && !result.stderr.includes('Repository')) {
+
+  if (!result.stderr.includes('does not exist')) {
     throw new Error('Should detect nonexistent repository');
   }
 });
 
 // Test 12: Branch validation (nonexistent branch)
 runner.test('Nonexistent branch is detected', async () => {
+  const mockRepoPath = await runner.addTempPath(await TestUtils.createTempDir('-branch-repo'));
+  const projectParent = await runner.addTempPath(await TestUtils.createTempDir('-branch-project'));
+
+  await TestUtils.createMockRepo(mockRepoPath, ['basic']);
+
   const result = await TestUtils.execCLI([
     'test-project-branch', 
     '--from-template', 'basic',
-    '--repo', 'million-views/templates', // Use real repo for branch test
+    '--repo', mockRepoPath,
     '--branch', 'definitely-does-not-exist-branch-name'
-  ], { timeout: 15000 });
-  
+  ], { cwd: projectParent });
+
   if (result.exitCode !== 1) {
     throw new Error(`Expected exit code 1, got ${result.exitCode}`);
   }
-  
-  if (!result.stderr.includes('Branch') && !result.stderr.includes('not found')) {
+
+  if (!result.stderr.includes('Branch "definitely-does-not-exist-branch-name" not found')) {
     throw new Error('Should detect nonexistent branch');
   }
 });
@@ -740,11 +747,15 @@ runner.test('Temporary directories are cleaned up on failure', async () => {
   const result = await TestUtils.execCLI([
     'test-cleanup-failure',
     '--from-template', 'basic',
-    '--repo', 'nonexistent/repo'
+    '--repo', 'invalid repo'
   ], { timeout: 10000 });
-  
+
   if (result.exitCode !== 1) {
     throw new Error(`Expected exit code 1, got ${result.exitCode}`);
+  }
+
+  if (!result.stderr.includes('Repository format')) {
+    throw new Error('Should reject invalid repository identifiers');
   }
   
   // Check that no new temp directories were left behind
@@ -825,7 +836,7 @@ runner.test('System handles argument validation properly', async () => {
   const result = await TestUtils.execCLI([
     'test-project-validation',
     '--from-template', 'nonexistent-template',
-    '--repo', 'nonexistent/repo'
+    '--repo', 'invalid repo'
   ]);
   
   // This test verifies that the validation system works end-to-end
@@ -835,7 +846,7 @@ runner.test('System handles argument validation properly', async () => {
   }
   
   // Should fail due to repository validation
-  if (!result.stderr.includes('not found')) {
+  if (!result.stderr.includes('Repository format')) {
     throw new Error('Should fail at repository validation stage');
   }
 });
@@ -1242,7 +1253,7 @@ runner.test('Setup script receives Environment_Object with correct properties', 
   
   const setupScript = `
 export default async function setup({ ctx, tools }) {
-  const requiredProps = ['projectDir', 'projectName', 'cwd', 'ide', 'options'];
+  const requiredProps = ['projectDir', 'projectName', 'cwd', 'ide', 'authoringMode', 'options'];
   const missingProps = requiredProps.filter(prop => !(prop in ctx));
   
   if (missingProps.length > 0) {
@@ -1261,8 +1272,11 @@ export default async function setup({ ctx, tools }) {
   if (ctx.ide !== null && typeof ctx.ide !== 'string') {
     throw new Error('ctx.ide must be null or string');
   }
-  if (!Array.isArray(ctx.options)) {
-    throw new Error('ctx.options must be an array');
+  if (!ctx.options || !Array.isArray(ctx.options.raw)) {
+    throw new Error('ctx.options.raw must be an array');
+  }
+  if (!ctx.options.byDimension || typeof ctx.options.byDimension !== 'object') {
+    throw new Error('ctx.options.byDimension must be an object');
   }
   
   await tools.json.merge('env-validation.json', {
@@ -1270,6 +1284,7 @@ export default async function setup({ ctx, tools }) {
     projectName: ctx.projectName,
     cwd: ctx.cwd,
     ide: ctx.ide,
+    authoringMode: ctx.authoringMode,
     options: ctx.options
   });
 }
@@ -1308,11 +1323,18 @@ export default async function setup({ ctx, tools }) {
     if (validationData.ide !== null) {
       throw new Error('env.ide should be null when not specified');
     }
-    
-    if (!Array.isArray(validationData.options) || validationData.options.length !== 0) {
-      throw new Error('env.options should be empty array when not specified');
+
+    if (validationData.authoringMode !== 'wysiwyg') {
+      throw new Error('env.authoringMode should default to "wysiwyg"');
     }
     
+    if (!validationData.options || !Array.isArray(validationData.options.raw) || validationData.options.raw.length !== 0) {
+      throw new Error('env.options.raw should be empty array when not specified');
+    }
+    if (!validationData.options.byDimension || Object.keys(validationData.options.byDimension).length !== 0) {
+      throw new Error('env.options.byDimension should be empty object when not specified');
+    }
+
   } catch (error) {
     if (error.code === 'ENOENT') {
       throw new Error('Environment_Object validation marker not found - setup script validation failed');
@@ -1444,22 +1466,17 @@ runner.test('Warns when options are unsupported by template metadata', async () 
     '--options', 'api,unknown'
   ], { cwd: projectParent });
 
-  if (result.exitCode !== 0) {
-    throw new Error(`Expected exit code 0, got ${result.exitCode}. Stderr: ${result.stderr}`);
+  if (result.exitCode !== 1) {
+    throw new Error(`Expected exit code 1, got ${result.exitCode}. Stderr: ${result.stderr}`);
   }
 
-  if (!result.stderr.includes('does not declare support for: unknown')) {
-    throw new Error('Should warn about unsupported options');
+  if (!result.stderr.includes('does not support')) {
+    throw new Error('Should report unsupported option failure');
   }
 
-  const createdProjectPath = path.join(projectParent, projectName);
-  runner.tempPaths.push(createdProjectPath);
-
-  const apiFile = path.join(createdProjectPath, 'src', 'api', 'index.js');
-  try {
-    await fs.access(apiFile);
-  } catch {
-    throw new Error('Supported option content was not generated');
+  const projectExists = await fs.access(path.join(projectParent, projectName)).then(() => true).catch(() => false);
+  if (projectExists) {
+    throw new Error('Project directory should not be created when options are invalid');
   }
 });
 
@@ -1525,8 +1542,7 @@ export default async function setup(ctx) {
     projectName,
     '--from-template', 'malformed-test',
     '--repo', mockRepoPath,
-    '--ide', 'cursor',
-    '--options', 'testing'
+    '--ide', 'cursor'
   ], { cwd: path.dirname(projectPath) });
   
   // Should succeed with warning (setup script failure is handled gracefully)
@@ -1645,14 +1661,14 @@ runner.test('Command patterns validate correct usage', async () => {
   const validResult = await TestUtils.execCLI([
     'test-pattern-project',
     '--from-template', 'basic',
-    '--repo', 'nonexistent/repo'
+    '--repo', 'invalid repo'
   ]);
-  
+
   if (validResult.exitCode !== 1) {
     throw new Error('Valid command pattern should reach repository validation');
   }
-  
-  if (!validResult.stderr.includes('not found') && !validResult.stderr.includes('Repository')) {
+
+  if (!validResult.stderr.includes('Repository format')) {
     throw new Error('Should fail at repository validation, not argument parsing');
   }
   
@@ -1724,7 +1740,45 @@ runner.test('Error messages reference correct package name', async () => {
   }
 });
 
-// Test 47: Package name validation in output
+// Test 47: Author asset staging makes snippets available but removes internal directory
+runner.test('Author assets are staged for setup and removed afterwards', async () => {
+  const mockRepoPath = await runner.addTempPath(await TestUtils.createTempDir('-author-assets-repo'));
+  await TestUtils.createMockRepo(mockRepoPath, ['author-assets-template']);
+
+  const workingDir = await runner.addTempPath(await TestUtils.createTempDir('-author-assets-project'));
+  const projectName = 'author-assets-output';
+
+  const result = await TestUtils.execCLI([
+    projectName,
+    '--repo', mockRepoPath,
+    '--from-template', 'author-assets-template',
+    '--no-cache'
+  ], { cwd: workingDir });
+
+  if (result.exitCode !== 0) {
+    throw new Error(`CLI should succeed: ${result.stderr || result.stdout}`);
+  }
+
+  const projectPath = path.join(workingDir, projectName);
+  runner.tempPaths.push(projectPath);
+
+  const snippetPath = path.join(projectPath, 'snippets', 'message.txt');
+  const snippet = await fs.readFile(snippetPath, 'utf8');
+  if (!snippet.includes('Author asset content')) {
+    throw new Error('Setup script should copy author asset snippets into the project');
+  }
+
+  try {
+    await fs.access(path.join(projectPath, '__scaffold__'));
+    throw new Error('__scaffold__ directory should be removed after setup');
+  } catch (error) {
+    if (error.code !== 'ENOENT') {
+      throw error;
+    }
+  }
+});
+
+// Test 48: Package name validation in output
 runner.test('Package name validation in success output', async () => {
   const mockRepoPath = await runner.addTempPath(await TestUtils.createTempDir('-output-validation-repo'));
   const projectPath = await runner.addTempPath(await TestUtils.createTempDir('-output-validation-project'));

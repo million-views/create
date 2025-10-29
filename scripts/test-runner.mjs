@@ -114,6 +114,12 @@ class TestRunner {
         homeSuffix: 'environment'
       },
       {
+        name: 'Options Processor Tests',
+        command: './test/optionsProcessor.test.mjs',
+        description: 'Normalization of CLI options against template dimensions',
+        homeSuffix: 'options'
+      },
+      {
         name: 'Setup Runtime Tests',
         command: './test/setupRuntime.test.mjs',
         description: 'Sandbox and tools runtime verification',

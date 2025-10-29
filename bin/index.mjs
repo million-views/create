@@ -3,12 +3,11 @@
 import fs from 'fs/promises';
 import path from 'path';
 import { parseArguments, validateArguments, generateHelpText, ArgumentError } from './argumentParser.mjs';
-import { 
-  validateAllInputs, 
-  sanitizeErrorMessage, 
+import {
+  validateAllInputs,
+  sanitizeErrorMessage,
   createSecureTempDir,
   ValidationError,
-  validateSupportedOptionsMetadata
 } from './security.mjs';
 import { 
   runAllPreflightChecks,
@@ -22,11 +21,14 @@ import { DryRunEngine } from './dryRunEngine.mjs';
 import { execCommand } from './utils/commandUtils.mjs';
 import { ensureDirectory, safeCleanup, validateDirectoryExists } from './utils/fsUtils.mjs';
 import { loadSetupScript, createSetupTools, SetupSandboxError } from './setupRuntime.mjs';
-import { shouldIgnoreTemplateEntry } from './utils/templateIgnore.mjs';
+import { shouldIgnoreTemplateEntry, createTemplateIgnoreSet } from './utils/templateIgnore.mjs';
+import { loadTemplateMetadataFromPath } from './templateMetadata.mjs';
+import { normalizeOptions } from './optionsProcessor.mjs';
 
 // Default configuration
 const DEFAULT_REPO = 'million-views/templates';
 const SETUP_SCRIPT = '_setup.mjs';
+const DEFAULT_AUTHOR_ASSETS_DIR = '__scaffold__';
 
 /**
  * Main function to orchestrate the scaffolding process
@@ -143,7 +145,7 @@ async function main() {
 
         console.log(previewOutput);
 
-        const treePreview = await dryRunEngine.generateTreePreview(preview.templatePath);
+        const treePreview = await dryRunEngine.generateTreePreview(preview.templatePath, preview.ignoreSet);
         if (treePreview.available && treePreview.output) {
           console.log('🌲 Template structure (depth 2):');
           console.log(`${treePreview.output}\n`);
@@ -228,28 +230,50 @@ async function main() {
     // Verify template exists
     const templatePath = path.join(repositoryPath, templateName);
     await verifyTemplate(templatePath, templateName);
-    const { handoffSteps } = await loadTemplateMetadata(templatePath, logger);
+    const metadata = await loadTemplateMetadata(templatePath, logger);
 
-    const supportedOptions = await readTemplateSupportedOptions(templatePath);
-    if (supportedOptions.length > 0) {
-      const unsupported = options.filter(option => !supportedOptions.includes(option));
-      if (unsupported.length > 0) {
-        console.warn(
-          `⚠️  Template "${templateName}" does not declare support for: ${unsupported.join(', ')}`
-        );
-        if (logger) {
-          await logger.logOperation('template_option_warning', {
-            template: templateName,
-            unsupported,
-            supportedOptions
-          });
-        }
-      }
+    const normalizedOptionResult = normalizeOptions({
+      rawTokens: options,
+      dimensions: metadata.dimensions
+    });
+
+    if (normalizedOptionResult.unknown.length > 0) {
+      throw new ValidationError(
+        `Template "${templateName}" does not support: ${normalizedOptionResult.unknown.join(', ')}`,
+        'options'
+      );
     }
 
-    // Copy template to project directory
-    await copyTemplate(templatePath, projectDirectory, logger);
+    for (const warning of normalizedOptionResult.warnings) {
+      console.warn(`⚠️  ${warning}`);
+    }
+
+    if (logger && normalizedOptionResult.warnings.length > 0) {
+      await logger.logOperation('template_option_warnings', {
+        template: templateName,
+        warnings: normalizedOptionResult.warnings
+      });
+    }
+
+    const optionsByDimension = { ...normalizedOptionResult.byDimension };
+    if (ide && metadata.dimensions.ide && metadata.dimensions.ide.type === 'single') {
+      optionsByDimension.ide = ide;
+    }
+
+    const optionsPayload = {
+      raw: options,
+      byDimension: optionsByDimension
+    };
+
+    // Copy template to project directory (skip author assets + internal artifacts)
+    const ignoreSet = createTemplateIgnoreSet({
+      authorAssetsDir: metadata.authorAssetsDir ?? DEFAULT_AUTHOR_ASSETS_DIR
+    });
+
+    await copyTemplate(templatePath, projectDirectory, logger, { ignoreSet });
     projectCreated = true;
+
+    await stageAuthorAssets(templatePath, projectDirectory, metadata.authorAssetsDir, logger);
 
     // Clean up temp directory after successful copy
     if (cleanupRepository) {
@@ -259,14 +283,45 @@ async function main() {
     }
 
     // Execute setup script if it exists
-    await executeSetupScript(projectDirectory, projectDirectory, ide, options, logger);
+    let setupError = null;
+    try {
+      await executeSetupScript({
+        projectDirectory,
+        projectName: projectDirectory,
+        ide,
+        options: optionsPayload,
+        authoringMode: metadata.authoringMode,
+        dimensions: metadata.dimensions,
+        logger
+      });
+    } catch (error) {
+      setupError = error;
+    }
+
+    try {
+      await cleanupAuthorAssets(projectDirectory, metadata.authorAssetsDir, logger);
+    } catch (error) {
+      const sanitized = sanitizeErrorMessage(error.message);
+      console.warn(`⚠️  Failed to remove author asset directory: ${sanitized}`);
+      if (logger) {
+        await logger.logError(error, {
+          operation: 'author_assets_cleanup',
+          projectDirectory,
+          authorAssetsDir: metadata.authorAssetsDir ?? DEFAULT_AUTHOR_ASSETS_DIR
+        });
+      }
+    }
+
+    if (setupError) {
+      throw setupError;
+    }
 
     console.log('\n✅ Project created successfully!');
     console.log(`\n📂 Next steps:`);
     console.log(`  cd ${projectDirectory}`);
 
-    const resolvedHandoff = handoffSteps.length > 0
-      ? handoffSteps
+    const resolvedHandoff = metadata.handoffSteps.length > 0
+      ? metadata.handoffSteps
       : ['Review README.md for additional instructions'];
 
     for (const step of resolvedHandoff) {
@@ -364,37 +419,20 @@ async function ensureRepositoryCached(repoUrl, branchName, cacheManager, logger,
 }
 
 async function loadTemplateMetadata(templatePath, logger) {
-  const metadataPath = path.join(templatePath, 'template.json');
-
   try {
-    const raw = await fs.readFile(metadataPath, 'utf8');
-    const metadata = JSON.parse(raw);
-
-    const handoffSteps = Array.isArray(metadata.handoff)
-      ? metadata.handoff
-          .filter(step => typeof step === 'string')
-          .map(step => step.trim())
-          .filter(Boolean)
-      : [];
+    const metadata = await loadTemplateMetadataFromPath(templatePath);
 
     if (logger) {
       await logger.logOperation('template_metadata', {
         templatePath,
-        handoffCount: handoffSteps.length
+        handoffCount: metadata.handoffSteps.length,
+        authoringMode: metadata.authoringMode,
+        dimensions: Object.keys(metadata.dimensions)
       });
     }
 
-    return { handoffSteps };
+    return metadata;
   } catch (error) {
-    if (error.code === 'ENOENT') {
-      if (logger) {
-        await logger.logOperation('template_metadata_missing', {
-          templatePath
-        });
-      }
-      return { handoffSteps: [] };
-    }
-
     const sanitized = sanitizeErrorMessage(error.message);
     console.warn(`⚠️  template.json could not be processed: ${sanitized}`);
     if (logger) {
@@ -403,7 +441,14 @@ async function loadTemplateMetadata(templatePath, logger) {
         templatePath
       });
     }
-    return { handoffSteps: [] };
+    return {
+      raw: null,
+      authoringMode: 'wysiwyg',
+      authorAssetsDir: DEFAULT_AUTHOR_ASSETS_DIR,
+      dimensions: {},
+      handoffSteps: [],
+      supportedOptions: []
+    };
   }
 }
 
@@ -571,44 +616,9 @@ async function verifyTemplate(templatePath, templateName) {
 }
 
 /**
- * Read template-supported options from template.json metadata
- */
-async function readTemplateSupportedOptions(templatePath) {
-  const templateJsonPath = path.join(templatePath, 'template.json');
-
-  try {
-    const raw = await fs.readFile(templateJsonPath, 'utf8');
-    const data = JSON.parse(raw);
-
-    if (!data || !data.setup || data.setup.supportedOptions === undefined) {
-      return [];
-    }
-
-    return validateSupportedOptionsMetadata(data.setup.supportedOptions);
-  } catch (error) {
-    if (error.code === 'ENOENT') {
-      return [];
-    }
-
-    if (error instanceof SyntaxError) {
-      throw new Error(`template.json contains invalid JSON: ${error.message}`);
-    }
-
-    if (error instanceof ValidationError) {
-      throw new ValidationError(
-        `Invalid setup.supportedOptions metadata: ${error.message}`,
-        'supportedOptions'
-      );
-    }
-
-    throw error;
-  }
-}
-
-/**
  * Copy template files to project directory
  */
-async function copyTemplate(templatePath, projectDirectory, logger) {
+async function copyTemplate(templatePath, projectDirectory, logger, options = {}) {
   console.log('📋 Copying template files...');
 
   if (logger) {
@@ -623,7 +633,8 @@ async function copyTemplate(templatePath, projectDirectory, logger) {
     await ensureDirectory(projectDirectory, 0o755, 'project directory');
 
     // Copy all files from template to project directory
-    await copyRecursive(templatePath, projectDirectory, logger);
+    const ignoreSet = options.ignoreSet ?? createTemplateIgnoreSet();
+    await copyRecursive(templatePath, projectDirectory, logger, ignoreSet);
 
     // Remove .git directory if it exists in the copied template
     const gitDir = path.join(projectDirectory, '.git');
@@ -653,7 +664,7 @@ async function copyTemplate(templatePath, projectDirectory, logger) {
 /**
  * Recursively copy directory contents
  */
-async function copyRecursive(src, dest, logger) {
+async function copyRecursive(src, dest, logger, ignoreSet) {
   const entries = await fs.readdir(src, { withFileTypes: true });
 
   await ensureDirectory(dest, 0o755, 'destination directory');
@@ -662,12 +673,12 @@ async function copyRecursive(src, dest, logger) {
     const srcPath = path.join(src, entry.name);
     const destPath = path.join(dest, entry.name);
 
-    if (shouldIgnoreTemplateEntry(entry.name)) {
+    if (shouldIgnoreTemplateEntry(entry.name, ignoreSet)) {
       continue;
     }
 
     if (entry.isDirectory()) {
-      await copyRecursive(srcPath, destPath, logger);
+      await copyRecursive(srcPath, destPath, logger, ignoreSet);
     } else {
       await fs.copyFile(srcPath, destPath);
       
@@ -679,9 +690,76 @@ async function copyRecursive(src, dest, logger) {
 }
 
 /**
+ * Stage author-only assets inside the project directory so setup scripts can
+ * consume snippets before the directory is removed from the final scaffold.
+ */
+async function stageAuthorAssets(templatePath, projectDirectory, authorAssetsDir, logger) {
+  const normalizedDir = typeof authorAssetsDir === 'string' && authorAssetsDir.trim()
+    ? authorAssetsDir.trim()
+    : DEFAULT_AUTHOR_ASSETS_DIR;
+
+  const source = path.join(templatePath, normalizedDir);
+  let stats;
+  try {
+    stats = await fs.stat(source);
+  } catch (error) {
+    if (error.code === 'ENOENT') {
+      return;
+    }
+    throw error;
+  }
+
+  if (!stats.isDirectory()) {
+    return;
+  }
+
+  const destination = path.join(projectDirectory, normalizedDir);
+  await fs.cp(source, destination, {
+    recursive: true,
+    force: true,
+    filter: (src) => !shouldIgnoreTemplateEntry(path.basename(src))
+  });
+
+  if (logger) {
+    await logger.logOperation('author_assets_staged', {
+      templatePath,
+      projectDirectory,
+      authorAssetsDir: normalizedDir
+    });
+  }
+}
+
+/**
+ * Remove staged author assets after setup completes so the generated project
+ * remains clean.
+ */
+async function cleanupAuthorAssets(projectDirectory, authorAssetsDir, logger) {
+  const normalizedDir = typeof authorAssetsDir === 'string' && authorAssetsDir.trim()
+    ? authorAssetsDir.trim()
+    : DEFAULT_AUTHOR_ASSETS_DIR;
+
+  const target = path.join(projectDirectory, normalizedDir);
+  try {
+    await fs.rm(target, { recursive: true, force: true });
+  } catch (error) {
+    if (error.code === 'ENOENT') {
+      return;
+    }
+    throw error;
+  }
+
+  if (logger) {
+    await logger.logOperation('author_assets_removed', {
+      projectDirectory,
+      authorAssetsDir: normalizedDir
+    });
+  }
+}
+
+/**
  * Execute optional setup script if it exists
  */
-async function executeSetupScript(projectDirectory, projectName, ide, options, logger) {
+async function executeSetupScript({ projectDirectory, projectName, ide, options, authoringMode, dimensions = {}, logger }) {
   const setupScriptPath = path.join(projectDirectory, SETUP_SCRIPT);
 
   // Check if setup script exists
@@ -697,7 +775,7 @@ async function executeSetupScript(projectDirectory, projectName, ide, options, l
       setupScriptPath,
       projectDirectory,
       ide,
-      options
+      options: options?.raw ?? []
     });
   }
 
@@ -711,14 +789,16 @@ async function executeSetupScript(projectDirectory, projectName, ide, options, l
       projectName,
       cwd: process.cwd(),
       ide,
-      options
+      options,
+      authoringMode
     });
 
     const tools = await createSetupTools({
       projectDirectory,
       projectName,
       logger,
-      context: ctx
+      context: ctx,
+      dimensions
     });
 
     await loadSetupScript(setupScriptPath, ctx, tools, logger);

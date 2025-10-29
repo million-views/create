@@ -195,7 +195,12 @@ class SpecComplianceVerifier {
 
     await this.test('R1.3: Supports all current flags with aliases', async () => {
       // Test that all flags are recognized (even if they fail validation)
-      const result = await this.execCLI(['test-project', '--from-template', 'basic', '--repo', 'test/repo', '--branch', 'main']);
+      const result = await this.execCLI([
+        'test-project',
+        '--from-template', 'basic',
+        '--repo', './nonexistent-spec-arg-repo',
+        '--branch', 'main'
+      ]);
 
       // Should fail at validation/preflight, not argument parsing
       if (result.exitCode !== 1) {
@@ -222,7 +227,11 @@ class SpecComplianceVerifier {
 
     await this.test('R1.5: Handles both positional and named arguments correctly', async () => {
       // Test positional argument (project directory)
-      const result = await this.execCLI(['my-project', '--from-template', 'basic']);
+      const result = await this.execCLI([
+        'my-project',
+        '--from-template', 'basic',
+        '--repo', './nonexistent-spec-positional'
+      ]);
 
       // Should fail at preflight (missing repo), not argument parsing
       if (result.exitCode !== 1) {
@@ -236,7 +245,12 @@ class SpecComplianceVerifier {
 
     await this.test('R1.6: Supports --options parameter with both short and long forms', async () => {
       // Test --options long form
-      const longResult = await this.execCLI(['test-project', '--from-template', 'basic', '--options', 'typescript,react']);
+      const longResult = await this.execCLI([
+        'test-project',
+        '--from-template', 'basic',
+        '--repo', './nonexistent-spec-options',
+        '--options', 'typescript,react'
+      ]);
       
       // Should fail at preflight (missing repo), not argument parsing
       if (longResult.exitCode !== 1) {
@@ -249,7 +263,12 @@ class SpecComplianceVerifier {
       }
 
       // Test -o short form
-      const shortResult = await this.execCLI(['test-project', '--from-template', 'basic', '-o', 'typescript,react']);
+      const shortResult = await this.execCLI([
+        'test-project',
+        '--from-template', 'basic',
+        '--repo', './nonexistent-spec-options-short',
+        '-o', 'typescript,react'
+      ]);
       
       if (shortResult.exitCode !== 1) {
         throw new Error('Should fail at preflight stage with -o');
@@ -402,7 +421,7 @@ class SpecComplianceVerifier {
     });
 
     await this.test('R4.4: Validates repository URL format and accessibility', async () => {
-      const result = await this.execCLI(['test-project', '--from-template', 'basic', '--repo', 'nonexistent/repo']);
+      const result = await this.execCLI(['test-project', '--from-template', 'basic', '--repo', './nonexistent-spec-repo']);
 
       if (result.exitCode !== 1) {
         throw new Error('Should fail on nonexistent repository');
@@ -486,8 +505,8 @@ class SpecComplianceVerifier {
       const setupScriptPath = path.join(mockRepoPath, 'with-setup', '_setup.mjs');
       await fs.writeFile(setupScriptPath, `
 export default async function setup({ ctx, tools }) {
-  if (!Array.isArray(ctx.options)) {
-    throw new Error('Expected options to be an array');
+  if (!ctx.options || !Array.isArray(ctx.options.raw)) {
+    throw new Error('Expected options.raw to be an array');
   }
 
   await tools.json.merge('setup-state.json', {
@@ -538,8 +557,8 @@ export default async function setup({ ctx, tools }) {
       const setupScriptPath = path.join(mockRepoPath, 'failing-setup', '_setup.mjs');
       await fs.writeFile(setupScriptPath, `
 export default async function setup(ctx) {
-  if (!Array.isArray(ctx.options)) {
-    throw new Error('Expected options to be an array');
+  if (!ctx.options || !Array.isArray(ctx.options.raw)) {
+    throw new Error('Expected options.raw to be an array');
   }
 
   throw new Error('Setup script intentionally failed');
@@ -573,7 +592,7 @@ export default async function setup(ctx) {
       const beforeTempDirs = beforeEntries.filter(name => name.startsWith('.tmp-template-'));
 
       // Run a command that should fail and clean up
-      const result = await this.execCLI(['test-cleanup', '--from-template', 'basic', '--repo', 'nonexistent/repo']);
+      const result = await this.execCLI(['test-cleanup', '--from-template', 'basic', '--repo', './nonexistent-spec-cleanup-repo']);
 
       if (result.exitCode !== 1) {
         throw new Error('Should fail on nonexistent repository');
@@ -661,7 +680,7 @@ export default async function setup(ctx) {
 
     await this.test('R8.5: Uses child_process for git command execution', async () => {
       // This is verified by the git operations working correctly
-      const result = await this.execCLI(['test-git', '--from-template', 'basic', '--repo', 'nonexistent/repo']);
+      const result = await this.execCLI(['test-git', '--from-template', 'basic', '--repo', './nonexistent-spec-git-repo']);
 
       // Should fail at git operation, not at process spawning
       if (result.exitCode !== 1) {

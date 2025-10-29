@@ -1,13 +1,12 @@
 #!/usr/bin/env node
 
 import path from 'path';
-import { 
-  ValidationError, 
-  sanitizePath, 
+import {
+  ValidationError,
+  sanitizePath,
   validateProjectDirectory,
   validateIdeParameter,
-  validateOptionsParameter,
-  validateSupportedOptionsMetadata
+  validateAuthoringMode,
 } from './security.mjs';
 
 /**
@@ -47,18 +46,18 @@ function sanitizeProjectName(projectName) {
  * @param {string} params.projectName - Project name
  * @param {string} params.cwd - Current working directory
  * @param {string|null|undefined} params.ide - IDE parameter
- * @param {string|null|undefined} params.options - Options parameter
+ * @param {Object} params.options - Normalized options payload
+ * @param {string} params.authoringMode - Template authoring mode
  * @returns {Object} - Immutable Environment_Object
  * @throws {ValidationError} - If any parameter is invalid
  */
-export function createEnvironmentObject({ projectDirectory, projectName, cwd, ide, options }) {
+export function createEnvironmentObject({ projectDirectory, projectName, cwd, ide, options, authoringMode }) {
   // Validate and sanitize inputs (but don't resolve to absolute paths yet)
   const sanitizedProjectDir = sanitizePath(projectDirectory);
   const sanitizedProjectName = sanitizeProjectName(projectName);
   const validatedIde = validateIdeParameter(ide);
-  const validatedOptions = Array.isArray(options)
-    ? validateSupportedOptionsMetadata(options)
-    : validateOptionsParameter(options);
+  const normalizedOptions = validateOptionsShape(options);
+  const normalizedAuthoringMode = validateAuthoringMode(authoringMode);
 
   // For cwd, we need to handle it differently since it's already an absolute path
   let sanitizedCwd;
@@ -77,9 +76,65 @@ export function createEnvironmentObject({ projectDirectory, projectName, cwd, id
     projectName: sanitizedProjectName,
     cwd: sanitizedCwd,
     ide: validatedIde,
-    options: validatedOptions
+    authoringMode: normalizedAuthoringMode,
+    options: normalizedOptions
   };
 
   // Implement Object.freeze for immutability
   return Object.freeze(env);
+}
+
+function validateOptionsShape(options) {
+  if (!options || typeof options !== 'object') {
+    throw new ValidationError('Normalized options payload is required', 'options');
+  }
+
+  const { raw, byDimension } = options;
+
+  if (!Array.isArray(raw)) {
+    throw new ValidationError('options.raw must be an array', 'options');
+  }
+
+  for (const token of raw) {
+    if (typeof token !== 'string') {
+      throw new ValidationError('options.raw entries must be strings', 'options');
+    }
+  }
+
+  if (typeof byDimension !== 'object' || byDimension === null || Array.isArray(byDimension)) {
+    throw new ValidationError('options.byDimension must be an object', 'options');
+  }
+
+  const normalized = {};
+  for (const [dimension, value] of Object.entries(byDimension)) {
+    if (typeof value === 'string' || value === null) {
+      normalized[dimension] = value;
+      continue;
+    }
+
+    if (Array.isArray(value)) {
+      const validated = [];
+      for (const entry of value) {
+        if (typeof entry !== 'string') {
+          throw new ValidationError(
+            `options.byDimension["${dimension}"] entries must be strings`,
+            'options'
+          );
+        }
+        validated.push(entry);
+      }
+      normalized[dimension] = Object.freeze([...validated]);
+      continue;
+    }
+
+    throw new ValidationError(
+      `options.byDimension["${dimension}"] must be a string, array of strings, or null`,
+      'options'
+    );
+  }
+
+  return Object.freeze({
+    raw: Object.freeze([...raw]),
+    byDimension: Object.freeze(normalized)
+  });
 }

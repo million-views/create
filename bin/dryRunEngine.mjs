@@ -4,7 +4,8 @@ import fs from 'fs/promises';
 import path from 'path';
 import { validateDirectoryExists } from './utils/fsUtils.mjs';
 import { execCommand } from './utils/commandUtils.mjs';
-import { shouldIgnoreTemplateEntry, stripIgnoredFromTree } from './utils/templateIgnore.mjs';
+import { shouldIgnoreTemplateEntry, stripIgnoredFromTree, createTemplateIgnoreSet } from './utils/templateIgnore.mjs';
+import { loadTemplateMetadataFromPath } from './templateMetadata.mjs';
 
 /**
  * Dry Run Engine module
@@ -36,7 +37,12 @@ export class DryRunEngine {
     const templatePath = path.join(cachedRepoPath, templateName);
     await this.verifyDirectory(templatePath, `Template "${templateName}"`);
 
-    const operations = await this.buildOperations(templatePath, projectDir);
+    const metadata = await loadTemplateMetadataFromPath(templatePath);
+    const ignoreSet = createTemplateIgnoreSet({
+      authorAssetsDir: metadata.authorAssetsDir
+    });
+
+    const operations = await this.buildOperations(templatePath, projectDir, ignoreSet);
     const summary = this.buildSummary(templatePath, projectDir, operations);
 
     return {
@@ -44,7 +50,9 @@ export class DryRunEngine {
       templatePath,
       projectDir,
       summary,
-      totalOperations: operations.length
+      totalOperations: operations.length,
+      ignoreSet,
+      metadata
     };
   }
 
@@ -57,7 +65,12 @@ export class DryRunEngine {
     const templatePath = path.join(repoPath, templateName);
     await this.verifyDirectory(templatePath, `Template "${templateName}"`);
 
-    const operations = await this.buildOperations(templatePath, projectDir);
+    const metadata = await loadTemplateMetadataFromPath(templatePath);
+    const ignoreSet = createTemplateIgnoreSet({
+      authorAssetsDir: metadata.authorAssetsDir
+    });
+
+    const operations = await this.buildOperations(templatePath, projectDir, ignoreSet);
     const summary = this.buildSummary(templatePath, projectDir, operations);
 
     return {
@@ -65,7 +78,9 @@ export class DryRunEngine {
       templatePath,
       projectDir,
       summary,
-      totalOperations: operations.length
+      totalOperations: operations.length,
+      ignoreSet,
+      metadata
     };
   }
 
@@ -83,10 +98,10 @@ export class DryRunEngine {
     }
   }
 
-  async buildOperations(templatePath, projectDir) {
+  async buildOperations(templatePath, projectDir, ignoreSet) {
     const operations = [];
 
-    const fileAndDirectoryOps = await this.previewFileCopy(templatePath, projectDir);
+    const fileAndDirectoryOps = await this.previewFileCopy(templatePath, projectDir, templatePath, ignoreSet);
     operations.push(...fileAndDirectoryOps);
 
     const setupPreview = await this.previewSetupScript(templatePath);
@@ -105,11 +120,11 @@ export class DryRunEngine {
   /**
    * Preview file copy operations without execution
    */
-  async previewFileCopy(templatePath, projectDir) {
+  async previewFileCopy(templatePath, projectDir, templateRoot, ignoreSet) {
     const operations = [];
 
     try {
-      await this.collectFileCopyOperations(templatePath, projectDir, templatePath, operations, new Set());
+      await this.collectFileCopyOperations(templatePath, projectDir, templateRoot, operations, new Set(), ignoreSet);
     } catch (error) {
       if (error.code === 'ENOENT') {
         throw new Error(`Template directory not found: ${templatePath}`);
@@ -120,7 +135,7 @@ export class DryRunEngine {
     return operations;
   }
 
-  async collectFileCopyOperations(currentPath, projectDir, templateRoot, operations, directorySet) {
+  async collectFileCopyOperations(currentPath, projectDir, templateRoot, operations, directorySet, ignoreSet) {
     const entries = await fs.readdir(currentPath, { withFileTypes: true });
 
     for (const entry of entries) {
@@ -128,7 +143,7 @@ export class DryRunEngine {
       const relativePath = path.relative(templateRoot, sourcePath);
       const destinationPath = path.join(projectDir, relativePath);
 
-      if (shouldIgnoreTemplateEntry(entry.name)) {
+      if (shouldIgnoreTemplateEntry(entry.name, ignoreSet)) {
         continue;
       }
 
@@ -136,15 +151,15 @@ export class DryRunEngine {
 
         if (relativePath && !directorySet.has(relativePath)) {
           directorySet.add(relativePath);
-          operations.push({
-            type: 'directory_create',
-            path: destinationPath,
-            destination: destinationPath,
-            relative: relativePath
-          });
-        }
+        operations.push({
+          type: 'directory_create',
+          path: destinationPath,
+          destination: destinationPath,
+          relative: relativePath
+        });
+      }
 
-        await this.collectFileCopyOperations(sourcePath, projectDir, templateRoot, operations, directorySet);
+        await this.collectFileCopyOperations(sourcePath, projectDir, templateRoot, operations, directorySet, ignoreSet);
         continue;
       }
 
@@ -398,7 +413,7 @@ export class DryRunEngine {
       }, {});
   }
 
-  async generateTreePreview(templatePath) {
+  async generateTreePreview(templatePath, ignoreSet) {
     const treeCommand = process.env.CREATE_SCAFFOLD_TREE_COMMAND || 'tree';
     const args = ['-L', '2', '--noreport', templatePath];
 
@@ -408,7 +423,7 @@ export class DryRunEngine {
         stdio: ['ignore', 'pipe', 'pipe']
       });
 
-      const filtered = stripIgnoredFromTree(output.trim());
+      const filtered = stripIgnoredFromTree(output.trim(), ignoreSet);
 
       return {
         available: true,

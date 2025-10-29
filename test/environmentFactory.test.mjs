@@ -232,7 +232,7 @@ runner.test('validateOptionsParameter: rejects invalid option names', () => {
 });
 
 runner.test('validateOptionsParameter: rejects overly long option names', () => {
-  const longOption = 'a'.repeat(51); // Exceeds 50 character limit
+  const longOption = 'a'.repeat(201); // Exceeds 200 character limit
   
   try {
     validateOptionsParameter(longOption);
@@ -323,7 +323,13 @@ runner.test('createEnvironmentObject: creates valid environment object', () => {
     projectName: 'test-project',
     cwd: process.cwd(),
     ide: 'kiro',
-    options: 'auth,testing'
+    authoringMode: 'composable',
+    options: {
+      raw: ['capabilities=auth', 'capabilities=testing'],
+      byDimension: {
+        capabilities: ['auth', 'testing']
+      }
+    }
   };
   
   const env = createEnvironmentObject(params);
@@ -344,8 +350,12 @@ runner.test('createEnvironmentObject: creates valid environment object', () => {
     throw new Error(`Expected ide 'kiro', got '${env.ide}'`);
   }
   
-  if (!Array.isArray(env.options) || env.options.length !== 2) {
-    throw new Error(`Expected options array with 2 items, got ${JSON.stringify(env.options)}`);
+  if (!env.options || !Array.isArray(env.options.raw)) {
+    throw new Error('Expected options.raw array in environment object');
+  }
+
+  if (!Array.isArray(env.options.byDimension.capabilities) || env.options.byDimension.capabilities.length !== 2) {
+    throw new Error('Expected capabilities dimension to include selected options');
   }
 });
 
@@ -355,7 +365,11 @@ runner.test('createEnvironmentObject: handles null/undefined IDE and options', (
     projectName: 'test-project',
     cwd: process.cwd(),
     ide: null,
-    options: undefined
+    options: {
+      raw: [],
+      byDimension: {}
+    },
+    authoringMode: 'wysiwyg'
   };
   
   const env = createEnvironmentObject(params);
@@ -364,8 +378,8 @@ runner.test('createEnvironmentObject: handles null/undefined IDE and options', (
     throw new Error(`Expected ide null, got '${env.ide}'`);
   }
   
-  if (!Array.isArray(env.options) || env.options.length !== 0) {
-    throw new Error(`Expected empty options array, got ${JSON.stringify(env.options)}`);
+  if (!Array.isArray(env.options.raw) || env.options.raw.length !== 0) {
+    throw new Error(`Expected empty options.raw array, got ${JSON.stringify(env.options.raw)}`);
   }
 });
 
@@ -375,7 +389,13 @@ runner.test('createEnvironmentObject: creates immutable object', () => {
     projectName: 'test-project',
     cwd: process.cwd(),
     ide: 'kiro',
-    options: 'auth'
+    authoringMode: 'wysiwyg',
+    options: {
+      raw: ['auth'],
+      byDimension: {
+        capabilities: ['auth']
+      }
+    }
   };
   
   const env = createEnvironmentObject(params);
@@ -412,7 +432,13 @@ runner.test('createEnvironmentObject: validates all input parameters', () => {
       projectName: 'test',
       cwd: process.cwd(),
       ide: 'kiro',
-      options: 'auth'
+      authoringMode: 'wysiwyg',
+      options: {
+        raw: ['capabilities=auth'],
+        byDimension: {
+          capabilities: ['auth']
+        }
+      }
     });
     throw new Error('Should have rejected invalid project directory');
   } catch (error) {
@@ -428,7 +454,13 @@ runner.test('createEnvironmentObject: validates all input parameters', () => {
       projectName: 'invalid/name',
       cwd: process.cwd(),
       ide: 'kiro',
-      options: 'auth'
+      authoringMode: 'wysiwyg',
+      options: {
+        raw: ['capabilities=auth'],
+        byDimension: {
+          capabilities: ['auth']
+        }
+      }
     });
     throw new Error('Should have rejected invalid project name');
   } catch (error) {
@@ -444,7 +476,13 @@ runner.test('createEnvironmentObject: validates all input parameters', () => {
       projectName: 'test-project',
       cwd: process.cwd(),
       ide: 'invalid-ide',
-      options: 'auth'
+      authoringMode: 'wysiwyg',
+      options: {
+        raw: ['capabilities=auth'],
+        byDimension: {
+          capabilities: ['auth']
+        }
+      }
     });
     throw new Error('Should have rejected invalid IDE');
   } catch (error) {
@@ -460,6 +498,7 @@ runner.test('createEnvironmentObject: validates all input parameters', () => {
       projectName: 'test-project',
       cwd: process.cwd(),
       ide: 'kiro',
+      authoringMode: 'wysiwyg',
       options: 'invalid@option'
     });
     throw new Error('Should have rejected invalid options');
@@ -476,7 +515,13 @@ runner.test('createEnvironmentObject: resolves paths correctly', () => {
     projectName: 'test-project',
     cwd: process.cwd(),
     ide: 'kiro',
-    options: 'auth'
+    authoringMode: 'wysiwyg',
+    options: {
+      raw: ['capabilities=auth'],
+      byDimension: {
+        capabilities: ['auth']
+      }
+    }
   };
   
   const env = createEnvironmentObject(params);

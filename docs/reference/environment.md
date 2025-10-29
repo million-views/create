@@ -10,7 +10,7 @@ related_docs:
   - "../creating-templates.md"
   - "../how-to/setup-recipes.md"
   - "cli-reference.md"
-last_updated: "2024-11-05"
+last_updated: "2024-11-07"
 ---
 
 # Environment Reference
@@ -39,7 +39,15 @@ Direct access to `fs`, `path`, `import`, `eval`, or `require` is blocked. All fi
 | `projectName` | `string` | Sanitized name chosen by the user (letters, numbers, hyphen, underscore). Use it when updating metadata such as `package.json` or README content. |
 | `cwd` | `string` | Directory where the CLI command was executed. Helpful when you need to compute workspace-relative paths. |
 | `ide` | `"kiro" \| "vscode" \| "cursor" \| "windsurf" \| null` | Target IDE provided via `--ide`. `null` when no IDE preference was expressed. |
-| `options` | `string[]` | Sanitized list of contextual options provided through `--options`. Duplicate values are removed. |
+| `authoringMode` | `"wysiwyg" \| "composable"` | Mode declared in `template.json`. WYSIWYG templates mirror a working project; composable templates assemble features via `_setup.mjs`. |
+| `options` | `object` | Normalized user selections with defaults already applied. See breakdown below. |
+
+`ctx.options` contains two readonly views:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `raw` | `string[]` | Ordered list of tokens supplied on the command line. |
+| `byDimension` | `Record<string, string \| string[]>` | Canonical selections drawn from the template’s `setup.dimensions` metadata. Multi-select dimensions return arrays; single-select dimensions return a string or `null`. |
 
 The context object is frozen; attempting to mutate it throws.
 
@@ -80,7 +88,7 @@ await tools.placeholders.replaceAll({ PROJECT_NAME: ctx.projectName }, ['README.
 | `write(file, content, { overwrite })` | Write text content (string/array/Buffer) to a file, optionally refusing to overwrite existing files. |
 | `copyTemplateDir(from, to, { overwrite })` | Copy a project-local directory tree to a new location inside the project. |
 
-> Note: `tools.files.copy`, `tools.files.copyTemplateDir`, and other helpers automatically skip `.template-undo.json` and similar internal artifacts produced by template authoring tools. Template authors do not need to manage these files manually.
+> Note: File helpers skip `.template-undo.json` and other internal artifacts automatically. The CLI stages the `__scaffold__/` directory (or your configured `authorAssetsDir`) before `_setup.mjs` runs and removes it afterwards, so treat that directory as read-only runtime input.
 
 ### `tools.json`
 
@@ -120,9 +128,29 @@ Simple logger routed through the CLI output and optional log file:
 
 | Method | Description |
 |--------|-------------|
-| `list()` | Return the full array of options provided by the user. |
-| `has(name)` | Boolean check for a specific option. |
-| `when(name, fn)` | Execute `fn` only when the option is present. Supports `async` callbacks. |
+| `list(dimension?)` | Without arguments returns `ctx.options.raw`. Provide a dimension name to receive the normalized selection for that dimension (string or array). |
+| `raw()` | Shortcut for `ctx.options.raw`. |
+| `dimensions()` | Shallow clone of `ctx.options.byDimension`. |
+| `has(name)` | Checks whether the default multi-select dimension (usually `capabilities`) includes `name`. |
+| `in(dimension, value)` | Returns `true` when the selected value(s) for `dimension` include `value`. |
+| `require(value)` | Ensures the default multi-select dimension includes `value`; throws otherwise. |
+| `require(dimension, value)` | Ensures `value` is selected for `dimension`; throws otherwise. |
+| `when(value, fn)` | Runs `fn` when the default multi-select dimension includes `value`. Supports async callbacks. |
+
+> The “default dimension” is the first multi-select dimension defined in `template.json`. By convention we reserve `capabilities` for feature toggles, which becomes the default unless a template specifies otherwise.
+
+**Example**
+```javascript
+await tools.options.when('logging', async () => {
+  await tools.json.merge('package.json', {
+    dependencies: { pino: '^9.0.0' }
+  });
+});
+
+if (tools.options.in('infrastructure', 'cloudflare-d1')) {
+  await tools.files.copyTemplateDir('__scaffold__/infra/cloudflare-d1', 'infra');
+}
+```
 
 ## Example Setup Script
 
@@ -153,29 +181,65 @@ export default async function setup({ ctx, tools }) {
     });
   });
 
+  if (tools.options.in('infrastructure', 'cloudflare-d1')) {
+    await tools.files.copyTemplateDir('__scaffold__/infra/cloudflare-d1', 'infra/cloudflare');
+  }
+
   if (ctx.ide) {
     await tools.ide.applyPreset(ctx.ide);
   }
 }
 ```
 
-## Supported Options Metadata
+## Template Metadata Essentials
 
-Templates can declare which options they understand by adding `setup.supportedOptions` to `template.json`:
+`template.json` is the authoritative contract that create-scaffold reads before copying files or executing `_setup.mjs`. The `setup` block defines three critical aspects:
 
 ```json
 {
-  "name": "full-demo-template",
   "setup": {
-    "supportedOptions": ["docs", "auth", "api"]
+    "authoringMode": "composable",
+    "authorAssetsDir": "__scaffold__",
+    "dimensions": {
+      "capabilities": {
+        "type": "multi",
+        "values": ["logging", "testing", "docs"],
+        "default": ["logging"],
+        "requires": {
+          "testing": ["logging"]
+        },
+        "conflicts": {
+          "docs": ["testing"]
+        },
+        "policy": "strict"
+      },
+      "infrastructure": {
+        "type": "single",
+        "values": ["none", "cloudflare-d1", "cloudflare-turso"],
+        "default": "none"
+      }
+    }
   }
 }
 ```
 
-When the user passes unsupported options, the CLI emits a warning (but still completes the scaffold). The `tools.options` helpers always work with the sanitized list supplied by the user.
+- **`authoringMode`** distinguishes WYSIWYG (`"wysiwyg"`) templates from composable ones (`"composable"`). The runtime exposes this value as `ctx.authoringMode` so setup scripts can tailor behaviour.
+- **`authorAssetsDir`** names the directory that stores author-only snippets (defaults to `__scaffold__`). The CLI stages it before setup runs and deletes it afterwards.
+- **`dimensions`** enumerate the option vocabulary. Each entry supports:
+  - `type`: `"single"` or `"multi"`.
+  - `values`: allowed tokens.
+  - `default`: optional default selection(s).
+  - `requires`: map of dependencies (value → required selections in the same dimension).
+  - `conflicts`: map of conflicts (value → incompatible selections in the same dimension).
+  - `policy`: `"strict"` (reject unknown values) or `"warn"` (allow but warn). Defaults to `"strict"`.
+  - `builtIn`: `true` for global dimensions such as `ide` when provided by create-scaffold.
+
+Legacy `setup.supportedOptions` entries are automatically upgraded into a `capabilities` dimension at runtime, but new templates should rely on `setup.dimensions` exclusively.
 
 ## Additional Reading
 
 - [Creating Templates](../creating-templates.md) – guided walkthrough with practical examples.
+- [Author Workflow](../how-to/author-workflow.md) – recommended iteration loops for WYSIWYG and composable templates.
 - [Setup Script Recipes](../how-to/setup-recipes.md) – copy-ready snippets for frequent helper tasks.
+- [Dimensions Glossary](../reference/dimensions-glossary.md) – reserved names and usage guidelines.
 - [CLI Reference](cli-reference.md) – command-line switches such as `--ide`, `--options`, and logging.

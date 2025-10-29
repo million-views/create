@@ -92,14 +92,16 @@ export default async function setup({ ctx, tools }) {
       projectName,
       cwd: baseDir,
       ide: 'vscode',
-      options: []
+      options: { raw: [], byDimension: {} },
+      authoringMode: 'composable'
     });
 
     const tools = await createSetupTools({
       projectDirectory: projectDir,
       projectName,
       logger: null,
-      context: ctx
+      context: ctx,
+      dimensions: {}
     });
 
     await loadSetupScript(setupScriptPath, ctx, tools);
@@ -145,14 +147,16 @@ export default async function setup(ctx, tools) {
       projectName,
       cwd: baseDir,
       ide: null,
-      options: []
+      options: { raw: [], byDimension: {} },
+      authoringMode: 'wysiwyg'
     });
 
     const tools = await createSetupTools({
       projectDirectory: projectDir,
       projectName,
       logger: null,
-      context: ctx
+      context: ctx,
+      dimensions: {}
     });
 
     try {
@@ -193,7 +197,8 @@ export default async function setup() {
       projectName,
       cwd: baseDir,
       ide: null,
-      options: []
+      options: { raw: [], byDimension: {} },
+      authoringMode: 'wysiwyg'
     });
 
     const tools = await createSetupTools({
@@ -235,14 +240,16 @@ runner.test('files copy helpers skip undo artifacts', async () => {
       projectName,
       cwd: baseDir,
       ide: null,
-      options: []
+      options: { raw: [], byDimension: {} },
+      authoringMode: 'wysiwyg'
     });
 
     const tools = await createSetupTools({
       projectDirectory: projectDir,
       projectName,
       logger: null,
-      context: ctx
+      context: ctx,
+      dimensions: {}
     });
 
     await tools.files.copy('template-parts/feature', 'copied-by-copy');
@@ -324,14 +331,16 @@ export default async function setup({ ctx, tools }) {
       projectName,
       cwd: baseDir,
       ide: null,
-      options: []
+      options: { raw: [], byDimension: {} },
+      authoringMode: 'composable'
     });
 
     const tools = await createSetupTools({
       projectDirectory: projectDir,
       projectName,
       logger: null,
-      context: ctx
+      context: ctx,
+      dimensions: {}
     });
 
     await loadSetupScript(setupScriptPath, ctx, tools);
@@ -364,6 +373,81 @@ export default async function setup({ ctx, tools }) {
   }
   if (!Array.isArray(pkg.keywords) || pkg.keywords.filter(k => k === 'helpers').length !== 1) {
     throw new Error('json.addToArray/json.mergeArray failed to manage array');
+  }
+});
+
+runner.test('options API exposes dimension-aware helpers', async () => {
+  const baseDir = await runner.createTempDir('runtime-options');
+  const projectName = 'options-demo';
+  const projectDir = path.join(baseDir, projectName);
+  await fs.mkdir(projectDir, { recursive: true });
+
+  const ctx = createEnvironmentObject({
+    projectDirectory: projectName,
+    projectName,
+    cwd: baseDir,
+    ide: null,
+    authoringMode: 'composable',
+    options: {
+      raw: ['capabilities=auth', 'capabilities=testing', 'stack=react-vite'],
+      byDimension: {
+        capabilities: ['auth', 'testing'],
+        stack: 'react-vite'
+      }
+    }
+  });
+
+  const tools = await createSetupTools({
+    projectDirectory: projectDir,
+    projectName,
+    logger: null,
+    context: ctx,
+    dimensions: {
+      capabilities: Object.freeze({
+        type: 'multi',
+        values: Object.freeze(['auth', 'testing', 'logging']),
+        default: Object.freeze([]),
+        requires: Object.freeze({}),
+        conflicts: Object.freeze({}),
+        policy: 'strict',
+        builtIn: false,
+        description: null
+      }),
+      stack: Object.freeze({
+        type: 'single',
+        values: Object.freeze(['react-vite', 'express']),
+        default: 'react-vite',
+        requires: Object.freeze({}),
+        conflicts: Object.freeze({}),
+        policy: 'strict',
+        builtIn: false,
+        description: null
+      })
+    }
+  });
+
+  if (!tools.options.has('auth')) {
+    throw new Error('Expected default has() to resolve capabilities dimension');
+  }
+
+  if (!tools.options.in('stack', 'react-vite')) {
+    throw new Error('Expected stack dimension to reflect selected value');
+  }
+
+  const capabilities = tools.options.list('capabilities');
+  if (!Array.isArray(capabilities) || capabilities.length !== 2) {
+    throw new Error('Expected capabilities list to include selected values');
+  }
+
+  tools.options.require('capabilities', 'auth');
+
+  try {
+    tools.options.require('capabilities', 'logging');
+    throw new Error('require() should have thrown for missing value');
+  } catch (error) {
+    if (!(error instanceof SetupSandboxError)) {
+      throw error;
+    }
   }
 });
 

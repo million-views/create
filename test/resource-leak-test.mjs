@@ -184,14 +184,14 @@ async function runResourceLeakTests() {
     const result = await ResourceTestUtils.execCLI([
       'test-nonexistent-repo',
       '--from-template', 'basic',
-      '--repo', 'definitely-does-not-exist/no-such-repo'
-    ], { timeout: 15000 });
+      '--repo', './nonexistent-resource-repo'
+    ]);
     
     if (result.exitCode !== 1) {
       throw new Error(`Expected exit code 1, got ${result.exitCode}`);
     }
     
-    if (!result.stderr.includes('not found')) {
+    if (!result.stderr.includes('does not exist')) {
       throw new Error('Should show repository not found error');
     }
     

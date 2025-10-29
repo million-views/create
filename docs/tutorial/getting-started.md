@@ -13,7 +13,7 @@ related_docs:
   - "../guides/troubleshooting.md"
   - "first-template.md"
   - "../how-to/setup-recipes.md"
-last_updated: "2024-11-05"
+last_updated: "2024-11-07"
 ---
 
 # Getting Started with @m5nv/create-scaffold
@@ -181,18 +181,18 @@ Available Templates:
 
 Your IDE-optimized project will include configuration specific to your chosen IDE, making development smoother.
 
-## Step 4: Using Optional Features
+## Step 4: Combine Capabilities and Infrastructure
 
-Templates can be customized with optional features. Let's create a project with multiple features enabled.
+Templates declare structured dimensions in `template.json`. You can select values explicitly using `dimension=value` syntax (multi-select dimensions accept `+`-separated values).
 
 ### Instructions
 
-1. **Create a feature-rich project:**
+1. **Create a feature-rich project with explicit dimensions:**
    ```bash
    npm create @m5nv/scaffold my-feature-app -- \
      --from-template react-vite \
      --ide kiro \
-     --options "auth,database,testing"
+     --options "capabilities=auth+testing,infrastructure=cloudflare-d1"
    ```
 
 2. **Navigate to the project:**
@@ -200,26 +200,19 @@ Templates can be customized with optional features. Let's create a project with 
    cd my-feature-app
    ```
 
-3. **Explore the additional features that were added:**
+3. **Inspect generated assets:**
    ```bash
-   # Look for feature-specific files and directories
-   find . -name "*auth*" -o -name "*database*" -o -name "*test*" | head -10
+   find src -maxdepth 2 -type f | head -5
    ```
 
-4. **Check the package.json for feature-specific scripts:**
+4. **Confirm infrastructure configuration:**
    ```bash
-   cat package.json | grep -A 10 '"scripts"'
+   ls infra
    ```
 
 ### Expected Result
 
-Your project now includes additional functionality based on the options you specified:
-
-- **auth**: Authentication system files and configuration
-- **database**: Database connection utilities and setup
-- **testing**: Test framework and example tests
-
-The setup process shows which features were configured:
+create-scaffold validates your selections against `template.json` and applies defaults for any omitted dimensions. The output highlights the normalized choices:
 
 ```
 🚀 Creating project: my-feature-app
@@ -229,12 +222,14 @@ The setup process shows which features were configured:
 📥 Accessing template repository...
 📋 Copying template files...
 ⚙️  Running template setup script...
-🔧 Setting up comprehensive IDE and feature configuration...
 📁 Project: my-feature-app
 🎯 IDE: kiro
-⚡ Features: auth, database, testing
+⚡ Capabilities: auth, testing
+🏗️ Infrastructure: cloudflare-d1
 ✅ Project created successfully!
 ```
+
+Your project now includes authentication scaffolding, test utilities, and Cloudflare D1 infrastructure assets. If you select an unsupported value, the CLI fails fast with a clear validation error.
 
 ## Step 5: Preview Mode (Dry Run)
 
@@ -247,7 +242,7 @@ Before creating projects, you can preview what will happen using dry run mode.
    npm create @m5nv/scaffold preview-app -- \
      --from-template express \
      --ide vscode \
-     --options "api,logging" \
+     --options "capabilities=api+logging" \
      --dry-run
    ```
 

@@ -11,7 +11,7 @@ related_docs:
   - "../how-to/setup-recipes.md"
   - "environment.md"
   - "error-codes.md"
-last_updated: "2024-11-05"
+last_updated: "2024-11-07"
 ---
 
 # CLI Reference
@@ -56,7 +56,7 @@ create-scaffold <project-directory> --from-template <template-name> [options]
 | Option | Short | Type | Required | Default | Description |
 |--------|-------|------|----------|---------|-------------|
 | `--ide` | `-i` | string | No | - | Target IDE for template customization. Supported values: `kiro`, `vscode`, `cursor`, `windsurf`. |
-| `--options` | `-o` | string | No | - | Comma-separated list of contextual options for template customization. Templates use these to adapt behavior to your specific needs. |
+| `--options` | `-o` | string | No | - | Comma-separated selections. Use `dimension=value` (e.g. `capabilities=auth+testing`) to target specific dimensions. Tokens without `=` apply to the template’s default multi-select dimension. |
 
 ## Performance & Caching Options
 
@@ -111,11 +111,11 @@ npm create @m5nv/scaffold my-app -- --from-template nextjs --repo custom-user/te
 # Create project with IDE-specific customization
 npm create @m5nv/scaffold my-app -- --from-template react --ide kiro
 
-# Contextual options for different scenarios
-npm create @m5nv/scaffold my-app -- --from-template react --options monorepo,no-git,typescript
+# Explicit capability selections (multi-select values joined with '+')
+npm create @m5nv/scaffold my-app -- --from-template react --options capabilities=auth+testing
 
-# Combine IDE and contextual options
-npm create @m5nv/scaffold my-app -- --from-template react --ide vscode --options full-featured,typescript
+# Combine IDE, capabilities, and infrastructure dimensions
+npm create @m5nv/scaffold my-app -- --from-template react --ide vscode --options "capabilities=full-featured,infrastructure=cloudflare-d1"
 ```
 
 **Expected behavior:**
@@ -244,22 +244,39 @@ The `--repo` parameter accepts multiple formats:
 | Local path | `/path/to/local/repo` | Local git repository |
 | Relative path | `./local-repo` | Relative path to local repository |
 
-## Contextual Options
+## Dimensions and options
 
-`--options` accepts a comma-separated list. The CLI sanitizes the values and
-passes them to setup scripts as `ctx.options` (and through
-`tools.options`). Templates can declare the vocabulary they understand by
-adding `setup.supportedOptions` to `template.json`; the CLI prints a warning
-when a user supplies an unknown option, but scaffolding still succeeds.
+`--options` accepts a comma-separated list. Use `dimension=value` to target a specific dimension; join multiple values for the same dimension with `+` (for example `capabilities=auth+testing`). Tokens without `=` apply to the template’s default multi-select dimension, typically `capabilities`.
+
+Templates describe their vocabulary in `template.json` via `setup.dimensions`:
 
 ```json
 {
   "name": "react-vite",
   "setup": {
-    "supportedOptions": ["testing", "docs", "docker"]
+    "dimensions": {
+      "capabilities": {
+        "type": "multi",
+        "values": ["auth", "testing", "docs"],
+        "default": ["logging"],
+        "requires": {
+          "testing": ["auth"]
+        },
+        "conflicts": {
+          "docs": ["testing"]
+        }
+      },
+      "infrastructure": {
+        "type": "single",
+        "values": ["none", "cloudflare-d1", "cloudflare-turso"],
+        "default": "none"
+      }
+    }
   }
 }
 ```
+
+create-scaffold normalizes user selections against this metadata, applies defaults, and exposes the result through `ctx.options.byDimension` and `tools.options` helpers.
 
 ### Project stage suggestions
 

@@ -12,7 +12,9 @@ related_docs:
   - "reference/cli-reference.md"
   - "reference/environment.md"
   - "how-to/setup-recipes.md"
-last_updated: "2024-11-05"
+  - "how-to/author-workflow.md"
+  - "reference/dimensions-glossary.md"
+last_updated: "2024-11-07"
 ---
 
 # How to Create Templates
@@ -41,129 +43,93 @@ Before following this guide, ensure you have:
 
 ## Step-by-step instructions
 
-### Step 1: Create your template repository
+### Step 1: Prepare your template repository
 
-Create a new Git repository to house your templates:
+Create a Git repository that will host one or more templates:
 
 ```bash
-# Create and initialize repository
 mkdir my-templates
 cd my-templates
 git init
 ```
 
-Each template lives in its own subdirectory at the root level:
+Each template lives in its own directory at the repository root:
 
 ```
 my-templates/
 ├── react-vite/
 │   ├── package.json
 │   ├── src/
-│   │   └── App.jsx
-│   └── _setup.mjs          # Optional setup script
-├── express-api/
-│   ├── package.json
-│   ├── server.js
 │   └── _setup.mjs
-└── nextjs-app/
+└── express-api/
     ├── package.json
-    ├── pages/
-    │   └── index.js
     └── _setup.mjs
 ```
 
-> Tip: The make-template workflow also generates a `.template-undo.json` file beside `template.json` and `_setup.mjs`. Commit it with your template—`@m5nv/create-scaffold` automatically ignores this artifact when copying templates, running dry runs, or executing setup helpers.
+> make-template generates `template.json`, `_setup.mjs`, and `.template-undo.json` for you. Commit `.template-undo.json`: create-scaffold ignores it automatically, keeping author workflows intact.
 
-**Template naming conventions:**
-- Use kebab-case names: `react-vite`, `express-api`, `nextjs-app`
-- Keep names descriptive but concise
-- Avoid special characters or spaces
+If you are authoring composable templates with snippets, add an author-assets directory now (defaults to `__scaffold__/`). Everything stored there will be available to `_setup.mjs` but removed before the end user sees the scaffold.
 
-### Step 2: Create your first template
+### Step 2: Choose an authoring mode
 
-Let's create a simple React template as an example:
+| Mode | When to choose it | Expectations |
+|------|-------------------|--------------|
+| **WYSIWYG** (`authoringMode: "wysiwyg"`) | You iterate directly in a working app and only need light placeholder replacement. | No runtime option parsing. `setup.dimensions` can stay empty. `_setup.mjs` should focus on tokens and minor tweaks. |
+| **Composable** (`authoringMode: "composable"`) | You need a single template to produce several variants (stacks, infra, capabilities). | Define option dimensions in `template.json`, store reusable assets in `__scaffold__/`, and keep `_setup.mjs` small but declarative. |
 
-```bash
-# Create template directory
-mkdir react-vite
-cd react-vite
-```
+Switching modes later is as simple as updating `template.json`, but start with WYSIWYG unless you know you need composability.
 
-Create the basic project structure:
+### Step 3: Describe metadata in `template.json`
 
-**package.json:**
+`template.json` is the contract between your template and create-scaffold. Begin with the essentials:
+
 ```json
 {
-  "name": "{{PROJECT_NAME}}",
-  "version": "1.0.0",
-  "type": "module",
-  "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview"
-  },
-  "dependencies": {
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0"
-  },
-  "devDependencies": {
-    "@vitejs/plugin-react": "^4.0.0",
-    "vite": "^5.0.0"
+  "name": "react-vite",
+  "description": "React starter with Vite",
+  "handoff": ["npm install", "npm run dev"],
+  "setup": {
+    "authoringMode": "composable",
+    "authorAssetsDir": "__scaffold__",
+    "dimensions": {
+      "capabilities": {
+        "type": "multi",
+        "values": ["auth", "docs", "logging"],
+        "default": ["logging"],
+        "policy": "strict"
+      },
+      "infrastructure": {
+        "type": "single",
+        "values": ["none", "cloudflare-d1", "cloudflare-turso"],
+        "default": "none"
+      }
+    }
   }
 }
 ```
 
-**src/App.jsx:**
-```jsx
-function App() {
-  return (
-    <div>
-      <h1>Welcome to {{PROJECT_NAME}}</h1>
-      <p>Your React app is ready!</p>
-    </div>
-  );
-}
+- `handoff` provides next-step instructions after scaffolding.
+- `authorAssetsDir` names the directory you use for author-only snippets (defaults to `__scaffold__`).
+- Each `dimensions` entry describes a vocabulary of options:
+  - `type`: `"single"` or `"multi"`.
+  - `values`: allowed tokens.
+  - `default`: optional default when the user omits that dimension.
+  - `requires` / `conflicts`: encode dependencies within the dimension.
+  - `policy`: `"strict"` rejects unknown selections, `"warn"` logs but proceeds.
 
-export default App;
-```
+Legacy `setup.supportedOptions` arrays still work; the CLI upgrades them to a `capabilities` dimension automatically, but new templates should define `dimensions` explicitly.
 
-**Template guidelines:**
-- Each template should be a complete, runnable project
-- Use `{{PROJECT_NAME}}` placeholder for dynamic project names
-- Include all necessary dependencies in package.json
-- Provide clear file structure and sensible defaults
+### Step 4: Write `_setup.mjs`
 
-### Step 3: Add setup script for customization
+The setup script receives a sandboxed environment. WYSIWYG templates typically only replace placeholders, while composable templates also branch on dimensions.
 
-Create a `_setup.mjs` file that exports a default async function. The runtime
-provides a sandboxed Environment object (`{ ctx, tools }`), so you never import
-Node built-ins:
-
+**WYSIWYG example**
 ```javascript
-// _setup.mjs
 export default async function setup({ ctx, tools }) {
   await tools.placeholders.replaceAll(
     { PROJECT_NAME: ctx.projectName },
     ['README.md', 'package.json']
   );
-
-  await tools.text.insertAfter({
-    file: 'README.md',
-    marker: '# {{PROJECT_NAME}}',
-    block: ['## Commands', '- npm install', '- npm run dev']
-  });
-
-  await tools.json.set('package.json', 'scripts.dev', 'node index.js');
-  await tools.json.addToArray('package.json', 'keywords', 'scaffold', { unique: true });
-
-  await tools.options.when('testing', async () => {
-    await tools.files.ensureDirs('tests');
-    await tools.templates.renderFile(
-      'templates/smoke.spec.js.tpl',
-      'tests/smoke.spec.js',
-      { PROJECT_NAME: ctx.projectName }
-    );
-  });
 
   if (ctx.ide) {
     await tools.ide.applyPreset(ctx.ide);
@@ -171,41 +137,64 @@ export default async function setup({ ctx, tools }) {
 }
 ```
 
-Key ideas:
+**Composable example with dimensions**
+```javascript
+export default async function setup({ ctx, tools }) {
+  await tools.json.set('package.json', 'name', ctx.projectName);
 
-- **No imports.** All filesystem and templating work routes through `tools`.
-- **Idempotent helpers.** Re-running the script produces the same output, which
-  keeps dry-run previews meaningful.
-- **Context-aware options.** `tools.options.when()` is the easiest way to
-  toggle features.
-
-Refer to the [Environment Reference](reference/environment.md)
-for the exhaustive list of helpers.
-
-> Need more examples? Jump to the [Setup Script Recipes](how-to/setup-recipes.md)
-> guide for copy-ready snippets that build on the helpers shown here.
-
-### Supported options metadata
-
-If your setup logic only understands a specific vocabulary, declare it in
-`template.json` so the CLI can warn users when they supply unknown options:
-
-```json
-{
-  "name": "react-vite",
-  "setup": {
-    "supportedOptions": ["testing", "docs"]
+  if (tools.options.in('capabilities', 'auth')) {
+    await tools.files.copyTemplateDir('__scaffold__/auth', 'src/auth');
   }
+
+  if (tools.options.in('infrastructure', 'cloudflare-d1')) {
+    await tools.files.copyTemplateDir('__scaffold__/infra/cloudflare-d1', 'infra');
+  }
+
+  await tools.text.ensureBlock({
+    file: 'README.md',
+    marker: `# ${ctx.projectName}`,
+    block: ['## Next Steps', '- npm install', '- npm run dev']
+  });
 }
 ```
 
-The scaffold still succeeds when the user provides extra options, but the CLI
-prints a friendly warning.
+Remember:
+- Never import Node built-ins; use the helper APIs in the [Environment Reference](reference/environment.md).
+- Helpers are idempotent—rerunning `_setup.mjs` should not duplicate work.
+- `ctx.options.byDimension` already includes defaults, so treat it as authoritative.
+
+### Step 5: Stage author assets (composable mode)
+
+Store reusable snippets under `__scaffold__/` (or your custom `authorAssetsDir`):
+
+```
+react-vite/
+├── __scaffold__/
+│   ├── auth/
+│   └── infra/
+│       └── cloudflare-d1/
+└── src/
+```
+
+create-scaffold copies this directory into the project before `_setup.mjs` runs and removes it afterward. Treat it as read-only input. If you need to generate new assets, write them into the project tree (`src/`, `infra/`, etc.), not back into `__scaffold__/`.
+
+### Step 6: Test iteratively
+
+1. **Use make-template restore for fast loops.** After editing placeholders, run the generated restore command (based on `.template-undo.json`) to rehydrate the working app and verify changes inline.
+2. **Run create-scaffold dry runs when you touch metadata or `_setup.mjs`.**
+   ```bash
+   create-scaffold demo-app --from-template react-vite --repo path/to/my-templates --dry-run
+   ```
+   Dry runs show directory/file counts, setup script detection, and skip author assets so the preview matches the final scaffold.
+3. **Execute a full scaffold periodically** to ensure the handoff instructions make sense and the generated project boots as expected.
+
+Document any non-obvious behaviour inside your template repo (e.g., README sections explaining available dimensions) so both template authors and consumers share the same vocabulary.
+
+Templates can choose to continue when a user supplies an unexpected value by setting `policy: "warn"` on the affected dimension. Most templates should stick with `"strict"` to fail fast.
 
 ### Post-create handoff instructions
 
-Help users get productive immediately by adding a `handoff` array to `template.json`.
-Each entry becomes a bullet under “Next steps” after scaffolding.
+Help users get productive immediately by adding a `handoff` array to `template.json`. Each entry becomes a bullet under “Next steps” after scaffolding.
 
 ```json
 {
@@ -217,14 +206,19 @@ Each entry becomes a bullet under “Next steps” after scaffolding.
     "Open README.md for IDE-specific tips"
   ],
   "setup": {
-    "supportedOptions": ["testing", "docs"]
+    "dimensions": {
+      "capabilities": {
+        "type": "multi",
+        "values": ["testing", "docs"],
+        "default": ["testing"],
+        "policy": "warn"
+      }
+    }
   }
 }
 ```
 
-Keep each instruction short and actionable (commands, follow-up docs, etc.). When
-`handoff` is omitted, the CLI falls back to `cd <project>` and a reminder to review
-the README.
+Keep each instruction short and actionable (commands, follow-up docs, etc.). When `handoff` is omitted, the CLI falls back to `cd <project>` and a reminder to review the README.
 
 ### Step 4: Test your template
 

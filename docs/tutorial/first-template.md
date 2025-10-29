@@ -12,7 +12,7 @@ related_docs:
   - "../creating-templates.md"
   - "../reference/environment.md"
   - "../how-to/setup-recipes.md"
-last_updated: "2024-11-05"
+last_updated: "2024-11-07"
 ---
 
 # Your First Template - Hands-On Examples
@@ -20,6 +20,8 @@ last_updated: "2024-11-05"
 ## What you'll learn
 
 In this hands-on tutorial, you'll build progressively complex projects using @m5nv/create-scaffold, starting with the simplest possible example and gradually adding complexity. By the end, you'll understand how templates adapt to different scenarios and how to leverage advanced features.
+
+> This tutorial focuses on template consumers operating create-scaffold. If you want to build or maintain templates, jump to [How to Create Templates](../creating-templates.md) after completing this walkthrough.
 
 ## What you'll build
 
@@ -163,10 +165,10 @@ Let's add multiple features that work together to create a more complete applica
 
 1. **Create a project with integrated features:**
    ```bash
-   npm create @m5nv/scaffold feature-demo -- \
-     --from-template react-vite \
-     --ide kiro \
-     --options "auth,database,testing,logging"
+  npm create @m5nv/scaffold feature-demo -- \
+    --from-template react-vite \
+    --ide kiro \
+    --options "capabilities=auth+database+testing+logging"
    ```
 
 2. **Navigate and explore the enhanced structure:**
@@ -287,10 +289,10 @@ Now let's create a project ready for team development with full tooling.
 
 1. **Create a comprehensive team project:**
    ```bash
-   npm create @m5nv/scaffold team-project -- \
-     --from-template react-vite \
-     --ide vscode \
-     --options "auth,database,api,testing,logging,config"
+  npm create @m5nv/scaffold team-project -- \
+    --from-template react-vite \
+    --ide vscode \
+    --options "capabilities=auth+database+api+testing+logging+config"
    ```
 
 2. **Navigate and examine the comprehensive setup:**
@@ -358,11 +360,11 @@ Finally, let's explore advanced usage patterns including dry runs, caching, and 
 
 1. **First, preview a complex project without creating it:**
    ```bash
-   npm create @m5nv/scaffold preview-project -- \
-     --from-template react-vite \
-     --ide cursor \
-     --options "auth,database,api,testing,logging,config" \
-     --dry-run
+  npm create @m5nv/scaffold preview-project -- \
+    --from-template react-vite \
+    --ide cursor \
+    --options "capabilities=auth+database+api+testing+logging+config" \
+    --dry-run
    ```
 
 2. **Explore template discovery:**
@@ -376,19 +378,19 @@ Finally, let's explore advanced usage patterns including dry runs, caching, and 
 
 3. **Create a project with custom caching:**
    ```bash
-   npm create @m5nv/scaffold cached-project -- \
-     --from-template express \
-     --ide kiro \
-     --options "api,logging" \
+  npm create @m5nv/scaffold cached-project -- \
+    --from-template express \
+    --ide kiro \
+    --options "capabilities=api+logging" \
      --cache-ttl 48
    ```
 
 4. **Enable detailed logging for debugging:**
    ```bash
-   npm create @m5nv/scaffold logged-project -- \
-     --from-template react-vite \
-     --ide vscode \
-     --options "testing" \
+  npm create @m5nv/scaffold logged-project -- \
+    --from-template react-vite \
+    --ide vscode \
+    --options "capabilities=testing" \
      --log-file ./scaffold-debug.log
    ```
 

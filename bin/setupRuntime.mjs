@@ -610,24 +610,145 @@ function createLoggerApi(logger) {
   });
 }
 
-function createOptionsApi(options) {
-  const optionList = Array.isArray(options) ? options.slice() : [];
-  const optionSet = new Set(optionList);
+function createOptionsApi({ options, dimensions }) {
+  const rawList = Array.isArray(options?.raw) ? options.raw.slice() : [];
+  const rawSet = new Set(rawList);
+  const dimensionDefinitions = dimensions ?? {};
+  const normalizedByDimension = normalizeByDimension(options?.byDimension ?? {}, dimensionDefinitions);
+  const defaultDimension = pickDefaultDimension(dimensionDefinitions);
 
-  return Object.freeze({
+  const api = {
     has(name) {
-      return optionSet.has(name);
+      if (typeof name !== 'string') {
+        return false;
+      }
+
+      if (defaultDimension) {
+        const selected = normalizedByDimension[defaultDimension];
+        if (Array.isArray(selected)) {
+          return selected.includes(name);
+        }
+      }
+
+      return rawSet.has(name);
     },
     async when(name, fn) {
-      if (optionSet.has(name) && typeof fn === 'function') {
+      if (api.has(name) && typeof fn === 'function') {
         return await fn();
       }
       return undefined;
     },
-    list() {
-      return optionList.slice();
+    list(dimension) {
+      if (dimension === undefined) {
+        return rawList.slice();
+      }
+
+      const definition = dimensionDefinitions[dimension];
+      const value = normalizedByDimension[dimension];
+
+      if (!definition) {
+        return Array.isArray(value) ? value.slice() : value ?? null;
+      }
+
+      if (definition.type === 'single') {
+        return value ?? null;
+      }
+
+      return Array.isArray(value) ? value.slice() : [];
+    },
+    in(dimension, value) {
+      if (typeof dimension !== 'string' || typeof value !== 'string') {
+        return false;
+      }
+
+      const definition = dimensionDefinitions[dimension];
+      const selected = normalizedByDimension[dimension];
+
+      if (!definition) {
+        if (Array.isArray(selected)) {
+          return selected.includes(value);
+        }
+        return selected === value;
+      }
+
+      if (definition.type === 'single') {
+        return selected === value;
+      }
+
+      return Array.isArray(selected) && selected.includes(value);
+    },
+    require(arg1, arg2) {
+      if (arg2 === undefined) {
+        const dimension = defaultDimension;
+        const value = arg1;
+        if (!dimension) {
+          throw new SetupSandboxError('No default dimension is configured for require(). Specify a dimension explicitly.');
+        }
+        if (!api.in(dimension, value)) {
+          throw new SetupSandboxError(`Required option "${value}" not selected in dimension "${dimension}".`);
+        }
+        return;
+      }
+
+      const dimension = arg1;
+      const value = arg2;
+      if (!api.in(dimension, value)) {
+        throw new SetupSandboxError(`Required option "${value}" not selected in dimension "${dimension}".`);
+      }
+    },
+    dimensions() {
+      const copy = {};
+      for (const [dimension, value] of Object.entries(normalizedByDimension)) {
+        copy[dimension] = Array.isArray(value) ? value.slice() : value;
+      }
+      return copy;
+    },
+    raw() {
+      return rawList.slice();
     }
-  });
+  };
+
+  return Object.freeze(api);
+}
+
+function normalizeByDimension(byDimension, dimensionDefinitions) {
+  const normalized = {};
+
+  for (const [dimension, definition] of Object.entries(dimensionDefinitions)) {
+    const rawValue = byDimension[dimension];
+
+    if (definition.type === 'single') {
+      normalized[dimension] = typeof rawValue === 'string' ? rawValue : (rawValue ?? definition.default ?? null);
+    } else {
+      if (Array.isArray(rawValue)) {
+        normalized[dimension] = rawValue.map(value => value);
+      } else {
+        normalized[dimension] = Array.isArray(definition.default) ? definition.default.slice() : [];
+      }
+    }
+  }
+
+  for (const [dimension, value] of Object.entries(byDimension)) {
+    if (normalized[dimension] === undefined) {
+      normalized[dimension] = Array.isArray(value) ? value.map(v => v) : value;
+    }
+  }
+
+  return normalized;
+}
+
+function pickDefaultDimension(dimensions) {
+  if (dimensions.capabilities && dimensions.capabilities.type === 'multi') {
+    return 'capabilities';
+  }
+
+  for (const [name, definition] of Object.entries(dimensions)) {
+    if (definition.type === 'multi' && !definition.builtIn) {
+      return name;
+    }
+  }
+
+  return null;
 }
 
 function createIdeApi(ctx, root) {
@@ -1018,13 +1139,14 @@ export async function loadSetupScript(setupPath, ctx, tools, logger = null) {
   return await entry(environment);
 }
 
-export async function createSetupTools({ projectDirectory, projectName, logger, context }) {
+export async function createSetupTools({ projectDirectory, projectName, logger, context, dimensions = {} }) {
   const root = path.resolve(projectDirectory);
   const ctx = {
     projectName,
     projectDir: root,
     ide: context?.ide ?? null,
-    options: Array.isArray(context?.options) ? context.options.slice() : []
+    authoringMode: context?.authoringMode ?? 'wysiwyg',
+    options: context?.options ?? { raw: [], byDimension: {} }
   };
 
   return Object.freeze({
@@ -1035,6 +1157,9 @@ export async function createSetupTools({ projectDirectory, projectName, logger, 
     text: buildTextApi(root),
     logger: createLoggerApi(logger),
     ide: createIdeApi(ctx, root),
-    options: createOptionsApi(ctx.options)
+    options: createOptionsApi({
+      options: ctx.options,
+      dimensions
+    })
   });
 }

@@ -3,7 +3,7 @@
 import fs from 'fs/promises';
 import path from 'path';
 import { validateDirectoryExists, readJsonFile } from './utils/fsUtils.mjs';
-import { validateSupportedOptionsMetadata } from './security.mjs';
+import { loadTemplateMetadataFromPath } from './templateMetadata.mjs';
 
 /**
  * Template Discovery module
@@ -112,22 +112,11 @@ export class TemplateDiscovery {
     };
 
     // Try to get metadata from template.json (higher priority)
-    const templateJson = await this.parseTemplateJson(templatePath);
-    let supportedOptions = [];
+    const structuredMetadata = await loadTemplateMetadataFromPath(templatePath);
+    const templateJson = structuredMetadata.raw ?? await this.parseTemplateJson(templatePath);
 
     if (templateJson) {
       metadata = { ...metadata, ...templateJson };
-
-      if (
-        templateJson.setup &&
-        Object.prototype.hasOwnProperty.call(templateJson.setup, 'supportedOptions')
-      ) {
-        try {
-          supportedOptions = validateSupportedOptionsMetadata(templateJson.setup.supportedOptions);
-        } catch (error) {
-          throw new Error(`Invalid setup.supportedOptions in template.json: ${error.message}`);
-        }
-      }
     }
 
     // Supplement metadata from package.json when available
@@ -179,7 +168,10 @@ export class TemplateDiscovery {
       }
     }
 
-    metadata.supportedOptions = supportedOptions;
+    metadata.supportedOptions = structuredMetadata.supportedOptions;
+    metadata.authoringMode = structuredMetadata.authoringMode;
+    metadata.dimensions = structuredMetadata.dimensions;
+    metadata.handoff = structuredMetadata.handoffSteps;
 
     return metadata;
   }
