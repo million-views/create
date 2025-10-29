@@ -17,7 +17,7 @@
 
 4. **Documentation revamp (Diátaxis aligned)**
    - [x] Tutorial: update `docs/tutorial/first-template.md` to walk through the new helpers.
-   - [x] How-to: revise `docs/creating-templates.md` with practical recipes using the toolkit.
+   - [x] How-to: revise `docs/how-to/creating-templates.md` with practical recipes using the toolkit.
    - [x] How-to Recipes: add a focused guide (e.g., `docs/how-to/setup-recipes.md`) with common scenarios powered by the new helpers.
    - [x] Explanation: adjust `docs/explanation/ide-integration.md` and `docs/explanation/template-system.md` to describe the helper philosophy.
    - [x] Reference: refresh `docs/reference/environment-object.md` and `docs/reference/cli-reference.md` with the new API tables.

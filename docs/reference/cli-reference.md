@@ -4,8 +4,8 @@ type: "reference"
 audience: "all"
 estimated_time: "N/A (reference)"
 prerequisites: []
-related_docs: 
-  - "../creating-templates.md"
+related_docs:
+  - "../how-to/creating-templates.md"
   - "../tutorial/getting-started.md"
   - "../tutorial/first-template.md"
   - "../how-to/setup-recipes.md"
@@ -400,5 +400,5 @@ All inputs are validated for security and correctness:
 
 - [Environment Reference](environment.md) - Complete Environment contract
 - [Error Codes Reference](error-codes.md) - Exit codes and error messages
-- [Creating Templates Guide](../creating-templates.md) - How to create your own templates
+- [Creating Templates Guide](../how-to/creating-templates.md) - How to create your own templates
 - [Getting Started Tutorial](../tutorial/getting-started.md) - Step-by-step beginner guide

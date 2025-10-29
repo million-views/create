@@ -29,7 +29,7 @@
    - [x] Ensure CLI integration tests cover the new runtime flows.
 
 6. **Refresh documentation**
-   - [x] Update `docs/creating-templates.md`, `docs/tutorial/first-template.md`, `docs/explanation/ide-integration.md`, `docs/reference/environment-object.md`, `docs/reference/cli-reference.md`.
+   - [x] Update `docs/how-to/creating-templates.md`, `docs/tutorial/first-template.md`, `docs/explanation/ide-integration.md`, `docs/reference/environment-object.md`, `docs/reference/cli-reference.md`.
    - [ ] Create or refresh IDE preset examples in `docs/_templates`.
    - [x] Add concise reference for setup tools API and option declaration.
 

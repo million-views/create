@@ -4,7 +4,7 @@ type: "reference"
 audience: "all"
 estimated_time: "N/A (reference)"
 prerequisites: []
-related_docs: 
+related_docs:
   - "cli-reference.md"
   - "../guides/troubleshooting.md"
 last_updated: "2024-01-15"
@@ -27,7 +27,7 @@ Complete reference for exit codes, error messages, and troubleshooting informati
 
 ### Argument Parsing Errors
 
-**Exit Code:** `1`  
+**Exit Code:** `1`
 **Category:** Input Validation
 
 | Error Message | Cause | Resolution |
@@ -48,7 +48,7 @@ Use --help for usage information.
 
 ### Validation Errors
 
-**Exit Code:** `1`  
+**Exit Code:** `1`
 **Category:** Input Validation
 
 #### Project Directory Validation
@@ -109,7 +109,7 @@ Use --help for usage information.
 
 ### Git Operation Errors
 
-**Exit Code:** `1`  
+**Exit Code:** `1`
 **Category:** Git Operations
 
 | Error Message | Cause | Resolution |
@@ -150,7 +150,7 @@ Please check your network connection and try again.
 
 ### File System Errors
 
-**Exit Code:** `1`  
+**Exit Code:** `1`
 **Category:** File Operations
 
 | Error Message | Cause | Resolution |
@@ -163,7 +163,7 @@ Please check your network connection and try again.
 
 ### Cache System Errors
 
-**Exit Code:** `1`  
+**Exit Code:** `1`
 **Category:** Cache Operations
 
 | Error Message | Cause | Resolution |
@@ -174,7 +174,7 @@ Please check your network connection and try again.
 
 ### Setup Script Errors
 
-**Exit Code:** `0` (Warning only)  
+**Exit Code:** `0` (Warning only)
 **Category:** Setup Script Execution
 
 Setup script errors are treated as warnings and don't cause the CLI to exit with error code 1.
@@ -195,7 +195,7 @@ Continuing without setup...
 
 ### Preflight Check Errors
 
-**Exit Code:** `1`  
+**Exit Code:** `1`
 **Category:** Environment Validation
 
 | Error Message | Cause | Resolution |
@@ -314,4 +314,4 @@ For troubleshooting, the following information is useful:
 
 - [CLI Reference](cli-reference.md) - Complete CLI parameter documentation
 - [Troubleshooting Guide](../guides/troubleshooting.md) - Detailed troubleshooting procedures
-- [Creating Templates Guide](../creating-templates.md) - Template creation and setup scripts
+- [Creating Templates Guide](../how-to/creating-templates.md) - Template creation and setup scripts

@@ -160,7 +160,7 @@ npm install && npm start
 - 🚨 [Support](docs/guides/troubleshooting.md) - Get help
 
 ## For Developers
-- 🛠️ [Development Setup](docs/development.md) - Local development
+- 🛠️ [Development Setup](docs/how-to/development.md) - Local development
 - 🤝 [Contributing](CONTRIBUTING.md) - How to contribute
 ```
 

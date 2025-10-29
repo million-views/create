@@ -8,7 +8,7 @@ prerequisites:
   - "Git installed and configured"
 related_docs:
   - "docs/tutorial/getting-started.md"
-  - "docs/creating-templates.md"
+  - "docs/how-to/creating-templates.md"
   - "docs/reference/cli-reference.md"
 last_updated: "2024-10-26"
 ---
@@ -59,7 +59,7 @@ npm create @m5nv/scaffold -- --list-templates
 ## Learn more
 
 - [Getting Started Tutorial](docs/tutorial/getting-started.md) — first project walkthrough
-- [Template Creation Guide](docs/creating-templates.md) — authoring templates and setup scripts
+- [Template Creation Guide](docs/how-to/creating-templates.md) — authoring templates and setup scripts
 - [Complete CLI Reference](docs/reference/cli-reference.md) — command and flag documentation
 - [Troubleshooting Guide](docs/guides/troubleshooting.md) — common failure scenarios
 - [Security Model](docs/explanation/security-model.md) — sandboxing and validation overview

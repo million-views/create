@@ -75,16 +75,16 @@ function validateIdeParameter(ide) {
 
 function validateFeaturesParameter(features) {
   if (!features) return [];
-  
+
   const featureList = features.split(',').map(f => f.trim());
   const validFeaturePattern = /^[a-zA-Z0-9_-]+$/;
-  
+
   for (const feature of featureList) {
     if (!validFeaturePattern.test(feature)) {
       throw new ValidationError(`Invalid feature name: ${feature}. Use only letters, numbers, hyphens, and underscores.`);
     }
   }
-  
+
   return featureList;
 }
 ```
@@ -111,7 +111,7 @@ export function createEnvironmentObject({
     ide: validateIdeParameter(ide),
     features: validateFeaturesParameter(features)
   });
-  
+
   return env;
 }
 ```
@@ -125,7 +125,7 @@ The setup script execution will be updated to use the new Environment_Object:
 ```javascript
 async function executeSetupScript(projectDirectory, projectName, ide, features) {
   const setupScriptPath = path.join(projectDirectory, SETUP_SCRIPT);
-  
+
   try {
     await fs.access(setupScriptPath);
   } catch {
@@ -134,10 +134,10 @@ async function executeSetupScript(projectDirectory, projectName, ide, features) 
 
   try {
     console.log('⚙️  Running template setup script...');
-    
+
     const setupScriptUrl = `file://${path.resolve(setupScriptPath)}`;
     const setupModule = await import(setupScriptUrl);
-    
+
     const env = createEnvironmentObject({
       projectDirectory,
       projectName,
@@ -145,13 +145,13 @@ async function executeSetupScript(projectDirectory, projectName, ide, features) 
       ide,
       features
     });
-    
+
     if (typeof setupModule.default === 'function') {
       await setupModule.default(env);
     } else {
       throw new Error('Setup script must export a default function');
     }
-    
+
   } catch (err) {
     const sanitizedMessage = sanitizeErrorMessage(err.message);
     console.warn(`⚠️  Warning: Setup script execution failed: ${sanitizedMessage}`);
@@ -287,7 +287,7 @@ export default function setup(env) {
   console.log(`IDE: ${env.ide}`);
   console.log(`Features: ${env.features.join(', ')}`);
   console.log(`Project: ${env.projectName} in ${env.projectDir}`);
-  
+
   // Create IDE-specific files for testing
   if (env.ide === 'kiro') {
     // Create .kiro directory and settings
@@ -322,7 +322,7 @@ Examples:
 
 ### 2. Template Creation Guide
 
-**Location:** `docs/creating-templates.md`
+**Location:** `docs/how-to/creating-templates.md`
 
 Update the template creation documentation with:
 - New Environment_Object interface

@@ -7,7 +7,7 @@ prerequisites:
   - "Read reference/environment.md"
   - "Basic understanding of JavaScript modules"
 related_docs:
-  - "../creating-templates.md"
+  - "creating-templates.md"
   - "../reference/environment.md"
   - "../tutorial/first-template.md"
 last_updated: "2024-11-07"

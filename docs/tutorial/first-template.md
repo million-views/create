@@ -3,13 +3,13 @@ title: "Your First Template - Hands-On Examples"
 type: "tutorial"
 audience: "beginner"
 estimated_time: "20 minutes"
-prerequisites: 
+prerequisites:
   - "Completed Getting Started tutorial"
   - "Node.js (latest LTS) installed"
   - "Git installed and configured"
-related_docs: 
+related_docs:
   - "getting-started.md"
-  - "../creating-templates.md"
+   - "../how-to/creating-templates.md"
   - "../reference/environment.md"
   - "../how-to/setup-recipes.md"
 last_updated: "2024-11-07"
@@ -21,13 +21,13 @@ last_updated: "2024-11-07"
 
 In this hands-on tutorial, you'll build progressively complex projects using @m5nv/create-scaffold, starting with the simplest possible example and gradually adding complexity. By the end, you'll understand how templates adapt to different scenarios and how to leverage advanced features.
 
-> This tutorial focuses on template consumers operating create-scaffold. If you want to build or maintain templates, jump to [How to Create Templates](../creating-templates.md) after completing this walkthrough.
+> This tutorial focuses on template consumers operating create-scaffold. If you want to build or maintain templates, jump to [How to Create Templates](../how-to/creating-templates.md) after completing this walkthrough.
 
 ## What you'll build
 
 You'll create five projects with increasing complexity:
 1. **Minimal Project** - Simplest possible setup
-2. **IDE-Optimized Project** - Enhanced for your development environment  
+2. **IDE-Optimized Project** - Enhanced for your development environment
 3. **Feature-Rich Project** - Multiple integrated features
 4. **Team Project** - Production-ready with full tooling
 5. **Custom Workflow** - Advanced template usage patterns
@@ -105,10 +105,10 @@ Now let's add IDE-specific optimizations to enhance your development experience.
    ```bash
    # For Kiro users:
    npm create @m5nv/scaffold kiro-demo -- --from-template react-vite --ide kiro
-   
+
    # For VSCode users:
    npm create @m5nv/scaffold vscode-demo -- --from-template react-vite --ide vscode
-   
+
    # For Cursor users:
    npm create @m5nv/scaffold cursor-demo -- --from-template react-vite --ide cursor
    ```
@@ -122,7 +122,7 @@ Now let's add IDE-specific optimizations to enhance your development experience.
    ```bash
    # Look for IDE configuration directories
    ls -la | grep -E '\.(kiro|vscode|cursor)'
-   
+
    # Examine the IDE configuration
    find . -name "*.json" -path "./.kiro/*" -o -path "./.vscode/*" -o -path "./.cursor/*"
    ```
@@ -181,10 +181,10 @@ Let's add multiple features that work together to create a more complete applica
    ```bash
    # Look for authentication files
    find . -name "*auth*" -type f
-   
-   # Look for database files  
+
+   # Look for database files
    find . -name "*database*" -o -name "*db*" -type f
-   
+
    # Look for testing files
    find . -name "*test*" -o -name "*spec*" -type f
    ```
@@ -305,7 +305,7 @@ Now let's create a project ready for team development with full tooling.
    ```bash
    # Look at API structure
    find . -path "*/api/*" -type f
-   
+
    # Check for configuration files
    find . -name "*.json" -o -name "*.config.*" | head -10
    ```
@@ -371,7 +371,7 @@ Finally, let's explore advanced usage patterns including dry runs, caching, and 
    ```bash
    # List all available templates
    npm create @m5nv/scaffold -- --list-templates
-   
+
    # Get fresh template list (bypass cache)
    npm create @m5nv/scaffold -- --list-templates --no-cache
    ```
@@ -487,7 +487,7 @@ These examples show how templates scale from simple prototypes to complex applic
 
 Recommended next readings:
 
-- [Creating Your Own Templates](../creating-templates.md) — Build custom templates for specific needs
+- [Creating Your Own Templates](../how-to/creating-templates.md) — Build custom templates for specific needs
 - [Environment Reference](../reference/environment.md) — Understand how setup scripts receive context
 - [CLI Reference](../reference/cli-reference.md) — Review available options and parameters
 - [Template System Architecture](../explanation/template-system.md) — Learn how the system is structured
@@ -499,7 +499,7 @@ Recommended next readings:
 
 **Choose templates based on your project needs:**
 - **react-vite**: Modern React applications
-- **express**: API servers and backends  
+- **express**: API servers and backends
 - **nextjs**: Full-stack React applications
 - **library**: Reusable JavaScript/TypeScript packages
 

@@ -2,7 +2,7 @@
 
 ## Context
 - `_setup.mjs` currently executes arbitrary Node.js within generated projects.
-- Documentation in `docs/creating-templates.md`, `docs/tutorial/first-template.md`, `docs/explanation/ide-integration.md`, and `docs/reference/environment-object.md` encourages heavy scripting: authors recreate file I/O, placeholder substitution, IDE setup logic, and feature toggles manually.
+- Documentation in `docs/how-to/creating-templates.md`, `docs/tutorial/first-template.md`, `docs/explanation/ide-integration.md`, and `docs/reference/environment-object.md` encourages heavy scripting: authors recreate file I/O, placeholder substitution, IDE setup logic, and feature toggles manually.
 - Test fixtures in `test/fixtures/*` mirror the documentation by reimplementing large helper stacks per template, sometimes with inconsistent Environment_Object properties (`features` vs `options`).
 - The CLI reference advertises `--options` as contextual hints, yet examples elsewhere treat options as feature flags that unlock complex orchestration.
 

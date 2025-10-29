@@ -7,7 +7,7 @@ prerequisites:
   - "Comfortable with modern JavaScript syntax"
   - "Basic understanding of @m5nv/create-scaffold template workflow"
 related_docs:
-  - "../creating-templates.md"
+  - "../how-to/creating-templates.md"
   - "../how-to/setup-recipes.md"
   - "cli-reference.md"
 last_updated: "2024-11-07"
@@ -238,7 +238,7 @@ Legacy `setup.supportedOptions` entries are automatically upgraded into a `capab
 
 ## Additional Reading
 
-- [Creating Templates](../creating-templates.md) – guided walkthrough with practical examples.
+- [Creating Templates](../how-to/creating-templates.md) – guided walkthrough with practical examples.
 - [Author Workflow](../how-to/author-workflow.md) – recommended iteration loops for WYSIWYG and composable templates.
 - [Setup Script Recipes](../how-to/setup-recipes.md) – copy-ready snippets for frequent helper tasks.
 - [Dimensions Glossary](../reference/dimensions-glossary.md) – reserved names and usage guidelines.

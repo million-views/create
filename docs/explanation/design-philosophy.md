@@ -3,10 +3,10 @@ title: "Design Philosophy and Decisions Explained"
 type: "explanation"
 audience: "advanced"
 estimated_time: "12 minutes read"
-prerequisites: 
+prerequisites:
   - "Understanding of CLI tool design and development workflows"
   - "Familiarity with software architecture principles"
-related_docs: 
+related_docs:
   - "security-model.md"
   - "template-system.md"
   - "../reference/cli-reference.md"
@@ -293,4 +293,4 @@ Understanding our design philosophy helps explain other aspects of the system:
 
 - 📚 [Security Model](security-model.md) - How security principles are implemented
 - 🛠️ [Template System Architecture](template-system.md) - How flexibility principles shape templates
-- 📖 [Creating Templates Guide](../creating-templates.md) - How to work within our design philosophy
+- 📖 [Creating Templates Guide](../how-to/creating-templates.md) - How to work within our design philosophy

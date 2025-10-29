@@ -43,7 +43,7 @@ All code examples must:
 #### Internal Links
 
 - Use relative paths: `[text](../reference/cli-reference.md)`
-- Link to specific sections: `[text](../creating-templates.md#advanced-options)`
+- Link to specific sections: `[text](../how-to/creating-templates.md#advanced-options)`
 - Verify all links work
 
 #### External Links

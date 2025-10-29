@@ -3,12 +3,12 @@ title: "Security Features and Best Practices"
 type: "explanation"
 audience: "all"
 estimated_time: "5 minutes read"
-prerequisites: 
+prerequisites:
   - "Basic understanding of CLI tools and security concepts"
-related_docs: 
-  - "explanation/security-model.md"
-  - "guides/troubleshooting.md"
-  - "tutorial/getting-started.md"
+related_docs:
+  - "security-model.md"
+  - "../guides/troubleshooting.md"
+  - "../tutorial/getting-started.md"
 last_updated: "2024-10-26"
 ---
 
@@ -102,6 +102,6 @@ For security vulnerabilities:
 
 Next steps:
 
-- [Security Model Explained](explanation/security-model.md) — Architecture details
-- [Troubleshooting Guide](guides/troubleshooting.md) — Security-related issue handling
-- [Getting Started Tutorial](tutorial/getting-started.md) — Guided introduction with safety checks
+- [Security Model Explained](security-model.md) — Architecture details
+- [Troubleshooting Guide](../guides/troubleshooting.md) — Security-related issue handling
+- [Getting Started Tutorial](../tutorial/getting-started.md) — Guided introduction with safety checks

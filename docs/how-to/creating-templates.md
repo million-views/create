@@ -3,17 +3,17 @@ title: "How to Create Templates"
 type: "guide"
 audience: "intermediate"
 estimated_time: "30 minutes"
-prerequisites: 
+prerequisites:
   - "Basic familiarity with @m5nv/create-scaffold"
   - "Git repository management experience"
   - "Node.js and npm knowledge"
-related_docs: 
-  - "tutorial/getting-started.md"
-  - "reference/cli-reference.md"
-  - "reference/environment.md"
-  - "how-to/setup-recipes.md"
-  - "how-to/author-workflow.md"
-  - "reference/dimensions-glossary.md"
+related_docs:
+  - "../tutorial/getting-started.md"
+  - "../reference/cli-reference.md"
+  - "../reference/environment.md"
+  - "setup-recipes.md"
+  - "author-workflow.md"
+  - "../reference/dimensions-glossary.md"
 last_updated: "2024-11-07"
 ---
 
@@ -159,7 +159,7 @@ export default async function setup({ ctx, tools }) {
 ```
 
 Remember:
-- Never import Node built-ins; use the helper APIs in the [Environment Reference](reference/environment.md).
+- Never import Node built-ins; use the helper APIs in the [Environment Reference](../reference/environment.md).
 - Helpers are idempotent—rerunning `_setup.mjs` should not duplicate work.
 - `ctx.options.byDimension` already includes defaults, so treat it as authoritative.
 
@@ -254,7 +254,7 @@ git push -u origin main
 ## Setup Context & Tools quick reference
 
 Every setup script receives the Environment object (`{ ctx, tools }`). The table below summarizes the most
-common properties—see the full [Environment Reference](reference/environment.md)
+common properties—see the full [Environment Reference](../reference/environment.md)
 for details.
 
 | Item | Description |

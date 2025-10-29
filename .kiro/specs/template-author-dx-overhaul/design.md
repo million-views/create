@@ -106,7 +106,7 @@ Key traits:
 
 ## Documentation Updates
 We will redesign the documents cited in the requirements:
-- `docs/creating-templates.md`: rewrite setup section to show a <25 line example using `tools.placeholders` and `tools.ide.applyPreset`.
+- `docs/how-to/creating-templates.md`: rewrite setup section to show a <25 line example using `tools.placeholders` and `tools.ide.applyPreset`.
 - `docs/tutorial/first-template.md`: update examples to demonstrate `tools.options.when('typescript', ...)`.
 - `docs/explanation/ide-integration.md`: align messaging with `ide.applyPreset`.
 - `docs/reference/environment-object.md`: rename section to “Setup Context & Tools” and document each utility method.

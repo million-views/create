@@ -3,12 +3,12 @@ title: "Template System Architecture Explained"
 type: "explanation"
 audience: "intermediate"
 estimated_time: "10 minutes read"
-prerequisites: 
+prerequisites:
   - "Understanding of git repositories and file systems"
   - "Basic knowledge of Node.js and CLI tools"
-related_docs: 
+related_docs:
   - "../tutorial/first-template.md"
-  - "../creating-templates.md"
+  - "../how-to/creating-templates.md"
   - "../reference/environment.md"
   - "../how-to/setup-recipes.md"
 last_updated: "2024-11-05"
@@ -283,5 +283,5 @@ Current architectural limitations that users should understand:
 ## Further Reading
 
 - 📚 [First Template Tutorial](../tutorial/first-template.md) - Create your first template
-- 🛠️ [Creating Templates Guide](../creating-templates.md) - Comprehensive template creation guide
+- 🛠️ [Creating Templates Guide](../how-to/creating-templates.md) - Comprehensive template creation guide
 - 📖 [Environment Reference](../reference/environment.md) - Complete `ctx` and `tools` documentation

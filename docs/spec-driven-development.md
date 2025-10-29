@@ -3,11 +3,11 @@ title: "Spec-Driven Development Workflow"
 type: "explanation"
 audience: "advanced"
 estimated_time: "15 minutes read"
-prerequisites: 
+prerequisites:
   - "Software development experience"
   - "Understanding of requirements engineering"
-related_docs: 
-  - "development.md"
+related_docs:
+  - "how-to/development.md"
   - "../CONTRIBUTING.md"
   - "guides/troubleshooting.md"
 last_updated: "2024-10-26"
@@ -344,6 +344,6 @@ This spec-driven approach ensures that @m5nv/create-scaffold maintains high qual
 
 Now that you understand the spec-driven development workflow, you might want to:
 
-- 🛠️ **Start developing**: [Development Guide](development.md) - Set up your development environment and contribute
+- 🛠️ **Start developing**: [Development Guide](how-to/development.md) - Set up your development environment and contribute
 - 🤝 **Contribute to the project**: [Contributing Guidelines](../CONTRIBUTING.md) - How to contribute following our standards
 - 🚨 **Handle development issues**: [Troubleshooting Guide](guides/troubleshooting.md) - Resolve common development problems

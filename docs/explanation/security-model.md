@@ -3,13 +3,13 @@ title: "Security Model Explained"
 type: "explanation"
 audience: "intermediate"
 estimated_time: "8 minutes read"
-prerequisites: 
+prerequisites:
   - "Basic understanding of CLI tools and security concepts"
   - "Familiarity with git repositories and template systems"
-related_docs: 
+related_docs:
   - "../tutorial/getting-started.md"
   - "../reference/cli-reference.md"
-  - "../creating-templates.md"
+  - "../how-to/creating-templates.md"
 last_updated: "2024-10-26"
 ---
 
@@ -96,11 +96,11 @@ Error messages are sanitized to prevent information leakage:
 
 **Why we chose this:** Every attack vector starts with malicious input. By validating all inputs at the entry point, we prevent entire classes of attacks.
 
-**Trade-offs:** 
+**Trade-offs:**
 - **Gained**: Protection against injection, traversal, and malformed input attacks
 - **Given up**: Some flexibility in naming conventions and path structures
 
-**Alternatives considered:** 
+**Alternatives considered:**
 - Partial validation (rejected - leaves attack vectors open)
 - Runtime validation only (rejected - allows malicious data to propagate)
 
@@ -198,5 +198,5 @@ Our security model has intentional limitations that users should understand:
 ## Further Reading
 
 - 📚 [Getting Started Tutorial](../tutorial/getting-started.md) - See security in action
-- 🛠️ [Creating Templates Guide](../creating-templates.md) - Security considerations for template authors
+- 🛠️ [Creating Templates Guide](../how-to/creating-templates.md) - Security considerations for template authors
 - 📖 [CLI Reference](../reference/cli-reference.md) - Security-related parameters and options

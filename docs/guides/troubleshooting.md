@@ -3,10 +3,10 @@ title: "Troubleshooting Guide"
 type: "guide"
 audience: "all"
 estimated_time: "5-15 minutes per issue"
-prerequisites: 
+prerequisites:
   - "Basic familiarity with command line"
   - "@m5nv/create-scaffold installed"
-related_docs: 
+related_docs:
   - "../reference/error-codes.md"
   - "../reference/cli-reference.md"
   - "../tutorial/getting-started.md"
@@ -22,7 +22,7 @@ This guide helps you resolve specific problems when using @m5nv/create-scaffold.
 **Use this checklist to quickly identify your issue category:**
 
 - 🚀 **Installation/Setup Issues** - Can't install or run the tool
-- 🎯 **First Use Issues** - Tool runs but fails on basic operations  
+- 🎯 **First Use Issues** - Tool runs but fails on basic operations
 - ⚡ **Advanced Usage Issues** - Problems with caching, logging, or complex scenarios
 - 🔧 **Template Issues** - Problems with specific templates or setup scripts
 
@@ -353,7 +353,7 @@ cd my-project
 node -e "import('./template/_setup.mjs').then(m => console.log('Setup script is valid'))"
 ```
 
-**See also:** 🎯 [Creating Templates - Setup Scripts](../creating-templates.md#setup-scripts)
+**See also:** 🎯 [Creating Templates - Setup Scripts](../how-to/creating-templates.md#setup-scripts)
 
 ### How to Debug Template Structure Issues
 
@@ -387,7 +387,7 @@ ls -la temp-inspect/template-name/
 rm -rf temp-inspect
 ```
 
-**See also:** 📖 [Creating Templates Guide](../creating-templates.md) - Template structure and organization
+**See also:** 📖 [Creating Templates Guide](../how-to/creating-templates.md) - Template structure and organization
 
 ---
 
@@ -443,7 +443,7 @@ cp -r temp-manual/template-name my-project
 rm -rf temp-manual
 ```
 
-**See also:** 
+**See also:**
 - 📖 [Error Codes Reference](../reference/error-codes.md) - Complete error code documentation
 - 📖 [CLI Reference](../reference/cli-reference.md) - All command-line options
 - 🎯 [Getting Started Tutorial](../tutorial/getting-started.md) - Step-by-step beginner guide

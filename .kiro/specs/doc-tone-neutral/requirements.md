@@ -12,7 +12,7 @@
 - Keep documentation accurate—no removal of essential guidance while adjusting tone.
 
 ## Non-Goals
-- Reworking maintainers-only docs (e.g., `docs/development.md`) unless they contain user-facing sections.
+- Reworking maintainers-only docs (e.g., `docs/how-to/development.md`) unless they contain user-facing sections.
 - Expanding feature set or adding new comparisons with other tools.
 - Writing formal competitive collateral; scope is limited to tone and factual accuracy inside existing docs.
 

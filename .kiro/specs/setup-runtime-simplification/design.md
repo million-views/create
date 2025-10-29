@@ -51,7 +51,7 @@ The only difference is the helper surface.
 Following Diátaxis:
 - **Tutorial** (`docs/tutorial/first-template.md`): demonstrate a beginner flow using the new helper APIs.
 - **How-to Guides**:
-  - Refresh `docs/creating-templates.md` with practical sequences using the simplified helpers.
+  - Refresh `docs/how-to/creating-templates.md` with practical sequences using the simplified helpers.
   - Introduce a dedicated recipe collection (e.g., `docs/how-to/setup-recipes.md`) linking common tasks like adding ESLint config or extending tsconfig.
 - **Explanation** (`docs/explanation/ide-integration.md`, `docs/explanation/template-system.md`): describe the rationale for sandboxed helpers and the 80/20 design.
 - **Reference** (`docs/reference/environment-object.md`, `docs/reference/cli-reference.md`): enumerate helper APIs and option metadata.

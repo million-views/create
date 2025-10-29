@@ -3,12 +3,12 @@ title: "Getting Started with @m5nv/create-scaffold"
 type: "tutorial"
 audience: "beginner"
 estimated_time: "15 minutes"
-prerequisites: 
+prerequisites:
   - "Node.js (latest LTS) installed"
   - "Git installed and configured"
   - "Basic command line familiarity"
-related_docs: 
-  - "../creating-templates.md"
+related_docs:
+   - "../how-to/creating-templates.md"
   - "../reference/cli-reference.md"
   - "../guides/troubleshooting.md"
   - "first-template.md"
@@ -142,10 +142,10 @@ Now let's explore how to customize projects with IDE settings and optional featu
    ```bash
    # For Kiro IDE users:
    npm create @m5nv/scaffold my-kiro-app -- --from-template react-vite --ide kiro
-   
+
    # For VSCode users:
    npm create @m5nv/scaffold my-vscode-app -- --from-template react-vite --ide vscode
-   
+
    # For Cursor users:
    npm create @m5nv/scaffold my-cursor-app -- --from-template react-vite --ide cursor
    ```
@@ -348,7 +348,7 @@ Core workflow:
 
 Next steps:
 
-- [Create Your Own Templates](../creating-templates.md) — Build reusable project templates for your team
+- [Create Your Own Templates](../how-to/creating-templates.md) — Build reusable project templates for your team
 - [Complete CLI Reference](../reference/cli-reference.md) — Explore available commands and options
 - [Troubleshooting Guide](../guides/troubleshooting.md) — Address common issues
 - [Security Model](../explanation/security-model.md) — Review the protection mechanisms
@@ -358,15 +358,15 @@ Next steps:
 
 ### Template not found
 
-**Problem:** `Template not found in the repository`  
-**Solution:** 
+**Problem:** `Template not found in the repository`
+**Solution:**
 1. Check the template name with `--list-templates`
 2. Verify you're using the correct repository with `--repo`
 3. Try `--no-cache` to get the latest repository version
 
 ### Git authentication failed
 
-**Problem:** `Authentication failed` when accessing repositories  
+**Problem:** `Authentication failed` when accessing repositories
 **Solution:**
 1. Ensure git is configured: `git config --global user.name "Your Name"`
 2. For private repositories, set up SSH keys or personal access tokens
@@ -374,7 +374,7 @@ Next steps:
 
 ### Node.js version too old
 
-**Problem:** `Node.js version requirement not met`  
+**Problem:** `Node.js version requirement not met`
 **Solution:**
 1. Update Node.js from [nodejs.org](https://nodejs.org/)
 2. Or use a version manager like nvm: `nvm install --lts && nvm use --lts`
@@ -382,7 +382,7 @@ Next steps:
 
 ### Permission denied errors
 
-**Problem:** `Permission denied` when creating directories  
+**Problem:** `Permission denied` when creating directories
 **Solution:**
 1. Ensure you have write permissions in the current directory
 2. Try creating the project in your home directory or a different location
@@ -390,7 +390,7 @@ Next steps:
 
 ### Cache issues
 
-**Problem:** Getting old template versions or cache errors  
+**Problem:** Getting old template versions or cache errors
 **Solution:**
 1. Use `--no-cache` to bypass cache: `npm create @m5nv/scaffold my-app -- --from-template react-vite --no-cache`
 2. Cache is stored in `~/.m5nv/cache/` - you can delete this directory if needed

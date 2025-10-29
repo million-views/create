@@ -15,7 +15,7 @@ Documentation Architecture
 │   ├── tutorial/
 │   │   ├── getting-started.md (Tutorial)
 │   │   └── first-template.md (Tutorial)
-│   ├── guides/
+│   ├── how-to/
 │   │   ├── creating-templates.md (How-to)
 │   │   ├── ide-integration.md (How-to)
 │   │   ├── advanced-options.md (How-to)
@@ -85,7 +85,7 @@ Documentation Architecture
 
 ## Next Steps
 - 📚 [Tutorial: Your First Project](docs/tutorial/getting-started.md)
-- 🛠️ [Creating Templates](docs/guides/creating-templates.md)
+- 🛠️ [Creating Templates](docs/how-to/creating-templates.md)
 - 📖 [Complete CLI Reference](docs/reference/cli-reference.md)
 
 ## Community & Support
@@ -215,7 +215,7 @@ type: "tutorial"  # tutorial, guide, reference, explanation
 audience: "beginner"  # beginner, intermediate, advanced
 estimated_time: "15 minutes"
 prerequisites: ["Node.js 22+", "Git"]
-related_docs: ["cli-reference.md", "creating-templates.md"]
+related_docs: ["cli-reference.md", "how-to/creating-templates.md"]
 last_updated: "2024-01-15"
 ---
 ```
@@ -225,16 +225,16 @@ last_updated: "2024-01-15"
 ```yaml
 # Internal linking structure
 tutorials:
-  - getting-started.md → guides/creating-templates.md
+  - getting-started.md → how-to/creating-templates.md
   - first-template.md → reference/template-structure.md
 
-guides:
-  - creating-templates.md → reference/environment-object.md
+how-to:
+  - how-to/creating-templates.md → reference/environment-object.md
   - troubleshooting.md → reference/error-codes.md
 
 reference:
-  - cli-reference.md ← guides/advanced-options.md
-  - environment-object.md ← guides/creating-templates.md
+  - cli-reference.md ← how-to/advanced-options.md
+  - environment-object.md ← how-to/creating-templates.md
 
 explanation:
   - security-model.md ← guides/troubleshooting.md

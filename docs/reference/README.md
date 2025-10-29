@@ -4,9 +4,9 @@ type: "reference"
 audience: "all"
 estimated_time: "N/A (reference)"
 prerequisites: []
-related_docs: 
+related_docs:
   - "../tutorial/getting-started.md"
-  - "../creating-templates.md"
+  - "../how-to/creating-templates.md"
 last_updated: "2024-01-15"
 ---
 
@@ -112,7 +112,7 @@ Complete listing of exit codes, error messages, and troubleshooting information.
 - [First Template Tutorial](../tutorial/first-template.md) - Create your first template
 
 ### Task-Oriented
-- [Creating Templates Guide](../creating-templates.md) - How to create templates
+- [Creating Templates Guide](../how-to/creating-templates.md) - How to create templates
 - [Troubleshooting Guide](../guides/troubleshooting.md) - Problem-solving procedures
 
 ### Understanding-Oriented

@@ -47,7 +47,7 @@
 
 - [x] 4. Rewrite template creation as comprehensive how-to guide
 
-  - Restructure docs/creating-templates.md as task-oriented guide
+  - Restructure docs/how-to/creating-templates.md as task-oriented guide
   - Add practical examples for common template scenarios
   - Include complete Environment_Object documentation with real-world usage
   - Cover IDE-specific customization with concrete examples

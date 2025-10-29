@@ -3,11 +3,11 @@ title: "IDE Integration Philosophy Explained"
 type: "explanation"
 audience: "intermediate"
 estimated_time: "6 minutes read"
-prerequisites: 
+prerequisites:
   - "Familiarity with different IDEs and development environments"
   - "Understanding of project scaffolding concepts"
-related_docs: 
-  - "../creating-templates.md"
+related_docs:
+  - "../how-to/creating-templates.md"
   - "../reference/environment.md"
   - "template-system.md"
   - "../how-to/setup-recipes.md"
@@ -79,7 +79,7 @@ Currently supported IDEs with their characteristics:
 
 - **VS Code**: Microsoft's popular editor with extensive extension ecosystem
 - **Kiro**: AI-powered development environment with integrated assistance
-- **Cursor**: AI-first code editor with advanced completion capabilities  
+- **Cursor**: AI-first code editor with advanced completion capabilities
 - **Windsurf**: Modern development environment with collaborative features
 
 **Design Philosophy**: Support IDEs that represent different approaches to development while maintaining a manageable scope.
@@ -249,6 +249,6 @@ Current limitations in IDE integration approach:
 
 ## Further Reading
 
-- 📚 [Creating Templates Guide](../creating-templates.md) - How to create IDE-aware templates
+- 📚 [Creating Templates Guide](../how-to/creating-templates.md) - How to create IDE-aware templates
 - 🛠️ [Environment Reference](../reference/environment.md) - Complete Environment documentation
 - 📖 [Template System Architecture](template-system.md) - How IDE integration fits the broader system

@@ -9,7 +9,7 @@ This document defines how to create consistent, helpful cross-references between
 ### From Tutorials
 
 Tutorials should link to:
-- **How-to Guides**: "Now that you understand the basics, learn [how to create templates](../creating-templates.md)"
+- **How-to Guides**: "Now that you understand the basics, learn [how to create templates](../how-to/creating-templates.md)"
 - **Reference**: "For complete parameter details, see the [CLI Reference](../reference/cli-reference.md#parameters)"
 - **Explanation**: "To understand why we use this approach, read [Template System Architecture](../explanation/template-system.md)"
 
@@ -24,7 +24,7 @@ How-to guides should link to:
 ### From Reference
 
 Reference documentation should link to:
-- **How-to Guides**: "For practical examples, see [Creating Templates Guide](../creating-templates.md)"
+- **How-to Guides**: "For practical examples, see [Creating Templates Guide](../how-to/creating-templates.md)"
 - **Tutorials**: "For a hands-on introduction, try our [Getting Started Tutorial](../tutorial/getting-started.md)"
 - **Explanation**: "For design rationale, see [Template System Architecture](../explanation/template-system.md)"
 
@@ -32,7 +32,7 @@ Reference documentation should link to:
 
 Explanation content should link to:
 - **Tutorials**: "See this concept in action: [Getting Started Tutorial](../tutorial/getting-started.md)"
-- **How-to Guides**: "Apply this knowledge: [Creating Templates](../creating-templates.md)"
+- **How-to Guides**: "Apply this knowledge: [Creating Templates](../how-to/creating-templates.md)"
 - **Reference**: "Implementation details: [CLI Reference](../reference/cli-reference.md)"
 
 ## Link Formatting
@@ -71,7 +71,7 @@ Every document should end with appropriate next steps:
 
 Now that you've [completed this task/learned this concept], you might want to:
 
-- 🎯 **Apply this knowledge**: [How to Create Templates](../creating-templates.md)
+- 🎯 **Apply this knowledge**: [How to Create Templates](../how-to/creating-templates.md)
 - 📖 **Get complete details**: [Environment Reference](../reference/environment.md)
 - 💡 **Understand the why**: [Template System Explained](../explanation/template-system.md)
 ```
@@ -84,7 +84,7 @@ For quick reference to related content:
 ## Related Information
 
 - 📚 **Tutorial**: [Getting Started](../tutorial/getting-started.md) - Learn the basics hands-on
-- 🛠️ **How-to**: [Creating Templates](../creating-templates.md) - Build your own project templates
+- 🛠️ **How-to**: [Creating Templates](../how-to/creating-templates.md) - Build your own project templates
 - 📖 **Reference**: [CLI Parameters](../reference/cli-reference.md) - Complete parameter documentation
 - 💡 **Explanation**: [Security Model](../explanation/security-model.md) - Why we prioritize security
 ```
@@ -107,19 +107,19 @@ See [here](../reference/cli-reference.md) for more information.
 
 Good:
 ```markdown
-Learn [how to create custom templates](../creating-templates.md) for your team.
+Learn [how to create custom templates](../how-to/creating-templates.md) for your team.
 ```
 
 Poor:
 ```markdown
-[Click here](../creating-templates.md) to learn about templates.
+[Click here](../how-to/creating-templates.md) to learn about templates.
 ```
 
 ### Indicate Link Purpose
 
 Use prefixes to indicate content type:
 - 📚 Tutorial content
-- 🛠️ How-to guides  
+- 🛠️ How-to guides
 - 📖 Reference material
 - 💡 Explanation content
 - 🔗 External resources
@@ -133,7 +133,7 @@ Ensure related content links to each other:
 **Tutorial: Getting Started**
 → Links to: How-to Guide (Creating Templates), Reference (CLI Parameters)
 
-**How-to Guide: Creating Templates**  
+**How-to Guide: Creating Templates**
 → Links to: Tutorial (Getting Started), Reference (Environment Object), Explanation (Template System)
 
 **Reference: Environment Object**
@@ -166,7 +166,7 @@ During content review, verify:
 
 Start with basics, link to advanced:
 ```markdown
-This guide covers basic template creation. For advanced patterns like multi-IDE support, see [Creating Templates](../creating-templates.md).
+This guide covers basic template creation. For advanced patterns like multi-IDE support, see [Creating Templates](../how-to/creating-templates.md).
 ```
 
 ### Just-in-Time Information

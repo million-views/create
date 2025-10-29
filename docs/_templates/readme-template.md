@@ -3,10 +3,10 @@ title: "[Project Name]"
 type: "guide"
 audience: "all"
 estimated_time: "5 minutes read, [X] minutes to get started"
-prerequisites: 
+prerequisites:
   - "[Primary requirement]"
   - "[Secondary requirement]"
-related_docs: 
+related_docs:
   - "docs/tutorial/getting-started.md"
   - "docs/reference/[main-reference].md"
   - "docs/guides/[main-guide].md"
@@ -58,27 +58,27 @@ last_updated: "YYYY-MM-DD"
 
 ## Why use this?
 
-✅ **[Key benefit 1]** - [Brief explanation of user value]  
-✅ **[Key benefit 2]** - [Brief explanation of user value]  
-✅ **[Key benefit 3]** - [Brief explanation of user value]  
-✅ **[Key benefit 4]** - [Brief explanation of user value]  
-✅ **[Key benefit 5]** - [Brief explanation of user value]  
+✅ **[Key benefit 1]** - [Brief explanation of user value]
+✅ **[Key benefit 2]** - [Brief explanation of user value]
+✅ **[Key benefit 3]** - [Brief explanation of user value]
+✅ **[Key benefit 4]** - [Brief explanation of user value]
+✅ **[Key benefit 5]** - [Brief explanation of user value]
 ✅ **[Key benefit 6]** - [Brief explanation of user value]
 
 ## Next Steps
 
-**👋 New to [project type]?**  
+**👋 New to [project type]?**
 📚 [Getting Started Tutorial](docs/tutorial/getting-started.md) - Your first [project] in [X] minutes
 
-**🛠️ Want to [advanced use case]?**  
+**🛠️ Want to [advanced use case]?**
 📖 [Advanced Guide](docs/guides/[advanced-guide].md) - [Description of advanced capabilities]
 
-**🔍 Need specific help?**  
-📋 [Complete Reference](docs/reference/[main-reference].md) - All commands and options  
+**🔍 Need specific help?**
+📋 [Complete Reference](docs/reference/[main-reference].md) - All commands and options
 🚨 [Troubleshooting Guide](docs/guides/troubleshooting.md) - Fix common issues
 
-**🤔 Want to understand the design?**  
-💡 [Architecture Explained](docs/explanation/[architecture].md) - How we [key design decision]  
+**🤔 Want to understand the design?**
+💡 [Architecture Explained](docs/explanation/[architecture].md) - How we [key design decision]
 🏗️ [System Overview](docs/explanation/[system].md) - [Architecture deep-dive]
 
 ---
@@ -121,17 +121,17 @@ last_updated: "YYYY-MM-DD"
 
 ## Advanced Features
 
-**🚀 [Feature 1]** - [Brief description of capability]  
-**🔍 [Feature 2]** - [Brief description of capability]  
-**👀 [Feature 3]** - [Brief description of capability]  
+**🚀 [Feature 1]** - [Brief description of capability]
+**🔍 [Feature 2]** - [Brief description of capability]
+**👀 [Feature 3]** - [Brief description of capability]
 **📝 [Feature 4]** - [Brief description of capability]
 
 [📖 Complete feature documentation](docs/[feature-docs].md)
 
 ## Community & Support
 
-**🐛 Found a bug?** [Report it here](https://github.com/[user]/[repo]/issues/new)  
-**💡 Have an idea?** [Start a discussion](https://github.com/[user]/[repo]/discussions)  
+**🐛 Found a bug?** [Report it here](https://github.com/[user]/[repo]/issues/new)
+**💡 Have an idea?** [Start a discussion](https://github.com/[user]/[repo]/discussions)
 **🤝 Want to contribute?** [Read our guide](CONTRIBUTING.md)
 
 **📚 Documentation:**
@@ -140,7 +140,7 @@ last_updated: "YYYY-MM-DD"
 - [Advanced Usage](docs/[advanced].md) - [Description of advanced capabilities]
 - [API Reference](docs/[api].md) - [Description of API/reference docs]
 - [Troubleshooting](docs/guides/troubleshooting.md) - Common issues and solutions
-- [Development](docs/development.md) - Local development and testing guide
+- [Development](docs/how-to/development.md) - Local development and testing guide
 
 **Requirements:** [Primary requirement] • [Secondary requirement]
 
@@ -159,7 +159,7 @@ last_updated: "YYYY-MM-DD"
 - [Design Philosophy](docs/explanation/[philosophy].md) - [Why we built it this way]
 
 **🛠️ Development:**
-- [Development Guide](docs/development.md) - Local development and testing
+- [Development Guide](docs/how-to/development.md) - Local development and testing
 - [Contributing Guidelines](CONTRIBUTING.md) - How to contribute
 - [Troubleshooting](docs/guides/troubleshooting.md) - Fix common issues
 

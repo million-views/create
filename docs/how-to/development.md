@@ -8,10 +8,10 @@ prerequisites:
   - "Git and npm familiarity"
   - "Command line proficiency"
 related_docs:
-  - "spec-driven-development.md"
-  - "../CONTRIBUTING.md"
-  - "guides/troubleshooting.md"
-  - "reference/cli-reference.md"
+  - "../spec-driven-development.md"
+  - "../../CONTRIBUTING.md"
+  - "../guides/troubleshooting.md"
+  - "../reference/cli-reference.md"
 last_updated: "2024-10-26"
 ---
 
@@ -499,7 +499,7 @@ async getCachedRepo(repoUrl, branchName, options = {}) {
 
 ### Spec-Driven Development Process
 
-This project follows a rigorous spec-driven development methodology. See [Spec-Driven Development Workflow](spec-driven-development.md) for complete details.
+This project follows a rigorous spec-driven development methodology. See [Spec-Driven Development Workflow](../spec-driven-development.md) for complete details.
 
 **Quick Overview**:
 
@@ -636,7 +636,7 @@ npm run test:smoke  # Includes performance validation
 
 ### Quick Contribution Guide
 
-See [CONTRIBUTING.md](../CONTRIBUTING.md) for complete contribution guidelines.
+See [CONTRIBUTING.md](../../CONTRIBUTING.md) for complete contribution guidelines.
 
 **Essential Steps**:
 
@@ -792,15 +792,15 @@ node bin/index.mjs test3 --from-template react --no-cache  # Should clone
 
 ### Documentation
 
-- [Spec-Driven Development Workflow](spec-driven-development.md) - Complete guide to the project's development methodology
-- [CONTRIBUTING.md](../CONTRIBUTING.md) - Contribution guidelines and standards
-- [User Documentation](../README.md) - User-facing documentation and guides
+- [Spec-Driven Development Workflow](../spec-driven-development.md) - Complete guide to the project's development methodology
+- [CONTRIBUTING.md](../../CONTRIBUTING.md) - Contribution guidelines and standards
+- [User Documentation](../../README.md) - User-facing documentation and guides
 
 ### Project Specifications
 
-- [Phase 1 Core UX Spec](../.kiro/specs/phase-1-core-ux/) - Caching, logging, discovery, dry-run features
-- [Documentation Overhaul Spec](../.kiro/specs/documentation-overhaul-diataxis/) - Documentation restructuring project
-- [CLI Compliance Update Spec](../.kiro/specs/cli-compliance-update/) - CLI standards compliance
+- [Phase 1 Core UX Spec](../../.kiro/specs/phase-1-core-ux/) - Caching, logging, discovery, dry-run features
+- [Documentation Overhaul Spec](../../.kiro/specs/documentation-overhaul-diataxis/) - Documentation restructuring project
+- [CLI Compliance Update Spec](../../.kiro/specs/cli-compliance-update/) - CLI standards compliance
 
 ### External Resources
 
@@ -815,7 +815,7 @@ This development guide provides comprehensive information for contributing to @m
 
 Now that you have the development environment set up, you might want to:
 
-- 💡 **Understand the methodology**: [Spec-Driven Development Workflow](spec-driven-development.md) - Learn our development process
-- 🤝 **Make your first contribution**: [Contributing Guidelines](../CONTRIBUTING.md) - Step-by-step contribution process
-- 🚨 **Debug issues**: [Troubleshooting Guide](guides/troubleshooting.md) - Resolve development and runtime problems
-- 📖 **Understand the CLI**: [CLI Reference](reference/cli-reference.md) - Complete command documentation
+- 💡 **Understand the methodology**: [Spec-Driven Development Workflow](../spec-driven-development.md) - Learn our development process
+- 🤝 **Make your first contribution**: [Contributing Guidelines](../../CONTRIBUTING.md) - Step-by-step contribution process
+- 🚨 **Debug issues**: [Troubleshooting Guide](../guides/troubleshooting.md) - Resolve development and runtime problems
+- 📖 **Understand the CLI**: [CLI Reference](../reference/cli-reference.md) - Complete command documentation

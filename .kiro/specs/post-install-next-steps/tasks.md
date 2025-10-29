@@ -16,7 +16,7 @@
    - [x] Extend CLI integration tests to assert the enriched output for templates with and without metadata.
 
 4. **Documentation**
-   - [x] Document the `handoff` key in `docs/creating-templates.md`, `docs/reference/cli-reference.md`, and `docs/phase-1-features.md`.
+   - [x] Document the `handoff` key in `docs/how-to/creating-templates.md`, `docs/reference/cli-reference.md`, and `docs/phase-1-features.md`.
    - [x] Update tutorials/screenshot snippets to reflect the richer “Next steps”.
 
 5. **Verification**

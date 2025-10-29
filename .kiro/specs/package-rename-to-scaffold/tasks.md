@@ -46,7 +46,7 @@
   - Use roll-forward language (no references to old package name)
   - _Requirements: 6.1, 6.2_
 
-- [x] 2.4 Update docs/creating-templates.md
+- [x] 2.4 Update docs/how-to/creating-templates.md
 
   - Replace package name references throughout
   - Update usage examples in template documentation

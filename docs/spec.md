@@ -3,12 +3,12 @@ title: "CLI Tool Specification"
 type: "reference"
 audience: "advanced"
 estimated_time: "N/A (reference)"
-prerequisites: 
+prerequisites:
   - "Software development experience"
   - "Understanding of CLI tools and scaffolding"
-related_docs: 
+related_docs:
   - "spec-driven-development.md"
-  - "development.md"
+  - "how-to/development.md"
   - "reference/cli-reference.md"
 last_updated: "2024-10-26"
 ---

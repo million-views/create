@@ -8,7 +8,7 @@ prerequisites:
   - "Git and GitHub familiarity"
   - "Understanding of open source contribution workflow"
 related_docs:
-  - "docs/development.md"
+  - "docs/how-to/development.md"
   - "docs/spec-driven-development.md"
   - "docs/guides/troubleshooting.md"
 last_updated: "2024-10-26"

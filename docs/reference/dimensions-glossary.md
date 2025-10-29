@@ -5,9 +5,9 @@ audience: "template-authors"
 estimated_time: "5 minutes"
 prerequisites:
   - "Read reference/environment.md"
-  - "Read creating-templates.md"
+  - "Read how-to/creating-templates.md"
 related_docs:
-  - "../creating-templates.md"
+  - "../how-to/creating-templates.md"
   - "environment.md"
   - "../how-to/author-workflow.md"
 last_updated: "2024-11-07"
@@ -21,16 +21,16 @@ Templates declare option vocabularies through `setup.dimensions` in `template.js
 
 | Name | Type | Description |
 |------|------|-------------|
-| `ide` | `single` | Populated by create-scaffold when users pass `--ide`. Values include `kiro`, `vscode`, `cursor`, `windsurf`. Mark this dimension with `"builtIn": true` if you mirror it in metadata. |
+| `ide` | `single` | Populated by @m5nv/create-scaffold when users pass `--ide`. Values include `kiro`, `vscode`, `cursor`, `windsurf`. Mark this dimension with `"builtIn": true` if you mirror it in metadata. |
 | `stack` | `single` | Optional hint describing the primary framework (e.g., `react-vite`, `express`, `nextjs`). Useful when a template repository contains multiple stacks. |
 | `infrastructure` | `single` | Infrastructure target such as `cloudflare-d1`, `cloudflare-turso`, `none`. Surface defaults to keep scaffolds deterministic. |
-| `capabilities` | `multi` | Default multi-select dimension for feature toggles. When present, create-scaffold treats it as the “catch-all” dimension for tokens that do not specify a dimension explicitly. |
+| `capabilities` | `multi` | Default multi-select dimension for feature toggles. When present, @m5nv/create-scaffold treats it as the “catch-all” dimension for tokens that do not specify a dimension explicitly. |
 
 ## Naming conventions
 
 - Use lowercase identifiers starting with a letter: `^[a-z][a-z0-9_-]{0,49}$`.
 - Keep values short (≤ 50 characters) and descriptive: `auth`, `testing`, `observability`.
-- Reserve `builtIn: true` for dimensions populated by create-scaffold (`ide`, future CLI flags). Custom dimensions should omit this flag.
+- Reserve `builtIn: true` for dimensions populated by @m5nv/create-scaffold (`ide`, future CLI flags). Custom dimensions should omit this flag.
 
 ## Dependency and conflict patterns
 
@@ -60,4 +60,4 @@ Use `requires` and `conflicts` to keep selections coherent:
 3. Reference the dimension explicitly in `_setup.mjs` via `tools.options.in('dimension', 'value')`.
 4. Update your template README to document available values and how they interact.
 
-By following these conventions, template authors can extend the option taxonomy without surprising create-scaffold operators.
+By following these conventions, template authors can extend the option taxonomy without surprising @m5nv/create-scaffold operators.

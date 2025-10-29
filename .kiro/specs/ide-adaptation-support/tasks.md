@@ -2,7 +2,7 @@
 
 - [x] 1. Update existing documentation and examples to use new Environment_Object interface
 
-  - Update docs/creating-templates.md to show new setup script interface with env parameter
+  - Update docs/how-to/creating-templates.md to show new setup script interface with env parameter
   - Replace all setup script examples to use env.projectDir, env.projectName, env.cwd
   - Add clear examples of the new Environment_Object structure
   - _Requirements: 3.1, 6.3, 6.4_
