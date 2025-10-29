@@ -1,6 +1,7 @@
 # Node / general
 node_modules/
 dist/
+prompts/
 *.log
 npm-debug.log*
 .DS_Store

@@ -31,8 +31,8 @@
 - Security review can demonstrate that sandboxing the provided utility surface would meaningfully constrain template behavior.
 - The CLI reference and option vocabulary form a single, unambiguous source of truth.
 
-## Open Questions
-- What minimum utility surface should ship in v1 (e.g., file reads, writes, placeholder replacement, JSON patching, IDE presets, templated prompts)?
-- Should the Environment_Object wrap ast-grep or other AST tooling, and how do we message limitations (e.g., markdown support gaps)?
-- How do templates declare which options they understand so the CLI can warn users about unsupported flags?
-- What migration guidance (if any) do we offer for existing templates; is a compatibility shim desirable or do we simply document the new contract?
+## Key Decisions
+- **Utility surface** — `tools` ships with curated modules for placeholders, text edits, file and directory operations, JSON manipulation, template rendering, structured logging, IDE presets, and option helpers. No generalized file system access is exposed.
+- **ast-grep integration** — The runtime does not bundle ast-grep or other third-party processors. We will revisit richer transformations later, potentially through a declarative DSL, to keep sandboxing practical.
+- **Option declaration** — Templates declare their vocabulary in `template.json` (`setup.dimensions` with defaults, requires, conflicts). The CLI normalizes user input into `ctx.options.byDimension` and warns when selections fall outside declared policies.
+- **Migration stance** — No compatibility shim. This is a clean break; documentation instructs authors to adopt the new contract when upgrading templates.

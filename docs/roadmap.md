@@ -4,88 +4,100 @@ type: "explanation"
 audience: "all"
 estimated_time: "5 minutes read"
 prerequisites: []
-related_docs: 
+related_docs:
   - "phase-1-features.md"
   - "development.md"
   - "../CONTRIBUTING.md"
-last_updated: "2024-10-26"
+last_updated: "2024-11-07"
 ---
 
 # Roadmap
 
-Strategic feature development for @m5nv/create-scaffold, prioritized by user impact and implementation complexity.
+Strategic feature development for @m5nv/create-scaffold, prioritized by user
+impact and implementation complexity.
 
-## Phase 1: Core User Experience (v0.3)
+## Completed Features
 
-### 1. Template Caching
+### Template Caching
 
-**Problem:** Repeated clones are slow; other features need fast repository access  
+**Problem:** Repeated clones are slow; other features need fast repository
+access  
 **Solution:** Cache repos in `~/.m5nv/cache` with TTL, `--no-cache` to bypass  
-**Impact:** High - **Foundation for all other features**, significant performance improvement
+**Impact:** High - **Foundation for all other features**, significant
+performance improvement
 
-### 2. Detailed Logging
+### Detailed Logging
 
 **Problem:** Users can't debug failures or audit what the tool did  
-**Solution:** `--log-file path/to/log` writes timestamped operations (git clone, file copy, setup execution, errors)  
+**Solution:** `--log-file path/to/log` writes timestamped operations (git clone,
+file copy, setup execution, errors)  
 **Impact:** High - Essential for production use and troubleshooting
 
-### 3. Template Discovery
+### Template Discovery
 
 **Problem:** Users don't know what templates are available  
-**Solution:** `--list-templates` uses cached repo to instantly show templates with descriptions from `template.json` or README frontmatter  
-**Impact:** High - Removes biggest user friction point, **fast thanks to caching**
+**Solution:** `--list-templates` uses cached repo to instantly show templates
+with descriptions from `template.json` or README frontmatter  
+**Impact:** High - Removes biggest user friction point, **fast thanks to
+caching**
 
-### 4. Dry Run Mode
+### Dry Run Mode
 
 **Problem:** Users want to preview operations before execution  
-**Solution:** `--dry-run` shows planned operations without executing them, **uses cache for fast preview**  
+**Solution:** `--dry-run` shows planned operations without executing them,
+**uses cache for fast preview**  
 **Impact:** Medium - Builds confidence, especially for CI/CD
 
-## Phase 2: Developer Experience (v.0.4)
+## Phase 2: Developer Experience (v0.4)
 
-### 4. Template Validation
+### 1. Template Validation
 
 **Problem:** Broken templates waste user time  
-**Solution:** `--validate-template` checks structure, setup script syntax, required files before use  
+**Solution:** `--validate-template` checks structure, setup script syntax,
+required files before use  
 **Impact:** Medium - Prevents frustration, improves template quality
 
-### 5. Configuration File
+### 2. Configuration File
 
 **Problem:** Teams repeat same repository/branch arguments  
 **Solution:** `.m5nvrc` JSON file for default repo, branch, author info  
 **Impact:** Medium - Reduces typing, enables team standards
 
-### 6. Interactive Mode
+### 3. Interactive Mode
 
 **Problem:** New users don't know command syntax  
-**Solution:** `npm create @m5nv/scaffold` (no args) prompts for template selection from available options  
+**Solution:** `npm create @m5nv/scaffold` (no args) prompts for template
+selection from available options  
 **Impact:** Medium - Lowers barrier to entry
 
 ## Phase 3: Advanced Features (v0.5)
 
-### 7. Template Variables
+### 4. Template Variables
 
 **Problem:** Templates need more customization than just project name  
-**Solution:** Support `{{AUTHOR}}`, `{{LICENSE}}`, etc. with prompts or config file values  
+**Solution:** Support `{{AUTHOR}}`, `{{LICENSE}}`, etc. with prompts or config
+file values  
 **Impact:** Low - Advanced templating for sophisticated use cases
 
-### 8. Multi-Template Projects
+### 5. Multi-Template Projects
 
 **Problem:** Complex projects need multiple templates (frontend + backend)  
-**Solution:** `--from-templates frontend,backend` creates multiple directories with orchestrated setup  
+**Solution:** `--from-templates frontend,backend` creates multiple directories
+with orchestrated setup  
 **Impact:** Low - Niche use case, high complexity
 
 ## Phase 4: Ecosystem (v0.6)
 
-### 10. Template Health Checks
+### 6. Template Health Checks
 
 **Problem:** Template quality varies, no validation  
-**Solution:** Automated testing of templates (dependencies install, basic commands work)  
+**Solution:** Automated testing of templates (dependencies install, basic
+commands work)  
 **Impact:** Low - Community feature, requires infrastructure
 
 ## Implementation Strategy
 
-### Phase 1 Rationale
+### Phase 1 (Complete) Rationale
 
 - **Caching** is foundational infrastructure that accelerates all other features
 - **Logging** solves immediate production needs
@@ -118,6 +130,9 @@ Strategic feature development for @m5nv/create-scaffold, prioritized by user imp
 
 Interested in the roadmap? Here's how to get involved:
 
-- 📦 **Try Phase 1 features**: [Phase 1 Core UX Features](phase-1-features.md) - Current feature set
-- 🛠️ **Contribute to development**: [Development Guide](development.md) - Help build future features
-- 🤝 **Join the community**: [Contributing Guidelines](../CONTRIBUTING.md) - Shape the project's direction
+- 📦 **Try Phase 1 features**: [Phase 1 Core UX Features](phase-1-features.md) -
+  Current feature set
+- 🛠️ **Contribute to development**: [Development Guide](development.md) - Help
+  build future features
+- 🤝 **Join the community**: [Contributing Guidelines](../CONTRIBUTING.md) -
+  Shape the project's direction
