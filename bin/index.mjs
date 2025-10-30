@@ -9,9 +9,9 @@ import {
   createSecureTempDir,
   ValidationError,
 } from './security.mjs';
-import { 
+import {
   runAllPreflightChecks,
-  PreflightError 
+  PreflightError
 } from './preflightChecks.mjs';
 import { createEnvironmentObject } from './environmentFactory.mjs';
 import { CacheManager } from './cacheManager.mjs';
@@ -24,6 +24,7 @@ import { loadSetupScript, createSetupTools, SetupSandboxError } from './setupRun
 import { shouldIgnoreTemplateEntry, createTemplateIgnoreSet } from './utils/templateIgnore.mjs';
 import { loadTemplateMetadataFromPath } from './templateMetadata.mjs';
 import { normalizeOptions } from './optionsProcessor.mjs';
+import { resolvePlaceholders, PlaceholderResolutionError } from './placeholderResolver.mjs';
 
 // Default configuration
 const DEFAULT_REPO = 'million-views/templates';
@@ -42,16 +43,16 @@ async function main() {
   try {
     // Parse arguments using native Node.js parseArgs
     const args = parseArguments();
-    
+
     // Validate arguments
     const validation = validateArguments(args);
-    
+
     // Show help if requested or if validation failed
     if (validation.showHelp || args.help) {
       console.log(generateHelpText());
       process.exit(0);
     }
-    
+
     // Handle validation errors
     if (!validation.isValid) {
       console.error('❌ Error: Invalid arguments\n');
@@ -74,23 +75,23 @@ async function main() {
 
     // Initialize cache manager
     const cacheManager = new CacheManager();
-    
+
     // Handle special modes that don't require full scaffolding
     if (args.listTemplates) {
       const templateDiscovery = new TemplateDiscovery(cacheManager);
       const repoUrl = args.repo || DEFAULT_REPO;
       const branchName = args.branch;
-      
+
       try {
         console.log(`📋 Discovering templates from ${repoUrl}${branchName ? ` (${branchName})` : ''}...\n`);
-        
+
         // First ensure repository is cached by attempting to clone it
         const cachedRepoPath = await ensureRepositoryCached(repoUrl, branchName, cacheManager, logger);
-        
+
         const templates = await templateDiscovery.listTemplatesFromPath(cachedRepoPath);
         const formattedOutput = templateDiscovery.formatTemplateList(templates);
         console.log(formattedOutput);
-        
+
         if (logger) {
           await logger.logOperation('template_discovery', {
             repoUrl,
@@ -102,14 +103,14 @@ async function main() {
       } catch (error) {
         const sanitizedMessage = sanitizeErrorMessage(error.message);
         console.error(`❌ Error listing templates: ${sanitizedMessage}`);
-        
+
         if (logger) {
           await logger.logError(error, { operation: 'template_discovery', repoUrl, branchName });
         }
-        
+
         process.exit(1);
       }
-      
+
       process.exit(0);
     }
 
@@ -120,11 +121,11 @@ async function main() {
         console.error('Use --help for usage information.');
         process.exit(1);
       }
-      
+
       const dryRunEngine = new DryRunEngine(cacheManager, logger);
       const repoUrl = args.repo || DEFAULT_REPO;
       const branchName = args.branch;
-      
+
       try {
         const cachedRepoPath = await ensureRepositoryCached(repoUrl, branchName, cacheManager, logger);
 
@@ -171,19 +172,19 @@ async function main() {
       } catch (error) {
         const sanitizedMessage = sanitizeErrorMessage(error.message);
         console.error(`❌ Error in dry run: ${sanitizedMessage}`);
-        
+
         if (logger) {
-          await logger.logError(error, { 
-            operation: 'dry_run_preview', 
-            repoUrl, 
-            branchName, 
-            template: args.template 
+          await logger.logError(error, {
+            operation: 'dry_run_preview',
+            repoUrl,
+            branchName,
+            template: args.template
           });
         }
-        
+
         process.exit(1);
       }
-      
+
       process.exit(0);
     }
 
@@ -201,7 +202,7 @@ async function main() {
     const templateName = validatedInputs.template;
     const repoUrl = validatedInputs.repo;
     const branchName = validatedInputs.branch;
-    
+
     // Extract ide and options from validated arguments
     const ide = validatedInputs.ide ?? null;
     const options = validatedInputs.options ?? [];
@@ -218,11 +219,11 @@ async function main() {
     console.log('');
 
     // Clone the template repository using cache-aware operations
-    const cloneResult = await cloneTemplateRepo(repoUrl, branchName, { 
-      noCache: args.noCache, 
+    const cloneResult = await cloneTemplateRepo(repoUrl, branchName, {
+      noCache: args.noCache,
       cacheTtl: args.cacheTtl ? parseInt(args.cacheTtl) : undefined,
       cacheManager,
-      logger 
+      logger
     });
     repositoryPath = cloneResult.path;
     cleanupRepository = cloneResult.temporary;
@@ -231,6 +232,58 @@ async function main() {
     const templatePath = path.join(repositoryPath, templateName);
     await verifyTemplate(templatePath, templateName);
     const metadata = await loadTemplateMetadata(templatePath, logger);
+
+    const placeholderDefinitions = Array.isArray(metadata.placeholders) ? metadata.placeholders : [];
+    let resolvedPlaceholderInputs = Object.freeze({});
+    let placeholderReport = [];
+
+    if (placeholderDefinitions.length > 0) {
+      if (!args.experimentalPlaceholderPrompts) {
+        const overridesNotice = args.placeholders.length > 0
+          ? ' Placeholder overrides provided on the command line were ignored.'
+          : '';
+        console.log(`ℹ️  Template declares placeholders. Re-run with --experimental-placeholder-prompts to configure these values. Current run will skip placeholder resolution.${overridesNotice}`);
+      } else {
+        try {
+          const resolution = await resolvePlaceholders({
+            definitions: placeholderDefinitions,
+            flagInputs: args.placeholders,
+            env: process.env,
+            interactive: process.stdout.isTTY && process.stdin.isTTY,
+            noInputPrompts: args.noInputPrompts
+          });
+
+          resolvedPlaceholderInputs = resolution.values;
+          placeholderReport = resolution.report;
+
+          if (resolution.unknownTokens.length > 0) {
+            console.warn(`⚠️  Ignored unknown placeholders: ${resolution.unknownTokens.join(', ')}`);
+          }
+
+          if (args.verbose && placeholderReport.length > 0) {
+            printPlaceholderSummary(placeholderReport);
+          }
+
+          if (logger) {
+            await logger.logOperation('placeholder_resolution', {
+              enabled: true,
+              placeholders: placeholderReport.map(entry => ({
+                token: entry.token,
+                source: entry.source,
+                sensitive: entry.sensitive,
+                value: entry.sensitive ? '[REDACTED]' : entry.value
+              })),
+              unknownTokens: resolution.unknownTokens
+            });
+          }
+        } catch (error) {
+          if (error instanceof PlaceholderResolutionError) {
+            throw new ValidationError(error.message, 'metadata.placeholders');
+          }
+          throw error;
+        }
+      }
+    }
 
     const normalizedOptionResult = normalizeOptions({
       rawTokens: options,
@@ -265,6 +318,10 @@ async function main() {
       byDimension: optionsByDimension
     };
 
+    const inputsPayload = placeholderDefinitions.length > 0 && args.experimentalPlaceholderPrompts
+      ? resolvedPlaceholderInputs
+      : Object.freeze({});
+
     // Copy template to project directory (skip author assets + internal artifacts)
     const ignoreSet = createTemplateIgnoreSet({
       authorAssetsDir: metadata.authorAssetsDir ?? DEFAULT_AUTHOR_ASSETS_DIR
@@ -292,7 +349,8 @@ async function main() {
         options: optionsPayload,
         authoringMode: metadata.authoringMode,
         dimensions: metadata.dimensions,
-        logger
+        logger,
+        inputs: inputsPayload,
       });
     } catch (error) {
       setupError = error;
@@ -369,7 +427,7 @@ async function ensureRepositoryCached(repoUrl, branchName, cacheManager, logger,
   const ttlHours = typeof options.ttlHours === 'number' ? options.ttlHours : undefined;
 
   const cachedRepoPath = await cacheManager.getCachedRepo(repoUrl, branchName);
-  
+
   if (cachedRepoPath) {
     if (logger) {
       await logger.logOperation('cache_hit', {
@@ -496,16 +554,16 @@ async function cloneTemplateRepo(repoUrl, branchName, options = {}) {
     };
   } catch (error) {
     if (logger) {
-      await logger.logError(error, { 
-        operation: 'git_clone_cached', 
-        repoUrl, 
-        branchName 
+      await logger.logError(error, {
+        operation: 'git_clone_cached',
+        repoUrl,
+        branchName
       });
     }
 
     // Provide helpful error messages based on common issues
     const sanitizedErrorMessage = sanitizeErrorMessage(error.message);
-    
+
     if (error.message.includes('Repository not found')) {
       throw new Error(
         `Repository not found.\n` +
@@ -550,7 +608,7 @@ async function directCloneRepo(repoUrl, branchName, logger) {
   const tempDir = createSecureTempDir();
 
   const cloneArgs = ['clone', '--depth', '1'];
-  
+
   if (branchName) {
     cloneArgs.push('--branch', branchName);
   }
@@ -569,7 +627,7 @@ async function directCloneRepo(repoUrl, branchName, logger) {
 
   try {
     await execCommand('git', cloneArgs, { timeout: 60000, stdio: ['inherit', 'pipe', 'pipe'] });
-    
+
     if (logger) {
       await logger.logOperation('git_clone_direct', {
         repoUrl,
@@ -583,11 +641,11 @@ async function directCloneRepo(repoUrl, branchName, logger) {
     await safeCleanup(tempDir);
 
     if (logger) {
-      await logger.logError(error, { 
-        operation: 'git_clone_direct', 
-        repoUrl, 
+      await logger.logError(error, {
+        operation: 'git_clone_direct',
+        repoUrl,
         branchName,
-        tempDir 
+        tempDir
       });
     }
 
@@ -649,10 +707,10 @@ async function copyTemplate(templatePath, projectDirectory, logger, options = {}
 
   } catch (err) {
     if (logger) {
-      await logger.logError(err, { 
-        operation: 'file_copy', 
-        templatePath, 
-        projectDirectory 
+      await logger.logError(err, {
+        operation: 'file_copy',
+        templatePath,
+        projectDirectory
       });
     }
 
@@ -681,7 +739,7 @@ async function copyRecursive(src, dest, logger, ignoreSet) {
       await copyRecursive(srcPath, destPath, logger, ignoreSet);
     } else {
       await fs.copyFile(srcPath, destPath);
-      
+
       if (logger) {
         await logger.logFileCopy(srcPath, destPath);
       }
@@ -759,7 +817,7 @@ async function cleanupAuthorAssets(projectDirectory, authorAssetsDir, logger) {
 /**
  * Execute optional setup script if it exists
  */
-async function executeSetupScript({ projectDirectory, projectName, ide, options, authoringMode, dimensions = {}, logger }) {
+async function executeSetupScript({ projectDirectory, projectName, ide, options, authoringMode, dimensions = {}, logger, inputs = Object.freeze({}) }) {
   const setupScriptPath = path.join(projectDirectory, SETUP_SCRIPT);
 
   // Check if setup script exists
@@ -779,6 +837,43 @@ async function executeSetupScript({ projectDirectory, projectName, ide, options,
     });
   }
 
+  function printPlaceholderSummary(report) {
+    if (!Array.isArray(report) || report.length === 0) {
+      return;
+    }
+
+    console.log('🧩 Placeholder inputs:');
+    for (const entry of report) {
+      const source = entry.source ?? 'default';
+      const sensitive = entry.sensitive === true;
+      const valueDisplay = sensitive ? '[redacted]' : formatPlaceholderValue(entry.value);
+      const sensitiveNote = sensitive ? ' (sensitive)' : '';
+      const valueSuffix = sensitive ? ' [redacted]' : valueDisplay ? ` (${valueDisplay})` : '';
+      console.log(`  ${entry.token} ← ${source}${sensitiveNote}${valueSuffix}`);
+    }
+    console.log('');
+  }
+
+  function formatPlaceholderValue(value) {
+    if (value === undefined || value === null) {
+      return '';
+    }
+
+    if (typeof value === 'string') {
+      return value;
+    }
+
+    if (typeof value === 'number' || typeof value === 'boolean') {
+      return String(value);
+    }
+
+    try {
+      return JSON.stringify(value);
+    } catch {
+      return String(value);
+    }
+  }
+
   // Setup script exists, ensure it gets cleaned up regardless of what happens
   try {
     console.log('⚙️  Running template setup script...');
@@ -790,7 +885,8 @@ async function executeSetupScript({ projectDirectory, projectName, ide, options,
       cwd: process.cwd(),
       ide,
       options,
-      authoringMode
+      authoringMode,
+      inputs
     });
 
     const tools = await createSetupTools({
@@ -810,10 +906,10 @@ async function executeSetupScript({ projectDirectory, projectName, ide, options,
   } catch (err) {
     if (logger) {
       await logger.logSetupScript(setupScriptPath, 'failed', err.message);
-      await logger.logError(err, { 
-        operation: 'setup_script_execution', 
-        setupScriptPath, 
-        projectDirectory 
+      await logger.logError(err, {
+        operation: 'setup_script_execution',
+        setupScriptPath,
+        projectDirectory
       });
     }
 
@@ -830,7 +926,7 @@ async function executeSetupScript({ projectDirectory, projectName, ide, options,
     // Remove the setup script after execution attempt (success or failure)
     try {
       await fs.unlink(setupScriptPath);
-      
+
       if (logger) {
         await logger.logOperation('setup_script_cleanup', {
           setupScriptPath,

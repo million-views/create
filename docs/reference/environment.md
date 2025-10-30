@@ -10,7 +10,7 @@ related_docs:
   - "../how-to/creating-templates.md"
   - "../how-to/setup-recipes.md"
   - "cli-reference.md"
-last_updated: "2024-11-07"
+last_updated: "2025-10-30"
 ---
 
 # Environment Reference
@@ -41,6 +41,7 @@ Direct access to `fs`, `path`, `import`, `eval`, or `require` is blocked. All fi
 | `ide` | `"kiro" \| "vscode" \| "cursor" \| "windsurf" \| null` | Target IDE provided via `--ide`. `null` when no IDE preference was expressed. |
 | `authoringMode` | `"wysiwyg" \| "composable"` | Mode declared in `template.json`. WYSIWYG templates mirror a working project; composable templates assemble features via `_setup.mjs`. |
 | `options` | `object` | Normalized user selections with defaults already applied. See breakdown below. |
+| `inputs` | `Record<string, string \| number \| boolean>` | Placeholder answers collected during template instantiation. Keys omit braces (`PROJECT_NAME`). Values are immutable and type-coerced based on `metadata.placeholders`. |
 
 `ctx.options` contains two readonly views:
 
@@ -51,21 +52,84 @@ Direct access to `fs`, `path`, `import`, `eval`, or `require` is blocked. All fi
 
 The context object is frozen; attempting to mutate it throws.
 
+## How template metadata populates the environment
+
+1. **`template.json` declares intent** – Dimensions under `setup.dimensions` define the option vocabulary, while `metadata.placeholders` inventories every `{{TOKEN}}` that still needs values when the template runs.
+2. **The CLI normalizes user input** – Flags such as `--options "capabilities=auth+logging"` are validated against the declared dimensions and cached in `ctx.options.byDimension` (with defaults pre-applied). Placeholder values are gathered via `--placeholder`, environment variables, defaults, or interactive prompts so `ctx.inputs` is fully populated before `_setup.mjs` executes.
+3. **`ctx` and `tools` expose the results** – Setup scripts read `ctx.options` or helper wrappers (`tools.options.*`) to branch on selected features, and they access placeholder answers via `ctx.inputs` or `tools.inputs`. Helper APIs such as `tools.placeholders.applyInputs()` consume these values directly, keeping setup code deterministic.
+
+**Example**
+
+```jsonc
+// template.json (excerpt)
+{
+  "setup": {
+    "dimensions": {
+      "capabilities": {
+        "type": "multi",
+        "values": ["auth", "docs"],
+        "default": ["auth"]
+      }
+    }
+  },
+  "metadata": {
+    "placeholders": [
+      { "name": "{{PROJECT_NAME}}", "required": true },
+      { "name": "{{AUTHOR}}", "required": false }
+    ]
+  }
+}
+```
+
+With `--options "capabilities=auth+docs"` and a placeholder answer `AUTHOR="Jane"`, the setup script receives:
+
+```javascript
+ctx.options.byDimension.capabilities; // ['auth', 'docs']
+ctx.inputs.AUTHOR; // 'Jane'
+await tools.placeholders.applyInputs(['README.md']);
+await tools.templates.renderFile('__scaffold__/README.tpl.mjs', 'README.md', {
+  author: ctx.inputs.AUTHOR,
+  projectName: ctx.projectName
+});
+```
+
+This shared schema lets template authoring tools (such as `@m5nv/make-template`) prompt for placeholder values, while the runtime guarantees consistent option handling inside `_setup.mjs`.
+
 ## Tools Overview
 
 The `tools` object exposes high-level utilities. Each module is scoped to the project directory and performs validation automatically.
+
+### `tools.inputs`
+
+| Method | Description |
+|--------|-------------|
+| `get(name, fallback?)` | Returns the collected value for `name` (e.g. `PROJECT_NAME`). Falls back to `fallback` when undefined. |
+| `all()` | Returns a frozen clone of every placeholder value. Useful for spreading into other helpers. |
+
+**Example**
+```javascript
+const author = tools.inputs.get('AUTHOR', 'Unknown');
+```
 
 ### `tools.placeholders`
 
 | Method | Description |
 |--------|-------------|
+| `applyInputs(selector, extra?)` | Apply values from `ctx.inputs`, `ctx.projectName`, and optional `extra` map to files matched by `selector`. Internally delegates to `replaceAll`. |
 | `replaceAll(replacements, selector)` | Replace `{{TOKEN}}` placeholders in every file matched by the selector (string or array of glob patterns). |
 | `replaceInFile(file, replacements)` | Replace placeholders in a single file. |
 
+**Usage guidance**
+- Use `applyInputs` when you simply need the answers collected from the instantiator.
+- Use `replaceAll`/`replaceInFile` when you must provide custom values or merge computed data.
+
 **Example**
 ```javascript
-await tools.placeholders.replaceAll({ PROJECT_NAME: ctx.projectName }, ['README.md', 'src/**/*.ts']);
+await tools.placeholders.applyInputs(['README.md', 'package.json']);
+await tools.placeholders.replaceAll({ SUPPORT_EMAIL: ctx.inputs.SUPPORT_EMAIL }, ['src/config.ts']);
 ```
+
+> Placeholder helpers operate on file contents. To incorporate placeholder values into filenames or directories, combine `ctx.inputs` with `tools.files` (for renames) or `tools.templates.renderFile` (for generated assets).
 
 ### `tools.text`
 
@@ -157,19 +221,27 @@ if (tools.options.in('infrastructure', 'cloudflare-d1')) {
 ```javascript
 // _setup.mjs
 export default async function setup({ ctx, tools }) {
-  await tools.placeholders.replaceAll(
-    { PROJECT_NAME: ctx.projectName },
-    ['README.md', 'package.json']
-  );
+  // Apply collected placeholder answers to common files
+  await tools.placeholders.applyInputs(['README.md', 'package.json']);
 
   await tools.text.insertAfter({
     file: 'README.md',
-    marker: '# {{PROJECT_NAME}}',
+    marker: `# ${ctx.projectName}`,
     block: ['## Next steps', '- npm install', '- npm run dev']
   });
 
   await tools.json.set('package.json', 'scripts.dev', 'node index.js');
   await tools.json.addToArray('package.json', 'keywords', ctx.projectName, { unique: true });
+
+  // Render a file from author assets, injecting placeholder values
+  await tools.templates.renderFile(
+    '__scaffold__/README.tpl',
+    'docs/README.md',
+    {
+      projectName: ctx.projectName,
+      author: tools.inputs.get('AUTHOR', 'Unknown Author')
+    }
+  );
 
   await tools.options.when('docs', async () => {
     await tools.files.ensureDirs('docs');

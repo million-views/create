@@ -11,7 +11,7 @@ related_docs:
   - "../how-to/setup-recipes.md"
   - "environment.md"
   - "error-codes.md"
-last_updated: "2024-11-07"
+last_updated: "2025-10-30"
 ---
 
 # CLI Reference
@@ -58,6 +58,16 @@ create-scaffold <project-directory> --from-template <template-name> [options]
 | `--ide` | `-i` | string | No | - | Target IDE for template customization. Supported values: `kiro`, `vscode`, `cursor`, `windsurf`. |
 | `--options` | `-o` | string | No | - | Comma-separated selections. Use `dimension=value` (e.g. `capabilities=auth+testing`) to target specific dimensions. Tokens without `=` apply to the template’s default multi-select dimension. |
 
+## Placeholder Input Options *(experimental)*
+
+| Option | Short | Type | Required | Default | Description |
+|--------|-------|------|----------|---------|-------------|
+| `--experimental-placeholder-prompts` | - | boolean | No | `false` | Opt in to interactive placeholder resolution for templates that declare `metadata.placeholders`. Without this flag the CLI skips prompting and ignores `--placeholder` overrides. |
+| `--placeholder` | - | string | No | - | Provide placeholder overrides in `NAME=value` form. Repeat the flag to set multiple values. Tokens must match the placeholder names declared in the template (without braces). |
+| `--no-input-prompts` | - | boolean | No | `false` | Fail immediately when required placeholders are missing instead of prompting. Useful for CI pipelines. |
+
+> You can also supply placeholder values via environment variables: set `CREATE_SCAFFOLD_PLACEHOLDER_<TOKEN>=value` (uppercase token without braces). Combine environment variables with `--no-input-prompts` for fully non-interactive runs. Verbose mode (`--verbose`) prints a source summary showing how each placeholder was satisfied, masking sensitive entries.
+
 ## Performance & Caching Options
 
 | Option | Short | Type | Required | Default | Description |
@@ -78,6 +88,7 @@ create-scaffold <project-directory> --from-template <template-name> [options]
 | Option | Short | Type | Required | Default | Description |
 |--------|-------|------|----------|---------|-------------|
 | `--help` | `-h` | boolean | No | `false` | Show help information and exit. |
+| `--verbose` | - | boolean | No | `false` | Enable verbose CLI output, including placeholder resolution summaries and additional logging context. |
 
 ## Examples
 

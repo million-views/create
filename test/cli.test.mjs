@@ -1619,7 +1619,79 @@ runner.test('Error messages reference correct package name', async () => {
   }
 });
 
-// Test 47: Author asset staging makes snippets available but removes internal directory
+// Test 47: Placeholder prompts accept env and flag overrides
+runner.test('Placeholder prompts accept env and flag overrides', async () => {
+  const mockRepoPath = await runner.addTempPath(await TestUtils.createTempDir('-placeholder-repo'));
+  await TestUtils.createMockRepo(mockRepoPath, ['placeholder-template']);
+
+  const workingDir = await runner.addTempPath(await TestUtils.createTempDir('-placeholder-working'));
+  const projectName = 'placeholder-output';
+
+  const result = await TestUtils.execCLI([
+    projectName,
+    '--from-template', 'placeholder-template',
+    '--repo', mockRepoPath,
+    '--experimental-placeholder-prompts',
+    '--placeholder', 'PROJECT_NAME=cli-demo',
+    '--placeholder', 'MAX_WORKERS=12'
+  ], {
+    cwd: workingDir,
+    env: {
+      CREATE_SCAFFOLD_PLACEHOLDER_API_TOKEN: 'env-secret'
+    }
+  });
+
+  if (result.exitCode !== 0) {
+    throw new Error(`Placeholder flow should succeed: ${result.stderr || result.stdout}`);
+  }
+
+  const projectPath = path.join(workingDir, projectName);
+  runner.tempPaths.push(projectPath);
+
+  const readme = await fs.readFile(path.join(projectPath, 'README.md'), 'utf8');
+  if (!readme.includes('# cli-demo')) {
+    throw new Error('Project name placeholder should be replaced via flag');
+  }
+  if (!readme.includes('env-secret')) {
+    throw new Error('API token placeholder should be replaced via environment variable');
+  }
+  if (!readme.includes('12')) {
+    throw new Error('MAX_WORKERS placeholder should respect flag override');
+  }
+
+  const reportPath = path.join(projectPath, 'placeholder-report.json');
+  const report = JSON.parse(await fs.readFile(reportPath, 'utf8'));
+  if (report.API_TOKEN !== 'env-secret' || report.MAX_WORKERS !== 12) {
+    throw new Error('Resolved inputs should persist in helper output');
+  }
+});
+
+// Test 48: Placeholder prompts fail when required values missing in non-interactive mode
+runner.test('Placeholder prompts fail when required values missing with no-input-prompts', async () => {
+  const mockRepoPath = await runner.addTempPath(await TestUtils.createTempDir('-placeholder-fail-repo'));
+  await TestUtils.createMockRepo(mockRepoPath, ['placeholder-template']);
+
+  const workingDir = await runner.addTempPath(await TestUtils.createTempDir('-placeholder-fail-working'));
+
+  const result = await TestUtils.execCLI([
+    'placeholder-fail',
+    '--from-template', 'placeholder-template',
+    '--repo', mockRepoPath,
+    '--experimental-placeholder-prompts',
+    '--no-input-prompts',
+    '--placeholder', 'PROJECT_NAME=cli-demo'
+  ], { cwd: workingDir });
+
+  if (result.exitCode !== 1) {
+    throw new Error('CLI should fail when required placeholders are missing without prompts');
+  }
+
+  if (!result.stderr.includes('Missing required placeholders')) {
+    throw new Error('Missing placeholder error message should surface');
+  }
+});
+
+// Test 49: Author asset staging makes snippets available but removes internal directory
 runner.test('Author assets are staged for setup and removed afterwards', async () => {
   const mockRepoPath = await runner.addTempPath(await TestUtils.createTempDir('-author-assets-repo'));
   await TestUtils.createMockRepo(mockRepoPath, ['author-assets-template']);
@@ -1657,7 +1729,7 @@ runner.test('Author assets are staged for setup and removed afterwards', async (
   }
 });
 
-// Test 48: Package name validation in output
+// Test 50: Package name validation in output
 runner.test('Package name validation in success output', async () => {
   const mockRepoPath = await runner.addTempPath(await TestUtils.createTempDir('-output-validation-repo'));
   const projectPath = await runner.addTempPath(await TestUtils.createTempDir('-output-validation-project'));

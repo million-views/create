@@ -4,10 +4,10 @@ type: "how-to"
 audience: "template-authors"
 estimated_time: "10 minutes"
 prerequisites:
-   - "Read reference/environment.md"
-   - "Read creating-templates.md"
+  - "Read reference/environment.md"
+  - "Read creating-templates.md"
 related_docs:
-   - "creating-templates.md"
+  - "creating-templates.md"
   - "../reference/environment.md"
   - "../how-to/setup-recipes.md"
 last_updated: "2024-11-07"
@@ -16,6 +16,8 @@ last_updated: "2024-11-07"
 # Template Author Workflow
 
 This guide helps template authors iterate efficiently while respecting the division of responsibilities between make-template (author tooling) and @m5nv/create-scaffold (consumer tooling). Follow these loops to keep your templates reliable and predictable.
+
+> **Remember:** Whenever you change files that still contain `{{TOKEN}}` markers, keep `metadata.placeholders` in `template.json` in sync so tooling (including @m5nv/make-template) knows what inputs to collect from users.
 
 ## 1. Restore-first iteration (WYSIWYG mode)
 
@@ -47,6 +49,7 @@ WYSIWYG templates mirror a working application. Iterate directly in the project,
 - `_setup.mjs` limits itself to placeholder replacement and light adjustments.
 - `handoff` instructions cover install and startup steps.
 - `.template-undo.json` remains checked in to support future restores.
+- `metadata.placeholders` enumerates every remaining `{{TOKEN}}` so restore/convert loops prompt for the right values.
 
 ## 2. Composable iteration (feature combinations)
 
@@ -64,6 +67,7 @@ Composable templates assemble different variants from a single source. Use autho
    - Add or refine values under `setup.dimensions`.
    - Capture dependencies with `requires` and mutual exclusions with `conflicts`.
    - Use `"policy": "warn"` sparingly; `"strict"` keeps feedback crisp.
+   - Keep `metadata.placeholders` current when inline tokens are added or removed.
 
 4. **Codify behaviour in `_setup.mjs`**
    Rely on `tools.options.in()` and `tools.options.require()` to govern features. Avoid manual parsing of `ctx.options.raw`.
@@ -85,6 +89,7 @@ Composable templates assemble different variants from a single source. Use autho
 - `_setup.mjs` uses helper APIs only (`tools.files`, `tools.json`, `tools.options`).
 - Author assets live under `__scaffold__/` (or your configured alias) and are treated as immutable inputs.
 - Dry runs cover the default path plus each supported dimension combination.
+- `metadata.placeholders` documents any inline tokens that the setup script still replaces.
 
 ## 3. Before publishing or sharing
 

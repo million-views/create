@@ -231,6 +231,8 @@ create-scaffold validates your selections against `template.json` and applies de
 
 Your project now includes authentication scaffolding, test utilities, and Cloudflare D1 infrastructure assets. If you select an unsupported value, the CLI fails fast with a clear validation error.
 
+> **How it maps:** Template authors describe these choices in `template.json` under `setup.dimensions`. The CLI normalizes your command-line flags into `ctx.options.byDimension` so setup scripts know exactly which features to enable, while `metadata.placeholders` tracks any remaining `{{TOKEN}}` values that still need to be replaced during setup.
+
 ## Step 5: Preview Mode (Dry Run)
 
 Before creating projects, you can preview what will happen using dry run mode.

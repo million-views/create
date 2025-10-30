@@ -156,3 +156,17 @@ test('createEnvironmentObject resolves absolute paths', () => {
   assert.equal(env.projectDir, path.resolve('example-project'));
   assert.equal(env.cwd, path.normalize(customCwd));
 });
+
+test('createEnvironmentObject includes frozen inputs map', () => {
+  const params = buildParams({
+    inputs: {
+      PROJECT_NAME: 'demo-app',
+      API_TOKEN: 'secret'
+    }
+  });
+
+  const env = createEnvironmentObject(params);
+  assert.ok(Object.isFrozen(env.inputs), 'Expected inputs map to be frozen');
+  assert.equal(env.inputs.PROJECT_NAME, 'demo-app');
+  assert.equal(env.inputs.API_TOKEN, 'secret');
+});

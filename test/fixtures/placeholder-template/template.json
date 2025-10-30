@@ -1,0 +1,27 @@
+{
+  "name": "Placeholder Template",
+  "description": "Fixture demonstrating placeholder resolution",
+  "metadata": {
+    "placeholders": [
+      {
+        "name": "{{PROJECT_NAME}}",
+        "description": "Name of the generated project",
+        "required": true
+      },
+      {
+        "name": "{{API_TOKEN}}",
+        "description": "API token used for configuration",
+        "required": true,
+        "sensitive": true
+      },
+      {
+        "name": "{{MAX_WORKERS}}",
+        "type": "number",
+        "default": 4
+      }
+    ]
+  },
+  "handoff": [
+    "Review README.md for token replacements"
+  ]
+}

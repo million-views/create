@@ -10,6 +10,7 @@ import {
   validateSupportedOptionsMetadata,
   validateAuthorAssetsDir,
 } from './security.mjs';
+import { normalizePlaceholders } from './utils/placeholderSchema.mjs';
 
 /**
  * Load and normalize template metadata from template.json
@@ -41,11 +42,13 @@ export async function loadTemplateMetadataFromPath(templatePath) {
       }
     }
 
+    const placeholders = normalizePlaceholders(data?.metadata?.placeholders ?? []);
+
     const handoffSteps = Array.isArray(data?.handoff)
       ? data.handoff
-          .filter(step => typeof step === 'string')
-          .map(step => step.trim())
-          .filter(Boolean)
+        .filter(step => typeof step === 'string')
+        .map(step => step.trim())
+        .filter(Boolean)
       : [];
 
     const supportedOptions = deriveSupportedOptions(dimensions);
@@ -57,6 +60,7 @@ export async function loadTemplateMetadataFromPath(templatePath) {
       dimensions,
       handoffSteps,
       supportedOptions,
+      placeholders,
     };
   } catch (error) {
     if (error.code === 'ENOENT') {
@@ -67,6 +71,7 @@ export async function loadTemplateMetadataFromPath(templatePath) {
         dimensions: {},
         handoffSteps: [],
         supportedOptions: [],
+        placeholders: [],
       };
     }
 

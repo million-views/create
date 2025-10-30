@@ -1,3 +1,17 @@
+---
+title: "Rewriting Git History"
+type: "explanation"
+audience: "advanced"
+estimated_time: "10 minutes"
+prerequisites:
+  - "Familiarity with Git commands"
+  - "Access to the repository remote"
+related_docs:
+  - "../how-to/development.md"
+  - "../guides/troubleshooting.md"
+last_updated: "2025-10-30"
+---
+
 # Rewriting Git History to Remove Accidentally Committed Files
 
 ## Introduction

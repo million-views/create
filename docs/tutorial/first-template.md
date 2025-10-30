@@ -281,6 +281,12 @@ repository and receives the Environment object (`{ ctx, tools }`) from the sandb
 5. **Need more patterns?** The [Setup Script Recipes](../how-to/setup-recipes.md)
    how-to guide contains copy-ready snippets that build on these helpers.
 
+### Inline vs composable updates
+
+- **Inline iteration** keeps authored files (README, package.json, etc.) in place with `{{TOKEN}}` markers recorded under `metadata.placeholders`. The setup script swaps those tokens using `tools.placeholders` and `tools.text.*`, which is ideal when you only need to personalize text inside an otherwise complete project.
+- **Composable assembly** moves reusable assets into `authorAssetsDir` (for example `__scaffold__/`) and conditionally copies or renders them with `tools.files.copyTemplateDir` or `tools.templates.renderFile`. Pair this with `setup.dimensions` + `tools.options` when features or infrastructure choices dictate which snippets belong in the final scaffold.
+- **Hybrid workflows** often start inline, then graduate specific files to composable assets once they need branching. Because `metadata.placeholders` still documents every token, you have a clear checklist of values that must be provided either via direct replacement or via rendered templates.
+
 ## Example 4: Team Project (Production-Ready Setup)
 
 Now let's create a project ready for team development with full tooling.

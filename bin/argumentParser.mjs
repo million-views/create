@@ -1,16 +1,16 @@
 #!/usr/bin/env node
 
 import { parseArgs } from 'util';
-import { 
-  validateProjectDirectory, 
-  validateTemplateName, 
-  validateRepoUrl, 
+import {
+  validateProjectDirectory,
+  validateTemplateName,
+  validateRepoUrl,
   sanitizeBranchName,
   validateIdeParameter,
   validateOptionsParameter,
   validateLogFilePath,
   validateCacheTtl,
-  ValidationError 
+  ValidationError
 } from './security.mjs';
 import { handleValidationError } from './utils/validationUtils.mjs';
 
@@ -66,6 +66,23 @@ export function parseArguments(argv = process.argv.slice(2)) {
         type: 'string',
         description: 'Override default cache TTL in hours'
       },
+      placeholder: {
+        type: 'string',
+        multiple: true,
+        description: 'Supply placeholder value in NAME=value form'
+      },
+      'no-input-prompts': {
+        type: 'boolean',
+        description: 'Disable interactive placeholder prompting'
+      },
+      verbose: {
+        type: 'boolean',
+        description: 'Enable verbose logging during scaffolding'
+      },
+      'experimental-placeholder-prompts': {
+        type: 'boolean',
+        description: 'Enable placeholder prompt flow for experimental rollout'
+      },
       help: {
         type: 'boolean',
         short: 'h',
@@ -83,6 +100,16 @@ export function parseArguments(argv = process.argv.slice(2)) {
     // Extract project directory from positional arguments
     const projectDirectory = positionals[0];
 
+    const placeholderValues = values.placeholder ?? [];
+    const placeholders = Array.isArray(placeholderValues)
+      ? placeholderValues
+      : placeholderValues === undefined
+        ? []
+        : [placeholderValues];
+    const noInputPrompts = Boolean(values['no-input-prompts']);
+    const verbose = Boolean(values.verbose);
+    const experimentalPlaceholderPrompts = Boolean(values['experimental-placeholder-prompts']);
+
     // Return parsed arguments in expected format
     return {
       projectDirectory,
@@ -96,6 +123,10 @@ export function parseArguments(argv = process.argv.slice(2)) {
       dryRun: values['dry-run'],
       noCache: values['no-cache'],
       cacheTtl: values['cache-ttl'],
+      placeholders,
+      noInputPrompts,
+      verbose,
+      experimentalPlaceholderPrompts,
       help: values.help,
       _: positionals // For backward compatibility
     };
@@ -222,7 +253,7 @@ OPTIONS:
   -t, --from-template <name>  Template name to use for scaffolding (required)
   -r, --repo <repo>      Repository URL or user/repo format
                          Default: million-views/templates
-                         Examples: 
+                         Examples:
                            user/repo
                            https://github.com/user/repo.git
                            /path/to/local/repo
@@ -249,8 +280,17 @@ DEBUGGING & PREVIEW:
       --list-templates   Display available templates from repository
                          Fast discovery using cached repositories
 
+PLACEHOLDER INPUTS:
+  --experimental-placeholder-prompts
+         Enable placeholder prompt flow for templates that declare metadata.placeholders
+  --placeholder NAME=value
+         Provide placeholder overrides directly (repeat flag to set multiple values)
+  --no-input-prompts Fail when required placeholders are missing instead of prompting
+         Also supports environment variables: CREATE_SCAFFOLD_PLACEHOLDER_<TOKEN>=value
+
 GENERAL:
   -h, --help            Show this help message
+  --verbose         Enable verbose CLI output (includes placeholder source summary)
 
 EXAMPLES:
 
@@ -319,18 +359,18 @@ TEMPLATE REPOSITORIES:
 CONTEXTUAL OPTIONS:
   The --options parameter enables template customization based on your specific
   context and preferences. Templates can use these hints to:
-  
+
   Project Stage Options:
     poc          - Proof of concept setup with minimal dependencies
     prototype    - Prototype development with rapid iteration focus
     mvp          - Minimum viable product with essential functionality only
     production   - Production-ready setup with full tooling
-  
+
   Environment Context:
     monorepo     - Part of a monorepo structure (affects paths, configs)
     standalone   - Standalone project (full independent setup)
     existing-project - Adding to existing codebase (minimal conflicts)
-  
+
   Development Preferences:
     no-git       - Skip git initialization and related setup
     minimal      - Minimal dependencies and configuration
@@ -339,7 +379,7 @@ CONTEXTUAL OPTIONS:
     testing-focused - Comprehensive test setup and utilities
     ci-ready     - Include CI/CD configuration files
     docker-ready - Include Docker configuration and setup
-  
+
   Templates define their own option vocabularies, so check template
   documentation for supported options. Options are passed to setup
   scripts as an array for custom processing.

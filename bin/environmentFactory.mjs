@@ -51,12 +51,13 @@ function sanitizeProjectName(projectName) {
  * @returns {Object} - Immutable Environment_Object
  * @throws {ValidationError} - If any parameter is invalid
  */
-export function createEnvironmentObject({ projectDirectory, projectName, cwd, ide, options, authoringMode }) {
+export function createEnvironmentObject({ projectDirectory, projectName, cwd, ide, options, authoringMode, inputs }) {
   // Validate and sanitize inputs (but don't resolve to absolute paths yet)
   const sanitizedProjectDir = sanitizePath(projectDirectory);
   const sanitizedProjectName = sanitizeProjectName(projectName);
   const validatedIde = validateIdeParameter(ide);
   const normalizedOptions = validateOptionsShape(options);
+  const normalizedInputs = normalizeInputs(inputs);
   const normalizedAuthoringMode = validateAuthoringMode(authoringMode);
 
   // For cwd, we need to handle it differently since it's already an absolute path
@@ -77,11 +78,32 @@ export function createEnvironmentObject({ projectDirectory, projectName, cwd, id
     cwd: sanitizedCwd,
     ide: validatedIde,
     authoringMode: normalizedAuthoringMode,
-    options: normalizedOptions
+    options: normalizedOptions,
+    inputs: normalizedInputs
   };
 
   // Implement Object.freeze for immutability
   return Object.freeze(env);
+}
+
+function normalizeInputs(inputs) {
+  if (inputs === undefined) {
+    return Object.freeze({});
+  }
+
+  if (inputs === null || typeof inputs !== 'object' || Array.isArray(inputs)) {
+    throw new ValidationError('Resolved placeholder inputs must be provided as an object', 'inputs');
+  }
+
+  const normalized = {};
+  for (const [token, value] of Object.entries(inputs)) {
+    if (typeof token !== 'string' || token.trim() === '') {
+      throw new ValidationError('Placeholder token names must be non-empty strings', 'inputs');
+    }
+    normalized[token] = value;
+  }
+
+  return Object.freeze({ ...normalized });
 }
 
 function validateOptionsShape(options) {

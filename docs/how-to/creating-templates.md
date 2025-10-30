@@ -14,7 +14,7 @@ related_docs:
   - "setup-recipes.md"
   - "author-workflow.md"
   - "../reference/dimensions-glossary.md"
-last_updated: "2024-11-07"
+last_updated: "2025-10-30"
 ---
 
 # How to Create Templates
@@ -42,6 +42,14 @@ Before following this guide, ensure you have:
 - Familiarity with JavaScript ES modules
 
 ## Step-by-step instructions
+
+### Naming conventions
+
+Keep template assets consistent so downstream projects read naturally across operating systems and tooling:
+- Use `kebab-case` for directories and authored files (`react-vite`, `feature-flags.mjs`) to avoid case-only conflicts and mirror npm package norms.
+- Prefer `snake_case` for internal configuration keys that stay inside author assets or metadata (`build_target`, `default_variant`) to highlight that consumers should not rely on them.
+- Reserve `camelCase` for anything the CLI surfaces to template consumers (`ctx.projectName`, `tools.placeholders.applyInputs`) so public APIs feel idiomatic to JavaScript developers.
+- Name capabilities and asset directories with singular nouns (`placeholder`, `logger`, `ide`) unless the directory truly aggregates peers, keeping option vocabularies concise.
 
 ### Step 1: Prepare your template repository
 
@@ -76,6 +84,7 @@ If you are authoring composable templates with snippets, add an author-assets di
 |------|-------------------|--------------|
 | **WYSIWYG** (`authoringMode: "wysiwyg"`) | You iterate directly in a working app and only need light placeholder replacement. | No runtime option parsing. `setup.dimensions` can stay empty. `_setup.mjs` should focus on tokens and minor tweaks. |
 | **Composable** (`authoringMode: "composable"`) | You need a single template to produce several variants (stacks, infra, capabilities). | Define option dimensions in `template.json`, store reusable assets in `__scaffold__/`, and keep `_setup.mjs` small but declarative. |
+| **Hybrid** | You start from a WYSIWYG base but require a few reusable snippets. | Keep placeholder replacement for inline updates, but move any repeated assets into `__scaffold__/` so they can be copied conditionally via helpers. |
 
 Switching modes later is as simple as updating `template.json`, but start with WYSIWYG unless you know you need composability.
 
@@ -162,6 +171,27 @@ Remember:
 - Never import Node built-ins; use the helper APIs in the [Environment Reference](../reference/environment.md).
 - Helpers are idempotent—rerunning `_setup.mjs` should not duplicate work.
 - `ctx.options.byDimension` already includes defaults, so treat it as authoritative.
+- `tools.placeholders.applyInputs()` saves you from rebuilding replacement maps—pair it with `tools.templates.renderFile()` when you need to inject placeholder values into generated assets.
+
+#### Choose between inline edits and composition
+
+`metadata.placeholders` in `template.json` documents every `{{TOKEN}}` that still exists in the authored files. Use this inventory to decide how the setup script should satisfy each variable:
+
+| You need to… | Preferred approach | Helper(s) |
+|--------------|-------------------|-----------|
+| Update text inside existing files (README, package.json) | Leave the placeholder in the file and replace it inline | `tools.placeholders.applyInputs` for collected answers, `tools.placeholders.replaceAll`/`tools.text.ensureBlock` when you need custom values |
+| Generate variations of an entire file or directory | Store the source material in `authorAssetsDir` and copy it on demand | `tools.files.copyTemplateDir`, `tools.templates.renderFile` |
+| Produce derived JSON or config values | Mutate structured data during setup | `tools.json.set`, `tools.json.merge`
+| Toggle optional capabilities | Express the vocabulary under `setup.dimensions` and branch on `tools.options.in/when` | `tools.options.*`
+
+When `metadata.placeholders` lists a value that shouldn't be replaced inline, move the corresponding file into `__scaffold__/` (or your custom assets dir) and render it with helper data instead of leaving dangling tokens for end users.
+
+> `tools.placeholders.applyInputs()` is the zero-configuration path—it consumes the instantiator's answers captured in `ctx.inputs`. Reach for `replaceAll()` only when you must supply derived values (for example, combining multiple inputs into one string) or modify files that have no recorded placeholder metadata.
+
+> **Instantiator tips**
+> - Placeholder prompting is opt-in while the feature stabilizes. Document `--experimental-placeholder-prompts` in your README so users know how to enable it.
+> - CLI runs accept repeated `--placeholder NAME=value` flags for overrides and honour `CREATE_SCAFFOLD_PLACEHOLDER_<NAME>` environment variables (uppercase tokens).
+> - Pipelines can combine the flag with `--no-input-prompts` to force hard failures when required placeholders are missing instead of falling back to interactive input.
 
 ### Step 5: Stage author assets (composable mode)
 
@@ -220,7 +250,7 @@ Help users get productive immediately by adding a `handoff` array to `template.j
 
 Keep each instruction short and actionable (commands, follow-up docs, etc.). When `handoff` is omitted, the CLI falls back to `cd <project>` and a reminder to review the README.
 
-### Step 4: Test your template
+### Step 7: Test your template
 
 Before publishing, test your template locally:
 
@@ -237,7 +267,7 @@ Verify the template works correctly:
 2. Ensure all files were copied correctly
 3. Test that the project runs: `cd test-project && npm install && npm run dev`
 
-### Step 5: Publish your template repository
+### Step 8: Publish your template repository
 
 Commit and push your templates to make them available:
 

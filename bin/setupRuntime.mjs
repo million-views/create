@@ -785,7 +785,7 @@ function createIdeApi(ctx, root) {
   });
 }
 
-function buildPlaceholderApi(root) {
+function buildPlaceholderApi(root, placeholderContext) {
   return Object.freeze({
     async replaceAll(replacements, selector = DEFAULT_SELECTOR) {
       validateReplacements(replacements);
@@ -794,6 +794,78 @@ function buildPlaceholderApi(root) {
     async replaceInFile(file, replacements) {
       validateReplacements(replacements);
       await replaceInFile(root, file, replacements);
+    },
+    async applyInputs(selector = DEFAULT_SELECTOR, extra = {}) {
+      if (extra === null || typeof extra !== 'object' || Array.isArray(extra)) {
+        throw new SetupSandboxError('tools.placeholders.applyInputs extras must be provided as an object');
+      }
+
+      const replacements = buildInputReplacements(placeholderContext, extra);
+      if (Object.keys(replacements).length === 0) {
+        return;
+      }
+
+      validateReplacements(replacements);
+      await replaceAll(root, replacements, selector);
+    }
+  });
+}
+
+function buildInputReplacements(placeholderContext, extra) {
+  const result = {};
+  const sourceInputs = placeholderContext?.inputs ?? {};
+
+  for (const [token, value] of Object.entries(sourceInputs)) {
+    if (value === undefined || value === null) {
+      continue;
+    }
+    result[token] = stringifyReplacementValue(value);
+  }
+
+  if (!Object.prototype.hasOwnProperty.call(result, 'PROJECT_NAME') && placeholderContext?.projectName) {
+    result.PROJECT_NAME = String(placeholderContext.projectName);
+  }
+
+  for (const [token, value] of Object.entries(extra)) {
+    if (value === undefined || value === null) {
+      continue;
+    }
+    if (typeof token !== 'string' || token.trim() === '') {
+      throw new SetupSandboxError('tools.placeholders.applyInputs extras must use string tokens');
+    }
+    result[token] = stringifyReplacementValue(value);
+  }
+
+  return result;
+}
+
+function stringifyReplacementValue(value) {
+  if (typeof value === 'string') {
+    return value;
+  }
+
+  if (value === null || value === undefined) {
+    throw new SetupSandboxError('Placeholder replacement values cannot be null or undefined');
+  }
+
+  return String(value);
+}
+
+function buildInputsApi(inputs) {
+  const reference = inputs ?? Object.freeze({});
+
+  return Object.freeze({
+    get(name, fallback) {
+      if (typeof name !== 'string' || name.trim() === '') {
+        throw new SetupSandboxError('inputs.get requires a placeholder token');
+      }
+      if (Object.prototype.hasOwnProperty.call(reference, name)) {
+        return reference[name];
+      }
+      return fallback;
+    },
+    all() {
+      return Object.freeze({ ...reference });
     }
   });
 }
@@ -1141,16 +1213,19 @@ export async function loadSetupScript(setupPath, ctx, tools, logger = null) {
 
 export async function createSetupTools({ projectDirectory, projectName, logger, context, dimensions = {} }) {
   const root = path.resolve(projectDirectory);
+  const placeholderInputs = context?.inputs ?? Object.freeze({});
   const ctx = {
     projectName,
     projectDir: root,
     ide: context?.ide ?? null,
     authoringMode: context?.authoringMode ?? 'wysiwyg',
-    options: context?.options ?? { raw: [], byDimension: {} }
+    options: context?.options ?? { raw: [], byDimension: {} },
+    inputs: placeholderInputs
   };
 
   return Object.freeze({
-    placeholders: buildPlaceholderApi(root),
+    placeholders: buildPlaceholderApi(root, { projectName: ctx.projectName, inputs: placeholderInputs }),
+    inputs: buildInputsApi(placeholderInputs),
     files: buildFileApi(root),
     json: buildJsonApi(root),
     templates: buildTemplateApi(root),

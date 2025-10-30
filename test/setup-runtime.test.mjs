@@ -247,6 +247,42 @@ export default async function setup({ ctx, tools }) {
   assert.equal(helperCount, 1, 'json helpers should enforce uniqueness');
 });
 
+test('inputs API exposes resolved placeholder values and applyInputs helper', async (t) => {
+  const baseDir = await createTempDir(t, 'runtime-inputs');
+  const projectName = 'inputs-demo';
+  const projectDir = path.join(baseDir, projectName);
+  await fs.mkdir(projectDir, { recursive: true });
+
+  const templateFile = path.join(projectDir, 'README.md');
+  await fs.writeFile(templateFile, '# {{PROJECT_NAME}}\nToken: {{API_TOKEN}}\nCount: {{COUNT}}\nExtra: {{EXTRA}}\n');
+
+  const ctx = buildContext(baseDir, projectName, {
+    inputs: Object.freeze({
+      API_TOKEN: 's3cr3t',
+      COUNT: 7
+    })
+  });
+
+  assert.ok(Object.isFrozen(ctx.inputs), 'ctx.inputs should be frozen');
+  assert.equal(ctx.inputs.API_TOKEN, 's3cr3t');
+
+  const tools = await buildTools(projectDir, projectName, ctx);
+
+  const allInputs = tools.inputs.all();
+  assert.ok(Object.isFrozen(allInputs), 'inputs.all() should return frozen object');
+  assert.equal(allInputs.API_TOKEN, 's3cr3t');
+  assert.equal(tools.inputs.get('COUNT'), 7);
+  assert.equal(tools.inputs.get('MISSING', 'fallback'), 'fallback');
+
+  await tools.placeholders.applyInputs(['README.md'], { EXTRA: 'value' });
+
+  const contents = await fs.readFile(templateFile, 'utf8');
+  assert.ok(contents.includes('# inputs-demo'), 'applyInputs should consider projectName fallback');
+  assert.ok(contents.includes('Token: s3cr3t'), 'applyInputs should use ctx.inputs values');
+  assert.ok(contents.includes('Count: 7'), 'applyInputs should stringify non-string inputs');
+  assert.ok(contents.includes('Extra: value'), 'applyInputs should merge additional replacements');
+});
+
 test('options API exposes dimension-aware helpers', async (t) => {
   const baseDir = await createTempDir(t, 'runtime-options');
   const projectName = 'options-demo';
