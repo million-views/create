@@ -3,10 +3,10 @@ title: "Caching Strategy Explained"
 type: "explanation"
 audience: "intermediate"
 estimated_time: "7 minutes read"
-prerequisites: 
+prerequisites:
   - "Understanding of file systems and caching concepts"
   - "Basic knowledge of git repositories"
-related_docs: 
+related_docs:
   - "../reference/cli-reference.md"
   - "../guides/troubleshooting.md"
   - "template-system.md"

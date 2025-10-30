@@ -38,6 +38,7 @@ Custom script that validates:
 - **Code examples** - Basic syntax validation for code blocks
 - **Terminology consistency** - Enforces consistent naming
 - **Maintenance liabilities** - Detects specific numbers that will change
+- **Optional fixes** - Run with `--fix` to normalize frontmatter indentation and spacing automatically
 
 ### 2. Code Analysis (`ast-grep`)
 
@@ -58,6 +59,9 @@ npm run validate
 
 # Run only documentation validation
 npm run validate:docs
+
+# Auto-fix frontmatter indentation issues before validation
+node scripts/validate-docs.mjs --fix
 
 # Run only code analysis
 npm run validate:code

@@ -16,6 +16,8 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.join(__dirname, '..');
 const docsDir = path.join(rootDir, 'docs');
 const steeringDir = path.join(rootDir, '.kiro', 'steering');
+const args = process.argv.slice(2);
+const FIX_MODE = args.includes('--fix');
 
 // Track validation results
 const results = {
@@ -24,7 +26,8 @@ const results = {
   brokenLinks: [],
   missingFrontmatter: [],
   codeExamples: 0,
-  errors: []
+  errors: [],
+  fixesApplied: []
 };
 
 /**
@@ -54,7 +57,7 @@ async function getMarkdownFiles(dir) {
 /**
  * Validate frontmatter metadata
  */
-function validateFrontmatter(content, filePath) {
+function validateFrontmatter(content, filePath, { fixMode = false } = {}) {
   // Skip template files as they contain placeholders
   if (filePath.includes('_templates/')) {
     return true;
@@ -72,14 +75,151 @@ function validateFrontmatter(content, filePath) {
   const isSteeringDoc = filePath.startsWith('.kiro/steering/');
   const requiredFields = isSteeringDoc ? ['inclusion'] : ['title', 'type', 'last_updated'];
 
-  for (const field of requiredFields) {
-    if (!frontmatter.includes(`${field}:`)) {
-      results.errors.push(`${filePath}: Missing required frontmatter field: ${field}`);
-      return false;
+  const lines = frontmatter.split('\n');
+  const normalizedLines = [];
+  const errors = [];
+  let currentField = null;
+  const listIndentation = new Map();
+  let needsRewrite = false;
+
+  for (let index = 0; index < lines.length; index++) {
+    const line = lines[index];
+    let normalizedLine = line;
+    const trimmed = line.trim();
+
+    if (trimmed === '') {
+      normalizedLines.push('');
+      continue;
     }
+
+    if (/\t/.test(line)) {
+      if (fixMode) {
+        normalizedLine = line.replace(/\t/g, '  ');
+        if (normalizedLine !== line) {
+          needsRewrite = true;
+        }
+      } else {
+        errors.push(`${filePath}: Tab character in frontmatter (line ${index + 1})`);
+        normalizedLines.push(normalizedLine);
+        continue;
+      }
+    }
+
+    const fieldMatch = normalizedLine.match(/^([A-Za-z0-9_]+):\s*(.*)$/);
+
+    if (fieldMatch && !normalizedLine.startsWith(' ')) {
+      currentField = fieldMatch[1];
+      if (fixMode) {
+        const value = fieldMatch[2];
+        const trimmedValue = value.trim();
+        const hasValue = trimmedValue.length > 0;
+        const candidate = hasValue ? `${currentField}: ${trimmedValue}` : `${currentField}:`;
+        if (candidate !== normalizedLine) {
+          normalizedLine = candidate;
+          needsRewrite = true;
+        }
+      }
+      normalizedLines.push(normalizedLine);
+      continue;
+    }
+
+    if (fieldMatch && normalizedLine.startsWith(' ')) {
+      if (fixMode) {
+        currentField = fieldMatch[1];
+        const value = fieldMatch[2].trim();
+        normalizedLine = value.length > 0 ? `${currentField}: ${value}` : `${currentField}:`;
+        needsRewrite = true;
+        normalizedLines.push(normalizedLine);
+      } else {
+        errors.push(`${filePath}: Unexpected indentation in frontmatter (line ${index + 1})`);
+        normalizedLines.push(normalizedLine);
+      }
+      continue;
+    }
+
+    const listMatch = normalizedLine.match(/^(\s+)-\s*(.*)$/);
+    if (listMatch) {
+      if (!currentField) {
+        errors.push(`${filePath}: List item without parent field (line ${index + 1})`);
+        normalizedLines.push(normalizedLine);
+        continue;
+      }
+
+      const indentLength = listMatch[1].length;
+      let targetIndent = listIndentation.get(currentField);
+      if (typeof targetIndent === 'undefined') {
+        targetIndent = Math.max(indentLength, 2);
+      }
+
+      if (fixMode) {
+        const listValue = listMatch[2].trim();
+        normalizedLine = `${' '.repeat(targetIndent)}- ${listValue}`;
+        if (normalizedLine !== line) {
+          needsRewrite = true;
+        }
+        listIndentation.set(currentField, targetIndent);
+      } else {
+        if (indentLength < 2) {
+          errors.push(`${filePath}: List indentation too small for field "${currentField}" (line ${index + 1})`);
+        } else if (typeof targetIndent === 'undefined') {
+          listIndentation.set(currentField, indentLength);
+        } else if (targetIndent !== indentLength) {
+          errors.push(`${filePath}: Inconsistent list indentation for field "${currentField}" (line ${index + 1})`);
+        }
+      }
+
+      normalizedLines.push(normalizedLine);
+      continue;
+    }
+
+    if (normalizedLine.startsWith(' ')) {
+      if (fixMode) {
+        normalizedLine = normalizedLine.trimStart();
+        if (normalizedLine !== line) {
+          needsRewrite = true;
+        }
+        normalizedLines.push(normalizedLine);
+      } else {
+        errors.push(`${filePath}: Unexpected indentation in frontmatter (line ${index + 1})`);
+        normalizedLines.push(normalizedLine);
+      }
+      continue;
+    }
+
+    if (!fieldMatch) {
+      errors.push(`${filePath}: Unable to parse frontmatter line ${index + 1}`);
+    }
+
+    normalizedLines.push(normalizedLine);
   }
 
-  return true;
+  const finalLines = fixMode ? normalizedLines : lines;
+  const fieldNames = new Set();
+  finalLines.forEach(line => {
+    const match = line.match(/^([A-Za-z0-9_]+):/);
+    if (match) {
+      fieldNames.add(match[1]);
+    }
+  });
+
+  requiredFields.forEach(field => {
+    if (!fieldNames.has(field)) {
+      errors.push(`${filePath}: Missing required frontmatter field: ${field}`);
+    }
+  });
+
+  if (errors.length > 0) {
+    errors.forEach(error => results.errors.push(error));
+    return { valid: false };
+  }
+
+  if (fixMode && needsRewrite) {
+    const normalizedFrontmatter = normalizedLines.join('\n');
+    const updatedContent = content.replace(frontmatterMatch[0], `---\n${normalizedFrontmatter}\n---`);
+    return { valid: true, updatedContent };
+  }
+
+  return { valid: true };
 }
 
 /**
@@ -305,13 +445,22 @@ async function validateDocumentation() {
 
     // Validate each file
     for (const filePath of markdownFiles) {
-      const content = await fs.readFile(filePath, 'utf8');
+      let content = await fs.readFile(filePath, 'utf8');
       const relativePath = path.relative(rootDir, filePath);
 
       console.log(`📄 Validating ${relativePath}`);
 
-      // Validate frontmatter
-      validateFrontmatter(content, relativePath);
+      // Validate frontmatter (with optional fixes)
+      const frontmatterResult = validateFrontmatter(content, relativePath, { fixMode: FIX_MODE });
+
+      if (FIX_MODE && frontmatterResult.updatedContent) {
+        await fs.writeFile(filePath, frontmatterResult.updatedContent, 'utf8');
+        content = frontmatterResult.updatedContent;
+        results.fixesApplied.push(relativePath);
+      } else if (frontmatterResult.valid === false) {
+        // Frontmatter invalid and not fixable
+        // continue running other validators to surface all issues
+      }
 
       // Validate links
       await validateLinks(content, filePath);
@@ -351,6 +500,13 @@ async function validateDocumentation() {
       console.log('\n❌ Validation errors:');
       results.errors.forEach(error => {
         console.log(`  - ${error}`);
+      });
+    }
+
+    if (results.fixesApplied.length > 0) {
+      console.log('\n🛠️ Applied fixes:');
+      results.fixesApplied.forEach(file => {
+        console.log(`  - ${file}`);
       });
     }
 

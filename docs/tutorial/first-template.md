@@ -9,7 +9,7 @@ prerequisites:
   - "Git installed and configured"
 related_docs:
   - "getting-started.md"
-   - "../how-to/creating-templates.md"
+  - "../how-to/creating-templates.md"
   - "../reference/environment.md"
   - "../how-to/setup-recipes.md"
 last_updated: "2024-11-07"

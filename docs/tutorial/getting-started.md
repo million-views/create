@@ -9,10 +9,10 @@ prerequisites:
   - "Basic command line familiarity"
 related_docs:
    - "../how-to/creating-templates.md"
-  - "../reference/cli-reference.md"
-  - "../guides/troubleshooting.md"
-  - "first-template.md"
-  - "../how-to/setup-recipes.md"
+   - "../reference/cli-reference.md"
+   - "../guides/troubleshooting.md"
+   - "first-template.md"
+   - "../how-to/setup-recipes.md"
 last_updated: "2024-11-07"
 ---
 

@@ -3,9 +3,9 @@ title: "Phase 1 Core UX Features"
 type: "reference"
 audience: "all"
 estimated_time: "N/A (reference)"
-prerequisites: 
+prerequisites:
   - "Basic familiarity with @m5nv/create-scaffold"
-related_docs: 
+related_docs:
   - "tutorial/getting-started.md"
   - "reference/cli-reference.md"
   - "guides/troubleshooting.md"
