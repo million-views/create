@@ -62,7 +62,7 @@ Modify `displayPreview()` so the file section renders aggregated buckets:
 
 ### Tests
 
-Update unit tests in `test/dryRunEngine.test.mjs` to cover bucket aggregation and ordering. Adjust CLI integration tests to look for aggregated lines rather than individual file rows.
+Update unit tests in `test/dry-run-engine.test.mjs` to cover bucket aggregation and ordering. Adjust CLI integration tests to look for aggregated lines rather than individual file rows.
 
 ## Considerations
 

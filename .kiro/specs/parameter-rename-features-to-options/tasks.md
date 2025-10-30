@@ -4,7 +4,7 @@
 
   - Update test/functional.test.mjs to expect --options instead of --features
   - Update test/security.test.mjs to expect validateOptionsParameter function
-  - Update test/environmentFactory.test.mjs to expect options property
+  - Update test/environment-factory.test.mjs to expect options property
   - Run tests to confirm they fail with expected errors (RED state required)
   - _Requirements: 1.1, 1.5, 3.1, 4.1_
 

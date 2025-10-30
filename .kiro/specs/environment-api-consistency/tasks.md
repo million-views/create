@@ -6,7 +6,7 @@
 
 2. **Fixture and test updates**
    - [x] Update template fixtures (`test/fixtures/*/_setup.mjs`) to destructure `{ ctx, tools }`.
-   - [x] Extend `test/setupRuntime.test.mjs` to cover the new signature and guard behavior.
+   - [x] Extend `test/setup-runtime.test.mjs` to cover the new signature and guard behavior.
    - [x] Adjust any other tests referencing positional signatures.
 
 3. **Documentation refresh**

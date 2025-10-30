@@ -43,7 +43,7 @@ The CLI still:
 The only difference is the helper surface.
 
 ## Testing Strategy
-- **Unit Tests** (`test/setupRuntime.test.mjs`): cover new helper behavior (text operations, JSON path helpers).
+- **Unit Tests** (`test/setup-runtime.test.mjs`): cover new helper behavior (text operations, JSON path helpers).
 - **Integration Tests** (`test/cli.test.mjs`, `test/cli-integration.test.mjs`): update fixtures to rely on new helpers; ensure warnings for unsupported options still fire.
 - **Spec & Smoke**: confirm they no longer mention ast-grep and pass after runtime changes.
 

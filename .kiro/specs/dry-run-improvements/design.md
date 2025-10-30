@@ -9,7 +9,7 @@ We will extend the dry-run experience so developers see a meaningful preview of 
 - `bin/dryRunEngine.mjs` currently collects operations (`file_copy`, etc.) but does not aggregate counts or format output.
 - `DryRunEngine.displayPreview()` handles console formatting; we need to enhance this routine.
 - Tree command invocation should respect security guidelines (no shell injection, safe subprocess handling).
-- Tests around dry-run live primarily in `test/cli-integration.test.mjs` and `test/dryRunEngine.test.mjs`.
+- Tests around dry-run live primarily in `test/cli-integration.test.mjs` and `test/dry-run-engine.test.mjs`.
 
 ## Proposed Changes
 

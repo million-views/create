@@ -241,7 +241,7 @@ if (typeof setupFunction !== 'function') {
 
 **Location:** `test/unit/` (new directory)
 
-1. **Argument Parser Tests** (`argumentParser.test.mjs`)
+1. **Argument Parser Tests** (`argument-parser.test.mjs`)
    - Valid IDE argument parsing
    - Invalid IDE rejection
    - Features parsing and validation
@@ -252,7 +252,7 @@ if (typeof setupFunction !== 'function') {
    - Features parameter validation
    - Path sanitization with new parameters
 
-3. **Environment Factory Tests** (`environmentFactory.test.mjs`)
+3. **Environment Factory Tests** (`environment-factory.test.mjs`)
    - Environment object creation
    - Immutability verification
    - Input sanitization

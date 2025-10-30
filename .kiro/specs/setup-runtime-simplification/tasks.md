@@ -12,7 +12,7 @@
 
 3. **Refactor fixtures and tests**
    - [x] Rewrite fixtures to showcase new helper APIs (remove ast-grep usage).
-   - [x] Expand `test/setupRuntime.test.mjs` with coverage for new helpers.
+   - [x] Expand `test/setup-runtime.test.mjs` with coverage for new helpers.
    - [x] Update CLI/integration/spec tests to reflect the new helper surface.
 
 4. **Documentation revamp (Diátaxis aligned)**

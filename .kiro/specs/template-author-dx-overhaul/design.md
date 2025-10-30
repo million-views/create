@@ -115,9 +115,9 @@ We will redesign the documents cited in the requirements:
 
 ## Test Strategy
 1. **Unit tests**
-   - `setupRuntime.test.mjs`: validate sandbox enforcement, tool availability, path safety.
-   - `environmentFactory.test.mjs`: ensure context normalization.
-   - `templateDiscovery.test.mjs`: confirm `supportedOptions` parsing.
+  - `setup-runtime.test.mjs`: validate sandbox enforcement, tool availability, path safety.
+  - `environment-factory.test.mjs`: ensure context normalization.
+  - `template-discovery.test.mjs`: confirm `supportedOptions` parsing.
 2. **Integration tests**
    - Update existing CLI integration fixtures to use the new APIs (IDE demo, features demo, full demo).
    - Add new fixture showcasing `astGrep` usage guarded by feature detection; skip test when adapter unavailable.

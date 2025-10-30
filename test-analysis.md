@@ -72,21 +72,21 @@ async cleanup() {
 
 ### ✅ **Proper Test Coverage** (No Redundancy)
 - **security.test.mjs**: Input validation (15 tests)
-- **environmentFactory.test.mjs**: Environment objects (21 tests)  
-- **argumentParser.test.mjs**: Argument parsing (21 tests)
+- **environment-factory.test.mjs**: Environment objects (21 tests)
+- **argument-parser.test.mjs**: Argument parsing (21 tests)
 - **resource-leak-test.mjs**: Resource cleanup monitoring (4 tests)
 
 ### ⚠️ **Overlapping Test Coverage** (Minor Redundancy)
 - **Cache Manager**: Tested in 4 different files
-- **Logger**: Tested in 3 different files  
+- **Logger**: Tested in 3 different files
 - **Security**: Tested in 3 different files
 - **CLI Integration**: Tested in 3 different files
 
 ### ❌ **Redundant Implementation Patterns** (Major Redundancy)
 - **logger.test.mjs**: 15 tests with redundant temp dir code
-- **cacheManager.test.mjs**: 21 tests with redundant patterns
-- **templateDiscovery.test.mjs**: 20 tests with redundant cache setup
-- **dryRunEngine.test.mjs**: 22 tests with redundant patterns
+- **cache-manager.test.mjs**: 21 tests with redundant patterns
+- **template-discovery.test.mjs**: 20 tests with redundant cache setup
+- **dry-run-engine.test.mjs**: 22 tests with redundant patterns
 - **cli.test.mjs**: 47 tests with redundant CLI helpers
 - **cli-integration.test.mjs**: 12 tests with redundant utilities
 - **spec-compliance-verification.mjs**: 37 tests with redundant patterns

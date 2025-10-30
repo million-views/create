@@ -163,7 +163,7 @@ npx @m5nv/create-scaffold my-api --template fastify --options monorepo,no-git
    - Update validation error message expectations
    - Maintain all security test scenarios
 
-3. **Environment Factory Tests (test/environmentFactory.test.mjs)**
+3. **Environment Factory Tests (test/environment-factory.test.mjs)**
 
    - Update Environment_Object property assertions
    - Update validation function calls

@@ -14,7 +14,7 @@ We will replace the positional setup-script signature with a single environment 
 
 3. **Fixtures and tests:**
    - Update `_setup.mjs` fixtures (`test/fixtures/*`) to destructure `{ ctx, tools }`.
-   - Adjust `test/setupRuntime.test.mjs` expectations to the new signature and add scenarios verifying the guard (one valid script, one that incorrectly expects positional args).
+   - Adjust `test/setup-runtime.test.mjs` expectations to the new signature and add scenarios verifying the guard (one valid script, one that incorrectly expects positional args).
    - Update CLI integration tests if they reference setup scripts directly.
 
 4. **Reference renaming:**
@@ -30,7 +30,7 @@ We will replace the positional setup-script signature with a single environment 
 6. Guard verifies argument shape before proceeding, providing early feedback for positional scripts.
 
 ## Testing Strategy
-- **Unit tests:** Extend `test/setupRuntime.test.mjs` to cover:
+- **Unit tests:** Extend `test/setup-runtime.test.mjs` to cover:
   - Successful execution with destructured signature.
   - Guard triggers when script attempts to access positional params.
 - **Fixtures:** Ensure all template fixtures work with new signature.

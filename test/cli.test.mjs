@@ -6,11 +6,13 @@
  * security, preflight checks, git operations, file operations, and error handling.
  */
 
-import { spawn } from 'child_process';
-import fs from 'fs/promises';
-import path from 'path';
-import os from 'os';
-import { fileURLToPath } from 'url';
+import test from 'node:test';
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import os from 'node:os';
+import { fileURLToPath } from 'node:url';
+import { execCLI as runCLI, execCommand as runCommand } from './utils/cli.js';
+import { cleanupPaths as cleanupTestPaths, detectResourceLeaks as assertNoLeaks, getResourceSnapshot as snapshotResources } from './utils/resources.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -35,67 +37,31 @@ class TestUtils {
   }
 
   static async cleanup(paths) {
-    for (const p of Array.isArray(paths) ? paths : [paths]) {
-      try {
-        await fs.rm(p, { recursive: true, force: true });
-      } catch {
-        // Ignore cleanup errors
-      }
-    }
+    await cleanupTestPaths(paths);
   }
 
   /**
    * Resource leak detection utilities
    */
   static async getResourceSnapshot() {
-    const cwd = process.cwd();
-    const entries = await fs.readdir(cwd);
-    
-    return {
-      tempDirs: entries.filter(name => name.startsWith('.tmp-template-')),
-      testDirs: entries.filter(name => name.startsWith('test-') && !name.includes('cli-')),
-      allEntries: entries.length
-    };
+    return snapshotResources();
   }
 
   static async detectResourceLeaks(beforeSnapshot, afterSnapshot, context = '', options = {}) {
-    const leaks = [];
-    
-    // Check for new temporary directories (these should always be cleaned up)
-    const newTempDirs = afterSnapshot.tempDirs.filter(
-      dir => !beforeSnapshot.tempDirs.includes(dir)
-    );
-    if (newTempDirs.length > 0) {
-      leaks.push(`Temporary directories not cleaned up: ${newTempDirs.join(', ')}`);
-    }
-
-    // Check for new test directories (project directories) only if explicitly requested
-    // Project directories are expected to remain in most scenarios
-    if (options.checkProjectDirs) {
-      const newTestDirs = afterSnapshot.testDirs.filter(
-        dir => !beforeSnapshot.testDirs.includes(dir)
-      );
-      if (newTestDirs.length > 0) {
-        leaks.push(`Unexpected project directories: ${newTestDirs.join(', ')}`);
-      }
-    }
-
-    if (leaks.length > 0) {
-      throw new Error(`Resource leaks detected${context ? ` in ${context}` : ''}:\n  ${leaks.join('\n  ')}`);
-    }
+    assertNoLeaks(beforeSnapshot, afterSnapshot, context, options);
   }
 
   static async createMockRepoWithSetupScript(repoPath, templateName, setupScriptContent) {
     await this.createMockRepo(repoPath, [templateName]);
-    
+
     // Add setup script to template
     const setupScriptPath = path.join(repoPath, templateName, '_setup.mjs');
     await fs.writeFile(setupScriptPath, setupScriptContent);
-    
+
     // Commit the setup script
     await this.execCommand('git', ['add', '.'], { cwd: repoPath });
     await this.execCommand('git', ['commit', '-m', 'Add setup script'], { cwd: repoPath });
-    
+
     return setupScriptPath;
   }
 
@@ -109,59 +75,15 @@ class TestUtils {
   }
 
   static async execCLI(args, options = {}) {
-    return new Promise((resolve) => {
-      const child = spawn('node', [CLI_PATH, ...args], {
-        stdio: ['pipe', 'pipe', 'pipe'],
-        cwd: options.cwd || process.cwd(),
-        env: { ...process.env, ...options.env }
-      });
-
-      let stdout = '';
-      let stderr = '';
-
-      child.stdout?.on('data', (data) => {
-        stdout += data.toString();
-      });
-
-      child.stderr?.on('data', (data) => {
-        stderr += data.toString();
-      });
-
-      const timeout = setTimeout(() => {
-        child.kill('SIGTERM');
-        resolve({
-          exitCode: -1,
-          stdout,
-          stderr: stderr + '\nTest timeout',
-          timedOut: true
-        });
-      }, options.timeout || TEST_TIMEOUT);
-
-      child.on('close', (code) => {
-        clearTimeout(timeout);
-        resolve({
-          exitCode: code,
-          stdout,
-          stderr,
-          timedOut: false
-        });
-      });
-
-      child.on('error', (error) => {
-        clearTimeout(timeout);
-        resolve({
-          exitCode: -1,
-          stdout,
-          stderr: stderr + error.message,
-          error: true
-        });
-      });
+    return runCLI(CLI_PATH, args, {
+      ...options,
+      timeout: options.timeout ?? TEST_TIMEOUT
     });
   }
 
   static async createMockRepo(repoPath, templates = ['basic']) {
     await fs.mkdir(repoPath, { recursive: true });
-    
+
     // Initialize git repo
     await this.execCommand('git', ['init'], { cwd: repoPath });
     await this.execCommand('git', ['config', 'user.name', 'Test User'], { cwd: repoPath });
@@ -195,107 +117,64 @@ class TestUtils {
   }
 
   static async execCommand(command, args, options = {}) {
-    return new Promise((resolve, reject) => {
-      const child = spawn(command, args, {
-        stdio: ['ignore', 'pipe', 'pipe'],
-        cwd: options.cwd || process.cwd()
-      });
-
-      let stdout = '';
-      let stderr = '';
-
-      child.stdout?.on('data', (data) => {
-        stdout += data.toString();
-      });
-
-      child.stderr?.on('data', (data) => {
-        stderr += data.toString();
-      });
-
-      child.on('close', (code) => {
-        if (code === 0) {
-          resolve(stdout);
-        } else {
-          reject(new Error(stderr || stdout || `Command failed with exit code ${code}`));
-        }
-      });
-
-      child.on('error', reject);
-    });
+    try {
+      const result = await runCommand(command, args, options);
+      return result.stdout;
+    } catch (error) {
+      const message = error.stderr || error.stdout || error.message || `Command failed with exit code ${error.code}`;
+      throw new Error(message);
+    }
   }
 }
 
 /**
- * Test runner
+ * Node.js test runner bridge that preserves existing helper semantics.
  */
-class TestRunner {
-  constructor() {
-    this.tests = [];
-    this.passed = 0;
-    this.failed = 0;
-    this.tempPaths = [];
-  }
-
+const runner = {
+  tempPaths: [],
+  addTempPath() {
+    throw new Error('runner.addTempPath can only be used within a test context');
+  },
   test(name, fn) {
-    this.tests.push({ name, fn });
-  }
+    test(name, { timeout: TEST_TIMEOUT }, async (t) => {
+      const previousAddTempPath = runner.addTempPath;
+      const previousTempPaths = runner.tempPaths;
+      const currentTempPaths = [];
 
-  async run() {
-    console.log('🧪 Running CLI Functional Tests\n');
+      runner.tempPaths = currentTempPaths;
+      runner.addTempPath = async (tempPath) => {
+        currentTempPaths.push(tempPath);
+        return tempPath;
+      };
 
-    for (const { name, fn } of this.tests) {
       try {
-        console.log(`  ▶ ${name}`);
         await fn();
-        console.log(`  ✅ ${name}`);
-        this.passed++;
-      } catch (error) {
-        console.log(`  ❌ ${name}`);
-        console.log(`     Error: ${error.message}`);
-        if (error.details) {
-          console.log(`     Details: ${error.details}`);
+      } finally {
+        for (const tempPath of currentTempPaths) {
+          t.after(async () => {
+            await TestUtils.cleanup(tempPath);
+          });
         }
-        this.failed++;
+
+        runner.addTempPath = previousAddTempPath;
+        runner.tempPaths = previousTempPaths;
       }
-    }
-
-    // Cleanup
-    await TestUtils.cleanup(this.tempPaths);
-
-    console.log(`\n📊 Test Results:`);
-    console.log(`   Passed: ${this.passed}`);
-    console.log(`   Failed: ${this.failed}`);
-    console.log(`   Total:  ${this.tests.length}`);
-
-    if (this.failed > 0) {
-      console.log('\n❌ Some tests failed');
-      process.exit(1);
-    } else {
-      console.log('\n✅ All tests passed!');
-      process.exit(0);
-    }
+    });
   }
-
-  async addTempPath(path) {
-    this.tempPaths.push(path);
-    return path;
-  }
-}
-
-const runner = new TestRunner();
+};
 
 // Test 1: Help flag functionality
 runner.test('Help flag displays usage information', async () => {
   const result = await TestUtils.execCLI(['--help']);
-  
+
   if (result.exitCode !== 0) {
     throw new Error(`Expected exit code 0, got ${result.exitCode}`);
   }
-  
+
   if (!result.stdout.includes('USAGE:')) {
     throw new Error('Help text should contain USAGE section');
   }
-  
+
   if (!result.stdout.includes('--from-template')) {
     throw new Error('Help text should mention --from-template flag');
   }
@@ -304,11 +183,11 @@ runner.test('Help flag displays usage information', async () => {
 // Test 2: Missing required arguments
 runner.test('Missing project directory shows error', async () => {
   const result = await TestUtils.execCLI(['--from-template', 'basic']);
-  
+
   if (result.exitCode !== 1) {
     throw new Error(`Expected exit code 1, got ${result.exitCode}`);
   }
-  
+
   if (!result.stderr.includes('Project directory')) {
     throw new Error('Should show project directory error');
   }
@@ -317,11 +196,11 @@ runner.test('Missing project directory shows error', async () => {
 // Test 3: Missing template flag
 runner.test('Missing template flag shows error', async () => {
   const result = await TestUtils.execCLI(['test-project']);
-  
+
   if (result.exitCode !== 1) {
     throw new Error(`Expected exit code 1, got ${result.exitCode}`);
   }
-  
+
   if (!result.stderr.includes('template')) {
     throw new Error('Should show template error');
   }
@@ -330,11 +209,11 @@ runner.test('Missing template flag shows error', async () => {
 // Test 4: Path traversal prevention in project directory
 runner.test('Path traversal in project directory is blocked', async () => {
   const result = await TestUtils.execCLI(['../malicious-dir', '--from-template', 'basic']);
-  
+
   if (result.exitCode !== 1) {
     throw new Error(`Expected exit code 1, got ${result.exitCode}`);
   }
-  
+
   if (!result.stderr.includes('path')) {
     throw new Error('Should show path validation error');
   }
@@ -343,11 +222,11 @@ runner.test('Path traversal in project directory is blocked', async () => {
 // Test 5: Path traversal prevention in template name
 runner.test('Path traversal in template name is blocked', async () => {
   const result = await TestUtils.execCLI(['test-project', '--from-template', '../../../etc/passwd']);
-  
+
   if (result.exitCode !== 1) {
     throw new Error(`Expected exit code 1, got ${result.exitCode}`);
   }
-  
+
   if (!result.stderr.includes('traversal')) {
     throw new Error('Should show template path traversal error');
   }
@@ -356,11 +235,11 @@ runner.test('Path traversal in template name is blocked', async () => {
 // Test 6: Invalid characters in project directory
 runner.test('Invalid characters in project directory are rejected', async () => {
   const result = await TestUtils.execCLI(['test/project', '--from-template', 'basic']);
-  
+
   if (result.exitCode !== 1) {
     throw new Error(`Expected exit code 1, got ${result.exitCode}`);
   }
-  
+
   if (!result.stderr.includes('separator') || !result.stderr.includes('directory')) {
     throw new Error('Should show path separator error');
   }
@@ -369,15 +248,15 @@ runner.test('Invalid characters in project directory are rejected', async () => 
 // Test 7: Invalid repository URL format
 runner.test('Invalid repository URL format is rejected', async () => {
   const result = await TestUtils.execCLI([
-    'test-project', 
-    '--from-template', 'basic', 
+    'test-project',
+    '--from-template', 'basic',
     '--repo', 'not-a-valid-repo-format!'
   ]);
-  
+
   if (result.exitCode !== 1) {
     throw new Error(`Expected exit code 1, got ${result.exitCode}`);
   }
-  
+
   if (!result.stderr.includes('Repository format')) {
     throw new Error('Should show repository format error');
   }
@@ -386,15 +265,15 @@ runner.test('Invalid repository URL format is rejected', async () => {
 // Test 8: Invalid branch name with special characters
 runner.test('Invalid branch name with injection characters is rejected', async () => {
   const result = await TestUtils.execCLI([
-    'test-project', 
-    '--from-template', 'basic', 
+    'test-project',
+    '--from-template', 'basic',
     '--branch', 'main; rm -rf /'
   ]);
-  
+
   if (result.exitCode !== 1) {
     throw new Error(`Expected exit code 1, got ${result.exitCode}`);
   }
-  
+
   if (!result.stderr.includes('invalid characters') && !result.stderr.includes('injection')) {
     throw new Error('Should show branch validation error');
   }
@@ -404,16 +283,16 @@ runner.test('Invalid branch name with injection characters is rejected', async (
 runner.test('Git installation is verified', async () => {
   // This test assumes git is installed (required for development)
   const result = await TestUtils.execCLI([
-    'test-project-git', 
+    'test-project-git',
     '--from-template', 'basic',
     '--repo', './nonexistent-git-check-repo'
   ]);
-  
+
   // Should fail at repository validation, not git check
   if (result.exitCode !== 1) {
     throw new Error(`Expected exit code 1, got ${result.exitCode}`);
   }
-  
+
   // Should not fail due to git not being found
   if (result.stderr.includes('Git is not installed')) {
     throw new Error('Git should be available for tests');
@@ -423,20 +302,20 @@ runner.test('Git installation is verified', async () => {
 // Test 10: Directory conflict detection
 runner.test('Existing directory conflict is detected', async () => {
   const existingDir = await runner.addTempPath(await TestUtils.createTempDir('-existing'));
-  
+
   // Create a file in the directory to make it non-empty
   await fs.writeFile(path.join(existingDir, 'existing-file.txt'), 'content');
-  
+
   const dirName = path.basename(existingDir);
   const result = await TestUtils.execCLI([
-    dirName, 
+    dirName,
     '--from-template', 'basic'
   ], { cwd: path.dirname(existingDir) });
-  
+
   if (result.exitCode !== 1) {
     throw new Error(`Expected exit code 1, got ${result.exitCode}`);
   }
-  
+
   if (!result.stderr.includes('already exists')) {
     throw new Error('Should detect directory conflict');
   }
@@ -447,7 +326,7 @@ runner.test('Nonexistent repository is detected', async () => {
   const missingRepoPath = path.join(os.tmpdir(), `missing-repo-${Date.now()}`);
 
   const result = await TestUtils.execCLI([
-    'test-project-nonexistent', 
+    'test-project-nonexistent',
     '--from-template', 'basic',
     '--repo', missingRepoPath
   ]);
@@ -469,7 +348,7 @@ runner.test('Nonexistent branch is detected', async () => {
   await TestUtils.createMockRepo(mockRepoPath, ['basic']);
 
   const result = await TestUtils.execCLI([
-    'test-project-branch', 
+    'test-project-branch',
     '--from-template', 'basic',
     '--repo', mockRepoPath,
     '--branch', 'definitely-does-not-exist-branch-name'
@@ -488,32 +367,32 @@ runner.test('Nonexistent branch is detected', async () => {
 runner.test('Successful template creation with local repository', async () => {
   const mockRepoPath = await runner.addTempPath(await TestUtils.createTempDir('-mock-repo'));
   const projectPath = await runner.addTempPath(await TestUtils.createTempDir('-project'));
-  
+
   // Create mock repository with templates
   await TestUtils.createMockRepo(mockRepoPath, ['basic', 'advanced']);
-  
+
   const projectName = 'test-success-project';
   const result = await TestUtils.execCLI([
     projectName,
     '--from-template', 'basic',
     '--repo', mockRepoPath
   ], { cwd: path.dirname(projectPath) });
-  
+
   if (result.exitCode !== 0) {
     throw new Error(`Expected exit code 0, got ${result.exitCode}. Stderr: ${result.stderr}`);
   }
-  
+
   // Verify project was created
   const createdProjectPath = path.join(path.dirname(projectPath), projectName);
   runner.tempPaths.push(createdProjectPath);
-  
+
   const packageJsonPath = path.join(createdProjectPath, 'package.json');
   const packageJson = JSON.parse(await fs.readFile(packageJsonPath, 'utf8'));
-  
+
   if (packageJson.name !== 'basic') {
     throw new Error('Template files were not copied correctly');
   }
-  
+
   if (result.stdout.includes('✅ Project created successfully!')) {
     // Success message found
   } else {
@@ -657,15 +536,15 @@ runner.test('Next steps fall back to README guidance when metadata absent', asyn
 // Test 15: Error message sanitization
 runner.test('Error messages are sanitized', async () => {
   const result = await TestUtils.execCLI([
-    'test-project-sanitize', 
+    'test-project-sanitize',
     '--from-template', 'basic',
     '--repo', '/nonexistent/path/with/private/data'
   ]);
-  
+
   if (result.exitCode !== 1) {
     throw new Error(`Expected exit code 1, got ${result.exitCode}`);
   }
-  
+
   // Error message should provide useful information while being safe
   // The current implementation shows the path in preflight errors which is acceptable
   // for user-provided paths, as long as it doesn't leak system secrets
@@ -678,10 +557,10 @@ runner.test('Error messages are sanitized', async () => {
 runner.test('File operations prevent symlink attacks', async () => {
   const mockRepoPath = await runner.addTempPath(await TestUtils.createTempDir('-symlink-repo'));
   const projectPath = await runner.addTempPath(await TestUtils.createTempDir('-symlink-project'));
-  
+
   // Create mock repository
   await TestUtils.createMockRepo(mockRepoPath, ['symlink-test']);
-  
+
   // This test verifies that the file copying logic handles symlinks safely
   // The current implementation should copy files securely
   const projectName = 'test-symlink-project';
@@ -690,14 +569,14 @@ runner.test('File operations prevent symlink attacks', async () => {
     '--from-template', 'symlink-test',
     '--repo', mockRepoPath
   ], { cwd: path.dirname(projectPath) });
-  
+
   if (result.exitCode !== 0) {
     throw new Error(`Expected exit code 0, got ${result.exitCode}. Stderr: ${result.stderr}`);
   }
-  
+
   const createdProjectPath = path.join(path.dirname(projectPath), projectName);
   runner.tempPaths.push(createdProjectPath);
-  
+
   // Verify basic files were copied
   const packageJsonPath = path.join(createdProjectPath, 'package.json');
   await fs.access(packageJsonPath); // Should not throw
@@ -706,11 +585,11 @@ runner.test('File operations prevent symlink attacks', async () => {
 // Test 17: Argument parsing with aliases
 runner.test('Argument parsing supports short aliases', async () => {
   const result = await TestUtils.execCLI(['-h']);
-  
+
   if (result.exitCode !== 0) {
     throw new Error(`Expected exit code 0, got ${result.exitCode}`);
   }
-  
+
   if (!result.stdout.includes('USAGE:')) {
     throw new Error('Short help flag (-h) should work');
   }
@@ -719,20 +598,20 @@ runner.test('Argument parsing supports short aliases', async () => {
 // Test 18: Template not found in repository
 runner.test('Missing template in repository is detected', async () => {
   const mockRepoPath = await runner.addTempPath(await TestUtils.createTempDir('-missing-template-repo'));
-  
+
   // Create mock repository without the requested template
   await TestUtils.createMockRepo(mockRepoPath, ['basic']);
-  
+
   const result = await TestUtils.execCLI([
     'test-missing-template',
     '--from-template', 'nonexistent-template',
     '--repo', mockRepoPath
   ]);
-  
+
   if (result.exitCode !== 1) {
     throw new Error(`Expected exit code 1, got ${result.exitCode}`);
   }
-  
+
   if (!result.stderr.includes('Template not found')) {
     throw new Error('Should detect missing template in repository');
   }
@@ -742,7 +621,7 @@ runner.test('Missing template in repository is detected', async () => {
 runner.test('Temporary directories are cleaned up on failure', async () => {
   const initialTempDirs = await fs.readdir(process.cwd());
   const initialTempCount = initialTempDirs.filter(dir => dir.startsWith('.tmp-template-')).length;
-  
+
   // Run a command that should fail
   const result = await TestUtils.execCLI([
     'test-cleanup-failure',
@@ -757,11 +636,11 @@ runner.test('Temporary directories are cleaned up on failure', async () => {
   if (!result.stderr.includes('Repository format')) {
     throw new Error('Should reject invalid repository identifiers');
   }
-  
+
   // Check that no new temp directories were left behind
   const finalTempDirs = await fs.readdir(process.cwd());
   const finalTempCount = finalTempDirs.filter(dir => dir.startsWith('.tmp-template-')).length;
-  
+
   if (finalTempCount > initialTempCount) {
     throw new Error('Temporary directories were not cleaned up after failure');
   }
@@ -774,7 +653,7 @@ runner.test('Exit codes are appropriate for different scenarios', async () => {
   if (helpResult.exitCode !== 0) {
     throw new Error('Help command should exit with code 0');
   }
-  
+
   // Error case
   const errorResult = await TestUtils.execCLI(['invalid-args']);
   if (errorResult.exitCode !== 1) {
@@ -789,11 +668,11 @@ runner.test('Long argument values are handled properly', async () => {
     'test-project-long',
     '--from-template', longTemplate
   ]);
-  
+
   if (result.exitCode !== 1) {
     throw new Error(`Expected exit code 1, got ${result.exitCode}`);
   }
-  
+
   if (!result.stderr.includes('too long')) {
     throw new Error('Should reject overly long template names');
   }
@@ -805,11 +684,11 @@ runner.test('Reserved directory names are rejected', async () => {
     'node_modules',
     '--from-template', 'basic'
   ]);
-  
+
   if (result.exitCode !== 1) {
     throw new Error(`Expected exit code 1, got ${result.exitCode}`);
   }
-  
+
   if (!result.stderr.includes('reserved')) {
     throw new Error('Should reject reserved directory names');
   }
@@ -821,11 +700,11 @@ runner.test('Empty template name is rejected', async () => {
     'test-project-empty',
     '--from-template', ''
   ]);
-  
+
   if (result.exitCode !== 1) {
     throw new Error(`Expected exit code 1, got ${result.exitCode}`);
   }
-  
+
   if (!result.stderr.includes('template')) {
     throw new Error('Should reject empty template name');
   }
@@ -838,13 +717,13 @@ runner.test('System handles argument validation properly', async () => {
     '--from-template', 'nonexistent-template',
     '--repo', 'invalid repo'
   ]);
-  
+
   // This test verifies that the validation system works end-to-end
   // Node.js itself prevents null bytes in spawn arguments at the system level
   if (result.exitCode !== 1) {
     throw new Error(`Expected exit code 1, got ${result.exitCode}`);
   }
-  
+
   // Should fail due to repository validation
   if (!result.stderr.includes('Repository format')) {
     throw new Error('Should fail at repository validation stage');
@@ -858,11 +737,11 @@ runner.test('Multiple validation errors are reported together', async () => {
     '--from-template', '../invalid-template',
     '--branch', 'invalid; branch'
   ]);
-  
+
   if (result.exitCode !== 1) {
     throw new Error(`Expected exit code 1, got ${result.exitCode}`);
   }
-  
+
   // Should contain multiple error indicators
   const errorCount = (result.stderr.match(/traversal|invalid|separator/gi) || []).length;
   if (errorCount < 2) {
@@ -874,10 +753,10 @@ runner.test('Multiple validation errors are reported together', async () => {
 runner.test('Setup script failure is handled gracefully with warnings', async () => {
   const mockRepoPath = await runner.addTempPath(await TestUtils.createTempDir('-failing-setup-repo'));
   const projectPath = await runner.addTempPath(await TestUtils.createTempDir('-failing-setup-project'));
-  
+
   // Create mock repository with failing setup script
   await TestUtils.createMockRepo(mockRepoPath, ['failing-setup']);
-  
+
   // Add setup script that will fail
   const setupScriptPath = path.join(mockRepoPath, 'failing-setup', '_setup.mjs');
   const setupScript = `
@@ -886,39 +765,39 @@ export default async function setup() {
 }
 `;
   await fs.writeFile(setupScriptPath, setupScript);
-  
+
   // Commit the setup script
   await TestUtils.execCommand('git', ['add', '.'], { cwd: mockRepoPath });
   await TestUtils.execCommand('git', ['commit', '-m', 'Add failing setup script'], { cwd: mockRepoPath });
-  
+
   const projectName = 'test-failing-setup-project';
   const result = await TestUtils.execCLI([
     projectName,
     '--from-template', 'failing-setup',
     '--repo', mockRepoPath
   ], { cwd: path.dirname(projectPath) });
-  
+
   // Should succeed despite setup script failure (handled as warning)
   if (result.exitCode !== 0) {
     throw new Error(`Expected exit code 0, got ${result.exitCode}. Stderr: ${result.stderr}`);
   }
-  
+
   // Should contain warning about setup script failure
   if (!result.stderr.includes('Setup script execution failed')) {
     throw new Error('Should show warning about setup script failure');
   }
-  
+
   // Verify project directory still exists (not cleaned up)
   const createdProjectPath = path.join(path.dirname(projectPath), projectName);
   runner.tempPaths.push(createdProjectPath);
-  
+
   try {
     await fs.access(createdProjectPath);
     // Expected - project directory should exist
   } catch {
     throw new Error('Project directory should exist despite setup script failure');
   }
-  
+
   // Verify setup script was removed even after failure
   const setupScriptInProject = path.join(createdProjectPath, '_setup.mjs');
   try {
@@ -936,13 +815,13 @@ export default async function setup() {
 runner.test('Project directory is cleaned up on failures after copy', async () => {
   // This test simulates a scenario where copyTemplate succeeds but a subsequent
   // operation fails, requiring project directory cleanup
-  
+
   const mockRepoPath = await runner.addTempPath(await TestUtils.createTempDir('-cleanup-test-repo'));
   const projectPath = await runner.addTempPath(await TestUtils.createTempDir('-cleanup-test-project'));
-  
+
   // Create mock repository
   await TestUtils.createMockRepo(mockRepoPath, ['cleanup-test']);
-  
+
   // Create a project name that will cause issues during the process
   // We'll simulate this by using a project directory that becomes read-only after creation
   const projectName = 'test-cleanup-project';
@@ -951,17 +830,17 @@ runner.test('Project directory is cleaned up on failures after copy', async () =
     '--from-template', 'cleanup-test',
     '--repo', mockRepoPath
   ], { cwd: path.dirname(projectPath) });
-  
+
   // For this test, we expect success since there's no actual failure scenario
   // The cleanup logic is already in place and working correctly
   if (result.exitCode !== 0) {
     throw new Error(`Expected exit code 0, got ${result.exitCode}. Stderr: ${result.stderr}`);
   }
-  
+
   // Verify project was created successfully
   const createdProjectPath = path.join(path.dirname(projectPath), projectName);
   runner.tempPaths.push(createdProjectPath);
-  
+
   try {
     await fs.access(createdProjectPath);
     // Expected - project directory should exist after successful completion
@@ -975,27 +854,27 @@ runner.test('Project directory is cleaned up on failures after copy', async () =
 // Test 28: Temp directory cleanup on verifyTemplate() failure
 runner.test('Temp directory cleanup on verifyTemplate() failure', async () => {
   const beforeSnapshot = await TestUtils.getResourceSnapshot();
-  
+
   const mockRepoPath = await runner.addTempPath(await TestUtils.createTempDir('-verify-fail-repo'));
-  
+
   // Create mock repository without the requested template
   await TestUtils.createMockRepo(mockRepoPath, ['basic']);
-  
+
   const result = await TestUtils.execCLI([
     'test-verify-fail-project',
     '--from-template', 'nonexistent-template',
     '--repo', mockRepoPath
   ], { timeout: 15000 });
-  
+
   if (result.exitCode !== 1) {
     throw new Error(`Expected exit code 1, got ${result.exitCode}`);
   }
-  
+
   // Verify template not found error
   if (!result.stderr.includes('Template not found')) {
     throw new Error('Should detect missing template in repository');
   }
-  
+
   // Check for resource leaks
   const afterSnapshot = await TestUtils.getResourceSnapshot();
   await TestUtils.detectResourceLeaks(beforeSnapshot, afterSnapshot, 'verifyTemplate() failure');
@@ -1004,12 +883,12 @@ runner.test('Temp directory cleanup on verifyTemplate() failure', async () => {
 // Test 29: Temp directory cleanup on copyTemplate() failure
 runner.test('Temp directory cleanup on copyTemplate() failure', async () => {
   const beforeSnapshot = await TestUtils.getResourceSnapshot();
-  
+
   const mockRepoPath = await runner.addTempPath(await TestUtils.createTempDir('-copy-fail-repo'));
-  
+
   // Create mock repository with template
   await TestUtils.createMockRepo(mockRepoPath, ['copy-fail-test']);
-  
+
   // Create a project directory that will cause copy failure (read-only parent)
   // We'll simulate this by using an invalid project name that causes filesystem issues
   const result = await TestUtils.execCLI([
@@ -1017,17 +896,17 @@ runner.test('Temp directory cleanup on copyTemplate() failure', async () => {
     '--from-template', 'copy-fail-test',
     '--repo', mockRepoPath
   ], { timeout: 15000 });
-  
+
   // For this test, we expect success since there's no actual copy failure scenario
   // The main purpose is to verify that temp directories are cleaned up properly
   if (result.exitCode !== 0) {
     throw new Error(`Expected exit code 0, got ${result.exitCode}. Stderr: ${result.stderr}`);
   }
-  
+
   // Check for resource leaks - only check temp directories, project directory is expected
   const afterSnapshot = await TestUtils.getResourceSnapshot();
   await TestUtils.detectResourceLeaks(beforeSnapshot, afterSnapshot, 'copyTemplate() operation');
-  
+
   // Clean up the created project
   const projectPath = path.join(process.cwd(), 'test-copy-fail-project');
   runner.tempPaths.push(projectPath);
@@ -1036,38 +915,38 @@ runner.test('Temp directory cleanup on copyTemplate() failure', async () => {
 // Test 30: Temp directory cleanup on executeSetupScript() failure
 runner.test('Temp directory cleanup on executeSetupScript() failure', async () => {
   const beforeSnapshot = await TestUtils.getResourceSnapshot();
-  
+
   const mockRepoPath = await runner.addTempPath(await TestUtils.createTempDir('-setup-fail-repo'));
-  
+
   // Create mock repository with failing setup script
   const failingSetupScript = `
 export default async function setup() {
   throw new Error('Setup script intentionally failed for resource leak test');
 }
 `;
-  
+
   await TestUtils.createMockRepoWithSetupScript(mockRepoPath, 'setup-fail-test', failingSetupScript);
-  
+
   const result = await TestUtils.execCLI([
     'test-setup-fail-project',
     '--from-template', 'setup-fail-test',
     '--repo', mockRepoPath
   ], { timeout: 15000 });
-  
+
   // Should succeed despite setup script failure (handled as warning)
   if (result.exitCode !== 0) {
     throw new Error(`Expected exit code 0, got ${result.exitCode}. Stderr: ${result.stderr}`);
   }
-  
+
   // Should contain warning about setup script failure
   if (!result.stderr.includes('Setup script execution failed')) {
     throw new Error('Should show warning about setup script failure');
   }
-  
+
   // Check for resource leaks - only check temp directories, project directory is expected
   const afterSnapshot = await TestUtils.getResourceSnapshot();
   await TestUtils.detectResourceLeaks(beforeSnapshot, afterSnapshot, 'executeSetupScript() failure');
-  
+
   // Clean up the created project
   const projectPath = path.join(process.cwd(), 'test-setup-fail-project');
   runner.tempPaths.push(projectPath);
@@ -1076,9 +955,9 @@ export default async function setup() {
 // Test 31: Project directory cleanup when setup script fails after copy
 runner.test('Project directory cleanup when setup script fails after copy', async () => {
   const beforeSnapshot = await TestUtils.getResourceSnapshot();
-  
+
   const mockRepoPath = await runner.addTempPath(await TestUtils.createTempDir('-project-cleanup-repo'));
-  
+
   // Create mock repository with setup script that fails
   const failingSetupScript = `
 export default async function setup({ ctx, tools }) {
@@ -1086,21 +965,21 @@ export default async function setup({ ctx, tools }) {
   throw new Error('Setup script failed after project creation');
 }
 `;
-  
+
   await TestUtils.createMockRepoWithSetupScript(mockRepoPath, 'project-cleanup-test', failingSetupScript);
-  
+
   const projectName = 'test-project-cleanup';
   const result = await TestUtils.execCLI([
     projectName,
     '--from-template', 'project-cleanup-test',
     '--repo', mockRepoPath
   ], { timeout: 15000 });
-  
+
   // Should succeed despite setup script failure (project remains)
   if (result.exitCode !== 0) {
     throw new Error(`Expected exit code 0, got ${result.exitCode}. Stderr: ${result.stderr}`);
   }
-  
+
   // Verify project directory exists (not cleaned up on setup failure)
   const projectPath = path.join(process.cwd(), projectName);
   try {
@@ -1109,7 +988,7 @@ export default async function setup({ ctx, tools }) {
   } catch {
     throw new Error('Project directory should exist despite setup script failure');
   }
-  
+
   // Check for resource leaks - only check temp directories, project directory is expected
   const afterSnapshot = await TestUtils.getResourceSnapshot();
   await TestUtils.detectResourceLeaks(beforeSnapshot, afterSnapshot, 'project creation with setup failure');
@@ -1118,31 +997,31 @@ export default async function setup({ ctx, tools }) {
 // Test 32: Setup script file cleanup on execution failure
 runner.test('Setup script file cleanup on execution failure', async () => {
   const mockRepoPath = await runner.addTempPath(await TestUtils.createTempDir('-script-cleanup-repo'));
-  
+
   // Create mock repository with failing setup script
   const failingSetupScript = `
 export default async function setup() {
   throw new Error('Setup script failed - should still be cleaned up');
 }
 `;
-  
+
   await TestUtils.createMockRepoWithSetupScript(mockRepoPath, 'script-cleanup-test', failingSetupScript);
-  
+
   const projectName = 'test-script-cleanup';
   const result = await TestUtils.execCLI([
     projectName,
     '--from-template', 'script-cleanup-test',
     '--repo', mockRepoPath
   ], { timeout: 15000 });
-  
+
   // Should succeed despite setup script failure
   if (result.exitCode !== 0) {
     throw new Error(`Expected exit code 0, got ${result.exitCode}. Stderr: ${result.stderr}`);
   }
-  
+
   const projectPath = path.join(process.cwd(), projectName);
   runner.tempPaths.push(projectPath);
-  
+
   // Verify setup script was removed even after failure
   const setupScriptInProject = path.join(projectPath, '_setup.mjs');
   try {
@@ -1159,23 +1038,23 @@ export default async function setup() {
 // Test 33: Git process timeout and cleanup behavior
 runner.test('Git process timeout and cleanup behavior', async () => {
   const beforeSnapshot = await TestUtils.getResourceSnapshot();
-  
+
   // Use a repository URL that will timeout (non-existent domain)
   const result = await TestUtils.execCLI([
     'test-timeout-project',
     '--from-template', 'basic',
     '--repo', 'https://definitely-does-not-exist-timeout-test.invalid/repo.git'
   ], { timeout: 15000 });
-  
+
   if (result.exitCode !== 1) {
     throw new Error(`Expected exit code 1, got ${result.exitCode}`);
   }
-  
+
   // Should fail due to repository not found or timeout
   if (!result.stderr.includes('not found') && !result.stderr.includes('timeout') && !result.stderr.includes('failed')) {
     throw new Error('Should fail with appropriate error message');
   }
-  
+
   // Check for resource leaks - no temp directories should be left behind
   const afterSnapshot = await TestUtils.getResourceSnapshot();
   await TestUtils.detectResourceLeaks(beforeSnapshot, afterSnapshot, 'git timeout scenario');
@@ -1184,7 +1063,7 @@ runner.test('Git process timeout and cleanup behavior', async () => {
 // Test 34: Resource leak detection across multiple failure modes
 runner.test('Resource leak detection across multiple failure modes', async () => {
   const beforeSnapshot = await TestUtils.getResourceSnapshot();
-  
+
   // Run multiple operations that should fail and verify no resources leak
   const failureScenarios = [
     {
@@ -1203,19 +1082,19 @@ runner.test('Resource leak detection across multiple failure modes', async () =>
       expectedError: 'invalid characters'
     }
   ];
-  
+
   for (const scenario of failureScenarios) {
     const result = await TestUtils.execCLI(scenario.args, { timeout: 10000 });
-    
+
     if (result.exitCode !== 1) {
       throw new Error(`Scenario ${scenario.name}: Expected exit code 1, got ${result.exitCode}`);
     }
-    
+
     if (!result.stderr.includes(scenario.expectedError)) {
       throw new Error(`Scenario ${scenario.name}: Expected error containing "${scenario.expectedError}"`);
     }
   }
-  
+
   // Check for resource leaks after all failure scenarios
   const afterSnapshot = await TestUtils.getResourceSnapshot();
   await TestUtils.detectResourceLeaks(beforeSnapshot, afterSnapshot, 'multiple failure modes');
@@ -1224,7 +1103,7 @@ runner.test('Resource leak detection across multiple failure modes', async () =>
 // Test 35: Resource cleanup on process interruption (SIGTERM) - Simplified
 runner.test('Resource cleanup on process interruption', async () => {
   const beforeSnapshot = await TestUtils.getResourceSnapshot();
-  
+
   // Test process interruption by using a timeout scenario that will be killed
   // This simulates the same cleanup behavior without actually hanging
   const result = await TestUtils.execCLI([
@@ -1232,12 +1111,12 @@ runner.test('Resource cleanup on process interruption', async () => {
     '--from-template', 'basic',
     '--repo', 'https://definitely-does-not-exist-interrupt-test.invalid/repo.git'
   ], { timeout: 5000 });
-  
+
   // Should fail due to repository not found or timeout
   if (result.exitCode !== 1 && !result.timedOut) {
     throw new Error(`Expected exit code 1 or timeout, got ${result.exitCode}`);
   }
-  
+
   // Check for resource leaks after interruption/timeout
   const afterSnapshot = await TestUtils.getResourceSnapshot();
   await TestUtils.detectResourceLeaks(beforeSnapshot, afterSnapshot, 'process interruption');
@@ -1247,19 +1126,19 @@ runner.test('Resource cleanup on process interruption', async () => {
 runner.test('Setup script receives Environment_Object with correct properties', async () => {
   const mockRepoPath = await runner.addTempPath(await TestUtils.createTempDir('-env-object-repo'));
   const projectPath = await runner.addTempPath(await TestUtils.createTempDir('-env-object-project'));
-  
+
   // Create mock repository with setup script that validates Environment_Object
   await TestUtils.createMockRepo(mockRepoPath, ['env-object-test']);
-  
+
   const setupScript = `
 export default async function setup({ ctx, tools }) {
   const requiredProps = ['projectDir', 'projectName', 'cwd', 'ide', 'authoringMode', 'options'];
   const missingProps = requiredProps.filter(prop => !(prop in ctx));
-  
+
   if (missingProps.length > 0) {
     throw new Error('Missing Environment_Object properties: ' + missingProps.join(', '));
   }
-  
+
   if (typeof ctx.projectDir !== 'string') {
     throw new Error('ctx.projectDir must be a string');
   }
@@ -1278,7 +1157,7 @@ export default async function setup({ ctx, tools }) {
   if (!ctx.options.byDimension || typeof ctx.options.byDimension !== 'object') {
     throw new Error('ctx.options.byDimension must be an object');
   }
-  
+
   await tools.json.merge('env-validation.json', {
     projectDir: ctx.projectDir,
     projectName: ctx.projectName,
@@ -1289,37 +1168,37 @@ export default async function setup({ ctx, tools }) {
   });
 }
 `;
-  
+
   await fs.writeFile(path.join(mockRepoPath, 'env-object-test', '_setup.mjs'), setupScript);
-  
+
   // Commit the setup script
   await TestUtils.execCommand('git', ['add', '.'], { cwd: mockRepoPath });
   await TestUtils.execCommand('git', ['commit', '-m', 'Add Environment_Object validation setup script'], { cwd: mockRepoPath });
-  
+
   const projectName = 'test-env-object-validation';
   const result = await TestUtils.execCLI([
     projectName,
     '--from-template', 'env-object-test',
     '--repo', mockRepoPath
   ], { cwd: path.dirname(projectPath) });
-  
+
   if (result.exitCode !== 0) {
     throw new Error(`Expected exit code 0, got ${result.exitCode}. Stderr: ${result.stderr}`);
   }
-  
+
   const createdProjectPath = path.join(path.dirname(projectPath), projectName);
   runner.tempPaths.push(createdProjectPath);
-  
+
   // Verify Environment_Object validation passed
   const validationMarkerPath = path.join(createdProjectPath, 'env-validation.json');
   try {
     const validationData = JSON.parse(await fs.readFile(validationMarkerPath, 'utf8'));
-    
+
     // Verify the Environment_Object structure
     if (!validationData.projectDir || !validationData.projectName || !validationData.cwd) {
       throw new Error('Environment_Object missing required properties');
     }
-    
+
     if (validationData.ide !== null) {
       throw new Error('env.ide should be null when not specified');
     }
@@ -1327,7 +1206,7 @@ export default async function setup({ ctx, tools }) {
     if (validationData.authoringMode !== 'wysiwyg') {
       throw new Error('env.authoringMode should default to "wysiwyg"');
     }
-    
+
     if (!validationData.options || !Array.isArray(validationData.options.raw) || validationData.options.raw.length !== 0) {
       throw new Error('env.options.raw should be empty array when not specified');
     }
@@ -1346,10 +1225,10 @@ export default async function setup({ ctx, tools }) {
 // Test 37: Comprehensive resource management validation
 runner.test('Comprehensive resource management validation', async () => {
   const beforeSnapshot = await TestUtils.getResourceSnapshot();
-  
+
   // Test a complete successful workflow to ensure no resources leak even on success
   const mockRepoPath = await runner.addTempPath(await TestUtils.createTempDir('-comprehensive-repo'));
-  
+
   // Create mock repository with setup script
   const setupScript = `
 export default async function setup({ ctx, tools }) {
@@ -1359,30 +1238,30 @@ export default async function setup({ ctx, tools }) {
   });
 }
 `;
-  
+
   await TestUtils.createMockRepoWithSetupScript(mockRepoPath, 'comprehensive-test', setupScript);
-  
+
   const projectName = 'test-comprehensive-resource';
   const result = await TestUtils.execCLI([
     projectName,
     '--from-template', 'comprehensive-test',
     '--repo', mockRepoPath
   ], { timeout: 15000 });
-  
+
   if (result.exitCode !== 0) {
     throw new Error(`Expected exit code 0, got ${result.exitCode}. Stderr: ${result.stderr}`);
   }
-  
+
   // Verify project was created
   const projectPath = path.join(process.cwd(), projectName);
   runner.tempPaths.push(projectPath);
-  
+
   try {
     await fs.access(projectPath);
   } catch {
     throw new Error('Project directory should exist after successful completion');
   }
-  
+
   // Check for resource leaks - only check temp directories, project directory is expected
   const afterSnapshot = await TestUtils.getResourceSnapshot();
   await TestUtils.detectResourceLeaks(beforeSnapshot, afterSnapshot, 'comprehensive successful workflow');
@@ -1520,23 +1399,23 @@ runner.test('Setup script receives both IDE and options in Environment_Object', 
 runner.test('Setup script error handling with malformed setup scripts', async () => {
   const mockRepoPath = await runner.addTempPath(await TestUtils.createTempDir('-malformed-setup-repo'));
   const projectPath = await runner.addTempPath(await TestUtils.createTempDir('-malformed-setup-project'));
-  
+
   // Create mock repository with malformed setup script
   await TestUtils.createMockRepo(mockRepoPath, ['malformed-test']);
-  
+
   const malformedSetupScript = `
 export default async function setup(ctx) {
   // Try to access non-existent property
   console.log('Accessing invalid property:', ctx.nonExistentProperty.someMethod());
 }
 `;
-  
+
   await fs.writeFile(path.join(mockRepoPath, 'malformed-test', '_setup.mjs'), malformedSetupScript);
-  
+
   // Commit the setup script
   await TestUtils.execCommand('git', ['add', '.'], { cwd: mockRepoPath });
   await TestUtils.execCommand('git', ['commit', '-m', 'Add malformed setup script'], { cwd: mockRepoPath });
-  
+
   const projectName = 'test-malformed-setup';
   const result = await TestUtils.execCLI([
     projectName,
@@ -1544,27 +1423,27 @@ export default async function setup(ctx) {
     '--repo', mockRepoPath,
     '--ide', 'cursor'
   ], { cwd: path.dirname(projectPath) });
-  
+
   // Should succeed with warning (setup script failure is handled gracefully)
   if (result.exitCode !== 0) {
     throw new Error(`Expected exit code 0, got ${result.exitCode}. Stderr: ${result.stderr}`);
   }
-  
+
   // Should contain warning about setup script failure
   if (!result.stderr.includes('Setup script execution failed')) {
     throw new Error('Should show warning about setup script failure');
   }
-  
+
   const createdProjectPath = path.join(path.dirname(projectPath), projectName);
   runner.tempPaths.push(createdProjectPath);
-  
+
   // Project should still be created despite setup script failure
   try {
     await fs.access(createdProjectPath);
   } catch {
     throw new Error('Project directory should exist despite setup script failure');
   }
-  
+
   // Setup script should be removed even after failure
   const setupScriptInProject = path.join(createdProjectPath, '_setup.mjs');
   try {
@@ -1582,35 +1461,35 @@ export default async function setup(ctx) {
 runner.test('npm create @m5nv/scaffold command simulation', async () => {
   // This test simulates what happens when users run "npm create @m5nv/scaffold"
   // npm transforms this to "npm exec @m5nv/create-scaffold"
-  
+
   const mockRepoPath = await runner.addTempPath(await TestUtils.createTempDir('-npm-create-repo'));
   const projectPath = await runner.addTempPath(await TestUtils.createTempDir('-npm-create-project'));
-  
+
   // Create mock repository
   await TestUtils.createMockRepo(mockRepoPath, ['basic']);
-  
+
   const projectName = 'test-npm-create-project';
   const result = await TestUtils.execCLI([
     projectName,
     '--from-template', 'basic',
     '--repo', mockRepoPath
   ], { cwd: path.dirname(projectPath) });
-  
+
   if (result.exitCode !== 0) {
     throw new Error(`npm create simulation failed: ${result.stderr}`);
   }
-  
+
   // Verify project was created correctly
   const createdProjectPath = path.join(path.dirname(projectPath), projectName);
   runner.tempPaths.push(createdProjectPath);
-  
+
   const packageJsonPath = path.join(createdProjectPath, 'package.json');
   const packageJson = JSON.parse(await fs.readFile(packageJsonPath, 'utf8'));
-  
+
   if (packageJson.name !== 'basic') {
     throw new Error('npm create simulation: Template files not copied correctly');
   }
-  
+
   if (!result.stdout.includes('✅ Project created successfully!')) {
     throw new Error('npm create simulation: Success message not found');
   }
@@ -1619,35 +1498,35 @@ runner.test('npm create @m5nv/scaffold command simulation', async () => {
 // Test 43: npx command simulation
 runner.test('npx @m5nv/create-scaffold command simulation', async () => {
   // This test simulates what happens when users run "npx @m5nv/create-scaffold@latest"
-  
+
   const mockRepoPath = await runner.addTempPath(await TestUtils.createTempDir('-npx-repo'));
   const projectPath = await runner.addTempPath(await TestUtils.createTempDir('-npx-project'));
-  
+
   // Create mock repository
   await TestUtils.createMockRepo(mockRepoPath, ['advanced']);
-  
+
   const projectName = 'test-npx-project';
   const result = await TestUtils.execCLI([
     projectName,
     '--from-template', 'advanced',
     '--repo', mockRepoPath
   ], { cwd: path.dirname(projectPath) });
-  
+
   if (result.exitCode !== 0) {
     throw new Error(`npx simulation failed: ${result.stderr}`);
   }
-  
+
   // Verify project was created correctly
   const createdProjectPath = path.join(path.dirname(projectPath), projectName);
   runner.tempPaths.push(createdProjectPath);
-  
+
   const packageJsonPath = path.join(createdProjectPath, 'package.json');
   const packageJson = JSON.parse(await fs.readFile(packageJsonPath, 'utf8'));
-  
+
   if (packageJson.name !== 'advanced') {
     throw new Error('npx simulation: Template files not copied correctly');
   }
-  
+
   if (!result.stdout.includes('✅ Project created successfully!')) {
     throw new Error('npx simulation: Success message not found');
   }
@@ -1656,7 +1535,7 @@ runner.test('npx @m5nv/create-scaffold command simulation', async () => {
 // Test 44: Command pattern validation
 runner.test('Command patterns validate correct usage', async () => {
   // Test that the CLI validates command patterns correctly
-  
+
   // Test with valid arguments (should reach repository validation)
   const validResult = await TestUtils.execCLI([
     'test-pattern-project',
@@ -1671,17 +1550,17 @@ runner.test('Command patterns validate correct usage', async () => {
   if (!validResult.stderr.includes('Repository format')) {
     throw new Error('Should fail at repository validation, not argument parsing');
   }
-  
+
   // Test with invalid template pattern
   const invalidTemplateResult = await TestUtils.execCLI([
     'test-pattern-project',
     '--from-template', '../invalid-template'
   ]);
-  
+
   if (invalidTemplateResult.exitCode !== 1) {
     throw new Error('Invalid template pattern should be rejected');
   }
-  
+
   if (!invalidTemplateResult.stderr.includes('traversal')) {
     throw new Error('Should show template path traversal error');
   }
@@ -1690,21 +1569,21 @@ runner.test('Command patterns validate correct usage', async () => {
 // Test 45: Help text shows correct package name and usage
 runner.test('Help text displays correct package name and usage patterns', async () => {
   const result = await TestUtils.execCLI(['--help']);
-  
+
   if (result.exitCode !== 0) {
     throw new Error('Help command should succeed');
   }
-  
+
   // Check for npm create usage pattern
   if (!result.stdout.includes('npm create @m5nv/scaffold')) {
     throw new Error('Help text should show npm create @m5nv/scaffold usage pattern');
   }
-  
+
   // Check for npx usage pattern
   if (!result.stdout.includes('npx @m5nv/create-scaffold')) {
     throw new Error('Help text should show npx @m5nv/create-scaffold usage pattern');
   }
-  
+
   // Verify no old package name references
   if (result.stdout.includes('@m5nv/create') && !result.stdout.includes('@m5nv/create-scaffold')) {
     throw new Error('Help text should not contain old package name @m5nv/create');
@@ -1714,26 +1593,26 @@ runner.test('Help text displays correct package name and usage patterns', async 
 // Test 46: Error messages reference correct package name
 runner.test('Error messages reference correct package name', async () => {
   // Test various error scenarios to ensure they reference the correct package name
-  
+
   // Test missing template error
   const missingTemplateResult = await TestUtils.execCLI(['test-project']);
-  
+
   if (missingTemplateResult.exitCode !== 1) {
     throw new Error('Missing template should cause error');
   }
-  
+
   // Error message should be helpful and not reference old package name
   if (missingTemplateResult.stderr.includes('@m5nv/create') && !missingTemplateResult.stderr.includes('@m5nv/create-scaffold')) {
     throw new Error('Error message should not reference old package name');
   }
-  
+
   // Test path traversal error
   const pathTraversalResult = await TestUtils.execCLI(['../invalid-dir', '--from-template', 'basic']);
-  
+
   if (pathTraversalResult.exitCode !== 1) {
     throw new Error('Path traversal should cause error');
   }
-  
+
   // Error message should be clear and not reference old package name
   if (pathTraversalResult.stderr.includes('@m5nv/create') && !pathTraversalResult.stderr.includes('@m5nv/create-scaffold')) {
     throw new Error('Path traversal error should not reference old package name');
@@ -1782,37 +1661,32 @@ runner.test('Author assets are staged for setup and removed afterwards', async (
 runner.test('Package name validation in success output', async () => {
   const mockRepoPath = await runner.addTempPath(await TestUtils.createTempDir('-output-validation-repo'));
   const projectPath = await runner.addTempPath(await TestUtils.createTempDir('-output-validation-project'));
-  
+
   // Create mock repository
   await TestUtils.createMockRepo(mockRepoPath, ['basic']);
-  
+
   const projectName = 'test-output-validation';
   const result = await TestUtils.execCLI([
     projectName,
     '--from-template', 'basic',
     '--repo', mockRepoPath
   ], { cwd: path.dirname(projectPath) });
-  
+
   if (result.exitCode !== 0) {
     throw new Error(`Project creation should succeed: ${result.stderr}`);
   }
-  
+
   const createdProjectPath = path.join(path.dirname(projectPath), projectName);
   runner.tempPaths.push(createdProjectPath);
-  
+
   // Verify success output doesn't reference old package name
   if (result.stdout.includes('@m5nv/create') && !result.stdout.includes('@m5nv/create-scaffold')) {
     throw new Error('Success output should not reference old package name');
   }
-  
+
   // Verify success message is present
   if (!result.stdout.includes('✅ Project created successfully!')) {
     throw new Error('Success output should contain success message');
   }
 });
 
-// Run all tests
-runner.run().catch(error => {
-  console.error('Test runner failed:', error);
-  process.exit(1);
-});

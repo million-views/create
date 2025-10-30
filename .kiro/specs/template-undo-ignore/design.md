@@ -33,8 +33,8 @@ Documentation will be updated to describe the new ignore behavior and reassure t
 
 ## Testing Strategy
 - Extend unit tests:
-  - `test/setupRuntime.test.mjs` to assert `copyTemplateDir` omits `.template-undo.json`.
-  - `test/dryRunEngine.test.mjs` (or equivalent) to verify summaries exclude the file.
+  - `test/setup-runtime.test.mjs` to assert `copyTemplateDir` omits `.template-undo.json`.
+  - `test/dry-run-engine.test.mjs` (or equivalent) to verify summaries exclude the file.
 - Update CLI integration fixture(s) to include `.template-undo.json` and confirm:
   - Generated projects do not contain it.
   - Dry run output has no references.
@@ -42,7 +42,7 @@ Documentation will be updated to describe the new ignore behavior and reassure t
 - Run full test suite (`npm test`) to guard regressions.
 
 ## Risks & Mitigations
-- **Risk:** Hard-coded file name may need extension later.  
+- **Risk:** Hard-coded file name may need extension later.
   **Mitigation:** Central utility allows adding entries without hunting through call sites.
-- **Risk:** Tree preview filtering could remove legitimate lines if they contain substring `.template-undo.json`.  
+- **Risk:** Tree preview filtering could remove legitimate lines if they contain substring `.template-undo.json`.
   **Mitigation:** Filter entire lines only when they match the exact filename token.

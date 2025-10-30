@@ -252,14 +252,14 @@ npm run lint
 
 # Run specific test file for focused development
 node test/cli.test.mjs
-node test/argumentParser.test.mjs
+node test/argument-parser.test.mjs
 node test/security.test.mjs
 node test/spec-compliance-verification.mjs
 
 # Test specific functionality
-node test/cacheManager.test.mjs
+node test/cache-manager.test.mjs
 node test/logger.test.mjs
-node test/templateDiscovery.test.mjs
+node test/template-discovery.test.mjs
 ```
 
 ### Test Output Interpretation
@@ -582,7 +582,7 @@ cat debug.log  # Review detailed operation logs
 # Run specific test suites for focused debugging
 node test/cli.test.mjs                    # Functional tests
 node test/security.test.mjs               # Security validation
-node test/cacheManager.test.mjs           # Cache functionality
+node test/cache-manager.test.mjs          # Cache functionality
 
 # Debug test failures
 npm run test:functional 2>&1 | grep -A 10 "FAILED"

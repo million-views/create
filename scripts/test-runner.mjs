@@ -23,7 +23,7 @@ class TestRunner {
 
     console.log(`\n🧪 ${name}`);
     console.log(`   ${description}`);
-    
+
     const startTime = performance.now();
     const homeDir = path.join(
       this.homeBaseDir,
@@ -32,9 +32,10 @@ class TestRunner {
 
     await fs.rm(homeDir, { recursive: true, force: true });
     await fs.mkdir(homeDir, { recursive: true });
-    
+
     try {
-      await this.execCommand('node', [command], homeDir);
+      const args = Array.isArray(command) ? command : [command];
+      await this.execCommand('node', args, homeDir);
       const duration = Math.round(performance.now() - startTime);
       console.log(`✅ ${name} - ${duration}ms`);
       this.results.push({ name, status: 'PASSED', duration });
@@ -46,7 +47,7 @@ class TestRunner {
       this.results.push({ name, status: 'FAILED', duration, error: error.message });
       return false;
     } finally {
-      await fs.rm(homeDir, { recursive: true, force: true }).catch(() => {});
+      await fs.rm(homeDir, { recursive: true, force: true }).catch(() => { });
     }
   }
 
@@ -76,20 +77,20 @@ class TestRunner {
     const totalDuration = Math.round(performance.now() - this.totalStartTime);
     const passed = this.results.filter(r => r.status === 'PASSED').length;
     const failed = this.results.filter(r => r.status === 'FAILED').length;
-    
+
     console.log('\n' + '='.repeat(60));
     console.log('📊 TEST SUITE SUMMARY');
     console.log('='.repeat(60));
-    
+
     this.results.forEach(result => {
       const status = result.status === 'PASSED' ? '✅' : '❌';
       console.log(`${status} ${result.name.padEnd(30)} ${result.duration}ms`);
     });
-    
+
     console.log('='.repeat(60));
     console.log(`📈 Results: ${passed} passed, ${failed} failed`);
     console.log(`⏱️  Total time: ${totalDuration}ms`);
-    
+
     if (failed > 0) {
       console.log('\n❌ Some tests failed');
       process.exit(1);
@@ -109,49 +110,61 @@ class TestRunner {
     const tests = [
       {
         name: 'Environment Factory Tests',
-        command: './test/environmentFactory.test.mjs',
-        description: 'Unit tests for Environment_Object factory and validation',
+        command: ['--test', './test/environment-factory.test.mjs'],
+        description: 'Environment creation and metadata validation',
         homeSuffix: 'environment'
       },
       {
+        name: 'Argument Parser Tests',
+        command: ['--test', './test/argument-parser.test.mjs'],
+        description: 'CLI argument parsing and validation smoke coverage',
+        homeSuffix: 'argument-parser'
+      },
+      {
         name: 'Options Processor Tests',
-        command: './test/optionsProcessor.test.mjs',
+        command: ['--test', './test/options-processor.test.mjs'],
         description: 'Normalization of CLI options against template dimensions',
         homeSuffix: 'options'
       },
       {
         name: 'Setup Runtime Tests',
-        command: './test/setupRuntime.test.mjs',
+        command: ['--test', './test/setup-runtime.test.mjs'],
         description: 'Sandbox and tools runtime verification',
         homeSuffix: 'setup-runtime'
       },
       {
         name: 'Security Tests',
-        command: './test/security.test.mjs',
+        command: ['--test', './test/security.test.mjs'],
         description: 'Security validation for new IDE and features parameters',
         homeSuffix: 'security'
       },
       {
         name: 'Functional Tests',
-        command: './test/cli.test.mjs',
+        command: ['--test', './test/cli.test.mjs'],
         description: 'Comprehensive end-to-end CLI behavior validation',
         homeSuffix: 'functional'
       },
       {
-        name: 'Spec Compliance Tests', 
-        command: './test/spec-compliance-verification.mjs',
+        name: 'CLI Integration Tests',
+        command: ['--test', './test/cli-integration.test.mjs'],
+        description: 'Phase 1 feature integration coverage for CLI flags',
+        homeSuffix: 'cli-integration'
+      },
+      {
+        name: 'Spec Compliance Tests',
+        command: ['./test/spec-compliance-verification.mjs'],
         description: 'Verification against all specification requirements',
         homeSuffix: 'spec'
       },
       {
         name: 'Resource Leak Tests',
-        command: './test/resource-leak-test.mjs', 
+        command: ['--test', './test/resource-leak-test.mjs'],
         description: 'Resource management and cleanup validation',
         homeSuffix: 'resource'
       },
       {
         name: 'Smoke Tests',
-        command: './scripts/smoke-test.mjs',
+        command: ['./scripts/smoke-test.mjs'],
         description: 'Production readiness and integration validation',
         homeSuffix: 'smoke'
       }
@@ -174,25 +187,31 @@ class TestRunner {
     const tests = [
       {
         name: 'Environment Factory Tests',
-        command: './test/environmentFactory.test.mjs',
-        description: 'Unit tests for Environment_Object factory and validation',
+        command: ['--test', './test/environment-factory.test.mjs'],
+        description: 'Environment creation and metadata validation',
         homeSuffix: 'quick-environment'
       },
       {
+        name: 'Argument Parser Tests',
+        command: ['--test', './test/argument-parser.test.mjs'],
+        description: 'CLI argument parsing and validation smoke coverage',
+        homeSuffix: 'quick-arguments'
+      },
+      {
         name: 'Setup Runtime Tests',
-        command: './test/setupRuntime.test.mjs',
+        command: ['--test', './test/setup-runtime.test.mjs'],
         description: 'Sandbox and tools runtime verification',
         homeSuffix: 'quick-runtime'
       },
       {
         name: 'Functional Tests',
-        command: './test/cli.test.mjs',
+        command: ['--test', './test/cli.test.mjs'],
         description: 'Core CLI functionality validation',
         homeSuffix: 'quick-functional'
       },
       {
         name: 'Smoke Tests',
-        command: './scripts/smoke-test.mjs',
+        command: ['./scripts/smoke-test.mjs'],
         description: 'Basic integration validation',
         homeSuffix: 'quick-smoke'
       }
