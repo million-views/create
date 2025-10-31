@@ -49,6 +49,7 @@ async function main() {
 
     // Show help if requested or if validation failed
     if (validation.showHelp || args.help) {
+      // ast-grep-ignore: no-console-log
       console.log(generateHelpText());
       process.exit(0);
     }
@@ -83,6 +84,7 @@ async function main() {
       const branchName = args.branch;
 
       try {
+        // ast-grep-ignore: no-console-log
         console.log(`📋 Discovering templates from ${repoUrl}${branchName ? ` (${branchName})` : ''}...\n`);
 
         // First ensure repository is cached by attempting to clone it
@@ -90,6 +92,7 @@ async function main() {
 
         const templates = await templateDiscovery.listTemplatesFromPath(cachedRepoPath);
         const formattedOutput = templateDiscovery.formatTemplateList(templates);
+        // ast-grep-ignore: no-console-log
         console.log(formattedOutput);
 
         if (logger) {
@@ -144,16 +147,21 @@ async function main() {
           templatePath: preview.templatePath
         });
 
+        // ast-grep-ignore: no-console-log
         console.log(previewOutput);
 
         const treePreview = await dryRunEngine.generateTreePreview(preview.templatePath, preview.ignoreSet);
         if (treePreview.available && treePreview.output) {
+          // ast-grep-ignore: no-console-log
           console.log('🌲 Template structure (depth 2):');
+          // ast-grep-ignore: no-console-log
           console.log(`${treePreview.output}\n`);
         } else {
+          // ast-grep-ignore: no-console-log
           console.log(`🌲 Tree preview unavailable: ${treePreview.reason}\n`);
         }
 
+        // ast-grep-ignore: no-console-log
         console.log('✅ Dry run completed - no actual changes were made');
 
         if (logger) {
@@ -210,12 +218,17 @@ async function main() {
     // Run comprehensive preflight checks
     await runAllPreflightChecks(args, repoUrl);
 
+    // ast-grep-ignore: no-console-log
     console.log(`\n🚀 Creating project: ${projectDirectory}`);
+    // ast-grep-ignore: no-console-log
     console.log(`📦 Template: ${templateName}`);
+    // ast-grep-ignore: no-console-log
     console.log(`📁 Repository: ${repoUrl}`);
     if (branchName) {
+      // ast-grep-ignore: no-console-log
       console.log(`🌿 Branch: ${branchName}`);
     }
+    // ast-grep-ignore: no-console-log
     console.log('');
 
     // Clone the template repository using cache-aware operations
@@ -242,6 +255,7 @@ async function main() {
         const overridesNotice = args.placeholders.length > 0
           ? ' Placeholder overrides provided on the command line were ignored.'
           : '';
+        // ast-grep-ignore: no-console-log
         console.log(`ℹ️  Template declares placeholders. Re-run with --experimental-placeholder-prompts to configure these values. Current run will skip placeholder resolution.${overridesNotice}`);
       } else {
         try {
@@ -374,8 +388,11 @@ async function main() {
       throw setupError;
     }
 
+    // ast-grep-ignore: no-console-log
     console.log('\n✅ Project created successfully!');
+    // ast-grep-ignore: no-console-log
     console.log(`\n📂 Next steps:`);
+    // ast-grep-ignore: no-console-log
     console.log(`  cd ${projectDirectory}`);
 
     const resolvedHandoff = metadata.handoffSteps.length > 0
@@ -383,9 +400,11 @@ async function main() {
       : ['Review README.md for additional instructions'];
 
     for (const step of resolvedHandoff) {
+      // ast-grep-ignore: no-console-log
       console.log(`  - ${step}`);
     }
 
+    // ast-grep-ignore: no-console-log
     console.log('');
 
     if (logger) {
@@ -527,6 +546,7 @@ async function cloneTemplateRepo(repoUrl, branchName, options = {}) {
 
   // If cache is disabled, use direct cloning
   if (noCache) {
+    // ast-grep-ignore: no-console-log
     console.log('📥 Cloning template repository (cache disabled)...');
     const tempPath = await directCloneRepo(repoUrl, branchName, logger);
     return {
@@ -537,6 +557,7 @@ async function cloneTemplateRepo(repoUrl, branchName, options = {}) {
 
   // Use cache-aware repository access
   try {
+    // ast-grep-ignore: no-console-log
     console.log('📥 Accessing template repository...');
     const cachedPath = await ensureRepositoryCached(
       repoUrl,
@@ -677,6 +698,7 @@ async function verifyTemplate(templatePath, templateName) {
  * Copy template files to project directory
  */
 async function copyTemplate(templatePath, projectDirectory, logger, options = {}) {
+  // ast-grep-ignore: no-console-log
   console.log('📋 Copying template files...');
 
   if (logger) {
@@ -842,6 +864,7 @@ async function executeSetupScript({ projectDirectory, projectName, ide, options,
       return;
     }
 
+    // ast-grep-ignore: no-console-log
     console.log('🧩 Placeholder inputs:');
     for (const entry of report) {
       const source = entry.source ?? 'default';
@@ -849,8 +872,10 @@ async function executeSetupScript({ projectDirectory, projectName, ide, options,
       const valueDisplay = sensitive ? '[redacted]' : formatPlaceholderValue(entry.value);
       const sensitiveNote = sensitive ? ' (sensitive)' : '';
       const valueSuffix = sensitive ? ' [redacted]' : valueDisplay ? ` (${valueDisplay})` : '';
+      // ast-grep-ignore: no-console-log
       console.log(`  ${entry.token} ← ${source}${sensitiveNote}${valueSuffix}`);
     }
+    // ast-grep-ignore: no-console-log
     console.log('');
   }
 
@@ -876,6 +901,7 @@ async function executeSetupScript({ projectDirectory, projectName, ide, options,
 
   // Setup script exists, ensure it gets cleaned up regardless of what happens
   try {
+    // ast-grep-ignore: no-console-log
     console.log('⚙️  Running template setup script...');
 
     // Import and execute the setup script

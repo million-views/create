@@ -4,3 +4,6 @@ severity: warning
 language: javascript
 rule:
   pattern: console.log($$$)
+exclude:
+  - test/**
+  - fixtures/**

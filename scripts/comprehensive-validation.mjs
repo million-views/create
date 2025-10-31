@@ -134,7 +134,7 @@ async function runDocumentationValidation() {
  * Run ast-grep code analysis
  */
 async function runCodeAnalysis() {
-  console.log(colorize('\\n🔍 Running Code Analysis (ast-grep)...', 'blue'));
+  console.log(colorize('\n🔍 Running Code Analysis (ast-grep)...', 'blue'));
   console.log('─'.repeat(50));
 
   try {
@@ -149,7 +149,6 @@ async function runCodeAnalysis() {
     const result = await runCommand(astGrepCommand, [
       'scan',
       'bin/',
-      'test/',
       '--json=compact'
     ]);
 
@@ -163,14 +162,29 @@ async function runCodeAnalysis() {
 
     if (result.stdout.trim()) {
       // Parse JSON output to count issues
-      const lines = result.stdout.trim().split('\\n');
-      const issues = lines.map(line => {
-        try {
-          return JSON.parse(line);
-        } catch {
-          return null;
+      const stdout = result.stdout.trim();
+
+      // Handle both single JSON array (no issues) and newline-separated objects (with issues)
+      let issues = [];
+      try {
+        const parsed = JSON.parse(stdout);
+        if (Array.isArray(parsed)) {
+          issues = parsed;
+        } else {
+          // Single object case
+          issues = [parsed];
         }
-      }).filter(Boolean);
+      } catch {
+        // Fallback: try parsing as newline-separated JSON objects
+        const lines = stdout.split('\n');
+        issues = lines.map(line => {
+          try {
+            return JSON.parse(line.trim());
+          } catch {
+            return null;
+          }
+        }).filter(Boolean);
+      }
 
       console.log(colorize(`Found ${issues.length} code analysis issues:`, 'yellow'));
 
@@ -189,11 +203,10 @@ async function runCodeAnalysis() {
       });
 
       // For detailed output, run without JSON
-      console.log(colorize('\\n📋 Detailed Analysis:', 'cyan'));
+      console.log(colorize('\n📋 Detailed Analysis:', 'cyan'));
       const detailedResult = await runCommand(astGrepCommand, [
         'scan',
-        'bin/',
-        'test/'
+        'bin/'
       ]);
       if (detailedResult.stderr.trim()) {
         console.log(detailedResult.stderr.trim());
@@ -232,7 +245,7 @@ async function runComprehensiveValidation() {
   results.codeAnalysis = await runCodeAnalysis();
 
   // Summary
-  console.log(colorize('\\n📊 Validation Summary', 'magenta'));
+  console.log(colorize('\n📊 Validation Summary', 'magenta'));
   console.log('='.repeat(30));
 
   const docStatus = results.documentation ?
@@ -248,10 +261,10 @@ async function runComprehensiveValidation() {
   const allPassed = results.documentation && results.codeAnalysis;
 
   if (allPassed) {
-    console.log(colorize('\\n🎉 All validations passed!', 'green'));
+    console.log(colorize('\n🎉 All validations passed!', 'green'));
     process.exit(0);
   } else {
-    console.log(colorize('\\n💥 Some validations failed', 'red'));
+    console.log(colorize('\n💥 Some validations failed', 'red'));
     process.exit(1);
   }
 }

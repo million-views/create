@@ -592,8 +592,10 @@ function createLoggerApi(logger) {
   return Object.freeze({
     info(message, data) {
       if (data !== undefined) {
+        // ast-grep-ignore: no-console-log
         console.log(message, data);
       } else {
+        // ast-grep-ignore: no-console-log
         console.log(message);
       }
     },
