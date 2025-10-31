@@ -77,7 +77,7 @@ export async function loadTemplateMetadataFromPath(templatePath) {
 
 function deriveSupportedOptions(dimensions) {
   const values = new Set();
-  for (const [name, definition] of Object.entries(dimensions)) {
+  for (const [, definition] of Object.entries(dimensions)) {
     if (definition.type === 'multi' && !definition.builtIn) {
       for (const value of definition.values) {
         values.add(value);

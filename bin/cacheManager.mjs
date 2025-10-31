@@ -202,7 +202,7 @@ export class CacheManager {
 
     const repoHash = this.generateRepoHash(repoUrl, branchName);
     const metadata = await this.getCacheMetadata(repoHash);
-    
+
     // Return null if no metadata exists
     if (!metadata) {
       return null;
@@ -215,14 +215,14 @@ export class CacheManager {
 
     // Return path to cached repository
     const repoDir = path.join(this.cacheDir, repoHash);
-    
+
     // Verify the directory actually exists
     try {
       const stats = await fs.stat(repoDir);
       if (stats.isDirectory()) {
         return repoDir;
       }
-    } catch (error) {
+    } catch (_error) {
       // Directory doesn't exist, return null
       return null;
     }
@@ -257,7 +257,7 @@ export class CacheManager {
   async detectCacheCorruption(repoHash) {
     try {
       const repoDir = path.join(this.cacheDir, repoHash);
-      
+
       // Check if repository directory exists
       try {
         const stats = await fs.stat(repoDir);
@@ -277,17 +277,17 @@ export class CacheManager {
         if (!metadata) {
           return true; // No metadata
         }
-        
+
         // Validate metadata structure
         if (!metadata.repoUrl || !metadata.branchName || !metadata.lastUpdated) {
           return true; // Invalid metadata structure
         }
-        
+
         return false; // Cache appears valid
-      } catch (error) {
+      } catch (_error) {
         return true; // Metadata is corrupted
       }
-    } catch (error) {
+    } catch (_error) {
       // Any unexpected error indicates corruption
       return true;
     }
@@ -308,20 +308,20 @@ export class CacheManager {
    */
   async clearExpiredEntries() {
     let removedCount = 0;
-    
+
     try {
       await this.ensureCacheDirectory();
-      
+
       // Get all cache entries
       const entries = await fs.readdir(this.cacheDir, { withFileTypes: true });
-      
+
       for (const entry of entries) {
         if (!entry.isDirectory()) {
           continue;
         }
-        
+
         const repoHash = entry.name;
-        
+
         try {
           // Check if cache is corrupted
           const isCorrupted = await this.detectCacheCorruption(repoHash);
@@ -330,24 +330,24 @@ export class CacheManager {
             removedCount++;
             continue;
           }
-          
+
           // Check if cache is expired
           const metadata = await this.getCacheMetadata(repoHash);
           if (metadata && this.isExpired(metadata)) {
             await this.handleCacheCorruption(repoHash); // Reuse corruption handler for cleanup
             removedCount++;
           }
-        } catch (error) {
+        } catch (_error) {
           // If we can't process an entry, try to remove it
           await this.handleCacheCorruption(repoHash);
           removedCount++;
         }
       }
-    } catch (error) {
+    } catch (_error) {
       // If we can't read the cache directory, that's okay
       // Return the count of what we managed to clean up
     }
-    
+
     return removedCount;
   }
 }

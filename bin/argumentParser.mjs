@@ -9,8 +9,7 @@ import {
   validateIdeParameter,
   validateOptionsParameter,
   validateLogFilePath,
-  validateCacheTtl,
-  ValidationError
+  validateCacheTtl
 } from './security.mjs';
 import { handleValidationError } from './utils/validationUtils.mjs';
 

@@ -3,12 +3,8 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { loadSetupScript, createSetupTools, SetupSandboxError } from '../bin/setupRuntime.mjs';
 import { createEnvironmentObject } from '../bin/environmentFactory.mjs';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 function randomSuffix() {
   return Math.random().toString(36).slice(2, 10);

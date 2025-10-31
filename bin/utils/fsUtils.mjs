@@ -53,10 +53,10 @@ export async function validateDirectoryExists(dirPath, pathDescription) {
  */
 export async function safeCleanup(targetPath, options = {}) {
   const { recursive = true, force = true } = options;
-  
+
   try {
     await fs.rm(targetPath, { recursive, force });
-  } catch (error) {
+  } catch (_error) {
     // Ignore cleanup errors - the goal is to remove if possible
     // If removal fails, it's better to continue than to throw
   }

@@ -588,7 +588,7 @@ async function editJsonFile(root, relativePath, mutator, { allowCreate = true } 
   return draft;
 }
 
-function createLoggerApi(logger) {
+function createLoggerApi(_logger) {
   return Object.freeze({
     info(message, data) {
       if (data !== undefined) {
@@ -1161,7 +1161,7 @@ function buildTextApi(root) {
       }
 
       let matchCount = 0;
-      const updated = content.replace(pattern, (...args) => {
+      const updated = content.replace(pattern, (..._args) => {
         matchCount++;
         return replace;
       });
@@ -1180,7 +1180,7 @@ function buildTextApi(root) {
   });
 }
 
-export async function loadSetupScript(setupPath, ctx, tools, logger = null) {
+export async function loadSetupScript(setupPath, ctx, tools, _logger = null) {
   const scriptSource = await fs.readFile(setupPath, UTF8);
   const transformedSource = transformModuleSource(scriptSource);
   const context = createSandboxContext();

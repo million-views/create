@@ -859,6 +859,7 @@ async function executeSetupScript({ projectDirectory, projectName, ide, options,
     });
   }
 
+  // eslint-disable-next-line no-unused-vars
   function printPlaceholderSummary(report) {
     if (!Array.isArray(report) || report.length === 0) {
       return;

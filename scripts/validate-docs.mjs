@@ -279,7 +279,7 @@ async function validateLinks(content, filePath) {
     // Check if target file exists
     try {
       await fs.access(targetPath);
-    } catch (error) {
+    } catch (_error) {
       results.brokenLinks.push({
         file: filePath,
         link: linkPath,

@@ -11,10 +11,6 @@
  */
 
 import { spawn } from 'child_process';
-import { fileURLToPath } from 'url';
-import path from 'path';
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // Colors for output
 const colors = {

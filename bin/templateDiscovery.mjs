@@ -23,7 +23,7 @@ export class TemplateDiscovery {
   async listTemplates(repoUrl, branchName = 'main') {
     // Get cached repository path
     const cachedRepoPath = await this.cacheManager.getCachedRepo(repoUrl, branchName);
-    
+
     if (!cachedRepoPath) {
       throw new Error(`Repository ${repoUrl} (${branchName}) is not cached. Please cache the repository first.`);
     }
@@ -42,10 +42,10 @@ export class TemplateDiscovery {
 
     // Discover template directories
     const templates = [];
-    
+
     try {
       const entries = await fs.readdir(repoPath, { withFileTypes: true });
-      
+
       for (const entry of entries) {
         if (!entry.isDirectory()) {
           continue;
@@ -58,7 +58,7 @@ export class TemplateDiscovery {
         }
 
         const templatePath = path.join(repoPath, entry.name);
-        
+
         // Check if directory contains template-like files
         if (await this.isTemplateDirectory(templatePath)) {
           const metadata = await this.getTemplateMetadata(templatePath);
@@ -80,15 +80,15 @@ export class TemplateDiscovery {
   async isTemplateDirectory(templatePath) {
     try {
       const entries = await fs.readdir(templatePath);
-      
+
       // Consider it a template if it has common project files
       const templateIndicators = [
         'package.json', 'index.js', 'index.ts', 'main.js', 'main.ts',
         'app.js', 'app.ts', 'src', 'lib', 'template.json', '_setup.mjs'
       ];
-      
+
       return entries.some(entry => templateIndicators.includes(entry));
-    } catch (error) {
+    } catch (_error) {
       return false;
     }
   }
@@ -100,7 +100,7 @@ export class TemplateDiscovery {
    */
   async getTemplateMetadata(templatePath) {
     const templateName = path.basename(templatePath);
-    
+
     // Start with fallback metadata
     let metadata = {
       name: templateName,
@@ -244,7 +244,7 @@ export class TemplateDiscovery {
     try {
       const readmePath = path.join(templatePath, 'README.md');
       const rawData = await fs.readFile(readmePath, 'utf8');
-      
+
       // Check if file starts with frontmatter delimiter
       if (!rawData.startsWith('---\n')) {
         return null;
@@ -253,7 +253,7 @@ export class TemplateDiscovery {
       // Find the closing delimiter
       const lines = rawData.split('\n');
       let frontmatterEnd = -1;
-      
+
       for (let i = 1; i < lines.length; i++) {
         if (lines[i] === '---') {
           frontmatterEnd = i;
@@ -271,7 +271,7 @@ export class TemplateDiscovery {
 
       // Parse YAML-like frontmatter (simple implementation)
       return this.parseSimpleYaml(frontmatterContent);
-    } catch (error) {
+    } catch (_error) {
       // Return null for any error (file not found, permission denied, etc.)
       return null;
     }
@@ -285,12 +285,11 @@ export class TemplateDiscovery {
   parseSimpleYaml(yamlContent) {
     const result = {};
     const lines = yamlContent.split('\n');
-    let currentKey = null;
     let currentArray = null;
 
     for (const line of lines) {
       const trimmedLine = line.trim();
-      
+
       if (!trimmedLine || trimmedLine.startsWith('#')) {
         continue;
       }
@@ -311,13 +310,11 @@ export class TemplateDiscovery {
 
         if (value === '') {
           // This might be the start of an array
-          currentKey = key;
           currentArray = [];
           result[key] = currentArray;
         } else {
           // Simple key-value pair
           result[key] = value;
-          currentKey = null;
           currentArray = null;
         }
       }
@@ -337,10 +334,10 @@ export class TemplateDiscovery {
     }
 
     let output = `📋 Found ${templates.length} template${templates.length === 1 ? '' : 's'}:\n\n`;
-    
+
     for (let i = 0; i < templates.length; i++) {
       output += this.formatTemplateEntry(templates[i]);
-      
+
       // Add separator between templates (but not after the last one)
       if (i < templates.length - 1) {
         output += '\n' + '─'.repeat(60) + '\n\n';
@@ -357,7 +354,7 @@ export class TemplateDiscovery {
    */
   formatTemplateEntry(template) {
     let output = `📦 ${template.name}\n`;
-    
+
     if (template.description && template.description !== 'No description available') {
       output += `   ${template.description}\n`;
     } else {
@@ -365,15 +362,15 @@ export class TemplateDiscovery {
     }
 
     const details = [];
-    
+
     if (template.version) {
       details.push(`v${template.version}`);
     }
-    
+
     if (template.author) {
       details.push(`by ${template.author}`);
     }
-    
+
     if (template.tags && template.tags.length > 0) {
       details.push(`tags: ${template.tags.join(', ')}`);
     }

@@ -14,8 +14,6 @@ export function normalizeOptions({ rawTokens = [], dimensions = {} }) {
   const warnings = [];
   const unknown = [];
 
-  const dimensionNames = Object.keys(dimensions);
-
   // Initialize with defaults
   for (const [name, definition] of Object.entries(dimensions)) {
     if (definition.type === 'single') {
