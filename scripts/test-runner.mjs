@@ -145,6 +145,18 @@ class TestRunner {
         homeSuffix: 'functional'
       },
       {
+        name: 'Template Schema Build Tests',
+        command: ['--test', './test/schema-build.test.mjs'],
+        description: 'Deterministic generation of schema types and runtime stubs',
+        homeSuffix: 'schema-build'
+      },
+      {
+        name: 'Template Validator Tests',
+        command: ['--test', './test/template-validator.test.mjs'],
+        description: 'Runtime manifest validation aligned with schema constraints',
+        homeSuffix: 'template-validator'
+      },
+      {
         name: 'CLI Integration Tests',
         command: ['--test', './test/cli-integration.test.mjs'],
         description: 'Phase 1 feature integration coverage for CLI flags',
@@ -208,6 +220,12 @@ class TestRunner {
         command: ['--test', './test/cli.test.mjs'],
         description: 'Core CLI functionality validation',
         homeSuffix: 'quick-functional'
+      },
+      {
+        name: 'Template Validator Tests',
+        command: ['--test', './test/template-validator.test.mjs'],
+        description: 'Schema-aligned manifest validation',
+        homeSuffix: 'quick-template-validator'
       },
       {
         name: 'Smoke Tests',

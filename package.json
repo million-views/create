@@ -8,8 +8,23 @@
         "create-scaffold": "./bin/index.mjs"
     },
     "exports": {
-        ".": "./bin/index.mjs"
+        ".": "./bin/index.mjs",
+        "./schema/template.json": "./schema/template.json",
+        "./schema/template.v1.json": "./schema/template.v1.json",
+        "./types/template-schema": {
+            "types": "./types/template-schema.d.ts",
+            "default": "./types/template-schema.mjs"
+        }
     },
+    "files": [
+        "bin",
+        "schema",
+        "types",
+        "scripts",
+        "docs",
+        "LICENSE",
+        "README.md"
+    ],
     "engines": {
         "node": ">=22.0.0"
     },
@@ -36,11 +51,14 @@
         "eslint": "^9.38.0",
         "eslint-plugin-import": "^2.31.0",
         "eslint-plugin-n": "^17.23.1",
-        "eslint-plugin-promise": "^7.2.1"
+        "eslint-plugin-promise": "^7.2.1",
+        "typescript": "^5.6.3"
     },
     "scripts": {
         "lint": "eslint .",
         "prepare": "npm run lint",
+        "schema:build": "node ./scripts/build-template-schema.mjs",
+        "schema:check": "node ./scripts/build-template-schema.mjs --check && tsc --noEmit --project tsconfig.json",
         "test": "node ./scripts/test-runner.mjs",
         "test:all": "node ./scripts/test-runner.mjs",
         "test:quick": "node ./scripts/test-runner.mjs --quick",
@@ -52,8 +70,8 @@
         "test:spec": "node ./test/spec-compliance-verification.mjs",
         "test:leaks": "node ./test/resource-leak-test.mjs",
         "test:smoke": "node ./scripts/smoke-test.mjs",
-        "validate": "node ./scripts/comprehensive-validation.mjs",
+        "validate": "npm run schema:check && node ./scripts/comprehensive-validation.mjs",
         "validate:docs": "node ./scripts/validate-docs.mjs",
-        "validate:code": "ast-grep scan bin/ test/"
+        "validate:code": "node ./scripts/comprehensive-validation.mjs --code-only"
     }
 }

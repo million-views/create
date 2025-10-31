@@ -126,6 +126,28 @@ Switching modes later is as simple as updating `template.json`, but start with W
   - `requires` / `conflicts`: encode dependencies within the dimension.
   - `policy`: `"strict"` rejects unknown selections, `"warn"` logs but proceeds.
 
+> **Tooling tip:** Ship the schema with your repo to unlock editor validation. If you install `@m5nv/create-scaffold` as a dev dependency, VS Code can read the packaged schema automatically:
+> ```json
+> // .vscode/settings.json
+> {
+>   "json.schemas": [
+>     {
+>       "fileMatch": ["template.json"],
+>       "url": "./node_modules/@m5nv/create-scaffold/schema/template.json"
+>     }
+>   ]
+> }
+> ```
+
+TypeScript-aware editors can also reuse the generated types:
+
+```ts
+import type { TemplateManifest } from '@m5nv/create-scaffold/types/template-schema';
+
+/** @type {TemplateManifest} */
+export const template = { /* ... */ };
+```
+
 Legacy `setup.supportedOptions` arrays still work; the CLI upgrades them to a `capabilities` dimension automatically, but new templates should define `dimensions` explicitly.
 
 ### Step 4: Write `_setup.mjs`
@@ -217,6 +239,7 @@ create-scaffold copies this directory into the project before `_setup.mjs` runs 
    ```
    Dry runs show directory/file counts, setup script detection, and skip author assets so the preview matches the final scaffold.
 3. **Execute a full scaffold periodically** to ensure the handoff instructions make sense and the generated project boots as expected.
+4. **Lint your manifest before publishing.** If your template repo depends on @m5nv/create-scaffold, add `npm run schema:check` to CI. The command verifies both the JSON schema (`template.json`) and the generated TypeScript definition.
 
 Document any non-obvious behaviour inside your template repo (e.g., README sections explaining available dimensions) so both template authors and consumers share the same vocabulary.
 

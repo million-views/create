@@ -9,7 +9,7 @@ prerequisites:
 related_docs:
   - "../CONTRIBUTING.md"
   - "_templates/maintenance-checklist.md"
-last_updated: "2024-10-26"
+last_updated: "2025-10-30"
 ---
 
 # Validation Setup and Maintenance Liability Prevention
@@ -51,11 +51,17 @@ Uses ast-grep rules to detect:
 
 Unified script that runs both validations and provides colored output with detailed reporting.
 
+> `npm run validate` now runs `npm run schema:check` first, guaranteeing the published schema, generated types, and runtime stub stay up to date before documentation and ast-grep checks execute.
+
 ## Available Commands
 
 ```bash
 # Run all validations
 npm run validate
+
+# Rebuild or verify template schema artifacts
+npm run schema:build
+npm run schema:check
 
 # Run only documentation validation
 npm run validate:docs

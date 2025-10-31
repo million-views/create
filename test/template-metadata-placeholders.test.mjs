@@ -20,6 +20,7 @@ test('normalizes metadata.placeholders into placeholder specs', async () => {
   await withTempDir(async (dir) => {
     const templateJson = {
       name: 'demo',
+      description: 'Demo template',
       metadata: {
         placeholders: [
           { name: '{{PROJECT_NAME}}', required: true },

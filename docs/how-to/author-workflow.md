@@ -10,7 +10,7 @@ related_docs:
   - "creating-templates.md"
   - "../reference/environment.md"
   - "../how-to/setup-recipes.md"
-last_updated: "2024-11-07"
+last_updated: "2025-10-30"
 ---
 
 # Template Author Workflow
@@ -94,6 +94,7 @@ Composable templates assemble different variants from a single source. Use autho
 ## 3. Before publishing or sharing
 
 - Run the full test suite for your template (unit tests, linting, integration checks).
+- If you vendor @m5nv/create-scaffold in the repo, run `npm run schema:check` to confirm `template.json` still matches the published schema and generated types.
 - Update `handoff` instructions so operators know the first commands to run.
 - Cross-link consumer docs: mention supported dimensions, recommended options, and IDE presets.
 - Consider adding an appendix in the template README summarizing dimensions and defaults. Link to the [Dimensions Glossary](../reference/dimensions-glossary.md) so teams stay aligned.

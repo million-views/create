@@ -20,6 +20,36 @@ last_updated: "2025-10-30"
 
 Complete reference for the `@m5nv/create-scaffold` command-line interface. This tool scaffolds new projects using templates from git repositories.
 
+## Template manifest schema
+
+@m5nv/create-scaffold publishes its canonical `template.json` contract so automation and editors stay aligned with the CLI:
+
+- `@m5nv/create-scaffold/schema/template.json` – latest stable schema (currently `template.v1.json`).
+- `@m5nv/create-scaffold/schema/template.v1.json` – immutable versioned schema.
+- `@m5nv/create-scaffold/types/template-schema` – TypeScript declarations for programmatic tooling.
+
+Add the schema to your editor configuration to surface validation and completions:
+
+```json
+// .vscode/settings.json
+{
+  "json.schemas": [
+    {
+      "fileMatch": ["template.json"],
+      "url": "./node_modules/@m5nv/create-scaffold/schema/template.json"
+    }
+  ]
+}
+```
+
+TypeScript utilities can import the generated types directly:
+
+```ts
+import type { TemplateManifest } from '@m5nv/create-scaffold/types/template-schema';
+```
+
+CLI contributors should run `npm run schema:build` after editing the schema and rely on `npm run schema:check` (already wired into `npm run validate`) to detect drift.
+
 ## Syntax
 
 ```bash

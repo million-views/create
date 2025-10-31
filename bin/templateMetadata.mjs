@@ -5,12 +5,10 @@ import path from 'path';
 import {
   sanitizeErrorMessage,
   ValidationError,
-  validateAuthoringMode,
   validateDimensionsMetadata,
-  validateSupportedOptionsMetadata,
   validateAuthorAssetsDir,
 } from './security.mjs';
-import { normalizePlaceholders } from './utils/placeholderSchema.mjs';
+import { validateTemplateManifest } from './utils/templateValidator.mjs';
 
 /**
  * Load and normalize template metadata from template.json
@@ -24,43 +22,29 @@ export async function loadTemplateMetadataFromPath(templatePath) {
     const rawContent = await fs.readFile(templateJsonPath, 'utf8');
     const data = JSON.parse(rawContent);
 
-    const setup = data?.setup ?? {};
-    const authoringMode = validateAuthoringMode(setup.authoringMode);
-    let dimensions = validateDimensionsMetadata(setup.dimensions);
-    const authorAssetsDir = validateAuthorAssetsDir(setup.authorAssetsDir);
+    const validated = validateTemplateManifest(data);
 
-    if (Object.keys(dimensions).length === 0 && setup.supportedOptions !== undefined) {
-      const legacyOptions = validateSupportedOptionsMetadata(setup.supportedOptions);
-      if (legacyOptions.length > 0) {
-        dimensions = validateDimensionsMetadata({
-          capabilities: {
-            type: 'multi',
-            values: legacyOptions,
-            policy: 'strict',
-          }
-        });
-      }
+    let dimensions = validated.dimensions;
+    if (Object.keys(dimensions).length === 0 && validated.supportedOptions.length > 0) {
+      dimensions = validateDimensionsMetadata({
+        capabilities: {
+          type: 'multi',
+          values: validated.supportedOptions,
+          policy: 'strict',
+        }
+      });
     }
-
-    const placeholders = normalizePlaceholders(data?.metadata?.placeholders ?? []);
-
-    const handoffSteps = Array.isArray(data?.handoff)
-      ? data.handoff
-        .filter(step => typeof step === 'string')
-        .map(step => step.trim())
-        .filter(Boolean)
-      : [];
 
     const supportedOptions = deriveSupportedOptions(dimensions);
 
     return {
       raw: data,
-      authoringMode,
-      authorAssetsDir,
+      authoringMode: validated.authoringMode,
+      authorAssetsDir: validated.authorAssetsDir,
       dimensions,
-      handoffSteps,
+      handoffSteps: validated.handoffSteps,
       supportedOptions,
-      placeholders,
+      placeholders: validated.placeholders,
     };
   } catch (error) {
     if (error.code === 'ENOENT') {

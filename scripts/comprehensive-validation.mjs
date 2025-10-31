@@ -3,7 +3,7 @@
 /**
  * Comprehensive Validation Script
  * Combines markdown documentation validation with ast-grep code analysis
- * 
+ *
  * This script provides a unified validation approach for the entire project:
  * - Markdown documentation validation (custom script)
  * - JavaScript/TypeScript code analysis (ast-grep)
@@ -31,6 +31,38 @@ function colorize(text, color) {
   return `${colors[color]}${text}${colors.reset}`;
 }
 
+const AST_GREP_CANDIDATES = ['ast-grep', 'sg'];
+let resolvedAstGrepCommand = null;
+let attemptedAstGrepResolution = false;
+
+async function resolveAstGrepCommand() {
+  if (attemptedAstGrepResolution) {
+    return resolvedAstGrepCommand;
+  }
+
+  attemptedAstGrepResolution = true;
+
+  for (const candidate of AST_GREP_CANDIDATES) {
+    try {
+      const result = await runCommand(candidate, ['--version']);
+      if (result.code === 0) {
+        const versionOutput = `${result.stdout} ${result.stderr}`.toLowerCase();
+        if (!versionOutput.includes('ast-grep')) {
+          continue;
+        }
+        resolvedAstGrepCommand = candidate;
+        return resolvedAstGrepCommand;
+      }
+    } catch (error) {
+      if (error.code !== 'ENOENT') {
+        console.log(colorize(`⚠️  Unable to execute ${candidate} --version: ${error.message}`, 'yellow'));
+      }
+    }
+  }
+
+  return null;
+}
+
 /**
  * Run a command and return a promise
  */
@@ -40,18 +72,18 @@ function runCommand(command, args = [], options = {}) {
       stdio: 'pipe',
       ...options
     });
-    
+
     let stdout = '';
     let stderr = '';
-    
+
     child.stdout?.on('data', (data) => {
       stdout += data.toString();
     });
-    
+
     child.stderr?.on('data', (data) => {
       stderr += data.toString();
     });
-    
+
     child.on('close', (code) => {
       resolve({
         code,
@@ -59,7 +91,7 @@ function runCommand(command, args = [], options = {}) {
         stderr
       });
     });
-    
+
     child.on('error', (error) => {
       reject(error);
     });
@@ -72,15 +104,15 @@ function runCommand(command, args = [], options = {}) {
 async function runDocumentationValidation() {
   console.log(colorize('📚 Running Documentation Validation...', 'blue'));
   console.log('─'.repeat(50));
-  
+
   try {
     const result = await runCommand('node', ['scripts/validate-docs.mjs']);
-    
+
     // Show the output regardless of success/failure
     if (result.stdout) {
       console.log(result.stdout);
     }
-    
+
     if (result.code === 0) {
       console.log(colorize('✅ Documentation validation passed', 'green'));
       return true;
@@ -104,16 +136,31 @@ async function runDocumentationValidation() {
 async function runCodeAnalysis() {
   console.log(colorize('\\n🔍 Running Code Analysis (ast-grep)...', 'blue'));
   console.log('─'.repeat(50));
-  
+
   try {
+    const astGrepCommand = await resolveAstGrepCommand();
+    if (!astGrepCommand) {
+      console.log(colorize('❌ ast-grep CLI not found. Install ast-grep (https://ast-grep.github.io/book/quick-start/install.html) or add it to your PATH, then re-run validation.', 'red'));
+      console.log(colorize('   Tip: npm users can install the prebuilt binary via "npm install --save-dev @ast-grep/napi" and use the provided "sg" executable.', 'yellow'));
+      return false;
+    }
+
     // Run ast-grep on JavaScript/TypeScript files
-    const result = await runCommand('ast-grep', [
+    const result = await runCommand(astGrepCommand, [
       'scan',
       'bin/',
       'test/',
       '--json=compact'
     ]);
-    
+
+    if (result.code !== 0) {
+      console.log(colorize(`❌ ast-grep exited with code ${result.code}`, 'red'));
+      if (result.stderr.trim()) {
+        console.log(colorize(result.stderr.trim(), 'red'));
+      }
+      return false;
+    }
+
     if (result.stdout.trim()) {
       // Parse JSON output to count issues
       const lines = result.stdout.trim().split('\\n');
@@ -124,9 +171,9 @@ async function runCodeAnalysis() {
           return null;
         }
       }).filter(Boolean);
-      
+
       console.log(colorize(`Found ${issues.length} code analysis issues:`, 'yellow'));
-      
+
       // Group issues by severity
       const grouped = issues.reduce((acc, issue) => {
         const severity = issue.severity || 'info';
@@ -134,22 +181,25 @@ async function runCodeAnalysis() {
         acc[severity].push(issue);
         return acc;
       }, {});
-      
+
       // Display summary
       Object.entries(grouped).forEach(([severity, items]) => {
         const color = severity === 'error' ? 'red' : severity === 'warning' ? 'yellow' : 'cyan';
         console.log(colorize(`  ${severity}: ${items.length} issues`, color));
       });
-      
+
       // For detailed output, run without JSON
       console.log(colorize('\\n📋 Detailed Analysis:', 'cyan'));
-      const detailedResult = await runCommand('ast-grep', [
+      const detailedResult = await runCommand(astGrepCommand, [
         'scan',
         'bin/',
         'test/'
       ]);
+      if (detailedResult.stderr.trim()) {
+        console.log(detailedResult.stderr.trim());
+      }
       console.log(detailedResult.stdout);
-      
+
       // Consider warnings as non-blocking for now
       const hasErrors = grouped.error && grouped.error.length > 0;
       return !hasErrors;
@@ -169,34 +219,34 @@ async function runCodeAnalysis() {
 async function runComprehensiveValidation() {
   console.log(colorize('🚀 Starting Comprehensive Project Validation', 'magenta'));
   console.log('='.repeat(60));
-  
+
   const results = {
     documentation: false,
     codeAnalysis: false
   };
-  
+
   // Run documentation validation
   results.documentation = await runDocumentationValidation();
-  
+
   // Run code analysis
   results.codeAnalysis = await runCodeAnalysis();
-  
+
   // Summary
   console.log(colorize('\\n📊 Validation Summary', 'magenta'));
   console.log('='.repeat(30));
-  
-  const docStatus = results.documentation ? 
-    colorize('✅ PASSED', 'green') : 
+
+  const docStatus = results.documentation ?
+    colorize('✅ PASSED', 'green') :
     colorize('❌ FAILED', 'red');
-  const codeStatus = results.codeAnalysis ? 
-    colorize('✅ PASSED', 'green') : 
+  const codeStatus = results.codeAnalysis ?
+    colorize('✅ PASSED', 'green') :
     colorize('❌ FAILED', 'red');
-  
+
   console.log(`Documentation: ${docStatus}`);
   console.log(`Code Analysis: ${codeStatus}`);
-  
+
   const allPassed = results.documentation && results.codeAnalysis;
-  
+
   if (allPassed) {
     console.log(colorize('\\n🎉 All validations passed!', 'green'));
     process.exit(0);

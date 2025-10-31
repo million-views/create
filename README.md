@@ -10,7 +10,7 @@ related_docs:
   - "docs/tutorial/getting-started.md"
   - "docs/how-to/creating-templates.md"
   - "docs/reference/cli-reference.md"
-last_updated: "2024-10-26"
+last_updated: "2025-10-30"
 ---
 
 # @m5nv/create-scaffold
@@ -55,6 +55,14 @@ npm create @m5nv/scaffold -- --list-templates
 - Template-defined metadata (`template.json`) that can expose handoff instructions
 - Dry-run previews with operation summaries and optional tree output
 - CLI argument validation, logging, and preflight checks for Git access
+- Versioned template schema and generated TypeScript declarations published for downstream tooling
+
+## Maintainer commands
+
+```bash
+npm run schema:build   # Re-generate TypeScript artifacts after editing schema/template.v1.json
+npm run schema:check   # Ensure generated artifacts and tsc checks stay in sync (also runs via npm run validate)
+```
 
 ## Learn more
 
