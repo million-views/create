@@ -2,6 +2,7 @@
 
 ## 1. Spec-Driven Workflow
 - Every change begins with a spec under `.kiro/specs/<feature>/`.
+- **Read `docs/spec-driven-development.md`** for complete guidance on creating requirements, design, and implementation plans.
 - Author and drive changeset for one or more features in a sprint in 3 phases:
   - Create `requirements.md` and iterate to get approval
   - Create `design.md` and iterate to get approval
