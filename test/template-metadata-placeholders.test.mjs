@@ -50,5 +50,32 @@ test('normalizes metadata.placeholders into placeholder specs', async () => {
     assert.equal(metadata.placeholders[1].token, 'AUTHOR');
     assert.equal(metadata.placeholders[1].defaultValue, 'Unknown');
     assert.equal(metadata.placeholders[1].description, 'Maintainer');
+    assert.deepEqual(metadata.canonicalVariables, []);
+  });
+});
+
+test('includes canonical variable metadata', async () => {
+  await withTempDir(async (dir) => {
+    const templateJson = {
+      name: 'demo-canonical',
+      description: 'Demo template',
+      metadata: {
+        variables: [{ name: 'license' }]
+      }
+    };
+
+    await fs.writeFile(
+      path.join(dir, 'template.json'),
+      JSON.stringify(templateJson, null, 2)
+    );
+
+    const metadata = await loadTemplateMetadataFromPath(dir);
+
+    assert.equal(metadata.placeholders.length, 1);
+    const licensePlaceholder = metadata.placeholders[0];
+    assert.equal(licensePlaceholder.token, 'LICENSE');
+    assert.equal(licensePlaceholder.defaultValue, 'MIT');
+    assert.equal(metadata.canonicalVariables.length, 1);
+    assert.equal(metadata.canonicalVariables[0].id, 'license');
   });
 });

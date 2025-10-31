@@ -39,6 +39,13 @@
           "items": {
             "$ref": "#/$defs/placeholder"
           }
+        },
+        "variables": {
+          "type": "array",
+          "description": "List of opt-in canonical variables provided by the CLI with standardized metadata.",
+          "items": {
+            "$ref": "#/$defs/canonicalVariable"
+          }
         }
       }
     },
@@ -137,6 +144,69 @@
               "type": "boolean"
             }
           ]
+        }
+      }
+    },
+    "canonicalVariable": {
+      "type": "object",
+      "required": [
+        "name"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "enum": [
+            "author",
+            "license"
+          ],
+          "description": "Identifier for the canonical variable."
+        },
+        "required": {
+          "type": "boolean",
+          "description": "Override the canonical required flag."
+        },
+        "overrides": {
+          "$ref": "#/$defs/canonicalVariableOverrides",
+          "description": "Override canonical placeholder metadata."
+        }
+      }
+    },
+    "canonicalVariableOverrides": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "description": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Custom description displayed during prompting."
+        },
+        "default": {
+          "description": "Override default value applied when no explicit input is provided.",
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "boolean"
+            }
+          ]
+        },
+        "sensitive": {
+          "type": "boolean",
+          "description": "Override canonical sensitivity flag."
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "string",
+            "number",
+            "boolean"
+          ],
+          "description": "Override canonical preferred type."
         }
       }
     },

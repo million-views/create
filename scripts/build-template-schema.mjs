@@ -113,6 +113,7 @@ function generateTypeDefinitions(schema, version, schemaRelativePath) {
   const placeholderTypeEnum = defs.placeholder?.properties?.type?.enum ?? [];
   const dimensionTypeEnum = defs.dimension?.properties?.type?.enum ?? [];
   const policyEnum = defs.dimension?.properties?.policy?.enum ?? [];
+  const canonicalVariableNames = defs.canonicalVariable?.properties?.name?.enum ?? [];
 
   const dimensionValueType = 'string';
 
@@ -127,6 +128,7 @@ function generateTypeDefinitions(schema, version, schemaRelativePath) {
     `export type TemplatePlaceholderType = ${enumUnion(placeholderTypeEnum)};`,
     `export type TemplateDimensionType = ${enumUnion(dimensionTypeEnum)};`,
     `export type TemplateDimensionPolicy = ${enumUnion(policyEnum)};`,
+  `export type TemplateCanonicalVariableName = ${enumUnion(canonicalVariableNames)};`,
     '',
     'export type TemplatePlaceholderPrimitive = string | number | boolean;',
     `export type TemplateDimensionValue = ${dimensionValueType};`,
@@ -163,8 +165,22 @@ function generateTypeDefinitions(schema, version, schemaRelativePath) {
     'export type TemplateDimension = TemplateSingleSelectDimension | TemplateMultiSelectDimension;',
     'export type TemplateDimensions = Record<string, TemplateDimension>;',
     '',
+  'export interface TemplateCanonicalVariableOverrides {',
+  '  description?: string;',
+  '  default?: TemplatePlaceholderPrimitive;',
+  '  sensitive?: boolean;',
+  '  type?: TemplatePlaceholderType;',
+  '}',
+  '',
+  'export interface TemplateCanonicalVariable {',
+  '  name: TemplateCanonicalVariableName;',
+  '  required?: boolean;',
+  '  overrides?: TemplateCanonicalVariableOverrides;',
+  '}',
+  '',
     'export interface TemplateMetadata {',
     '  placeholders?: TemplatePlaceholder[];',
+  '  variables?: TemplateCanonicalVariable[];',
     '  [key: string]: unknown;',
     '}',
     '',

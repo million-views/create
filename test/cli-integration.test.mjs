@@ -363,7 +363,10 @@ runner.test('--dry-run warns when tree command is unavailable', async () => {
 // Test 3: --log-file flag integration
 runner.test('--log-file flag enables detailed logging', async () => {
   const mockRepoPath = await runner.addTempPath(await IntegrationTestUtils.createTempDir('-log-file-repo'));
-  const logFilePath = await runner.addTempPath(path.join(os.tmpdir(), 'test-integration.log'));
+  const logDir = path.join(process.cwd(), `.tmp-logs-${Date.now()}-${Math.random().toString(36).slice(2)}`);
+  await fs.mkdir(logDir, { recursive: true });
+  await runner.addTempPath(logDir);
+  const logFilePath = path.join(logDir, 'test-integration.log');
 
   // Create mock repository
   await IntegrationTestUtils.createMockRepo(mockRepoPath, ['basic']);
@@ -494,7 +497,10 @@ runner.test('--cache-ttl flag sets custom TTL', async () => {
 // Test 6: Combined flags integration
 runner.test('Combined flags work together correctly', async () => {
   const mockRepoPath = await runner.addTempPath(await IntegrationTestUtils.createTempDir('-combined-flags-repo'));
-  const logFilePath = await runner.addTempPath(path.join(os.tmpdir(), 'test-combined.log'));
+  const logDir = path.join(process.cwd(), `.tmp-logs-${Date.now()}-${Math.random().toString(36).slice(2)}`);
+  await fs.mkdir(logDir, { recursive: true });
+  await runner.addTempPath(logDir);
+  const logFilePath = path.join(logDir, 'combined.log');
 
   // Create mock repository
   await IntegrationTestUtils.createMockRepo(mockRepoPath, ['basic']);
@@ -673,7 +679,10 @@ runner.test('Template discovery shows metadata when available', async () => {
 // Test 10: Logging integration across all operations
 runner.test('Logging integration works across all CLI operations', async () => {
   const mockRepoPath = await runner.addTempPath(await IntegrationTestUtils.createTempDir('-logging-integration-repo'));
-  const logFilePath = await runner.addTempPath(path.join(os.tmpdir(), 'test-logging-integration.log'));
+  const logDir = path.join(process.cwd(), `.tmp-logs-${Date.now()}-${Math.random().toString(36).slice(2)}`);
+  await fs.mkdir(logDir, { recursive: true });
+  await runner.addTempPath(logDir);
+  const logFilePath = path.join(logDir, 'logging-integration.log');
 
   // Create mock repository with setup script
   await IntegrationTestUtils.createMockRepo(mockRepoPath, ['with-setup']);

@@ -98,6 +98,43 @@ create-scaffold <project-directory> --from-template <template-name> [options]
 
 > You can also supply placeholder values via environment variables: set `CREATE_SCAFFOLD_PLACEHOLDER_<TOKEN>=value` (uppercase token without braces). Combine environment variables with `--no-input-prompts` for fully non-interactive runs. Verbose mode (`--verbose`) prints a source summary showing how each placeholder was satisfied, masking sensitive entries.
 
+### Canonical template variables
+
+Templates can opt into CLI-provided placeholders by declaring canonical variables in `template.json`:
+
+```json
+{
+  "metadata": {
+    "variables": [
+      { "name": "author" },
+      { "name": "license" }
+    ]
+  }
+}
+```
+
+- `author` maps to `{{AUTHOR}}` and is required by default. The CLI prompts for the author name (or reads flags/env) and surfaces the value via `ctx.inputs.AUTHOR` and `tools.inputs.AUTHOR`.
+- `license` maps to `{{LICENSE}}`, defaults to `MIT`, and remains optional unless you set `required: true`.
+- Use `overrides` to customize metadata without redefining the placeholder:
+
+```json
+{
+  "metadata": {
+    "variables": [
+      {
+        "name": "license",
+        "overrides": {
+          "description": "SPDX identifier for the project",
+          "default": "Apache-2.0"
+        }
+      }
+    ]
+  }
+}
+```
+
+Canonical variables merge with `metadata.placeholders`, so declaring both does not create duplicates. Unknown canonical names fail validation.
+
 ## Performance & Caching Options
 
 | Option | Short | Type | Required | Default | Description |

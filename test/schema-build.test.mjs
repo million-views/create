@@ -34,6 +34,8 @@ test('buildTemplateSchema generates TypeScript artifacts', async () => {
 
   assert.match(tsContent, /export interface TemplateManifest/);
   assert.match(tsContent, /type TemplateAuthoringMode = 'wysiwyg' \| 'composable';/);
+  assert.match(tsContent, /export interface TemplateCanonicalVariable/);
+  assert.match(tsContent, /variables\?: TemplateCanonicalVariable\[];/);
   assert.equal(tsContent, dtsContent);
   assert.match(mjsContent, /exports nothing at runtime/);
   assert.match(mjsContent, /export \{\};/);

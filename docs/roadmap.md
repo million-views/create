@@ -24,6 +24,12 @@ impact and implementation complexity.
 **Solution:** Added an opt-in placeholder resolver (`--experimental-placeholder-prompts`) that merges metadata defaults, repeated `--placeholder NAME=value` flags, environment variables (`CREATE_SCAFFOLD_PLACEHOLDER_<TOKEN>`), and interactive prompts. Setup scripts receive the resolved values via `ctx.inputs`, `tools.inputs`, and the new `tools.placeholders.applyInputs()` helper.
 **Impact:** Medium – unlocks richer customization while the feature hardens behind an experimental flag.
 
+### Template Schema Standardization
+
+**Problem:** Template authors and downstream tooling relied on ad-hoc manifest conventions, making validation brittle and integrations error-prone.
+**Solution:** Published a versioned JSON Schema (`schema/template.v1.json`) with a synced latest alias, generated type declarations/runtime stubs (`npm run schema:build` / `npm run schema:check`), and exported them via package entrypoints for reuse.
+**Impact:** High – establishes a single source of truth for manifest structure, enables automated validation, and unblocks ecosystem tooling.
+
 ### Template Caching
 
 **Problem:** Repeated clones are slow; other features need fast repository access
@@ -53,7 +59,7 @@ impact and implementation complexity.
 ### 1. Template Validation
 
 **Problem:** Broken templates waste user time
-**Solution:** `--validate-template` checks structure, setup script syntax, required files before use
+**Solution:** Ship a `--validate-template` command that reuses the published schema/types for manifest checks, then layers setup-script linting and required-file verification for CI and local guardrails.
 **Impact:** Medium - Prevents frustration, improves template quality
 
 ### 2. Configuration File
@@ -73,7 +79,7 @@ impact and implementation complexity.
 ### 4. Template Variables
 
 **Problem:** Templates need more customization than just project name
-**Solution:** Support `{{AUTHOR}}`, `{{LICENSE}}`, etc. with prompts or config file values
+**Solution:** Support `{{AUTHOR}}`, `{{LICENSE}}`, etc. with prompts or config file values, extending the shared schema/types so downstream tools stay aligned.
 **Impact:** Low - Advanced templating for sophisticated use cases
 
 ### 5. Multi-Template Projects
@@ -87,7 +93,7 @@ impact and implementation complexity.
 ### 6. Template Health Checks
 
 **Problem:** Template quality varies, no validation
-**Solution:** Automated testing of templates (dependencies install, basic commands work)
+**Solution:** Automated testing of templates (dependencies install, basic commands work) built on top of the canonical schema exports to standardize reporting and enforcement.
 **Impact:** Low - Community feature, requires infrastructure
 
 ## Implementation Strategy

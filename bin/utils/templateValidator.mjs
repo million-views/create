@@ -8,6 +8,10 @@ import {
   validateSupportedOptionsMetadata,
 } from '../security.mjs';
 import { normalizePlaceholders } from './placeholderSchema.mjs';
+import {
+  normalizeCanonicalVariables,
+  mergeCanonicalPlaceholders
+} from './canonicalVariables.mjs';
 
 const manifestCache = new WeakMap();
 
@@ -57,10 +61,34 @@ export function validateTemplateManifest(manifest) {
     if (metadata.placeholders !== undefined && !Array.isArray(metadata.placeholders)) {
       throw new ValidationError('metadata.placeholders must be an array', 'metadata.placeholders');
     }
+    if (metadata.variables !== undefined && !Array.isArray(metadata.variables)) {
+      throw new ValidationError('metadata.variables must be an array', 'metadata.variables');
+    }
   }
 
+  const canonicalVariables = normalizeCanonicalVariables(metadata?.variables);
+  const authorPlaceholders = normalizePlaceholders(metadata?.placeholders ?? []);
+  const mergedPlaceholders = mergeCanonicalPlaceholders({
+    canonical: canonicalVariables,
+    placeholders: authorPlaceholders
+  });
+
+  const canonicalVariableSummaries = Object.freeze(
+    canonicalVariables.map((entry) =>
+      Object.freeze({
+        id: entry.id,
+        token: entry.placeholder.token,
+        required: entry.placeholder.required,
+        type: entry.placeholder.type,
+        defaultValue: entry.placeholder.defaultValue,
+        description: entry.placeholder.description ?? null,
+        sensitive: entry.placeholder.sensitive
+      })
+    )
+  );
+
   const placeholders = Object.freeze(
-    normalizePlaceholders(metadata?.placeholders ?? []).map((placeholder) =>
+    mergedPlaceholders.map((placeholder) =>
       Object.freeze({ ...placeholder })
     )
   );
@@ -94,6 +122,7 @@ export function validateTemplateManifest(manifest) {
     dimensions,
     supportedOptions,
     placeholders,
+    canonicalVariables: canonicalVariableSummaries,
     handoffSteps: Object.freeze([...handoffSteps]),
   });
 

@@ -41,7 +41,7 @@ Direct access to `fs`, `path`, `import`, `eval`, or `require` is blocked. All fi
 | `ide` | `"kiro" \| "vscode" \| "cursor" \| "windsurf" \| null` | Target IDE provided via `--ide`. `null` when no IDE preference was expressed. |
 | `authoringMode` | `"wysiwyg" \| "composable"` | Mode declared in `template.json`. WYSIWYG templates mirror a working project; composable templates assemble features via `_setup.mjs`. |
 | `options` | `object` | Normalized user selections with defaults already applied. See breakdown below. |
-| `inputs` | `Record<string, string \| number \| boolean>` | Placeholder answers collected during template instantiation. Keys omit braces (`PROJECT_NAME`). Values are immutable and type-coerced based on `metadata.placeholders`. |
+| `inputs` | `Record<string, string \| number \| boolean>` | Placeholder answers collected during template instantiation. Keys omit braces (`PROJECT_NAME`). Values are immutable and type-coerced based on `metadata.placeholders` and any canonical `metadata.variables` entries. |
 
 `ctx.options` contains two readonly views:
 
@@ -54,7 +54,7 @@ The context object is frozen; attempting to mutate it throws.
 
 ## How template metadata populates the environment
 
-1. **`template.json` declares intent** – Dimensions under `setup.dimensions` define the option vocabulary, while `metadata.placeholders` inventories every `{{TOKEN}}` that still needs values when the template runs.
+1. **`template.json` declares intent** – Dimensions under `setup.dimensions` define the option vocabulary, `metadata.placeholders` inventories template-defined `{{TOKEN}}` values, and `metadata.variables` opts into canonical placeholders supplied by the CLI.
 2. **The CLI normalizes user input** – Flags such as `--options "capabilities=auth+logging"` are validated against the declared dimensions and cached in `ctx.options.byDimension` (with defaults pre-applied). Placeholder values are gathered via `--placeholder`, environment variables, defaults, or interactive prompts so `ctx.inputs` is fully populated before `_setup.mjs` executes.
 3. **`ctx` and `tools` expose the results** – Setup scripts read `ctx.options` or helper wrappers (`tools.options.*`) to branch on selected features, and they access placeholder answers via `ctx.inputs` or `tools.inputs`. Helper APIs such as `tools.placeholders.applyInputs()` consume these values directly, keeping setup code deterministic.
 
@@ -74,8 +74,11 @@ The context object is frozen; attempting to mutate it throws.
   },
   "metadata": {
     "placeholders": [
-      { "name": "{{PROJECT_NAME}}", "required": true },
-      { "name": "{{AUTHOR}}", "required": false }
+      { "name": "{{PROJECT_NAME}}", "required": true }
+    ],
+    "variables": [
+      { "name": "author" },
+      { "name": "license" }
     ]
   }
 }

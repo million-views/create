@@ -45,6 +45,7 @@ export async function loadTemplateMetadataFromPath(templatePath) {
       handoffSteps: validated.handoffSteps,
       supportedOptions,
       placeholders: validated.placeholders,
+      canonicalVariables: validated.canonicalVariables,
     };
   } catch (error) {
     if (error.code === 'ENOENT') {
@@ -56,6 +57,7 @@ export async function loadTemplateMetadataFromPath(templatePath) {
         handoffSteps: [],
         supportedOptions: [],
         placeholders: [],
+        canonicalVariables: [],
       };
     }
 

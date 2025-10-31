@@ -197,7 +197,7 @@ Remember:
 
 #### Choose between inline edits and composition
 
-`metadata.placeholders` in `template.json` documents every `{{TOKEN}}` that still exists in the authored files. Use this inventory to decide how the setup script should satisfy each variable:
+`metadata.placeholders` in `template.json` documents every `{{TOKEN}}` that still exists in the authored files. Use this inventory to decide how the setup script should satisfy each variable. When you need standardized prompts, add `metadata.variables` entries to opt into the CLI’s canonical placeholders (currently `author` → `{{AUTHOR}}` and `license` → `{{LICENSE}}`). Canonical variables merge with your custom inventory, so you can override descriptions or defaults without duplicating entries.
 
 | You need to… | Preferred approach | Helper(s) |
 |--------------|-------------------|-----------|

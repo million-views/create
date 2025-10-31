@@ -8,6 +8,7 @@ export type TemplateAuthoringMode = 'wysiwyg' | 'composable';
 export type TemplatePlaceholderType = 'string' | 'number' | 'boolean';
 export type TemplateDimensionType = 'single' | 'multi';
 export type TemplateDimensionPolicy = 'strict' | 'warn';
+export type TemplateCanonicalVariableName = 'author' | 'license';
 
 export type TemplatePlaceholderPrimitive = string | number | boolean;
 export type TemplateDimensionValue = string;
@@ -44,8 +45,22 @@ export interface TemplateMultiSelectDimension extends TemplateDimensionBase {
 export type TemplateDimension = TemplateSingleSelectDimension | TemplateMultiSelectDimension;
 export type TemplateDimensions = Record<string, TemplateDimension>;
 
+export interface TemplateCanonicalVariableOverrides {
+  description?: string;
+  default?: TemplatePlaceholderPrimitive;
+  sensitive?: boolean;
+  type?: TemplatePlaceholderType;
+}
+
+export interface TemplateCanonicalVariable {
+  name: TemplateCanonicalVariableName;
+  required?: boolean;
+  overrides?: TemplateCanonicalVariableOverrides;
+}
+
 export interface TemplateMetadata {
   placeholders?: TemplatePlaceholder[];
+  variables?: TemplateCanonicalVariable[];
   [key: string]: unknown;
 }
 
