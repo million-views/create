@@ -10,7 +10,7 @@ related_docs:
   - "reference/cli-reference.md"
   - "guides/troubleshooting.md"
   - "explanation/caching-strategy.md"
-last_updated: "2024-10-26"
+last_updated: "2025-10-31"
 ---
 
 # Phase 1 Core UX Features
@@ -19,12 +19,14 @@ This document provides comprehensive documentation for the Phase 1 Core User Exp
 
 ## Overview
 
-Phase 1 introduces four key features that work together to enhance the scaffolding experience:
+Phase 1 introduces six key features that work together to enhance the scaffolding experience:
 
 1. **Template Caching** - Local caching for faster operations
 2. **Detailed Logging** - Comprehensive operation tracking
 3. **Template Discovery** - Fast template exploration
 4. **Dry Run Mode** - Preview operations before execution
+5. **Template Schema Standardization** - Versioned manifest validation artifacts
+6. **Template Variables (Canonical Defaults)** - Shared metadata for common placeholders
 
 ## Template Caching
 
@@ -350,6 +352,119 @@ npm create @m5nv/scaffold my-app -- --from-template react --dry-run --log-file .
 # Preview with cache bypass
 npm create @m5nv/scaffold my-app -- --from-template react --dry-run --no-cache
 ```
+
+## Template Schema Standardization
+
+### Overview
+
+@m5nv/create-scaffold now ships a versioned manifest schema so template authors
+and tooling can rely on a single source of truth. The canonical schema lives at
+`schema/template.v1.json` with a rolling `schema/template.json` alias that
+always points to the latest version.
+
+### Generated Artifacts
+
+- `npm run schema:build` regenerates TypeScript declarations in
+   `types/template-schema.ts` (plus ESM/CJS exports) and ensures they stay in
+   sync with the JSON Schema.
+- `npm run schema:check` verifies the generated artifacts match the schema to
+   prevent drift in CI.
+- Consumers import the schema via `@m5nv/create-scaffold/schema/template.v1`
+   while tooling can reference the types from
+   `@m5nv/create-scaffold/template-schema`.
+
+### CLI Integration
+
+- `templateValidator.mjs` validates manifest files against the schema before any
+   filesystem operations run, producing actionable errors for authors.
+- CLI discovery surfaces schema-backed metadata (name, description, tags,
+   handoff steps) so users always see validated information.
+- Spec compliance tests enforce schema alignment, guaranteeing regressions are
+   caught early.
+
+### Author Workflow
+
+1. Declare template metadata in `template.json` or README frontmatter.
+2. Run `npm run schema:check` locally after edits to verify structure.
+3. Use the exported TypeScript types for author tooling or custom linters.
+
+### Manifest Example
+
+```json
+{
+   "name": "react-typescript",
+   "description": "React application with TypeScript and modern tooling",
+   "metadata": {
+      "variables": [],
+      "placeholders": [
+         {
+            "name": "PROJECT_NAME",
+            "prompt": "What should we name the project?"
+         }
+      ]
+   }
+}
+```
+
+## Template Variables (Canonical Defaults)
+
+### Overview
+
+Canonical template variables supply reusable metadata such as `{{AUTHOR}}` and
+`{{LICENSE}}`. Templates can override these values without reimplementing
+placeholder logic, and downstream tooling receives a normalized set of values.
+
+### Registry and Schema
+
+- The canonical registry ships in `bin/utils/canonicalVariables.mjs` with
+   documented defaults.
+- The schema’s `metadata.variables` section declares overrides for known
+   canonical names and enforces validation rules.
+- Generated TypeScript interfaces (via `npm run schema:build`) expose
+   `TemplateCanonicalVariableDefinition` so author tooling can type-check
+   overrides.
+
+### Runtime Behavior
+
+- `templateValidator.mjs` merges canonical defaults with template-specific
+   placeholders, deduplicating entries and normalizing descriptions.
+- `templateMetadata.mjs` exposes the merged `canonicalVariables` collection so
+   CLI flags (`--list-templates`, `--dry-run`, logging) share an accurate view.
+- The experimental placeholder prompts feature reads the merged set so setup
+   scripts access `ctx.inputs` and `tools.placeholders.applyInputs()` with
+   canonical values present.
+
+### Author Experience
+
+- Override defaults to reflect team-specific metadata:
+
+   ```json
+   {
+      "metadata": {
+         "variables": [
+            {
+               "name": "AUTHOR",
+               "defaultValue": "Million Views DX Team",
+               "description": "Primary maintainer for generated projects"
+            },
+            {
+               "name": "LICENSE",
+               "defaultValue": "Apache-2.0"
+            }
+         ]
+      }
+   }
+   ```
+
+- Combine canonical variables with traditional placeholders to capture project
+   specifics while keeping organizational metadata centralized.
+
+### Safety Guarantees
+
+- Unknown canonical names are rejected during validation, preventing drift.
+- Overrides are sanitized to avoid leaking system paths or sensitive values.
+- Dedicated tests in `test/canonical-variables.test.mjs` and
+   `test/template-validator.test.mjs` cover merge logic and error handling.
 
 ## Feature Integration
 
