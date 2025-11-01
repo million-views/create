@@ -79,6 +79,8 @@ test('createEnvironmentObject returns expected structure', () => {
   assert.equal(env.ide, BASE_PARAMS.ide);
   assert.deepEqual(env.options.raw, BASE_PARAMS.options.raw);
   assert.deepEqual(env.options.byDimension.capabilities, BASE_PARAMS.options.byDimension.capabilities);
+  assert.deepEqual(env.author, {});
+  assert.ok(Object.isFrozen(env.author));
 });
 
 test('createEnvironmentObject handles optional IDE and options', () => {
@@ -95,6 +97,24 @@ test('createEnvironmentObject handles optional IDE and options', () => {
   assert.equal(env.ide, null);
   assert.deepEqual(env.options.raw, []);
   assert.deepEqual(env.options.byDimension, {});
+  assert.deepEqual(env.author, {});
+});
+
+test('createEnvironmentObject normalizes author metadata', () => {
+  const env = createEnvironmentObject(buildParams({
+    author: {
+      name: '  Example Dev  ',
+      email: 'dev@example.com',
+      url: 'https://example.com '
+    }
+  }));
+
+  assert.deepEqual(env.author, {
+    name: 'Example Dev',
+    email: 'dev@example.com',
+    url: 'https://example.com'
+  });
+  assert.ok(Object.isFrozen(env.author));
 });
 
 test('createEnvironmentObject freezes returned object', () => {
@@ -130,6 +150,12 @@ test('createEnvironmentObject rejects invalid parameters', () => {
             capabilities: ['auth']
           }
         }
+      }
+    },
+    {
+      name: 'author metadata with invalid shape',
+      overrides: {
+        author: 'invalid-author'
       }
     }
   ];

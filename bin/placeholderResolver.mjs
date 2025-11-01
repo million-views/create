@@ -30,6 +30,7 @@ export class PlaceholderResolutionError extends Error {
 export async function resolvePlaceholders({
   definitions = [],
   flagInputs = [],
+  configDefaults = [],
   env = process.env,
   interactive,
   noInputPrompts = false,
@@ -52,6 +53,7 @@ export async function resolvePlaceholders({
 
   const resolvedValues = new Map();
   const sourcesByToken = new Map();
+  const unknownTokens = [];
 
   // Seed defaults first so later sources override them.
   for (const definition of definitions) {
@@ -59,6 +61,35 @@ export async function resolvePlaceholders({
       resolvedValues.set(definition.token, definition.defaultValue);
       sourcesByToken.set(definition.token, 'default');
     }
+  }
+
+  const configEntries = Array.isArray(configDefaults) ? configDefaults : [];
+
+  for (const entry of configEntries) {
+    if (typeof entry !== 'string') {
+      continue;
+    }
+
+    const eqIndex = entry.indexOf('=');
+    if (eqIndex === -1) {
+      continue;
+    }
+
+    const name = entry.slice(0, eqIndex).trim();
+    const valueSlice = entry.slice(eqIndex + 1);
+
+    if (!name) {
+      continue;
+    }
+
+    if (!definitionsByToken.has(name)) {
+      unknownTokens.push(name);
+      continue;
+    }
+
+    const coerced = coerceValue(definitionsByToken.get(name), valueSlice, 'configuration default');
+    resolvedValues.set(name, coerced);
+    sourcesByToken.set(name, 'config');
   }
 
   // Environment overrides
@@ -75,7 +106,6 @@ export async function resolvePlaceholders({
   }
 
   // CLI flag overrides
-  const unknownTokens = [];
   for (const entry of flagInputs) {
     if (typeof entry !== 'string') {
       throw new PlaceholderResolutionError('Placeholder overrides must be provided as NAME=value strings');

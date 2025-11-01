@@ -124,6 +124,64 @@ test('resolvePlaceholders reports unknown placeholder flags and ignores them', a
   assert.equal(result.values.PROJECT_NAME, 'cli-demo');
 });
 
+test('resolvePlaceholders applies configuration defaults with correct precedence', async () => {
+  const result = await resolvePlaceholders({
+    definitions: BASE_DEFINITIONS,
+    configDefaults: ['PROJECT_NAME=config-demo', 'API_TOKEN=config-secret'],
+    env: {},
+    interactive: false
+  });
+
+  assert.equal(result.values.PROJECT_NAME, 'config-demo');
+  assert.equal(result.values.API_TOKEN, 'config-secret');
+
+  const sources = Object.fromEntries(result.report.map(entry => [entry.token, entry.source]));
+  assert.equal(sources.PROJECT_NAME, 'config');
+  assert.equal(sources.API_TOKEN, 'config');
+});
+
+test('resolvePlaceholders allows environment overrides over configuration defaults', async () => {
+  const result = await resolvePlaceholders({
+    definitions: BASE_DEFINITIONS,
+    configDefaults: ['PROJECT_NAME=config-demo', 'API_TOKEN=config-secret', 'AUTHOR=Config Author'],
+    env: {
+      CREATE_SCAFFOLD_PLACEHOLDER_AUTHOR: 'Env Author'
+    },
+    interactive: false
+  });
+
+  assert.equal(result.values.AUTHOR, 'Env Author');
+  const sources = Object.fromEntries(result.report.map(entry => [entry.token, entry.source]));
+  assert.equal(sources.AUTHOR, 'env');
+});
+
+test('resolvePlaceholders allows CLI overrides over configuration defaults and environment', async () => {
+  const result = await resolvePlaceholders({
+    definitions: BASE_DEFINITIONS,
+    configDefaults: ['PROJECT_NAME=config-demo', 'API_TOKEN=config-secret', 'MAX_WORKERS=2'],
+    env: {
+      CREATE_SCAFFOLD_PLACEHOLDER_MAX_WORKERS: '6'
+    },
+    flagInputs: ['MAX_WORKERS=10'],
+    interactive: false
+  });
+
+  assert.equal(result.values.MAX_WORKERS, 10);
+  const sources = Object.fromEntries(result.report.map(entry => [entry.token, entry.source]));
+  assert.equal(sources.MAX_WORKERS, 'flag');
+});
+
+test('resolvePlaceholders tracks unknown configuration tokens', async () => {
+  const result = await resolvePlaceholders({
+    definitions: BASE_DEFINITIONS,
+    configDefaults: ['PROJECT_NAME=config-demo', 'API_TOKEN=config-secret', 'UNKNOWN=from-config'],
+    env: {},
+    interactive: false
+  });
+
+  assert.deepEqual(result.unknownTokens, ['UNKNOWN']);
+});
+
 test('resolvePlaceholders enforces NAME=value placeholder syntax', async () => {
   await assert.rejects(
     () => resolvePlaceholders({

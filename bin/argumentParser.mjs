@@ -97,6 +97,10 @@ export function parseArguments(argv = process.argv.slice(2)) {
         type: 'boolean',
         description: 'Disable interactive placeholder prompting'
       },
+      'no-config': {
+        type: 'boolean',
+        description: 'Disable configuration file discovery'
+      },
       interactive: {
         type: 'boolean',
         description: 'Force interactive mode on or off explicitly'
@@ -143,6 +147,7 @@ export function parseArguments(argv = process.argv.slice(2)) {
     const explicitInteractive =
       typeof values.interactive === 'boolean' ? values.interactive : undefined;
     const explicitNoInteractive = Boolean(values['no-interactive']);
+    const noConfig = Boolean(values['no-config']);
     const interactive =
       explicitInteractive !== undefined
         ? explicitInteractive
@@ -169,6 +174,7 @@ export function parseArguments(argv = process.argv.slice(2)) {
       experimentalPlaceholderPrompts,
       interactive,
       noInteractive: explicitNoInteractive,
+      noConfig,
       help: values.help,
       _: positionals // For backward compatibility
     };
@@ -333,6 +339,12 @@ PLACEHOLDER INPUTS:
 GENERAL:
   -h, --help            Show this help message
   --verbose         Enable verbose CLI output (includes placeholder source summary)
+  --no-config       Skip configuration file discovery (.m5nvrc)
+
+CONFIGURATION DEFAULTS:
+  The CLI looks for .m5nvrc in the current directory, then ~/.config/m5nv/rc.json (macOS/Linux)
+  or %APPDATA%/m5nv/rc.json (Windows). Override discovery with CREATE_SCAFFOLD_CONFIG_PATH.
+  Provide repo, branch, author, and placeholders to avoid repeating flags.
 
 EXAMPLES:
 

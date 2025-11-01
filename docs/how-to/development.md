@@ -135,6 +135,50 @@ create/
 - Logs git operations, file copying, and setup script execution
 - Sanitizes log data to prevent information disclosure
 
+## Configuration Defaults
+
+The CLI can bootstrap defaults from configuration files so repetitive flags are
+optional during local development.
+
+### Discovery order
+
+1. `CREATE_SCAFFOLD_CONFIG_PATH` (overrides everything when set).
+2. Project-level `.m5nvrc` in your working directory.
+3. User config: `~/.config/m5nv/rc.json` (macOS/Linux) or `%APPDATA%/m5nv/rc.json`
+   (Windows).
+
+Run with `--no-config` to skip discovery entirely. This is useful when testing
+error scenarios or validating the base CLI behavior.
+
+### Schema
+
+Configuration files are UTF-8 JSON objects supporting the fields below:
+
+```json
+{
+  "repo": "owner/templates",
+  "branch": "main",
+  "author": {
+    "name": "Example Dev",
+    "email": "dev@example.com",
+    "url": "https://example.com"
+  },
+  "placeholders": {
+    "PROJECT_NAME": "demo-app",
+    "API_TOKEN": "example-token"
+  }
+}
+```
+
+- `repo` and `branch` seed CLI defaults when CLI flags are omitted.
+- `author` metadata becomes available to setup scripts via the environment
+  object (values are masked in logs).
+- `placeholders` behave like `--placeholder` but with lower precedence than
+  environment variables and CLI overrides.
+
+Validation errors reference the offending path and instruct you to re-run with
+`--no-config` if you need to bypass a broken file temporarily.
+
 ## Testing Strategy
 
 ### Test Suite Architecture

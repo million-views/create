@@ -342,6 +342,69 @@ runner.test('--list-templates flag shows available templates', async () => {
   }
 });
 
+runner.test('configuration defaults apply to list-templates', async () => {
+  const configDir = await runner.addTempPath(await IntegrationTestUtils.createTempDir('-config-cwd'));
+  const mockRepoPath = await runner.addTempPath(await IntegrationTestUtils.createTempDir('-config-repo'));
+
+  await IntegrationTestUtils.createMockRepo(mockRepoPath, ['basic']);
+
+  const configPath = path.join(configDir, '.m5nvrc');
+  await fs.writeFile(configPath, JSON.stringify({ repo: mockRepoPath }), 'utf8');
+
+  const result = await IntegrationTestUtils.execCLI([
+    '--list-templates'
+  ], {
+    cwd: configDir
+  });
+
+  if (result.exitCode !== 0) {
+    throw new Error(`Expected exit code 0 when using configuration defaults, got ${result.exitCode}. Stderr: ${result.stderr}`);
+  }
+
+  if (!result.stdout.includes(mockRepoPath)) {
+    throw new Error('CLI output should reference repository from configuration defaults');
+  }
+});
+
+runner.test('--no-config skips invalid configuration files', async () => {
+  const configDir = await runner.addTempPath(await IntegrationTestUtils.createTempDir('-no-config-cwd'));
+  const mockRepoPath = await runner.addTempPath(await IntegrationTestUtils.createTempDir('-no-config-repo'));
+
+  await IntegrationTestUtils.createMockRepo(mockRepoPath, ['basic']);
+
+  await fs.writeFile(
+    path.join(configDir, '.m5nvrc'),
+    JSON.stringify({ repo: 'invalid repo value with spaces' }),
+    'utf8'
+  );
+
+  const failureResult = await IntegrationTestUtils.execCLI([
+    '--list-templates'
+  ], {
+    cwd: configDir
+  });
+
+  if (failureResult.exitCode === 0) {
+    throw new Error('Expected configuration error when invalid defaults are present');
+  }
+
+  if (!failureResult.stderr.includes('Configuration error')) {
+    throw new Error('Invalid configuration should surface descriptive error');
+  }
+
+  const successResult = await IntegrationTestUtils.execCLI([
+    '--list-templates',
+    '--repo', mockRepoPath,
+    '--no-config'
+  ], {
+    cwd: configDir
+  });
+
+  if (successResult.exitCode !== 0) {
+    throw new Error(`Expected --no-config to bypass invalid configuration. Stderr: ${successResult.stderr}`);
+  }
+});
+
 // Test 2: --dry-run flag integration
 runner.test('--dry-run flag shows preview without execution', async () => {
   const mockRepoPath = await runner.addTempPath(await IntegrationTestUtils.createTempDir('-dry-run-repo'));

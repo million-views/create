@@ -51,7 +51,7 @@ function sanitizeProjectName(projectName) {
  * @returns {Object} - Immutable Environment_Object
  * @throws {ValidationError} - If any parameter is invalid
  */
-export function createEnvironmentObject({ projectDirectory, projectName, cwd, ide, options, authoringMode, inputs }) {
+export function createEnvironmentObject({ projectDirectory, projectName, cwd, ide, options, authoringMode, inputs, author }) {
   // Validate and sanitize inputs (but don't resolve to absolute paths yet)
   const sanitizedProjectDir = sanitizePath(projectDirectory);
   const sanitizedProjectName = sanitizeProjectName(projectName);
@@ -59,6 +59,7 @@ export function createEnvironmentObject({ projectDirectory, projectName, cwd, id
   const normalizedOptions = validateOptionsShape(options);
   const normalizedInputs = normalizeInputs(inputs);
   const normalizedAuthoringMode = validateAuthoringMode(authoringMode);
+  const normalizedAuthor = normalizeAuthorMetadata(author);
 
   // For cwd, we need to handle it differently since it's already an absolute path
   let sanitizedCwd;
@@ -79,7 +80,8 @@ export function createEnvironmentObject({ projectDirectory, projectName, cwd, id
     ide: validatedIde,
     authoringMode: normalizedAuthoringMode,
     options: normalizedOptions,
-    inputs: normalizedInputs
+    inputs: normalizedInputs,
+    author: normalizedAuthor
   };
 
   // Implement Object.freeze for immutability
@@ -159,4 +161,48 @@ function validateOptionsShape(options) {
     raw: Object.freeze([...raw]),
     byDimension: Object.freeze(normalized)
   });
+}
+
+function normalizeAuthorMetadata(author) {
+  if (author === undefined || author === null) {
+    return Object.freeze({});
+  }
+
+  if (typeof author !== 'object' || Array.isArray(author)) {
+    throw new ValidationError('Author metadata must be an object', 'author');
+  }
+
+  const allowedKeys = new Set(['name', 'email', 'url']);
+  const normalized = {};
+
+  for (const [key, value] of Object.entries(author)) {
+    if (!allowedKeys.has(key)) {
+      throw new ValidationError(`Unknown author metadata field: ${key}`, 'author');
+    }
+
+    if (value === undefined || value === null) {
+      continue;
+    }
+
+    if (typeof value !== 'string') {
+      throw new ValidationError(`author.${key} must be a string`, 'author');
+    }
+
+    const trimmed = value.trim();
+    if (!trimmed) {
+      continue;
+    }
+
+    if (trimmed.includes('\0')) {
+      throw new ValidationError(`author.${key} cannot contain null bytes`, 'author');
+    }
+
+    if (/[\r\n]/.test(trimmed)) {
+      throw new ValidationError(`author.${key} cannot contain newlines`, 'author');
+    }
+
+    normalized[key] = trimmed;
+  }
+
+  return Object.freeze({ ...normalized });
 }

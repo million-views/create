@@ -164,6 +164,7 @@ Canonical variables merge with `metadata.placeholders`, so declaring both does n
 | Option | Short | Type | Required | Default | Description |
 |--------|-------|------|----------|---------|-------------|
 | `--help` | `-h` | boolean | No | `false` | Show help information and exit. |
+| `--no-config` | - | boolean | No | `false` | Skip configuration file discovery (`.m5nvrc`). Useful when troubleshooting or forcing flag-only execution. |
 | `--verbose` | - | boolean | No | `false` | Enable verbose CLI output, including placeholder resolution summaries and additional logging context. |
 
 ## Interaction Options
@@ -180,6 +181,60 @@ Canonical variables merge with `metadata.placeholders`, so declaring both does n
 
 Use these environment variables to opt in or out across shell sessions (for
 example in onboarding scripts or CI smoke tests).
+
+## Configuration Defaults
+
+The CLI can preload defaults from configuration files so teams avoid repeating
+flags for repository, branch, author metadata, and placeholder values.
+
+### Discovery order
+
+1. `CREATE_SCAFFOLD_CONFIG_PATH` (environment override) when set.
+2. Project-level `.m5nvrc` in the current working directory.
+3. User config: `~/.config/m5nv/rc.json` (macOS/Linux) or `%APPDATA%/m5nv/rc.json`
+   (Windows).
+
+Discovery stops at the first file found unless `CREATE_SCAFFOLD_CONFIG_PATH`
+points elsewhere. Use `--no-config` to bypass discovery entirely.
+
+### File format
+
+Configuration files must be UTF-8 JSON objects with the following optional
+fields:
+
+```json
+{
+  "repo": "owner/templates",
+  "branch": "main",
+  "author": {
+    "name": "Example Dev",
+    "email": "dev@example.com",
+    "url": "https://example.com"
+  },
+  "placeholders": {
+    "PROJECT_NAME": "demo-app",
+    "API_TOKEN": "example-token"
+  }
+}
+```
+
+- `repo`: default template repository (user/repo shorthand, URL, or local path).
+- `branch`: optional git branch.
+- `author`: optional metadata surfaced to setup scripts and logs (values are not
+  printed).
+- `placeholders`: map of placeholder tokens to default values (same syntax as
+  `--placeholder`).
+
+### Precedence
+
+1. CLI flags (`--repo`, `--branch`, `--placeholder`, etc.).
+2. Environment variables (e.g. `CREATE_SCAFFOLD_PLACEHOLDER_<TOKEN>`).
+3. Configuration defaults from `.m5nvrc`.
+4. Template-declared defaults.
+
+Verbose mode prints which configuration file was used and which fields were
+applied, masking sensitive placeholder values. Errors reference the offending
+path and suggest `--no-config` for bypassing corrupt files.
 
 ## Examples
 

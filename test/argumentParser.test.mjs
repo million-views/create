@@ -63,6 +63,15 @@ test('parseArguments recognizes no-input-prompts flag', () => {
   assert.equal(result.noInputPrompts, true);
 });
 
+test('parseArguments recognizes no-config flag', () => {
+  const result = parseArguments([
+    ...BASE_ARGS,
+    '--no-config'
+  ]);
+
+  assert.equal(result.noConfig, true);
+});
+
 test('parseArguments toggles verbose mode', () => {
   const result = parseArguments([
     ...BASE_ARGS,
@@ -143,5 +152,6 @@ test('generateHelpText documents IDE and options guidance', () => {
   assert.match(helpText, /--options/);
   assert.match(helpText, /--placeholder/);
   assert.match(helpText, /--no-input-prompts/);
+  assert.match(helpText, /--no-config/);
   assert.match(helpText, /USAGE:/);
 });

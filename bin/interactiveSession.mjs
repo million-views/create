@@ -42,6 +42,8 @@ export class InteractiveSession {
     this.prompt = promptAdapter ?? createPrompt({ stdin, stdout });
     this.ownsPrompt = !promptAdapter;
     this.discovery = templateDiscovery ?? new TemplateDiscovery(cacheManager);
+    this.cachedConfiguration = null;
+    this.configurationLoaded = false;
   }
 
   async collectInputs(initialArgs = {}) {
@@ -155,20 +157,12 @@ export class InteractiveSession {
       };
     }
 
-    if (this.configurationProvider) {
-      try {
-        const config = await this.configurationProvider.load();
-        if (config?.repo) {
-          return {
-            repoUrl: config.repo,
-            branchName: config.branch ?? null
-          };
-        }
-      } catch (error) {
-        if (this.logger?.logError) {
-          await this.logger.logError(error, { operation: 'interactive_config_load' });
-        }
-      }
+    const config = await this.#getConfiguration();
+    if (config?.repo) {
+      return {
+        repoUrl: config.repo,
+        branchName: config.branch ?? null
+      };
     }
 
     return {
@@ -298,10 +292,14 @@ export class InteractiveSession {
   }
 
   async #resolvePlaceholdersInteractively(definitions, answers) {
+    const config = await this.#getConfiguration();
+    const configDefaults = Array.isArray(config?.placeholders) ? config.placeholders : [];
+
     try {
       const resolution = await resolvePlaceholders({
         definitions,
         flagInputs: answers.placeholders,
+        configDefaults,
         env: this.env,
         interactive: true,
         promptAdapter: async ({ placeholder }) => {
@@ -334,6 +332,30 @@ export class InteractiveSession {
 
     const trimmed = String(options).trim();
     return trimmed.length > 0 ? trimmed : null;
+  }
+
+  async #getConfiguration() {
+    if (!this.configurationProvider || typeof this.configurationProvider.load !== 'function') {
+      return null;
+    }
+
+    if (this.configurationLoaded) {
+      return this.cachedConfiguration;
+    }
+
+    try {
+      const config = await this.configurationProvider.load();
+      this.cachedConfiguration = config ?? null;
+    } catch (error) {
+      this.cachedConfiguration = null;
+      if (this.logger?.logError) {
+        await this.logger.logError(error, { operation: 'interactive_config_load' });
+      }
+    } finally {
+      this.configurationLoaded = true;
+    }
+
+    return this.cachedConfiguration;
   }
 }
 

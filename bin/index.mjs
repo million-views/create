@@ -28,6 +28,7 @@ import { normalizeOptions } from './optionsProcessor.mjs';
 import { resolvePlaceholders, PlaceholderResolutionError } from './placeholderResolver.mjs';
 import { InteractiveSession } from './interactiveSession.mjs';
 import { shouldEnterInteractive } from './utils/interactiveUtils.mjs';
+import { loadConfig } from './configLoader.mjs';
 
 // Default configuration
 const DEFAULT_REPO = 'million-views/templates';
@@ -49,6 +50,67 @@ async function main() {
     const cacheManager = new CacheManager();
     let logger = null;
 
+    let configMetadata = null;
+    let configDefaults = null;
+    let configAuthor = null;
+    let configPlaceholders = Object.freeze([]);
+
+    try {
+      const configResult = await loadConfig({
+        cwd: process.cwd(),
+        env: process.env,
+        skip: Boolean(args.noConfig)
+      });
+
+      if (configResult) {
+        configDefaults = configResult.defaults;
+        configPlaceholders = Array.isArray(configDefaults.placeholders)
+          ? configDefaults.placeholders
+          : Object.freeze([]);
+        configAuthor = configDefaults.author ?? null;
+
+        const providedKeys = [];
+        const appliedKeys = [];
+
+        if (configDefaults.repo !== undefined && configDefaults.repo !== null) {
+          providedKeys.push('repo');
+          if (args.repo === undefined) {
+            args.repo = configDefaults.repo;
+            appliedKeys.push('repo');
+          }
+        }
+
+        if (configDefaults.branch !== undefined && configDefaults.branch !== null) {
+          providedKeys.push('branch');
+          if (args.branch === undefined) {
+            args.branch = configDefaults.branch;
+            appliedKeys.push('branch');
+          }
+        }
+
+        if (configAuthor !== null) {
+          providedKeys.push('author');
+        }
+
+        if (configPlaceholders.length > 0) {
+          providedKeys.push('placeholders');
+        }
+
+        configMetadata = {
+          path: configResult.path,
+          providedKeys,
+          appliedKeys,
+          author: configAuthor,
+          placeholders: configPlaceholders,
+          defaults: configDefaults
+        };
+      }
+    } catch (error) {
+      const sanitized = sanitizeErrorMessage(error.message ?? String(error));
+      console.error(`❌ Configuration error: ${sanitized}`);
+      process.exit(1);
+    }
+
     const interactiveDecision = shouldEnterInteractive({
       args,
       env: process.env,
@@ -69,8 +131,22 @@ async function main() {
         const session = new InteractiveSession({
           cacheManager,
           logger,
-          defaults: { repo: DEFAULT_REPO, branch: null },
-          env: process.env
+          defaults: {
+            repo: args.repo ?? configDefaults?.repo ?? DEFAULT_REPO,
+            branch: args.branch ?? configDefaults?.branch ?? null
+          },
+          env: process.env,
+          configurationProvider: configMetadata
+            ? {
+                async load() {
+                  return {
+                    repo: configDefaults?.repo ?? null,
+                    branch: configDefaults?.branch ?? null,
+                    placeholders: configMetadata?.placeholders ?? []
+                  };
+                }
+              }
+            : undefined
         });
 
         const sessionResult = await session.collectInputs(args);
@@ -179,6 +255,24 @@ async function main() {
         reason: interactiveEvent.reason,
         status: interactiveEvent.status
       });
+    }
+
+    if (configMetadata) {
+      if (args.verbose) {
+        const appliedSummary = configMetadata.appliedKeys.length > 0
+          ? `applied: ${configMetadata.appliedKeys.join(', ')}`
+          : 'applied: none';
+        // ast-grep-ignore: no-console-log
+        console.log(`ℹ️  Using configuration defaults from ${configMetadata.path} (${appliedSummary})`);
+      }
+
+      if (logger) {
+        await logger.logOperation('config_load', {
+          path: configMetadata.path,
+          providedKeys: configMetadata.providedKeys,
+          appliedKeys: configMetadata.appliedKeys
+        });
+      }
     }
 
     // Handle special modes that don't require full scaffolding
@@ -366,6 +460,7 @@ async function main() {
           const resolution = await resolvePlaceholders({
             definitions: placeholderDefinitions,
             flagInputs: args.placeholders,
+            configDefaults: configMetadata?.placeholders ?? [],
             env: process.env,
             interactive: process.stdout.isTTY && process.stdin.isTTY,
             noInputPrompts: args.noInputPrompts
@@ -469,6 +564,7 @@ async function main() {
         dimensions: metadata.dimensions,
         logger,
         inputs: inputsPayload,
+        author: configAuthor
       });
     } catch (error) {
       setupError = error;
@@ -943,7 +1039,7 @@ async function cleanupAuthorAssets(projectDirectory, authorAssetsDir, logger) {
 /**
  * Execute optional setup script if it exists
  */
-async function executeSetupScript({ projectDirectory, projectName, ide, options, authoringMode, dimensions = {}, logger, inputs = Object.freeze({}) }) {
+async function executeSetupScript({ projectDirectory, projectName, ide, options, authoringMode, dimensions = {}, logger, inputs = Object.freeze({}), author = null }) {
   const setupScriptPath = path.join(projectDirectory, SETUP_SCRIPT);
 
   // Check if setup script exists
@@ -1017,7 +1113,8 @@ async function executeSetupScript({ projectDirectory, projectName, ide, options,
       ide,
       options,
       authoringMode,
-      inputs
+      inputs,
+      author
     });
 
     const tools = await createSetupTools({
