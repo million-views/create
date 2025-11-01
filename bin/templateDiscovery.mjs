@@ -168,10 +168,12 @@ export class TemplateDiscovery {
       }
     }
 
-    metadata.supportedOptions = structuredMetadata.supportedOptions;
-    metadata.authoringMode = structuredMetadata.authoringMode;
-    metadata.dimensions = structuredMetadata.dimensions;
-    metadata.handoff = structuredMetadata.handoffSteps;
+  metadata.supportedOptions = structuredMetadata.supportedOptions;
+  metadata.authoringMode = structuredMetadata.authoringMode;
+  metadata.dimensions = structuredMetadata.dimensions;
+  metadata.handoff = structuredMetadata.handoffSteps;
+  metadata.placeholders = structuredMetadata.placeholders ?? [];
+  metadata.canonicalVariables = structuredMetadata.canonicalVariables ?? [];
 
     return metadata;
   }
@@ -380,5 +382,22 @@ export class TemplateDiscovery {
     }
 
     return output;
+  }
+
+  /**
+   * Prepare template metadata for interactive selection menus
+   * @param {Array<Object>} templates - Templates returned from discovery
+   * @returns {Array<Object>} Formatted template entries for menus
+   */
+  formatTemplateOptions(templates) {
+    return templates.map((template, index) => ({
+      id: index + 1,
+      name: template.name,
+      description: template.description ?? 'No description available',
+      tags: Array.isArray(template.tags) ? template.tags : [],
+      canonicalVariables: Array.isArray(template.canonicalVariables) ? template.canonicalVariables : [],
+      handoffSteps: Array.isArray(template.handoff) ? template.handoff : [],
+      placeholders: Array.isArray(template.placeholders) ? template.placeholders : []
+    }));
   }
 }

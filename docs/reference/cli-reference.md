@@ -11,7 +11,7 @@ related_docs:
   - "../how-to/setup-recipes.md"
   - "environment.md"
   - "error-codes.md"
-last_updated: "2025-10-30"
+last_updated: "2025-10-31"
 ---
 
 # CLI Reference
@@ -62,6 +62,15 @@ npx @m5nv/create-scaffold@latest <project-directory> --from-template <template-n
 # Global installation
 create-scaffold <project-directory> --from-template <template-name> [options]
 ```
+
+### Interactive entry
+
+- `npm create @m5nv/scaffold` (no positional arguments) automatically launches
+  the interactive session when run in a TTY.
+- `npm create @m5nv/scaffold -- --interactive` forces the interactive prompts
+  even when positional arguments are provided.
+- Set `CREATE_SCAFFOLD_FORCE_INTERACTIVE=1` to opt in globally; use
+  `CREATE_SCAFFOLD_NO_INTERACTIVE=1` or `--no-interactive` to disable.
 
 ## Arguments
 
@@ -156,6 +165,21 @@ Canonical variables merge with `metadata.placeholders`, so declaring both does n
 |--------|-------|------|----------|---------|-------------|
 | `--help` | `-h` | boolean | No | `false` | Show help information and exit. |
 | `--verbose` | - | boolean | No | `false` | Enable verbose CLI output, including placeholder resolution summaries and additional logging context. |
+
+## Interaction Options
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `--interactive` | boolean | `false` | Force interactive prompts even when project directory and template arguments are provided. |
+| `--no-interactive` | boolean | `false` | Explicitly disable interactive mode (overrides automatic detection and environment flags). |
+
+**Environment toggles**
+
+- `CREATE_SCAFFOLD_FORCE_INTERACTIVE`: any truthy value forces interactive mode.
+- `CREATE_SCAFFOLD_NO_INTERACTIVE`: any truthy value disables interactive mode.
+
+Use these environment variables to opt in or out across shell sessions (for
+example in onboarding scripts or CI smoke tests).
 
 ## Examples
 
@@ -284,6 +308,29 @@ my-app
 ```
 
 When the `tree` command is unavailable, the CLI prints `🌲 Tree preview unavailable: tree command unavailable` instead of the directory listing.
+
+### Interactive Walkthrough
+
+```bash
+# Launch guided prompts with explicit flag
+npm create @m5nv/scaffold -- --interactive
+
+# Automatically enter interactive mode when no positional arguments are supplied
+npm create @m5nv/scaffold
+```
+
+**What happens:**
+
+- The CLI fetches the template catalog from the cache (cloning when necessary)
+  and renders descriptions, tags, and canonical variables for each entry.
+- You select the template by number, then provide the project directory name
+  and optional overrides such as repository, branch, IDE, options, logging, and
+  cache TTL.
+- If experimental placeholder prompts are enabled during the session and the
+  chosen template declares placeholders, the CLI resolves them interactively in
+  sequence.
+- Cancelling the session (Ctrl+C or typing `q`) exits without mutating the file
+  system.
 
 ### Cache Management
 

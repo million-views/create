@@ -38,6 +38,38 @@ test('parseArguments leaves optional flags undefined when omitted', () => {
 
   assert.equal(result.ide, undefined);
   assert.equal(result.options, undefined);
+  assert.equal(result.interactive, undefined);
+  assert.equal(result.noInteractive, false);
+});
+
+test('parseArguments captures interactive flag when provided', () => {
+  const result = parseArguments([
+    ...BASE_ARGS,
+    '--interactive'
+  ]);
+
+  assert.equal(result.interactive, true);
+  assert.equal(result.noInteractive, false);
+});
+
+test('parseArguments treats --interactive=false as opt-out', () => {
+  const result = parseArguments([
+    ...BASE_ARGS,
+    '--interactive=false'
+  ]);
+
+  assert.equal(result.interactive, false);
+  assert.equal(result.noInteractive, true);
+});
+
+test('parseArguments maps --no-interactive to interactive false', () => {
+  const result = parseArguments([
+    ...BASE_ARGS,
+    '--no-interactive'
+  ]);
+
+  assert.equal(result.interactive, false);
+  assert.equal(result.noInteractive, true);
 });
 
 test('parseArguments rejects unknown option', () => {

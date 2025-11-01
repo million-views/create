@@ -214,6 +214,104 @@ const runner = {
   }
 };
 
+const INTERACTIVE_PROMPT_PLAN = Object.freeze([
+  { prompt: 'Select a template', input: '1' },
+  { prompt: 'Project directory name:', input: 'interactive-sample' },
+  { prompt: 'Branch (press enter for default)', input: '' },
+  { prompt: 'Target IDE (press enter to skip)', input: '' },
+  { prompt: 'Options (comma-separated, press enter to skip)', input: '' },
+  { prompt: 'Log file path (press enter to skip)', input: '' },
+  { prompt: 'Cache TTL in hours (press enter for default)', input: '' },
+  { prompt: 'Enable experimental placeholder prompts?', input: 'n' }
+]);
+
+async function runInteractiveFlow({ args, envOverrides = {}, cwd, promptPlan = INTERACTIVE_PROMPT_PLAN }) {
+  const child = spawn('node', [CLI_PATH, ...args], {
+    stdio: ['pipe', 'pipe', 'pipe'],
+    cwd,
+    env: { ...process.env, ...envOverrides }
+  });
+
+  const stdoutChunks = [];
+  const stderrChunks = [];
+  let collectedStdout = '';
+  const promptWatchers = [];
+  let closed = false;
+
+  const closePromise = new Promise((resolve) => {
+    child.on('close', (code) => {
+      closed = true;
+      for (let index = promptWatchers.length - 1; index >= 0; index -= 1) {
+        const watcher = promptWatchers[index];
+        watcher.reject?.(new Error(`Process exited before prompt: ${watcher.needle}`));
+      }
+      promptWatchers.length = 0;
+      resolve(code);
+    });
+  });
+
+  const waitForOutput = (needle) => {
+    if (collectedStdout.includes(needle)) {
+      return Promise.resolve();
+    }
+    return new Promise((resolve, reject) => {
+      promptWatchers.push({ needle, resolve, reject });
+    });
+  };
+
+  const flushWatchers = () => {
+    for (let index = promptWatchers.length - 1; index >= 0; index -= 1) {
+      const watcher = promptWatchers[index];
+      if (collectedStdout.includes(watcher.needle)) {
+        watcher.resolve();
+        promptWatchers.splice(index, 1);
+      }
+    }
+  };
+
+  child.stdout?.on('data', (data) => {
+    const text = data.toString();
+    stdoutChunks.push(text);
+    collectedStdout += text;
+    flushWatchers();
+  });
+
+  child.stderr?.on('data', (data) => {
+    stderrChunks.push(data.toString());
+  });
+
+  try {
+  for (const step of promptPlan) {
+      await waitForOutput(step.prompt);
+      if (closed) {
+        break;
+      }
+      try {
+        child.stdin.write(`${step.input}\n`);
+      } catch {
+        break;
+      }
+    }
+  } finally {
+    if (!closed) {
+      await new Promise((resolve) => setTimeout(resolve, 50));
+      try {
+        child.stdin.end();
+      } catch {
+        // Ignore errors closing stdin when process exits concurrently
+      }
+    }
+  }
+
+  const exitCode = await closePromise;
+
+  return {
+    exitCode,
+    stdout: stdoutChunks.join(''),
+    stderr: stderrChunks.join('')
+  };
+}
+
 // Test 1: --list-templates flag integration
 runner.test('--list-templates flag shows available templates', async () => {
   const mockRepoPath = await runner.addTempPath(await IntegrationTestUtils.createTempDir('-list-templates-repo'));
@@ -746,6 +844,69 @@ export default function setup(env) {
     if (error.code !== 'ENOENT') {
       throw error;
     }
+  }
+});
+
+runner.test('Interactive mode scaffolds project with guided prompts', async () => {
+  const mockRepoPath = await runner.addTempPath(await IntegrationTestUtils.createTempDir('-interactive-repo'));
+  await IntegrationTestUtils.createMockRepo(mockRepoPath, ['basic']);
+
+  const executionDir = await runner.addTempPath(await IntegrationTestUtils.createTempDir('-interactive-run'));
+
+  const { exitCode, stdout, stderr } = await runInteractiveFlow({
+    args: ['--interactive', '--repo', mockRepoPath],
+    cwd: executionDir
+  });
+
+  if (exitCode !== 0) {
+    throw new Error(`Expected interactive flow to exit with code 0, received ${exitCode}. Stderr: ${stderr}`);
+  }
+
+  if (!stdout.includes('Interactive mode enabled')) {
+    throw new Error('Interactive session banner should be displayed');
+  }
+
+  if (!stdout.includes('Project created successfully')) {
+    throw new Error('Interactive flow should complete scaffolding successfully');
+  }
+
+  const projectPath = path.join(executionDir, 'interactive-sample');
+  try {
+    await fs.access(projectPath);
+  } catch {
+    throw new Error('Interactive flow should create the project directory');
+  }
+});
+
+runner.test('Interactive mode auto-launches when forced by environment', async () => {
+  const mockRepoPath = await runner.addTempPath(await IntegrationTestUtils.createTempDir('-interactive-env-repo'));
+  await IntegrationTestUtils.createMockRepo(mockRepoPath, ['basic']);
+
+  const executionDir = await runner.addTempPath(await IntegrationTestUtils.createTempDir('-interactive-env-run'));
+
+  const { exitCode, stdout, stderr } = await runInteractiveFlow({
+    args: ['--repo', mockRepoPath],
+    cwd: executionDir,
+    envOverrides: { CREATE_SCAFFOLD_FORCE_INTERACTIVE: '1' }
+  });
+
+  if (exitCode !== 0) {
+    throw new Error(`Expected auto-launched interactive flow to exit with code 0, received ${exitCode}. Stderr: ${stderr}`);
+  }
+
+  if (!stdout.includes('Interactive mode enabled')) {
+    throw new Error('Interactive session should launch without explicit flag when forced');
+  }
+
+  if (!stdout.includes('Project created successfully')) {
+    throw new Error('Auto-launched interactive flow should complete scaffolding');
+  }
+
+  const projectPath = path.join(executionDir, 'interactive-sample');
+  try {
+    await fs.access(projectPath);
+  } catch {
+    throw new Error('Auto-launched interactive flow should create the project directory');
   }
 });
 

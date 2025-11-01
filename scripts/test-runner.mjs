@@ -120,6 +120,12 @@ class TestRunner {
         description: 'CLI argument parsing and validation smoke coverage',
         homeSuffix: 'argument-parser'
       },
+       {
+         name: 'Interactive Utils Tests',
+         command: ['--test', './test/interactive-utils.test.mjs'],
+         description: 'Interactive trigger heuristics and environment control',
+         homeSuffix: 'interactive-utils'
+       },
       {
         name: 'Options Processor Tests',
         command: ['--test', './test/options-processor.test.mjs'],
@@ -209,6 +215,11 @@ class TestRunner {
         description: 'CLI argument parsing and validation smoke coverage',
         homeSuffix: 'quick-arguments'
       },
+       {
+         name: 'Quick Interactive Utils Tests',
+         command: ['--test', './test/interactive-utils.test.mjs'],
+         description: 'Interactive trigger heuristics sanity checks'
+       },
       {
         name: 'Setup Runtime Tests',
         command: ['--test', './test/setup-runtime.test.mjs'],

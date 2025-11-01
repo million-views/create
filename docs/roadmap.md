@@ -109,10 +109,11 @@ manifests healthy.
 - **Configuration File:** Support a `.m5nvrc` JSON file for default repository,
   branch, and author info to reduce repeated CLI flags. **Impact:** Medium –
   enables team standards and reduces setup time.
-- **Interactive Mode:** When invoked without arguments
-  (`npm create @m5nv/scaffold`), prompt for template selection from the cached
-  catalog. **Impact:** Medium – lowers the barrier for new users and onboarding
-  sessions.
+- **Interactive Mode (delivered v0.3):** When invoked without arguments
+  (`npm create @m5nv/scaffold`) or with `--interactive`, the CLI now launches a
+  guided session that discovers templates, collects project directory, and
+  captures optional flags before resuming the normal workflow. **Impact:**
+  Medium – lowers the barrier for new users and onboarding sessions.
 
 **Dependencies:** Canonical schema/types (delivered); caching (delivered).
 

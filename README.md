@@ -10,7 +10,7 @@ related_docs:
   - "docs/tutorial/getting-started.md"
   - "docs/how-to/creating-templates.md"
   - "docs/reference/cli-reference.md"
-last_updated: "2025-10-30"
+last_updated: "2025-10-31"
 ---
 
 # @m5nv/create-scaffold
@@ -48,12 +48,18 @@ npm create @m5nv/scaffold my-app -- \
 npm create @m5nv/scaffold -- --list-templates
 ```
 
+```bash
+# Launch guided prompts (auto-launches when no arguments supplied)
+npm create @m5nv/scaffold -- --interactive
+```
+
 ## Key capabilities
 
 - Sandboxed setup scripts with structured helpers (files, placeholders, text, JSON, IDE presets)
 - Repository caching under `~/.m5nv/cache` for repeat scaffolds
 - Template-defined metadata (`template.json`) that can expose handoff instructions
 - Dry-run previews with operation summaries and optional tree output
+- Guided interactive mode when arguments are missing (or explicitly requested) to collect project inputs
 - CLI argument validation, logging, and preflight checks for Git access
 - Versioned template schema and generated TypeScript declarations published for downstream tooling
 
@@ -91,6 +97,8 @@ npm create @m5nv/scaffold <project-name> -- --from-template <template-name> [opt
 | `--log-file`          | Write structured logs to the specified file     |
 | `--no-cache`          | Bypass the local repository cache               |
 | `--cache-ttl`         | Override cache TTL (1–720 hours)                |
+| `--interactive`       | Force guided prompts for template selection     |
+| `--no-interactive`    | Disable interactive mode                        |
 | `--help, -h`          | Show help                                       |
 
 ## Examples

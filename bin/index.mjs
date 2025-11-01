@@ -2,6 +2,7 @@
 
 import fs from 'fs/promises';
 import path from 'path';
+import { pathToFileURL } from 'node:url';
 import { parseArguments, validateArguments, generateHelpText, ArgumentError } from './argumentParser.mjs';
 import {
   validateAllInputs,
@@ -25,6 +26,8 @@ import { shouldIgnoreTemplateEntry, createTemplateIgnoreSet } from './utils/temp
 import { loadTemplateMetadataFromPath } from './templateMetadata.mjs';
 import { normalizeOptions } from './optionsProcessor.mjs';
 import { resolvePlaceholders, PlaceholderResolutionError } from './placeholderResolver.mjs';
+import { InteractiveSession } from './interactiveSession.mjs';
+import { shouldEnterInteractive } from './utils/interactiveUtils.mjs';
 
 // Default configuration
 const DEFAULT_REPO = 'million-views/templates';
@@ -43,6 +46,103 @@ async function main() {
   try {
     // Parse arguments using native Node.js parseArgs
     const args = parseArguments();
+    const cacheManager = new CacheManager();
+    let logger = null;
+
+    const interactiveDecision = shouldEnterInteractive({
+      args,
+      env: process.env,
+      tty: {
+        stdin: Boolean(process.stdin?.isTTY),
+        stdout: Boolean(process.stdout?.isTTY)
+      }
+    });
+
+    const interactiveEvent = {
+      triggered: interactiveDecision.enter,
+      reason: interactiveDecision.reason,
+      status: interactiveDecision.enter ? 'pending' : 'skipped'
+    };
+
+    if (interactiveDecision.enter) {
+      try {
+        const session = new InteractiveSession({
+          cacheManager,
+          logger,
+          defaults: { repo: DEFAULT_REPO, branch: null },
+          env: process.env
+        });
+
+        const sessionResult = await session.collectInputs(args);
+
+        if (sessionResult?.cancelled) {
+          interactiveEvent.status = 'cancelled';
+          console.log('\nℹ️  Interactive session cancelled. No changes were made.');
+          return;
+        }
+
+        if (sessionResult.projectDirectory !== undefined) {
+          args.projectDirectory = sessionResult.projectDirectory;
+        }
+        if (sessionResult.template !== undefined) {
+          args.template = sessionResult.template;
+        }
+        if (sessionResult.repo !== undefined) {
+          args.repo = sessionResult.repo;
+        }
+        if (sessionResult.branch !== undefined) {
+          args.branch = sessionResult.branch || undefined;
+        }
+        if (sessionResult.ide !== undefined) {
+          const ideValue = sessionResult.ide === null || sessionResult.ide === ''
+            ? undefined
+            : sessionResult.ide;
+          args.ide = ideValue;
+        }
+        if (sessionResult.options !== undefined) {
+          const optionsValue = typeof sessionResult.options === 'string' && sessionResult.options.trim().length > 0
+            ? sessionResult.options
+            : undefined;
+          args.options = optionsValue;
+        }
+        if (sessionResult.logFile !== undefined) {
+          const logFileValue = sessionResult.logFile === null || sessionResult.logFile === ''
+            ? undefined
+            : sessionResult.logFile;
+          args.logFile = logFileValue;
+        }
+        if (sessionResult.noCache !== undefined) {
+          args.noCache = Boolean(sessionResult.noCache);
+        }
+        if (sessionResult.cacheTtl !== undefined) {
+          const ttlValue = sessionResult.cacheTtl === null || sessionResult.cacheTtl === ''
+            ? undefined
+            : sessionResult.cacheTtl;
+          args.cacheTtl = ttlValue;
+        }
+        if (sessionResult.placeholders !== undefined) {
+          args.placeholders = Array.isArray(sessionResult.placeholders)
+            ? sessionResult.placeholders
+            : args.placeholders;
+        }
+        if (sessionResult.experimentalPlaceholderPrompts !== undefined) {
+          args.experimentalPlaceholderPrompts = Boolean(sessionResult.experimentalPlaceholderPrompts);
+        }
+        if (sessionResult.listTemplates !== undefined) {
+          args.listTemplates = Boolean(sessionResult.listTemplates);
+        }
+        if (sessionResult.dryRun !== undefined) {
+          args.dryRun = Boolean(sessionResult.dryRun);
+        }
+
+        args.interactive = true;
+        args.noInteractive = false;
+        interactiveEvent.status = 'completed';
+      } catch (error) {
+        interactiveEvent.status = 'failed';
+        throw error;
+      }
+    }
 
     // Validate arguments
     const validation = validateArguments(args);
@@ -65,7 +165,6 @@ async function main() {
     }
 
     // Initialize logger if log file is specified
-    let logger = null;
     if (args.logFile) {
       logger = new Logger(args.logFile);
       await logger.logOperation('cli_start', {
@@ -74,8 +173,13 @@ async function main() {
       });
     }
 
-    // Initialize cache manager
-    const cacheManager = new CacheManager();
+    if (logger) {
+      await logger.logOperation('cli_interactive_mode', {
+        triggered: interactiveEvent.triggered,
+        reason: interactiveEvent.reason,
+        status: interactiveEvent.status
+      });
+    }
 
     // Handle special modes that don't require full scaffolding
     if (args.listTemplates) {
@@ -976,5 +1080,8 @@ async function executeSetupScript({ projectDirectory, projectName, ide, options,
 
 
 
-// Run main function
-main();
+// Run main function when executed directly
+const entryPoint = process.argv[1];
+if (entryPoint && import.meta.url === pathToFileURL(entryPoint).href) {
+  main();
+}

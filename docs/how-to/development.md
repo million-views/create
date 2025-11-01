@@ -12,7 +12,7 @@ related_docs:
   - "../../CONTRIBUTING.md"
   - "../guides/troubleshooting.md"
   - "../reference/cli-reference.md"
-last_updated: "2024-10-26"
+last_updated: "2025-10-31"
 ---
 
 # Development Guide
@@ -34,6 +34,7 @@ npm test
 
 # Test CLI locally (package is not published yet)
 node bin/index.mjs --help
+node bin/index.mjs --interactive
 npx . test-project -- --from-template react-vite
 
 # Optional: expose the create-scaffold binary globally
@@ -60,12 +61,14 @@ create/
 │   ├── cacheManager.mjs          # Template repository caching system
 │   ├── logger.mjs                # Structured logging with file output
 │   ├── templateDiscovery.mjs     # Template listing and metadata parsing
+│   ├── interactiveSession.mjs    # Guided interactive prompts and catalog flow
 │   ├── dryRunEngine.mjs          # Preview mode for planned operations
 │   ├── environmentFactory.mjs    # Environment_Object creation and validation
 │   └── utils/                    # Shared utility modules
 │       ├── commandUtils.mjs      # Git command execution utilities
 │       ├── fsUtils.mjs           # File system operation utilities
-│       └── validationUtils.mjs   # Input validation and sanitization
+│       ├── validationUtils.mjs   # Input validation and sanitization
+│       └── interactiveUtils.mjs  # Interactive mode detection helpers
 ├── docs/                         # User and developer documentation
 ├── test/                         # Comprehensive test suites
 ├── scripts/                      # Development and testing utilities
@@ -94,8 +97,22 @@ create/
 #### Argument Parser (`bin/argumentParser.mjs`)
 
 - Uses native `util.parseArgs` for robust CLI argument handling
-- Supports all CLI flags: `--help`, `--from-template`, `--repo`, `--branch`, `--log-file`, `--dry-run`, `--no-cache`
+- Supports all CLI flags: `--help`, `--from-template`, `--repo`, `--branch`,
+  `--interactive`, `--no-interactive`, `--log-file`, `--dry-run`, `--no-cache`
 - Provides comprehensive help text and usage information
+
+#### Interactive Session (`bin/interactiveSession.mjs`)
+
+- Drives the guided prompt workflow for template selection and input capture
+- Coordinates repository caching, catalog formatting, and placeholder prompts
+- Returns normalized arguments that continue through the main CLI pipeline
+
+#### Interactive Utilities (`bin/utils/interactiveUtils.mjs`)
+
+- Determines whether interactive mode should launch based on flags, env vars,
+  TTY state, and missing positional arguments
+- Encapsulates environment toggles (`CREATE_SCAFFOLD_FORCE_INTERACTIVE`,
+  `CREATE_SCAFFOLD_NO_INTERACTIVE`) for use by both the CLI and tests
 
 #### Security Module (`bin/security.mjs`)
 

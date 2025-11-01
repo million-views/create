@@ -19,6 +19,29 @@ import { handleValidationError } from './utils/validationUtils.mjs';
  */
 export function parseArguments(argv = process.argv.slice(2)) {
   try {
+    const normalizedArgv = Array.isArray(argv)
+      ? argv.map((entry) => {
+        if (typeof entry !== 'string') {
+          return entry;
+        }
+
+        if (entry.startsWith('--interactive=')) {
+          const value = entry.slice('--interactive='.length).trim().toLowerCase();
+          if (value === 'true') {
+            return '--interactive';
+          }
+          if (value === 'false') {
+            return '--no-interactive';
+          }
+          throw new ArgumentError(
+            `Invalid option value: --interactive expects true or false but received "${value}"`
+          );
+        }
+
+        return entry;
+      })
+      : [];
+
     const options = {
       'from-template': {
         type: 'string',
@@ -74,6 +97,14 @@ export function parseArguments(argv = process.argv.slice(2)) {
         type: 'boolean',
         description: 'Disable interactive placeholder prompting'
       },
+      interactive: {
+        type: 'boolean',
+        description: 'Force interactive mode on or off explicitly'
+      },
+      'no-interactive': {
+        type: 'boolean',
+        description: 'Disable automatic interactive mode triggering'
+      },
       verbose: {
         type: 'boolean',
         description: 'Enable verbose logging during scaffolding'
@@ -90,7 +121,7 @@ export function parseArguments(argv = process.argv.slice(2)) {
     };
 
     const { values, positionals } = parseArgs({
-      args: argv,
+      args: normalizedArgv,
       options,
       allowPositionals: true,
       strict: true
@@ -109,6 +140,16 @@ export function parseArguments(argv = process.argv.slice(2)) {
     const verbose = Boolean(values.verbose);
     const experimentalPlaceholderPrompts = Boolean(values['experimental-placeholder-prompts']);
 
+    const explicitInteractive =
+      typeof values.interactive === 'boolean' ? values.interactive : undefined;
+    const explicitNoInteractive = Boolean(values['no-interactive']);
+    const interactive =
+      explicitInteractive !== undefined
+        ? explicitInteractive
+        : explicitNoInteractive
+          ? false
+          : undefined;
+
     // Return parsed arguments in expected format
     return {
       projectDirectory,
@@ -126,6 +167,8 @@ export function parseArguments(argv = process.argv.slice(2)) {
       noInputPrompts,
       verbose,
       experimentalPlaceholderPrompts,
+      interactive,
+      noInteractive: explicitNoInteractive,
       help: values.help,
       _: positionals // For backward compatibility
     };
