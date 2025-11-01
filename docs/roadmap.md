@@ -8,7 +8,7 @@ related_docs:
   - "phase-1-features.md"
   - "how-to/development.md"
   - "../CONTRIBUTING.md"
-last_updated: "2025-10-31"
+last_updated: "2025-11-01"
 ---
 
 # Roadmap
@@ -21,7 +21,7 @@ release tracking.
 | Phase   | Version | Focus                | Status         | Target Window | Notes                                            |
 | ------- | ------- | -------------------- | -------------- | ------------- | ------------------------------------------------ |
 | Phase 1 | v0.3    | Core user experience | ✅ Delivered   | 2025 Q2       | Caching, logging, discovery, dry run complete    |
-| Phase 2 | v0.4    | Developer experience | 🟡 In planning | 2025 Q4       | Validation tooling and onboarding comforts       |
+| Phase 2 | v0.4    | Developer experience | ✅ Delivered   | 2025 Q4       | Validation tooling, config defaults, interactive |
 | Phase 3 | v0.5    | Advanced workflows   | 🟡 In planning | 2026 Q1       | Multi-template orchestration, power-user support |
 | Phase 4 | v0.6    | Ecosystem health     | 🟡 In planning | 2026 Q2       | Automated quality and governance                 |
 
@@ -97,28 +97,26 @@ hold.
   while still using the cache for fast previews.
 - **Impact:** Medium – builds confidence, especially for CI/CD.
 
-## Phase 2 · Developer Experience (Target v0.4)
+## Phase 2 · Developer Experience (Delivered v0.4)
 
 **Objective:** Reduce template author friction and provide guardrails that keep
 manifests healthy.
 
-- **Template Validation:** Deliver a `--validate-template` command that reuses
-  the published schema/types for manifest checks, then layers setup-script
-  linting and required-file verification for CI and local guardrails.
+- **Template Validation:** `--validate-template` command reuses the published
+  schema/types for manifest checks, layers setup-script linting and
+  required-file verification, and supports JSON output for CI.
   **Impact:** Medium – prevents frustration, improves template quality.
-- **Configuration File:** Support a `.m5nvrc` JSON file for default repository,
-  branch, and author info to reduce repeated CLI flags. **Impact:** Medium –
-  enables team standards and reduces setup time.
-- **Interactive Mode (delivered v0.3):** When invoked without arguments
-  (`npm create @m5nv/scaffold`) or with `--interactive`, the CLI now launches a
-  guided session that discovers templates, collects project directory, and
-  captures optional flags before resuming the normal workflow. **Impact:**
-  Medium – lowers the barrier for new users and onboarding sessions.
+- **Configuration File:** `.m5nvrc` discovery with environment overrides enables
+  defaults for repository, branch, author metadata, and placeholder values.
+  **Impact:** Medium – enables team standards and reduces setup time.
+- **Interactive Mode:** Invoking without arguments or supplying `--interactive`
+  launches guided discovery to collect inputs before scaffolding.
+  **Impact:** Medium – lowers the barrier for new users and onboarding sessions.
 
 **Dependencies:** Canonical schema/types (delivered); caching (delivered).
 
-**Key Metrics:** Validation command adoption in template CI pipelines; reduction
-in template onboarding support tickets.
+**Key Metrics:** Validation command adoption in template CI pipelines;
+reduction in template onboarding support tickets.
 
 ## Phase 3 · Advanced Workflows (Target v0.5)
 

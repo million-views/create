@@ -252,6 +252,11 @@ test('inputs API exposes resolved placeholder values and applyInputs helper', as
   const templateFile = path.join(projectDir, 'README.md');
   await fs.writeFile(templateFile, '# {{PROJECT_NAME}}\nToken: {{API_TOKEN}}\nCount: {{COUNT}}\nExtra: {{EXTRA}}\n');
 
+  const componentDir = path.join(projectDir, 'src');
+  await fs.mkdir(componentDir, { recursive: true });
+  const componentFile = path.join(componentDir, 'App.jsx');
+  await fs.writeFile(componentFile, "export default function App() {\n  return <h1>{{TITLE}}</h1>;\n}\n");
+
   const ctx = buildContext(baseDir, projectName, {
     inputs: Object.freeze({
       API_TOKEN: 's3cr3t',
@@ -270,13 +275,16 @@ test('inputs API exposes resolved placeholder values and applyInputs helper', as
   assert.equal(tools.inputs.get('COUNT'), 7);
   assert.equal(tools.inputs.get('MISSING', 'fallback'), 'fallback');
 
-  await tools.placeholders.applyInputs(['README.md'], { EXTRA: 'value' });
+  await tools.placeholders.applyInputs(undefined, { EXTRA: 'value', TITLE: 'Dashboard' });
 
   const contents = await fs.readFile(templateFile, 'utf8');
   assert.ok(contents.includes('# inputs-demo'), 'applyInputs should consider projectName fallback');
   assert.ok(contents.includes('Token: s3cr3t'), 'applyInputs should use ctx.inputs values');
   assert.ok(contents.includes('Count: 7'), 'applyInputs should stringify non-string inputs');
   assert.ok(contents.includes('Extra: value'), 'applyInputs should merge additional replacements');
+
+  const jsxContents = await fs.readFile(componentFile, 'utf8');
+  assert.ok(jsxContents.includes('<h1>Dashboard</h1>'), 'applyInputs should update nested JSX files via default selector');
 });
 
 test('options API exposes dimension-aware helpers', async (t) => {

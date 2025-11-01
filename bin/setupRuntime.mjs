@@ -203,14 +203,53 @@ async function walkFiles(root, directory, collector) {
 
 function globToRegExp(pattern) {
   const normalized = toPosix(pattern.trim() || DEFAULT_SELECTOR);
-  let escaped = normalized.replace(/[.+^${}()|[\]\\]/g, '\\$&');
+  let regex = '';
+  let index = 0;
 
-  escaped = escaped.replace(/\\\*\\\*/g, '::DOUBLE_STAR::');
-  escaped = escaped.replace(/\\\*/g, '[^/]*');
-  escaped = escaped.replace(/::DOUBLE_STAR::/g, '.*');
-  escaped = escaped.replace(/\\\?/g, '.');
+  while (index < normalized.length) {
+    const char = normalized[index];
 
-  return new RegExp(`^${escaped}$`);
+    if (char === '*') {
+      const next = normalized[index + 1];
+      if (next === '*') {
+        const nextNext = normalized[index + 2];
+        if (nextNext === '/') {
+          regex += '(?:.*/)?';
+          index += 3;
+          continue;
+        }
+        regex += '.*';
+        index += 2;
+        continue;
+      }
+
+      regex += '[^/]*';
+      index += 1;
+      continue;
+    }
+
+    if (char === '?') {
+      regex += '.';
+      index += 1;
+      continue;
+    }
+
+    let literal = '';
+    while (index < normalized.length) {
+      const current = normalized[index];
+      if (current === '*' || current === '?') {
+        break;
+      }
+      literal += current;
+      index += 1;
+    }
+
+    if (literal.length > 0) {
+      regex += escapeRegExp(literal);
+    }
+  }
+
+  return new RegExp(`^${regex}$`);
 }
 
 async function findMatchingFiles(root, selector) {
