@@ -88,6 +88,14 @@ export function parseArguments(argv = process.argv.slice(2)) {
         type: 'string',
         description: 'Override default cache TTL in hours'
       },
+      'validate-template': {
+        type: 'string',
+        description: 'Validate template at provided path and exit'
+      },
+      json: {
+        type: 'boolean',
+        description: 'Emit JSON output for supported commands (e.g., validation)'
+      },
       placeholder: {
         type: 'string',
         multiple: true,
@@ -148,6 +156,10 @@ export function parseArguments(argv = process.argv.slice(2)) {
       typeof values.interactive === 'boolean' ? values.interactive : undefined;
     const explicitNoInteractive = Boolean(values['no-interactive']);
     const noConfig = Boolean(values['no-config']);
+    const validateTemplate = typeof values['validate-template'] === 'string'
+      ? values['validate-template']
+      : undefined;
+    const json = Boolean(values.json);
     const interactive =
       explicitInteractive !== undefined
         ? explicitInteractive
@@ -168,6 +180,8 @@ export function parseArguments(argv = process.argv.slice(2)) {
       dryRun: values['dry-run'],
       noCache: values['no-cache'],
       cacheTtl: values['cache-ttl'],
+  validateTemplate,
+  json,
       placeholders,
       noInputPrompts,
       verbose,
@@ -206,6 +220,38 @@ export function validateArguments(args) {
   // Check for help flag first
   if (args.help) {
     return { isValid: true, showHelp: true };
+  }
+
+  if (args.validateTemplate) {
+    if (typeof args.validateTemplate !== 'string' || !args.validateTemplate.trim()) {
+      errors.push('Provide a template directory when using --validate-template.');
+    }
+
+    if (args.projectDirectory) {
+      errors.push('Do not supply a project directory positional argument with --validate-template.');
+    }
+
+    if (args.template) {
+      errors.push('The --from-template flag cannot be combined with --validate-template.');
+    }
+
+    if (errors.length > 0) {
+      return {
+        isValid: false,
+        errors,
+        showHelp: false
+      };
+    }
+
+    return {
+      isValid: true,
+      errors: [],
+      showHelp: false
+    };
+  }
+
+  if (args.json) {
+    errors.push('--json can only be used with --validate-template.');
   }
 
   // Special case: --list-templates doesn't require project directory or template
@@ -340,6 +386,11 @@ GENERAL:
   -h, --help            Show this help message
   --verbose         Enable verbose CLI output (includes placeholder source summary)
   --no-config       Skip configuration file discovery (.m5nvrc)
+
+VALIDATION:
+  --validate-template <path>
+                    Validate template manifest, required files, and setup script without scaffolding
+      --json         Emit machine-readable JSON results (use with --validate-template)
 
 CONFIGURATION DEFAULTS:
   The CLI looks for .m5nvrc in the current directory, then ~/.config/m5nv/rc.json (macOS/Linux)

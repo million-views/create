@@ -1,0 +1,7 @@
+{
+  "name": "forbidden-setup",
+  "description": "Template with forbidden globals in setup script",
+  "metadata": {
+    "placeholders": []
+  }
+}

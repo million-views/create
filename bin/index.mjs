@@ -29,6 +29,11 @@ import { resolvePlaceholders, PlaceholderResolutionError } from './placeholderRe
 import { InteractiveSession } from './interactiveSession.mjs';
 import { shouldEnterInteractive } from './utils/interactiveUtils.mjs';
 import { loadConfig } from './configLoader.mjs';
+import {
+  runTemplateValidation,
+  formatValidationResults,
+  formatValidationResultsAsJson
+} from './templateValidation.mjs';
 
 // Default configuration
 const DEFAULT_REPO = 'million-views/templates';
@@ -49,6 +54,14 @@ async function main() {
     const args = parseArguments();
     const cacheManager = new CacheManager();
     let logger = null;
+
+    if (args.validateTemplate) {
+      const exitCode = await executeTemplateValidation({
+        targetPath: args.validateTemplate,
+        jsonOutput: Boolean(args.json)
+      });
+      process.exit(exitCode);
+    }
 
     let configMetadata = null;
     let configDefaults = null;
@@ -1033,6 +1046,24 @@ async function cleanupAuthorAssets(projectDirectory, authorAssetsDir, logger) {
       projectDirectory,
       authorAssetsDir: normalizedDir
     });
+  }
+}
+
+async function executeTemplateValidation({ targetPath, jsonOutput }) {
+  try {
+    const result = await runTemplateValidation({ targetPath });
+
+    if (jsonOutput) {
+      console.log(formatValidationResultsAsJson(result));
+    } else {
+      console.log(formatValidationResults(result));
+    }
+
+    return result.status === 'fail' ? 1 : 0;
+  } catch (error) {
+    const message = sanitizeErrorMessage(error?.message ?? String(error));
+    console.error(`❌ Template validation error: ${message}`);
+    return 1;
   }
 }
 

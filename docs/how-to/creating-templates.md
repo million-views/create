@@ -14,7 +14,7 @@ related_docs:
   - "setup-recipes.md"
   - "author-workflow.md"
   - "../reference/dimensions-glossary.md"
-last_updated: "2025-10-30"
+last_updated: "2025-11-01"
 ---
 
 # How to Create Templates
@@ -240,6 +240,14 @@ create-scaffold copies this directory into the project before `_setup.mjs` runs 
    Dry runs show directory/file counts, setup script detection, and skip author assets so the preview matches the final scaffold.
 3. **Execute a full scaffold periodically** to ensure the handoff instructions make sense and the generated project boots as expected.
 4. **Lint your manifest before publishing.** If your template repo depends on @m5nv/create-scaffold, add `npm run schema:check` to CI. The command verifies both the JSON schema (`template.json`) and the generated TypeScript definition.
+5. **Run the CLI validator before commits and releases.**
+  ```bash
+  create-scaffold --validate-template ./path/to/templates/react-vite
+
+  # Capture JSON output for CI assertions
+  create-scaffold --validate-template ./path/to/templates/react-vite --json
+  ```
+  The validator exits with code `1` when any manifest, required-file, or setup-script check fails, making it safe for local linting and CI pipelines.
 
 Document any non-obvious behaviour inside your template repo (e.g., README sections explaining available dimensions) so both template authors and consumers share the same vocabulary.
 
@@ -289,6 +297,7 @@ Verify the template works correctly:
 1. Check that `{{PROJECT_NAME}}` placeholders were replaced
 2. Ensure all files were copied correctly
 3. Test that the project runs: `cd test-project && npm install && npm run dev`
+4. Run `create-scaffold --validate-template ./path/to/templates/react-vite` against the template directory to confirm linting passes
 
 ### Step 8: Publish your template repository
 

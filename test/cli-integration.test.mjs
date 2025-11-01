@@ -342,6 +342,66 @@ runner.test('--list-templates flag shows available templates', async () => {
   }
 });
 
+runner.test('--validate-template succeeds for healthy template', async () => {
+  const templatePath = path.join(FIXTURE_ROOT, 'template-validation', 'valid-template');
+
+  const result = await IntegrationTestUtils.execCLI([
+    '--validate-template', templatePath
+  ]);
+
+  if (result.exitCode !== 0) {
+    throw new Error(`Expected validation to pass for valid template. Stderr: ${result.stderr}`);
+  }
+
+  if (!result.stdout.includes('Summary')) {
+    throw new Error('Validation output should include summary line');
+  }
+});
+
+runner.test('--validate-template reports failures for invalid template', async () => {
+  const templatePath = path.join(FIXTURE_ROOT, 'template-validation', 'missing-readme-template');
+
+  const result = await IntegrationTestUtils.execCLI([
+    '--validate-template', templatePath
+  ]);
+
+  if (result.exitCode === 0) {
+    throw new Error('Validation should fail when required files are missing');
+  }
+
+  if (!result.stdout.toLowerCase().includes('readme')) {
+    throw new Error('Validation output should mention missing README');
+  }
+});
+
+runner.test('--validate-template supports json output', async () => {
+  const templatePath = path.join(FIXTURE_ROOT, 'template-validation', 'forbidden-setup-template');
+
+  const result = await IntegrationTestUtils.execCLI([
+    '--validate-template', templatePath,
+    '--json'
+  ]);
+
+  if (result.exitCode === 0) {
+    throw new Error('Validation should fail for template with forbidden globals');
+  }
+
+  let parsed;
+  try {
+    parsed = JSON.parse(result.stdout.trim());
+  } catch (error) {
+    throw new Error(`Expected JSON output when --json is provided: ${error.message}`);
+  }
+
+  if (parsed.status !== 'fail') {
+    throw new Error('Parsed JSON should report fail status when validators fail');
+  }
+
+  if (!Array.isArray(parsed.results)) {
+    throw new Error('JSON output must include results array');
+  }
+});
+
 runner.test('configuration defaults apply to list-templates', async () => {
   const configDir = await runner.addTempPath(await IntegrationTestUtils.createTempDir('-config-cwd'));
   const mockRepoPath = await runner.addTempPath(await IntegrationTestUtils.createTempDir('-config-repo'));

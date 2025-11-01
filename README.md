@@ -10,7 +10,7 @@ related_docs:
   - "docs/tutorial/getting-started.md"
   - "docs/how-to/creating-templates.md"
   - "docs/reference/cli-reference.md"
-last_updated: "2025-10-31"
+last_updated: "2025-11-01"
 ---
 
 # @m5nv/create-scaffold
@@ -49,6 +49,11 @@ npm create @m5nv/scaffold -- --list-templates
 ```
 
 ```bash
+# Validate a local template directory before publishing
+create-scaffold --validate-template ./templates/react-vite
+```
+
+```bash
 # Launch guided prompts (auto-launches when no arguments supplied)
 npm create @m5nv/scaffold -- --interactive
 ```
@@ -61,6 +66,7 @@ npm create @m5nv/scaffold -- --interactive
 - Dry-run previews with operation summaries and optional tree output
 - Guided interactive mode when arguments are missing (or explicitly requested) to collect project inputs
 - CLI argument validation, logging, and preflight checks for Git access
+- Template validation command for linting templates before publishing (supports JSON output)
 - Versioned template schema and generated TypeScript declarations published for downstream tooling
 
 ## Maintainer commands
@@ -97,6 +103,8 @@ npm create @m5nv/scaffold <project-name> -- --from-template <template-name> [opt
 | `--log-file`          | Write structured logs to the specified file     |
 | `--no-cache`          | Bypass the local repository cache               |
 | `--cache-ttl`         | Override cache TTL (1–720 hours)                |
+| `--validate-template` | Validate a template directory and exit          |
+| `--json`              | Use with `--validate-template` to emit machine-readable output |
 | `--interactive`       | Force guided prompts for template selection     |
 | `--no-interactive`    | Disable interactive mode                        |
 | `--help, -h`          | Show help                                       |

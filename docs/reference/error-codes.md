@@ -7,7 +7,7 @@ prerequisites: []
 related_docs:
   - "cli-reference.md"
   - "../guides/troubleshooting.md"
-last_updated: "2024-01-15"
+last_updated: "2025-11-01"
 ---
 
 # Error Codes Reference
@@ -70,6 +70,8 @@ Use --help for usage information.
 | `Template name contains path traversal attempts` | Template name contains `..` or `/` | Use simple template name |
 | `Template name contains invalid characters` | Name contains special characters | Use only letters, numbers, hyphens, underscores |
 | `Template name is too long (maximum 255 characters)` | Name exceeds length limit | Choose shorter template name |
+
+Run `create-scaffold --validate-template <template-directory>` to lint template repositories directly. The command returns exit code `1` when any manifest, setup-script, or required-file validator fails, surfacing the messages above without copying files.
 
 #### Repository Validation
 

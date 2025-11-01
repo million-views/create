@@ -11,7 +11,7 @@ related_docs:
   - "../how-to/setup-recipes.md"
   - "environment.md"
   - "error-codes.md"
-last_updated: "2025-10-31"
+last_updated: "2025-11-01"
 ---
 
 # CLI Reference
@@ -19,6 +19,8 @@ last_updated: "2025-10-31"
 ## Overview
 
 Complete reference for the `@m5nv/create-scaffold` command-line interface. This tool scaffolds new projects using templates from git repositories.
+
+Use `--validate-template <directory>` to lint templates without running the scaffolding pipeline. Combine it with `--json` for machine-readable output.
 
 ## Template manifest schema
 
@@ -158,6 +160,13 @@ Canonical variables merge with `metadata.placeholders`, so declaring both does n
 | `--log-file` | - | string | No | - | Enable detailed logging to specified file. Logs git operations, file copies, and setup script execution. |
 | `--dry-run` | - | boolean | No | `false` | Preview operations without executing them. Shows planned file operations and setup scripts. |
 | `--list-templates` | - | boolean | No | `false` | Display available templates from repository. Fast discovery using cached repositories. |
+
+## Validation Options
+
+| Option | Short | Type | Required | Default | Description |
+|--------|-------|------|----------|---------|-------------|
+| `--validate-template` | - | string | No | - | Validate the template located at the provided path and exit without scaffolding. |
+| `--json` | - | boolean | No | `false` | Emit JSON-formatted results. Only supported alongside `--validate-template`. |
 
 ## General Options
 
@@ -363,6 +372,21 @@ my-app
 ```
 
 When the `tree` command is unavailable, the CLI prints `🌲 Tree preview unavailable: tree command unavailable` instead of the directory listing.
+
+### Template Validation
+
+```bash
+# Validate a local template directory with human-readable output
+create-scaffold --validate-template ./templates/react-vite
+
+# Produce JSON for CI pipelines
+create-scaffold --validate-template ./templates/react-vite --json
+```
+
+**What happens:**
+- Runs manifest, required-file, and setup-script validators against the target directory.
+- Returns exit code `0` when all validators pass, `1` when any fail.
+- Prints a summary table (or JSON payload when `--json` is supplied).
 
 ### Interactive Walkthrough
 
