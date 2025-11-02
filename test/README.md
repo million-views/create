@@ -2,6 +2,51 @@
 
 This directory contains comprehensive functional tests for the @m5nv/create-scaffold CLI tool. The tests follow a Test-First Development approach and cover all specified functionality.
 
+## Directory Structure
+
+The test suite is organized to support monorepo development with clear tool boundaries:
+
+```
+test/
+├── create-scaffold/     # Tests specific to create-scaffold tool
+│   ├── argument-parser.test.mjs
+│   ├── argumentParser.test.mjs
+│   ├── cache-manager.test.mjs
+│   ├── cli-integration.test.mjs
+│   ├── cli.test.mjs
+│   ├── config-loader.test.mjs
+│   ├── dry-run-engine.test.mjs
+│   ├── environment-factory.test.mjs
+│   ├── interactive-session.test.mjs
+│   ├── logger.test.mjs
+│   ├── placeholder-resolver.test.mjs
+│   ├── resource-leak-test.mjs
+│   ├── setup-runtime.test.mjs
+│   ├── spec-compliance-verification.mjs
+│   └── template-discovery.test.mjs
+├── shared/              # Tests for shared utilities and libraries
+│   ├── options-processor.test.mjs
+│   ├── security.test.mjs
+│   ├── template-metadata-placeholders.test.mjs
+│   ├── template-validator.test.mjs
+│   └── validationUtils.test.mjs
+├── fixtures/            # Test fixtures and mock data
+├── utils/               # Test utilities and helpers
+│   ├── cli.js
+│   ├── resources.js
+│   └── temp.js
+└── README.md           # This documentation
+```
+
+### Tool-Specific Organization
+
+- **`create-scaffold/`**: Contains all tests specific to the create-scaffold CLI tool functionality
+- **`shared/`**: Contains tests for utilities and libraries shared across multiple tools in the monorepo
+- **`fixtures/`**: Mock repositories, templates, and test data used by multiple test suites
+- **`utils/`**: Helper functions and utilities for test execution and resource management
+
+This structure prevents test collisions when additional tools (like `make-template`) are added to the monorepo.
+
 ## Test Coverage
 
 ### Argument Parsing Tests

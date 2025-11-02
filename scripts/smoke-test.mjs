@@ -13,7 +13,7 @@ import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const CLI_PATH = path.join(__dirname, '..', 'bin', 'index.mjs');
+const CLI_PATH = path.join(__dirname, '..', 'bin', 'create-scaffold', 'index.mjs');
 
 class SmokeTestUtils {
   static async execCLI(args, options = {}) {
@@ -391,7 +391,7 @@ export default async function setup({ ctx, tools }) {
     }
     
     // Verify correct bin entry
-    if (!packageJson.bin || !packageJson.bin['create-scaffold'] || packageJson.bin['create-scaffold'] !== './bin/index.mjs') {
+    if (!packageJson.bin || !packageJson.bin['create-scaffold'] || packageJson.bin['create-scaffold'] !== './bin/create-scaffold/index.mjs') {
       throw new Error('Incorrect bin entry in package.json');
     }
     

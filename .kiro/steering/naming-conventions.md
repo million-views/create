@@ -8,6 +8,23 @@ inclusion: always
 
 Consistent naming keeps templates portable between operating systems, documentation, and tooling. Apply these conventions to every new file, directory, identifier, and API you introduce.
 
+## Tool Territory Boundaries
+
+### @m5nv/create-scaffold (Template Consumer)
+**Territory**: `bin/create-scaffold.mjs`, `bin/interactiveSession.mjs`, `bin/templateDiscovery.mjs`, `bin/environmentFactory.mjs`, `bin/setupRuntime.mjs`
+- Focus: Template instantiation, user interaction, project creation
+- Naming: User-facing project names, template selection UI
+
+### Make-Template (Template Author)  
+**Territory**: `bin/make-template.mjs`
+- Focus: Template creation, validation, metadata generation
+- Naming: Template structure creation, author tooling
+
+### Shared Territory
+**Territory**: `lib/`, `schema/`, `types/`, `utils/`
+- Focus: Common utilities, schema validation, type definitions
+- Naming: Framework-level APIs, shared data structures
+
 ## File System Assets
 
 - Use `kebab-case` for directories and committed files (`placeholder-schema.mjs`, `author-assets-template/`).

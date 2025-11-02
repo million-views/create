@@ -110,73 +110,73 @@ class TestRunner {
     const tests = [
       {
         name: 'Environment Factory Tests',
-        command: ['--test', './test/environment-factory.test.mjs'],
+        command: ['--test', './test/create-scaffold/environment-factory.test.mjs'],
         description: 'Environment creation and metadata validation',
         homeSuffix: 'environment'
       },
       {
         name: 'Argument Parser Tests',
-        command: ['--test', './test/argument-parser.test.mjs'],
+        command: ['--test', './test/create-scaffold/argument-parser.test.mjs'],
         description: 'CLI argument parsing and validation smoke coverage',
         homeSuffix: 'argument-parser'
       },
        {
          name: 'Interactive Utils Tests',
-         command: ['--test', './test/interactive-utils.test.mjs'],
+         command: ['--test', './test/shared/interactive-utils.test.mjs'],
          description: 'Interactive trigger heuristics and environment control',
          homeSuffix: 'interactive-utils'
        },
       {
         name: 'Options Processor Tests',
-        command: ['--test', './test/options-processor.test.mjs'],
+        command: ['--test', './test/shared/options-processor.test.mjs'],
         description: 'Normalization of CLI options against template dimensions',
         homeSuffix: 'options'
       },
       {
         name: 'Setup Runtime Tests',
-        command: ['--test', './test/setup-runtime.test.mjs'],
+        command: ['--test', './test/create-scaffold/setup-runtime.test.mjs'],
         description: 'Sandbox and tools runtime verification',
         homeSuffix: 'setup-runtime'
       },
       {
         name: 'Security Tests',
-        command: ['--test', './test/security.test.mjs'],
+        command: ['--test', './test/shared/security.test.mjs'],
         description: 'Security validation for new IDE and features parameters',
         homeSuffix: 'security'
       },
       {
         name: 'Functional Tests',
-        command: ['--test', './test/cli.test.mjs'],
+        command: ['--test', './test/create-scaffold/cli.test.mjs'],
         description: 'Comprehensive end-to-end CLI behavior validation',
         homeSuffix: 'functional'
       },
       {
         name: 'Template Schema Build Tests',
-        command: ['--test', './test/schema-build.test.mjs'],
+        command: ['--test', './test/shared/schema-build.test.mjs'],
         description: 'Deterministic generation of schema types and runtime stubs',
         homeSuffix: 'schema-build'
       },
       {
         name: 'Template Validator Tests',
-        command: ['--test', './test/template-validator.test.mjs'],
+        command: ['--test', './test/shared/template-validator.test.mjs'],
         description: 'Runtime manifest validation aligned with schema constraints',
         homeSuffix: 'template-validator'
       },
       {
         name: 'CLI Integration Tests',
-        command: ['--test', './test/cli-integration.test.mjs'],
+        command: ['--test', './test/create-scaffold/cli-integration.test.mjs'],
         description: 'Phase 1 feature integration coverage for CLI flags',
         homeSuffix: 'cli-integration'
       },
       {
         name: 'Spec Compliance Tests',
-        command: ['./test/spec-compliance-verification.mjs'],
+        command: ['./test/create-scaffold/spec-compliance-verification.mjs'],
         description: 'Verification against all specification requirements',
         homeSuffix: 'spec'
       },
       {
         name: 'Resource Leak Tests',
-        command: ['--test', './test/resource-leak-test.mjs'],
+        command: ['--test', './test/create-scaffold/resource-leak-test.mjs'],
         description: 'Resource management and cleanup validation',
         homeSuffix: 'resource'
       },
@@ -205,36 +205,36 @@ class TestRunner {
     const tests = [
       {
         name: 'Environment Factory Tests',
-        command: ['--test', './test/environment-factory.test.mjs'],
+        command: ['--test', './test/create-scaffold/environment-factory.test.mjs'],
         description: 'Environment creation and metadata validation',
         homeSuffix: 'quick-environment'
       },
       {
         name: 'Argument Parser Tests',
-        command: ['--test', './test/argument-parser.test.mjs'],
+        command: ['--test', './test/create-scaffold/argument-parser.test.mjs'],
         description: 'CLI argument parsing and validation smoke coverage',
         homeSuffix: 'quick-arguments'
       },
        {
          name: 'Quick Interactive Utils Tests',
-         command: ['--test', './test/interactive-utils.test.mjs'],
+         command: ['--test', './test/shared/interactive-utils.test.mjs'],
          description: 'Interactive trigger heuristics sanity checks'
        },
       {
         name: 'Setup Runtime Tests',
-        command: ['--test', './test/setup-runtime.test.mjs'],
+        command: ['--test', './test/create-scaffold/setup-runtime.test.mjs'],
         description: 'Sandbox and tools runtime verification',
         homeSuffix: 'quick-runtime'
       },
       {
         name: 'Functional Tests',
-        command: ['--test', './test/cli.test.mjs'],
+        command: ['--test', './test/create-scaffold/cli.test.mjs'],
         description: 'Core CLI functionality validation',
         homeSuffix: 'quick-functional'
       },
       {
         name: 'Template Validator Tests',
-        command: ['--test', './test/template-validator.test.mjs'],
+        command: ['--test', './test/shared/template-validator.test.mjs'],
         description: 'Schema-aligned manifest validation',
         homeSuffix: 'quick-template-validator'
       },

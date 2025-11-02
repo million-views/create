@@ -66,6 +66,7 @@
   - `diataxis-documentation.md` - Documentation structure and organization
   - `naming-conventions.md` - Consistent naming patterns
   - `readme-guidelines.md` - README structure and content standards
+  - `monorepo-organization.md` - Tool boundaries and team responsibilities
 - **Read these documents** before implementing any feature to understand
   detailed requirements and constraints.
 
@@ -78,3 +79,30 @@
 
 - Run appropriate tests before finishing a task.
 - Summarize changes clearly, noting files touched and tests executed.
+
+## 7. Monorepo Boundaries (Post-Migration)
+
+**CRITICAL**: After make-template migrates into this repository, respect tool territories:
+
+### Create-Scaffold Territory
+- **Files**: `bin/create-scaffold.mjs`, `bin/interactiveSession.mjs`, `bin/templateDiscovery.mjs`, `bin/environmentFactory.mjs`, `bin/setupRuntime.mjs`
+- **Focus**: Template consumption, user interaction, project instantiation
+- **Tests**: `test/create-scaffold-*`
+
+### Make-Template Territory  
+- **Files**: `bin/make-template.mjs`
+- **Focus**: Template authoring, validation, metadata generation
+- **Tests**: `test/make-template-*`
+
+### Shared Territory
+- **Files**: `lib/`, `schema/`, `types/`, `utils/`
+- **Coordination**: Changes require both teams' approval
+- **Tests**: `test/shared-*`
+
+**Before making changes**:
+1. Identify which tool/team the request pertains to
+2. Only modify files within appropriate territory
+3. For shared changes, confirm with both teams
+4. Document cross-tool impact in PR descriptions
+
+**Read `.kiro/steering/monorepo-organization.md`** for complete boundary guidance.
