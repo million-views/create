@@ -659,6 +659,21 @@ async function main() {
 async function ensureRepositoryCached(repoUrl, branchName, cacheManager, logger, options = {}) {
   const ttlHours = typeof options.ttlHours === 'number' ? options.ttlHours : undefined;
 
+  // Handle local repositories directly without caching
+  if (repoUrl.startsWith('/') || repoUrl.startsWith('./') || repoUrl.startsWith('../') || repoUrl.startsWith('~')) {
+    const absolutePath = path.resolve(repoUrl);
+    await validateDirectoryExists(absolutePath, 'Local repository path');
+
+    if (logger) {
+      await logger.logOperation('local_repo_access', {
+        repoUrl,
+        absolutePath
+      });
+    }
+
+    return absolutePath;
+  }
+
   const cachedRepoPath = await cacheManager.getCachedRepo(repoUrl, branchName);
 
   if (cachedRepoPath) {
