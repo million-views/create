@@ -111,6 +111,9 @@ export class TemplateDiscovery {
       supportedOptions: []
     };
 
+    // Store the directory name as the handle for template selection
+    metadata.handle = templateName;
+
     // Try to get metadata from template.json (higher priority)
     const structuredMetadata = await loadTemplateMetadataFromPath(templatePath);
     const templateJson = structuredMetadata.raw ?? await this.parseTemplateJson(templatePath);
@@ -355,7 +358,14 @@ export class TemplateDiscovery {
    * @returns {string} - Formatted template entry
    */
   formatTemplateEntry(template) {
-    let output = `📦 ${template.name}\n`;
+    let output = `📦 ${template.name}`;
+
+    // Show handle if different from display name
+    if (template.handle && template.handle !== template.name) {
+      output += ` (${template.handle})`;
+    }
+
+    output += '\n';
 
     if (template.description && template.description !== 'No description available') {
       output += `   ${template.description}\n`;
@@ -393,6 +403,7 @@ export class TemplateDiscovery {
     return templates.map((template, index) => ({
       id: index + 1,
       name: template.name,
+      handle: template.handle,
       description: template.description ?? 'No description available',
       tags: Array.isArray(template.tags) ? template.tags : [],
       canonicalVariables: Array.isArray(template.canonicalVariables) ? template.canonicalVariables : [],

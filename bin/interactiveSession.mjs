@@ -87,7 +87,7 @@ export class InteractiveSession {
 
       const answers = {
         projectDirectory,
-        template: selection.name,
+        template: selection.handle ?? selection.name,
         repo,
         branch,
         ide: initialArgs.ide ?? null,
@@ -179,6 +179,7 @@ export class InteractiveSession {
         : templates.map((template, index) => ({
           id: index + 1,
           name: template.name,
+          handle: template.handle,
           description: template.description ?? 'No description available',
           tags: Array.isArray(template.tags) ? template.tags : [],
           canonicalVariables: Array.isArray(template.canonicalVariables) ? template.canonicalVariables : [],

@@ -636,6 +636,7 @@ tags:
 
       const template = {
         name: 'Express API',
+        handle: 'express-api',
         description: 'RESTful API with Express and TypeScript',
         version: '3.0.0',
         author: 'API Team',
@@ -645,7 +646,7 @@ tags:
       const formatted = discovery.formatTemplateEntry(template);
 
       assert(typeof formatted === 'string', 'Should return formatted string');
-      assert(formatted.includes('Express API'), 'Should include template name');
+      assert(formatted.includes('Express API (express-api)'), 'Should include template name with handle');
       assert(formatted.includes('RESTful API with Express'), 'Should include description');
       assert(formatted.includes('3.0.0'), 'Should include version');
       assert(formatted.includes('API Team'), 'Should include author');
@@ -660,6 +661,7 @@ tags:
 
       const template = {
         name: 'simple-app',
+        handle: 'simple-app',
         description: 'No description available',
         version: null,
         author: null,
@@ -670,6 +672,7 @@ tags:
 
       assert(typeof formatted === 'string', 'Should return formatted string');
       assert(formatted.includes('simple-app'), 'Should include template name');
+      assert(!formatted.includes('(simple-app)'), 'Should not show handle when same as name');
       assert(formatted.includes('No description available'), 'Should include fallback description');
       assert(!formatted.includes('null'), 'Should not display null values');
     });

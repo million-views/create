@@ -2,6 +2,7 @@
 node_modules/
 dist/
 prompts/
+tmp/
 *.log
 npm-debug.log*
 .DS_Store

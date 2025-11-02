@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 
 import fs from 'fs/promises';
+import { realpathSync } from 'node:fs';
 import path from 'path';
-import { pathToFileURL } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { parseArguments, validateArguments, generateHelpText, ArgumentError } from './argumentParser.mjs';
 import {
   validateAllInputs,
@@ -1210,6 +1211,18 @@ async function executeSetupScript({ projectDirectory, projectName, ide, options,
 
 // Run main function when executed directly
 const entryPoint = process.argv[1];
-if (entryPoint && import.meta.url === pathToFileURL(entryPoint).href) {
-  main();
+if (entryPoint) {
+  const modulePath = fileURLToPath(import.meta.url);
+  const resolvedEntry = path.resolve(entryPoint);
+  let realEntry = resolvedEntry;
+
+  try {
+    realEntry = realpathSync(resolvedEntry);
+  } catch {
+    // Ignore resolution failures; fall back to resolvedEntry comparison below.
+  }
+
+  if (modulePath === resolvedEntry || modulePath === realEntry) {
+    main();
+  }
 }
