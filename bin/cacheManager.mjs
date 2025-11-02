@@ -23,9 +23,14 @@ export class CacheManager {
    * @returns {{ repoHash: string, repoDir: string }}
    */
   resolveRepoDirectory(repoUrl, branchName) {
-    const repoHash = this.generateRepoHash(repoUrl, branchName);
-    const repoDir = path.join(this.cacheDir, repoHash);
-    return { repoHash, repoDir };
+    const normalizedUrl = this.normalizeRepoUrl(repoUrl);
+    const protocol = this.getProtocolFromUrl(normalizedUrl);
+    const repoName = this.getRepoNameFromUrl(normalizedUrl);
+    const branchSuffix = branchName && branchName !== '' && branchName !== 'main' && branchName !== 'master' 
+      ? `-${branchName}` 
+      : '';
+    const repoDir = path.join(this.cacheDir, protocol, `${repoName}${branchSuffix}`);
+    return { repoHash: `${protocol}/${repoName}${branchSuffix}`, repoDir };
   }
 
   /**
@@ -42,7 +47,59 @@ export class CacheManager {
       return repoUrl;
     }
 
-    return `https://github.com/${repoUrl.replace(/\.git$/, '')}.git`;
+    // Use SSH for GitHub repositories instead of HTTPS
+    return `git@github.com:${repoUrl.replace(/\.git$/, '')}.git`;
+  }
+
+  /**
+   * Get protocol from normalized repository URL
+   * @param {string} normalizedUrl - Normalized repository URL
+   * @returns {string} - Protocol identifier
+   */
+  getProtocolFromUrl(normalizedUrl) {
+    if (normalizedUrl.startsWith('/') || normalizedUrl.startsWith('.') || normalizedUrl.startsWith('~')) {
+      return 'local';
+    }
+    
+    if (normalizedUrl.startsWith('git@')) {
+      return 'git';
+    }
+    
+    if (normalizedUrl.includes('://')) {
+      const url = new URL(normalizedUrl);
+      return url.protocol.replace(':', '');
+    }
+    
+    return 'unknown';
+  }
+
+  /**
+   * Get repository name from normalized repository URL
+   * @param {string} normalizedUrl - Normalized repository URL
+   * @returns {string} - Repository name
+   */
+  getRepoNameFromUrl(normalizedUrl) {
+    if (normalizedUrl.startsWith('/') || normalizedUrl.startsWith('.') || normalizedUrl.startsWith('~')) {
+      // For local paths, use the directory name
+      return path.basename(normalizedUrl).replace(/\.git$/, '');
+    }
+    
+    if (normalizedUrl.startsWith('git@')) {
+      // git@github.com:user/repo.git -> user-repo
+      const match = normalizedUrl.match(/git@[^:]+:(.+)\.git$/);
+      if (match) {
+        return match[1].replace('/', '-');
+      }
+    }
+    
+    if (normalizedUrl.includes('://')) {
+      const url = new URL(normalizedUrl);
+      const pathname = url.pathname.replace(/^\//, '').replace(/\.git$/, '');
+      return pathname.replace('/', '-');
+    }
+    
+    // Fallback: use the original string with slashes replaced
+    return normalizedUrl.replace(/[^\w-]/g, '-');
   }
 
   /**
@@ -145,25 +202,7 @@ export class CacheManager {
     return await this.populateCache(repoUrl, branchName, populateOptions);
   }
 
-  /**
-   * Generate unique hash for repository URL and branch combination
-   * @param {string} repoUrl - Repository URL or user/repo format
-   * @param {string} branchName - Git branch name
-   * @returns {string} - Unique hash for the repository/branch combination
-   */
-  generateRepoHash(repoUrl, branchName) {
-    // Normalize user/repo format to full GitHub URL
-    let normalizedUrl = repoUrl;
-    if (!repoUrl.includes('://') && !repoUrl.startsWith('/') && !repoUrl.startsWith('.')) {
-      normalizedUrl = `https://github.com/${repoUrl}.git`;
-    }
 
-    const normalizedBranch = branchName && branchName !== '' ? branchName : '__default__';
-
-    // Create hash from normalized URL and branch
-    const hashInput = `${normalizedUrl}#${normalizedBranch}`;
-    return crypto.createHash('sha256').update(hashInput).digest('hex').slice(0, 16);
-  }
 
   /**
    * Get cache metadata for a repository
@@ -200,7 +239,7 @@ export class CacheManager {
       return null;
     }
 
-    const repoHash = this.generateRepoHash(repoUrl, branchName);
+    const { repoHash } = this.resolveRepoDirectory(repoUrl, branchName);
     const metadata = await this.getCacheMetadata(repoHash);
 
     // Return null if no metadata exists

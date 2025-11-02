@@ -250,6 +250,8 @@ node bin/index.mjs test-app --dry-run --from-template express
 
 Creates a global symlink for the `create-scaffold` binary. **Note:** `npm create @m5nv/scaffold` still attempts to download from npm and will fail until the package is published. Use the `create-scaffold` binary instead.
 
+> **Linux Note**: On some Linux systems, `npm link` may not properly set executable permissions on the symlinked binary. If you encounter "permission denied" errors, run: `chmod +x $(npm root -g)/.bin/create-scaffold`
+
 ```bash
 # Link your local package globally
 npm link
@@ -662,6 +664,10 @@ npm run test:functional 2>&1 | grep -A 10 "FAILED"
 - Run via `create-scaffold` (not `npm create @m5nv/scaffold`, which still hits npm)
 - Unlink and relink: `npm unlink -g @m5nv/create-scaffold && npm link`
 - Check global npm modules: `npm list -g --depth=0`
+- **Linux-specific**: `npm link` may not preserve executable permissions on some Linux systems. If you get "permission denied" errors, manually set executable permissions:
+  ```bash
+  chmod +x $(npm root -g)/.bin/create-scaffold
+  ```
 - Verify bin file permissions: `chmod +x bin/index.mjs`
 
 **Permission issues during testing**:

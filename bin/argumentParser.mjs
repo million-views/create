@@ -222,6 +222,17 @@ export function validateArguments(args) {
     return { isValid: true, showHelp: true };
   }
 
+  // Show help if no arguments provided (standard CLI behavior)
+  const hasAnyArgs = args.projectDirectory || args.template || args.repo || args.branch ||
+                     args.ide || args.options || args.logFile || args.listTemplates ||
+                     args.dryRun || args.noCache || args.cacheTtl || args.validateTemplate ||
+                     args.json || args.placeholders.length > 0 || args.noInputPrompts ||
+                     args.verbose || args.experimentalPlaceholderPrompts || args.interactive ||
+                     args.noInteractive || args.noConfig;
+  if (!hasAnyArgs) {
+    return { isValid: true, showHelp: true };
+  }
+
   if (args.validateTemplate) {
     if (typeof args.validateTemplate !== 'string' || !args.validateTemplate.trim()) {
       errors.push('Provide a template directory when using --validate-template.');
