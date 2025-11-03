@@ -1,108 +1,173 @@
 # Working in This Repository (Kiro Methodology)
 
-**Communication Style**:
+**CRITICAL**: The Kiro Methodology is designed for **production development work**. Do NOT apply the full methodology when the user's intent is clearly exploratory, investigative, or emergency-based. Identify the context before triggering the flow.
 
-- Prioritize extreme concision over grammar in all interactions and commit
-  messages
-- End each requirements/design iteration with concise unresolved questions list
+## Context Recognition Rules
+- **Exploratory**: "prototype", "explore", "quick test" → Build lightweight, skip formal specs
+- **Investigative**: "debug", "investigate", "strange issue" → Conduct unstructured debugging, apply Kiro only after issue is understood
+- **Emergency**: "emergency", "hotfix", "service down" → Deploy immediate fix, formalize later
+- **Uncertain?** → **PAUSE and check with human-in-the-loop**
 
-**Critical Process Rules**:
+## Task Type Recognition
+Different types of work require different methodological approaches:
 
-- NEVER run blocking commands (npm run dev) without background process
-  management
-- ALWAYS capture command output with 2>&1 | tee for verification
-- ALWAYS search existing code before implementing new functionality
-- ALWAYS clean up temporary files and logs after verification
+### Feature Development (Default)
+- **Characteristics**: New user-facing functionality, API changes, UI improvements
+- **Process**: Full 3-phase spec-driven development (requirements → design → tasks)
+- **Location**: `.kiro/specs/<component>/<feature>/`
+- **Validation**: Comprehensive testing, documentation updates
 
-## 1. Spec-Driven Workflow
+### Migration/Integration Work
+- **Characteristics**: Repository restructuring, tool integration, dependency updates, data migration
+- **Process**: Lightweight planning with clear success criteria, focus on rollback plans
+- **Location**: `.kiro/specs/<component>/<migration-name>/`
+- **Validation**: Pre/post state verification, rollback testing
 
-- Every change begins with a spec under `.kiro/specs/<feature>/`.
-- **Read `docs/spec-driven-development.md`** for complete guidance on creating
-  requirements, design, and implementation plans.
+### Chore/Maintenance Work
+- **Characteristics**: Refactoring, cleanup, dependency updates, build improvements
+- **Process**: Task-based tracking with clear acceptance criteria
+- **Location**: `.kiro/specs/<component>/<chore-name>/`
+- **Validation**: Regression testing, performance benchmarks
+
+### Infrastructure Work
+- **Characteristics**: CI/CD changes, deployment automation, environment setup
+- **Process**: Infrastructure-as-code principles, change management
+- **Location**: `.kiro/specs/infrastructure/<work-name>/`
+- **Validation**: Automated testing, monitoring integration
+
+## Repository Type Determination
+
+### Quick Repository Type Check
+**Single-Project Repository**:
+- One main deployable unit (app, service, tool, or library)
+- Single `package.json` at repository root
+- No package.json files in subdirectories (except node_modules)
+
+**Monorepo Environment**:
+- Contains multiple deployable packages/applications
+- Multiple `package.json` files in different subdirectories
+- Multiple deployment artifacts from same repository
+- Shared libraries used across packages
+- Uses npm/pnpm workspaces for package management
+- Often uses Lerna, Rush, Nx, or similar tooling
+
+### Detection Commands
+```bash
+# Count package.json files (exclude node_modules)
+find . -name "package.json" -not -path "./node_modules/*" | wc -l
+# > 1 = likely monorepo
+
+# Check for npm/pnpm workspace configuration
+grep -E '"workspaces"' package.json
+ls -la | grep -E "pnpm-workspace\.yaml"
+```
+
+## Workflow by Repository Type
+
+### Single-Project Workflow
+- **Specs**: Flat structure under `.kiro/specs/feature-name/`
+- **Coordination**: Work within single codebase
+- **Deployment**: Single artifact deployment
+
+### Monorepo Workflow
+- **Specs**: Hierarchical structure under `.kiro/specs/{apps,libs,services,tools}/`
+- **Coordination**: Cross-package dependencies and shared libraries
+- **Deployment**: Multiple artifact coordination using npm/pnpm workspaces
+
+## Default Behavior: When in Doubt
+- **If context is unclear or requirements are ambiguous, STOP and consult the human user.**
+- **Do not proceed with assumptions**. The cost of clarification is always less than the cost of incorrect implementation.
+
+---
+
+## 1. Work Classification & Planning
+- **Identify task type** using the Task Type Recognition rules above
+- **Choose appropriate process** based on work characteristics
+- **Create appropriate planning artifacts** (specs for features, task lists for chores/migrations)
+
+## 2. Spec-Driven Development (for Feature Work)
+- Features begin with a spec under `.kiro/specs/<component>/<feature>/`.
+- **Read `docs/spec-driven-development.md`** for complete guidance on creating requirements, design, and implementation plans.
 - Author and drive changeset for one or more features in a sprint in 3 phases:
   - Create `requirements.md` and iterate to get approval
   - Create `design.md` and iterate to get approval
   - Create `tasks.md` and iterate to completion:
-    - Track progress incrementally: work on ONE task at a time, mark it `[x]`
-      when completed, then move to the next task
-    - Use `[ ]` for not started tasks, `[x]` for completed tasks, `[*]` for
-      optional tasks
-    - NEVER mark all tasks complete at once - progress must be tracked
-      incrementally through the sprint
+    - Track progress incrementally: work on ONE task at a time, mark it `[x]` when completed, then move to the next task
+    - Use `[ ]` for not started tasks, `[x]` for completed tasks, `[*]` for optional tasks
+    - NEVER mark all tasks complete at once - progress must be tracked incrementally through the sprint
+
+## 3. Migration/Integration Workflows
+- Migrations and integrations use lightweight planning with emphasis on:
+  - Clear success criteria and rollback plans
+  - Pre/post state verification
+  - Risk assessment and mitigation strategies
+  - Stakeholder coordination for cross-team changes
 
 ## 2. Strict Test-Driven Development
-
 - Search the codebase for existing patterns before writing new code.
-- Write failing tests first (RED), run them to confirm failure, then implement
-  minimal changes to make them pass (GREEN).
-- Use the project's test suites (`node test/...`, `npm test`); avoid ad-hoc
-  `node -e`.
+- Write failing tests first (RED), run them to confirm failure, then implement minimal changes to make them pass (GREEN).
+- Use the project's test suites (`node test/...`, `npm test`); avoid ad-hoc `node -e`.
 
 ## 3. Safety & Source Control
-
-- Do not revert unrelated changes or run destructive git commands
-  (`reset --hard`, `checkout --`, etc.).
+- Do not revert unrelated changes or run destructive git commands (`reset --hard`, `checkout --`, etc.).
 - Respect `.kiro/specs/` content created by others unless explicitly instructed.
 - Keep implementation isolated to relevant files.
 
 ## 4. Documentation & Logging
-
-- Update docs and logs to match new behavior only after functionality is in
-  place.
-- Follow documentation standards (avoid maintenance liabilities, keep examples
-  realistic).
+- Update docs and logs to match new behavior only after functionality is in place.
+- Follow documentation standards (avoid maintenance liabilities, keep examples realistic).
 
 ## 5. Steering Documents
-
-- **Comprehensive guidance** for implementation details is available in
-  `.kiro/steering/**`:
-  - `greenfield-development.md` - Write everything as first-time implementation
-  - `workspace-safety.md` - File operation safety and temporary resource
-    handling
-  - `documentation-standards.md` - Avoid maintenance liabilities in docs
-  - `security-guidelines.md` - Security principles for CLI tools
-  - `nodejs-cli-focus.md` - Node.js ESM, test-first development, technology
-    constraints
-  - `diataxis-documentation.md` - Documentation structure and organization
+- **Comprehensive guidance** for implementation details is available in `.kiro/steering/**`:
+  - `steering-hierarchy.md` - How to navigate the tiered steering structure
+  - `greenfield-development.md` - Development philosophy (universal)
+  - `workspace-safety.md` - File operation safety (universal)
+  - `security-guidelines.md` - Security requirements (universal)
+  - `nodejs-runtime-focus.md` - Node.js runtime requirements (universal)
+  - `multi-level-validation.md` - Validation framework (universal)
+  - `diataxis-documentation.md` - Documentation framework (universal)
+  - `templates/` - Documentation templates (universal)
+  - `cli-development-focus.md` - CLI-specific patterns (package-type)
+  - `monorepo-coordination.md` - Cross-package coordination (project)
+  - `release-orchestration.md` - Multi-package releases (project)
+  - `shared-library-specs.md` - Shared library management (project)
+  - `sprint-orchestration.md` - Multi-project sprint planning (project)
   - `naming-conventions.md` - Consistent naming patterns
   - `readme-guidelines.md` - README structure and content standards
-  - `monorepo-organization.md` - Tool boundaries and team responsibilities
-- **Read these documents** before implementing any feature to understand
-  detailed requirements and constraints.
+- **Read `steering-hierarchy.md` first** to understand which standards apply to your context.
 
-## 5. Dependencies & Environment
-
+## 6. Dependencies & Environment
 - Node.js ESM only; prefer built-in modules.
 - No external dependencies unless documented.
 
-## 6. Verification & Reporting
-
+## 7. Verification & Reporting
 - Run appropriate tests before finishing a task.
 - Summarize changes clearly, noting files touched and tests executed.
 
-## 7. Monorepo Boundaries (Post-Migration)
+## 8. Monorepo Boundaries (Pre-Migration Planning)
 
-**CRITICAL**: After make-template migrates into this repository, respect tool territories:
+**CRITICAL**: When make-template migrates into @m5nv/create-scaffold, respect tool territories:
 
 ### Create-Scaffold Territory
-- **Files**: `bin/create-scaffold.mjs`, `bin/interactiveSession.mjs`, `bin/templateDiscovery.mjs`, `bin/environmentFactory.mjs`, `bin/setupRuntime.mjs`
+- **Folder**: `bin/create-scaffold/`
 - **Focus**: Template consumption, user interaction, project instantiation
 - **Tests**: `test/create-scaffold-*`
 
-### Make-Template Territory  
-- **Files**: `bin/make-template.mjs`
+### Make-Template Territory
+- **Folder**: `bin/make-template/`
 - **Focus**: Template authoring, validation, metadata generation
 - **Tests**: `test/make-template-*`
 
 ### Shared Territory
-- **Files**: `lib/`, `schema/`, `types/`, `utils/`
+- **Folder**: `bin/shared/`
+- **Focus**: Common utilities used by both tools
 - **Coordination**: Changes require both teams' approval
 - **Tests**: `test/shared-*`
 
 **Before making changes**:
-1. Identify which tool/team the request pertains to
-2. Only modify files within appropriate territory
-3. For shared changes, confirm with both teams
+1. Identify which tool/team the folder belongs to
+2. Only modify files within appropriate territory folders
+3. For shared folder changes, confirm with both teams
 4. Document cross-tool impact in PR descriptions
 
 **Read `.kiro/steering/monorepo-organization.md`** for complete boundary guidance.

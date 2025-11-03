@@ -1,25 +1,40 @@
 ---
 title: "Spec-Driven Development Workflow"
+description: "Complete guide to the 3-phase spec-driven development process used in the Kiro Methodology"
 type: "explanation"
 audience: "advanced"
 estimated_time: "15 minutes read"
 prerequisites:
   - "Software development experience"
   - "Understanding of requirements engineering"
-related_docs:
-  - "how-to/development.md"
-  - "../CONTRIBUTING.md"
-  - "guides/troubleshooting.md"
-last_updated: "2024-10-26"
 ---
 
 # Spec-Driven Development Workflow
 
-Complete guide to the specification-driven development methodology used in @m5nv/create-scaffold.
+Complete guide to the specification-driven development methodology.
 
 ## Overview
 
-This project follows a rigorous spec-driven development approach where all features are designed through a structured three-phase process: Requirements → Design → Implementation. This methodology ensures features are well-planned, thoroughly documented, and meet user needs before any code is written.
+This project follows a rigorous spec-driven development approach where **features are designed through a structured three-phase process: Requirements → Design → Implementation**. This methodology ensures features are well-planned, thoroughly documented, and meet user needs before any code is written.
+
+**Note**: Not all work requires full 3-phase specifications. See `AGENTS.md` Task Type Recognition for guidance on when to use different approaches for migrations, chores, and infrastructure work.
+
+## When to Use 3-Phase Specs
+
+Use the full 3-phase specification process for:
+- New user-facing features
+- API changes affecting external consumers
+- Complex business logic changes
+- UI/UX modifications
+- Any work with unclear requirements or high risk
+
+## Alternative Approaches
+
+For other types of work:
+- **Migrations/Integrations**: Use lightweight planning with clear success criteria and rollback plans
+- **Chores/Maintenance**: Use task-based tracking with acceptance criteria
+- **Infrastructure**: Use infrastructure-as-code principles with change management
+- **Exploratory**: Skip formal specs, use rapid prototyping
 
 ## The Three-Phase Process
 
@@ -76,8 +91,8 @@ This project follows a rigorous spec-driven development approach where all featu
 **Purpose**: Create comprehensive technical design based on validated requirements.
 
 **Process**:
-1. **Architecture Design**: High-level system structure and component relationships
-2. **Component Interfaces**: Detailed API specifications for each module
+1. **Architecture Design**: High-level system structure and module relationships
+2. **Module Interfaces**: Detailed API specifications for each module
 3. **Data Models**: Structure and validation rules for all data
 4. **Error Handling**: Comprehensive error scenarios and responses
 5. **Testing Strategy**: Approach for validating the implementation
@@ -98,7 +113,7 @@ This project follows a rigorous spec-driven development approach where all featu
 ## Architecture
 [System structure with diagrams]
 
-## Components and Interfaces
+## Modules and Interfaces
 [Detailed module specifications]
 
 ## Data Models
@@ -149,6 +164,8 @@ This project follows a rigorous spec-driven development approach where all featu
 
 ## Spec Directory Structure
 
+### For Single-Project Repositories
+
 All specifications are stored in `.kiro/specs/{feature-name}/`:
 
 ```
@@ -163,13 +180,161 @@ All specifications are stored in `.kiro/specs/{feature-name}/`:
     └── tasks.md
 ```
 
+### For Monorepo Environments
+
+Use hierarchical organization to group related features and modules:
+
+```
+.kiro/specs/
+├── apps/
+│   ├── frontend-app/
+│   │   └── user-auth-feature/
+│   │       ├── requirements.md
+│   │       ├── design.md
+│   │       └── tasks.md
+│   └── backend-api/
+│       ├── user-management/
+│       └── payment-processing/
+├── libs/
+│   ├── shared-auth-lib/
+│   │   ├── requirements.md
+│   │   ├── design.md
+│   │   └── tasks.md
+│   └── shared-db-lib/
+├── services/
+│   ├── auth-service/
+│   └── payment-service/
+└── tools/
+    ├── deployment-tool/
+    └── monitoring-tool/
+```
+    ├── deployment/
+    └── monitoring/
+```
+
+**Recommendation**: Use hierarchical structure for monorepos, flat structure for single projects.
+
+## Determining Repository Type
+
+### How to Identify Your Repository Type
+
+**Single-Project Repository**:
+- Contains one main application, service, tool, or library
+- No `package.json` files in subdirectories (except possibly `node_modules/`)
+- Single deployment artifact
+- Examples: CLI tool, web application, API service
+
+**Monorepo Environment**:
+- Contains multiple deployable packages/applications
+- Multiple `package.json` files in different subdirectories
+- Multiple deployment artifacts from same repository
+- Shared libraries used across packages
+- Examples: Platform with frontend/backend/shared-libs, microservices
+
+### Repository Type Detection Script
+
+```bash
+# Quick check for monorepo indicators
+find . -name "package.json" -not -path "./node_modules/*" | wc -l
+# If > 1, likely a monorepo
+
+# Check for npm/pnpm workspace configuration
+grep -E '"workspaces"' package.json
+ls -la | grep -E "pnpm-workspace\.yaml"
+```
+
+## Workflow by Repository Type
+
+### Single-Project Workflow
+
+**Spec Creation**:
+```bash
+# Create spec in flat structure
+mkdir -p .kiro/specs/my-feature
+cd .kiro/specs/my-feature
+
+# Create the three documents
+touch requirements.md design.md tasks.md
+```
+
+**Task Execution**:
+- Work on tasks sequentially within the single codebase
+- All changes affect one deployable unit
+- Standard git workflow for commits and PRs
+
+**Validation**:
+```bash
+# Run all tests for the single project
+npm test
+
+# Validate spec compliance
+node scripts/validate-spec-compliance.mjs
+```
+
+### Monorepo Workflow
+
+**Spec Creation**:
+```bash
+# Determine appropriate category path
+# Choose from: apps/, libs/, services/, tools/
+
+# Example: New feature for frontend app
+mkdir -p .kiro/specs/apps/frontend-app/user-auth-feature
+cd .kiro/specs/apps/frontend-app/user-auth-feature
+
+# Create the three documents
+touch requirements.md design.md tasks.md
+```
+
+**Task Execution**:
+- Tasks may span multiple packages with dependencies
+- Coordinate changes across packages using cross-references
+- Use monorepo coordination practices (see `monorepo-coordination.md`)
+- Consider package release order and version coordination
+
+**Validation**:
+```bash
+# Run tests across all affected packages
+npm run test:workspaces  # If using npm workspaces
+pnpm test --filter ...   # If using pnpm workspaces
+
+# Validate spec compliance
+node scripts/validate-spec-compliance.mjs
+
+# Check cross-package integration
+npm run test:integration
+```
+
 ## Implementation Workflow
+
+### General Process (Applies to Both Repository Types)
+
+1. **Spec Creation**: Follow the three-phase process (Requirements → Design → Tasks)
+2. **Task Execution**: Work through tasks incrementally, marking completion
+3. **Validation**: Ensure implementation meets requirements and passes all tests
+4. **Documentation**: Update docs and maintain spec compliance
+
+### Repository-Specific Considerations
+
+**For Single-Project Repositories**:
+- Focus on feature completeness within one codebase
+- Standard branching and PR workflows
+- All changes deploy as single unit
+
+**For Monorepo Environments**:
+- Consider cross-package dependencies and integration points
+- Coordinate releases and version bumps across packages
+- Plan for shared library API stability
+- Use monorepo tooling for affected package detection
 
 ### 1. Spec Creation Process
 
 ```bash
-# Create new spec directory
+# For single-project repos:
 mkdir -p .kiro/specs/feature-name
+
+# For monorepo environments:
+mkdir -p .kiro/specs/{apps,libs,services,tools}/component-name/feature-name
 
 # Follow the three-phase process:
 # 1. Write requirements.md with EARS patterns
@@ -179,18 +344,32 @@ mkdir -p .kiro/specs/feature-name
 
 ### 2. Task Execution Process
 
+**Single-Project**:
 ```bash
-# Execute tasks in order
+# Execute tasks in order within single codebase
 # Mark tasks as complete in tasks.md
 # Update documentation as implementation progresses
+```
+
+**Monorepo**:
+```bash
+# Execute tasks across packages with coordination
+# Mark tasks complete and note cross-package dependencies
+# Update shared documentation and API contracts
+# Coordinate with other teams working on dependent packages
 ```
 
 ### 3. Validation Process
 
 ```bash
-# Verify implementation meets requirements
+# Basic validation (both repository types)
 npm test                    # Run all test suites
-npm run test:spec          # Verify spec compliance
+node scripts/validate-spec-compliance.mjs  # Verify spec compliance
+
+# Additional monorepo validation
+npm run test:workspaces    # Test all workspace packages (npm)
+pnpm test --filter ...     # Test affected packages (pnpm)
+npm run test:integration   # Cross-package integration tests
 ```
 
 ## Quality Assurance
@@ -206,7 +385,7 @@ npm run test:spec          # Verify spec compliance
 ### Design Quality Checklist
 
 - [ ] Architecture addresses all requirements
-- [ ] Component interfaces are well-defined
+- [ ] Module interfaces are well-defined
 - [ ] Error handling is comprehensive
 - [ ] Security considerations are addressed
 - [ ] Testing strategy is complete
@@ -235,9 +414,9 @@ npm run test:spec          # Verify spec compliance
 
 **Design**: Comprehensive architecture with clear interfaces
 ```markdown
-## Components and Interfaces
+## Modules and Interfaces
 
-### Cache Manager (`bin/cacheManager.mjs`)
+### Cache Manager (`bin/create-scaffold/cache-manager.mjs`)
 **Interface**:
 ```javascript
 class CacheManager {
@@ -338,12 +517,27 @@ cat .kiro/specs/feature-name/tasks.md
 # (Integration with project management tools)
 ```
 
-This spec-driven approach ensures that @m5nv/create-scaffold maintains high quality, security, and user focus while enabling efficient development and maintenance.
+This spec-driven approach ensures high quality, security, and user focus while enabling efficient development and maintenance.
+
+## Monorepo Considerations
+
+For monorepo environments with multiple packages and shared libraries, the spec-driven approach extends with additional coordination requirements. Read `.kiro/steering/monorepo-coordination.md`, `.kiro/steering/sprint-orchestration.md`, `.kiro/steering/release-orchestration.md`, and `.kiro/steering/shared-library-specs.md` for comprehensive monorepo guidance.
+
+### Cross-Package Coordination
+- **Dependency Declaration**: Explicit package dependencies in requirements.md
+- **Interface Contracts**: Stable APIs defined in design.md
+- **Integration Tasks**: Tasks spanning multiple packages with clear prerequisites
+- **Version Coordination**: Coordinated releases with rollback planning
+
+### Shared Library Management
+- **Interface Stability**: Semantic versioning for shared package APIs
+- **Breaking Change Process**: Approval process for API changes
+- **Testing Strategy**: Unit, integration, and end-to-end testing across packages
 
 ## What's Next
 
-Now that you understand the spec-driven development workflow, you might want to:
+Now that you understand the spec-driven development workflow, you can apply it to @m5nv/create-scaffolds by:
 
-- 🛠️ **Start developing**: [Development Guide](how-to/development.md) - Set up your development environment and contribute
-- 🤝 **Contribute to the project**: [Contributing Guidelines](../CONTRIBUTING.md) - How to contribute following our standards
-- 🚨 **Handle development issues**: [Troubleshooting Guide](guides/troubleshooting.md) - Resolve common development problems
+- 🛠️ **Set up your development environment** - Configure your workspace following the steering documents
+- 🤝 **Follow contribution standards** - Use the methodology's validation scripts and guidelines
+- 🚨 **Validate your implementation** - Run the provided validation scripts to ensure compliance
