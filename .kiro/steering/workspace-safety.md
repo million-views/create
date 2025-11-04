@@ -27,3 +27,29 @@ Failing to check workspace contents before operating can overwrite important use
 
 ## Implementation
 Apply these guardrails to all file operations, command execution, and testing scenarios where new files or directories might be created.
+
+## Emergency Procedures & Methodology Bypass
+
+### When to Bypass Normal Processes
+**Critical situations may require bypassing standard methodology procedures**. See AGENTS.md for context recognition rules.
+
+#### Production Outages & Hotfixes
+- **Safety Adaptation**: Maintain file operation safety but bypass spec-driven workflow
+- **Post-Incident**: Apply full Kiro methodology to create permanent, tested solutions
+
+#### Investigative Debugging
+- **Safety Adaptation**: Use safe testing practices but skip formal task tracking
+- **Transition**: Apply Kiro flow once issue is understood and reproducible
+
+#### Exploratory Prototyping
+- **Safety Adaptation**: Use temporary naming conventions but minimal documentation
+- **Rationale**: Prototyping prioritizes learning speed over formal processes
+- **Rationale**: Prototyping prioritizes learning speed over formal processes
+- **Transition**: Apply Kiro methodology when prototyping proves concept viability
+
+### Safety During Bypass
+Even when bypassing methodology:
+- **ALWAYS** maintain file operation safety
+- **ALWAYS** use temporary naming for experimental work
+- **ALWAYS** clean up after exploration
+- **Document** bypass decisions for post-mortem review

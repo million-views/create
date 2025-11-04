@@ -865,9 +865,9 @@ node bin/index.mjs test3 --from-template react --no-cache  # Should clone
 
 ### Project Specifications
 
-- [Phase 1 Core UX Spec](../../.kiro/specs/phase-1-core-ux/) - Caching, logging, discovery, dry-run features
-- [Documentation Overhaul Spec](../../.kiro/specs/documentation-overhaul-diataxis/) - Documentation restructuring project
-- [CLI Compliance Update Spec](../../.kiro/specs/cli-compliance-update/) - CLI standards compliance
+- [Phase 1 Core UX Spec](../../.kiro/specs/tools/create-scaffold/phase-1-core-ux/) - Caching, logging, discovery, dry-run features
+- [Documentation Overhaul Spec](../../.kiro/specs/tools/create-scaffold/documentation-overhaul-diataxis/) - Documentation restructuring project
+- [CLI Compliance Update Spec](../../.kiro/specs/tools/create-scaffold/cli-compliance-update/) - CLI standards compliance
 
 ### External Resources
 

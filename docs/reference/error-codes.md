@@ -289,11 +289,11 @@ For troubleshooting, the following information is useful:
 
 | Problem Category | Quick Identification | Primary Solution Guide |
 |------------------|---------------------|------------------------|
-| **Installation Issues** | Can't run CLI tool, git not found | [🚀 Installation Issues](../guides/troubleshooting.md#-installation-and-setup-issues) |
-| **Repository Access** | "Repository not found", "Authentication failed" | [🎯 First Use Issues](../guides/troubleshooting.md#-first-use-issues) |
-| **Template Problems** | "Template not found", setup script failures | [🔧 Template Issues](../guides/troubleshooting.md#-template-and-setup-script-issues) |
-| **Cache/Performance** | Stale data, permission errors, slow operations | [⚡ Advanced Usage Issues](../guides/troubleshooting.md#-advanced-usage-issues) |
-| **Network/Timeout** | Clone timeouts, connectivity issues | [⚡ Network Issues](../guides/troubleshooting.md#how-to-fix-network-and-timeout-issues) |
+| **Installation Issues** | Can't run CLI tool, git not found | [🚀 Installation Issues](../guides/troubleshooting.md) |
+| **Repository Access** | "Repository not found", "Authentication failed" | [🎯 First Use Issues](../guides/troubleshooting.md) |
+| **Template Problems** | "Template not found", setup script failures | [🔧 Template Issues](../guides/troubleshooting.md) |
+| **Cache/Performance** | Stale data, permission errors, slow operations | [⚡ Advanced Usage Issues](../guides/troubleshooting.md) |
+| **Network/Timeout** | Clone timeouts, connectivity issues | [⚡ Network Issues](../guides/troubleshooting.md) |
 
 ### Community Support Channels
 
@@ -309,7 +309,7 @@ For troubleshooting, the following information is useful:
 **Escalation path for unresolved issues:**
 1. Check [troubleshooting guide](../guides/troubleshooting.md) for your specific scenario
 2. Search [existing issues](https://github.com/m5nv/create-scaffold/issues) for similar problems
-3. Collect [diagnostic information](../guides/troubleshooting.md#diagnostic-information-collection)
+3. Collect [diagnostic information](../guides/troubleshooting.md)
 4. Create new issue with reproduction steps and system details
 
 ## See Also

@@ -17,7 +17,7 @@ import {
 } from './preflight-checks.mjs';
 import { createEnvironmentObject } from './environment-factory.mjs';
 import { CacheManager } from './cache-manager.mjs';
-import { Logger } from './logger.mjs';
+import { Logger } from '../../lib/shared/utils/logger.mjs';
 import { TemplateDiscovery } from './template-discovery.mjs';
 import { DryRunEngine } from './dry-run-engine.mjs';
 import { execCommand } from '../../lib/shared/utils/command-utils.mjs';

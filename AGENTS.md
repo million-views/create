@@ -38,7 +38,7 @@ Different types of work require different methodological approaches:
 ## Repository Type Determination
 
 ### Quick Repository Type Check
-**Single-Project Repository**:
+**Monolith Repository**:
 - One main deployable unit (app, service, tool, or library)
 - Single `package.json` at repository root
 - No package.json files in subdirectories (except node_modules)
@@ -64,7 +64,7 @@ ls -la | grep -E "pnpm-workspace\.yaml"
 
 ## Workflow by Repository Type
 
-### Single-Project Workflow
+### Monolith Workflow
 - **Specs**: Flat structure under `.kiro/specs/feature-name/`
 - **Coordination**: Work within single codebase
 - **Deployment**: Single artifact deployment
@@ -143,31 +143,3 @@ ls -la | grep -E "pnpm-workspace\.yaml"
 ## 7. Verification & Reporting
 - Run appropriate tests before finishing a task.
 - Summarize changes clearly, noting files touched and tests executed.
-
-## 8. Monorepo Boundaries (Pre-Migration Planning)
-
-**CRITICAL**: When make-template migrates into @m5nv/create-scaffold, respect tool territories:
-
-### Create-Scaffold Territory
-- **Folder**: `bin/create-scaffold/`
-- **Focus**: Template consumption, user interaction, project instantiation
-- **Tests**: `test/create-scaffold-*`
-
-### Make-Template Territory
-- **Folder**: `bin/make-template/`
-- **Focus**: Template authoring, validation, metadata generation
-- **Tests**: `test/make-template-*`
-
-### Shared Territory
-- **Folder**: `bin/shared/`
-- **Focus**: Common utilities used by both tools
-- **Coordination**: Changes require both teams' approval
-- **Tests**: `test/shared-*`
-
-**Before making changes**:
-1. Identify which tool/team the folder belongs to
-2. Only modify files within appropriate territory folders
-3. For shared folder changes, confirm with both teams
-4. Document cross-tool impact in PR descriptions
-
-**Read `.kiro/steering/monorepo-organization.md`** for complete boundary guidance.

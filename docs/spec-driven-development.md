@@ -168,7 +168,7 @@ For other types of work:
 
 All specifications are stored in `.kiro/specs/{feature-name}/`:
 
-```
+```text
 .kiro/specs/
 ├── feature-name/
 │   ├── requirements.md    # EARS-compliant requirements
@@ -184,7 +184,7 @@ All specifications are stored in `.kiro/specs/{feature-name}/`:
 
 Use hierarchical organization to group related features and modules:
 
-```
+```text
 .kiro/specs/
 ├── apps/
 │   ├── frontend-app/
@@ -206,10 +206,13 @@ Use hierarchical organization to group related features and modules:
 │   └── payment-service/
 └── tools/
     ├── deployment-tool/
+    │   ├── requirements.md
+    │   ├── design.md
+    │   └── tasks.md
     └── monitoring-tool/
-```
-    ├── deployment/
-    └── monitoring/
+        ├── requirements.md
+        ├── design.md
+        └── tasks.md
 ```
 
 **Recommendation**: Use hierarchical structure for monorepos, flat structure for single projects.
@@ -535,9 +538,9 @@ For monorepo environments with multiple packages and shared libraries, the spec-
 - **Testing Strategy**: Unit, integration, and end-to-end testing across packages
 
 ## What's Next
+Now that you understand the spec-driven development workflow, you can apply it to kiro-methodology-packages by:
 
-Now that you understand the spec-driven development workflow, you can apply it to @m5nv/create-scaffolds by:
-
-- 🛠️ **Set up your development environment** - Configure your workspace following the steering documents
-- 🤝 **Follow contribution standards** - Use the methodology's validation scripts and guidelines
-- 🚨 **Validate your implementation** - Run the provided validation scripts to ensure compliance
+- 🛠️ **Start developing**: [Development Guide](how-to/development.md) - Set up your development environment and contribute
+- 🤝 **Contribute to the project**: [Contributing Guidelines](../CONTRIBUTING.md) - How to contribute following our standards
+- 🚨 **Handle development issues**: [Troubleshooting Guide](guides/troubleshooting.md) - Resolve common development problems
+- 📖 **Return to project overview**: [README.md](../README.md) - Get back to the main project documentation

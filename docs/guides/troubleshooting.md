@@ -79,7 +79,7 @@ node --version
 3. Restart your terminal
 4. Verify: `node --version`
 
-**See also:** 📖 [CLI Reference - System Requirements](../reference/cli-reference.md#system-requirements)
+**See also:** 📖 [CLI Reference](../reference/cli-reference.md)
 
 ---
 
@@ -111,7 +111,7 @@ npm create @m5nv/scaffold test-project -- --from-template basic --from-repo micr
 **If this works:** Your original repository URL has an issue
 **If this fails:** Check your git configuration and network connection
 
-**See also:** 📖 [CLI Reference - Repository Formats](../reference/cli-reference.md#repository-formats)
+**See also:** 📖 [CLI Reference](../reference/cli-reference.md)
 
 ### How to Fix Authentication Issues
 
@@ -149,7 +149,7 @@ git clone https://github.com/your-username/your-private-repo.git temp-test
 rm -rf temp-test
 ```
 
-**See also:** 💡 [Security Model - Authentication](../explanation/security-model.md#authentication)
+**See also:** 💡 [Security Model](../explanation/security-model.md)
 
 ### How to Fix "Template Not Found" Error
 
@@ -176,7 +176,7 @@ npm create @m5nv/scaffold -- --list-templates --from-repo user/repo --from-branc
 npm create @m5nv/scaffold test-project -- --from-template your-template --from-repo user/repo --dry-run
 ```
 
-**See also:** 📖 [CLI Reference - Template Discovery](../reference/cli-reference.md#template-discovery)
+**See also:** 📖 [CLI Reference](../reference/cli-reference.md)
 
 ### How to Fix "Directory Already Exists" Error
 
@@ -240,7 +240,7 @@ The tool automatically handles corrupted cache entries, but you can force a refr
 npm create @m5nv/scaffold my-project -- --from-template react --no-cache
 ```
 
-**See also:** 💡 [Caching Strategy - Cache Management](../explanation/caching-strategy.md#cache-management)
+**See also:** 💡 [Caching Strategy](../explanation/caching-strategy.md)
 
 ### How to Fix Logging Issues
 
@@ -268,7 +268,7 @@ Avoid these patterns:
 - System directories: `/var/log/debug.log` (use user directories)
 - Paths with `..`: `../debug.log` (security restriction)
 
-**See also:** 📖 [CLI Reference - Logging Options](../reference/cli-reference.md#logging-options)
+**See also:** 📖 [CLI Reference](../reference/cli-reference.md)
 
 ### How to Fix Network and Timeout Issues
 
@@ -353,7 +353,7 @@ cd my-project
 node -e "import('./template/_setup.mjs').then(m => console.log('Setup script is valid'))"
 ```
 
-**See also:** 🎯 [Creating Templates - Setup Scripts](../how-to/creating-templates.md#setup-scripts)
+**See also:** 🎯 [Creating Templates Guide](../how-to/creating-templates.md)
 
 ### How to Debug Template Structure Issues
 

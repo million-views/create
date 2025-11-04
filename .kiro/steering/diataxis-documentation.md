@@ -12,8 +12,8 @@ The Diátaxis framework organizes documentation into four distinct types based o
 
 ### 1. Tutorials (Learning-Oriented)
 
-**Purpose**: Guide beginners through hands-on learning experiences  
-**User Need**: "I want to learn by doing"  
+**Purpose**: Guide beginners through hands-on learning experiences
+**User Need**: "I want to learn by doing"
 **Structure**: Step-by-step lessons with guaranteed outcomes
 
 **Characteristics:**
@@ -41,8 +41,8 @@ The Diátaxis framework organizes documentation into four distinct types based o
 
 ### 2. How-to Guides (Problem-Oriented)
 
-**Purpose**: Solve specific problems with practical solutions  
-**User Need**: "I have a problem and need to solve it"  
+**Purpose**: Solve specific problems with practical solutions
+**User Need**: "I have a problem and need to solve it"
 **Structure**: Goal-oriented instructions for specific tasks
 
 **Characteristics:**
@@ -69,8 +69,8 @@ The Diátaxis framework organizes documentation into four distinct types based o
 
 ### 3. Reference (Information-Oriented)
 
-**Purpose**: Provide comprehensive, accurate technical information  
-**User Need**: "I need to look up specific information"  
+**Purpose**: Provide comprehensive, accurate technical information
+**User Need**: "I need to look up specific information"
 **Structure**: Systematic, complete coverage of technical details
 
 **Characteristics:**
@@ -97,8 +97,8 @@ The Diátaxis framework organizes documentation into four distinct types based o
 
 ### 4. Explanation (Understanding-Oriented)
 
-**Purpose**: Provide context, background, and design rationale  
-**User Need**: "I want to understand how and why this works"  
+**Purpose**: Provide context, background, and design rationale
+**User Need**: "I want to understand how and why this works"
 **Structure**: Conceptual discussion with context and reasoning
 
 **Characteristics:**
@@ -133,8 +133,9 @@ docs/
 ├── guides/            # Task-oriented content (how-to)
 ├── reference/         # Information-oriented content
 ├── explanation/       # Understanding-oriented content
-└── _templates/        # Documentation templates and guidelines
 ```
+
+**Note**: Templates and guidelines for creating documentation are provided in `.kiro/steering/templates/` (methodology guidance for AI assistants, not part of project structure).
 
 ### Special Cases
 

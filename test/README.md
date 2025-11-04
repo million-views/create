@@ -10,7 +10,6 @@ The test suite is organized to support monorepo development with clear tool boun
 test/
 ├── create-scaffold/     # Tests specific to create-scaffold tool
 │   ├── argument-parser.test.mjs
-│   ├── argumentParser.test.mjs
 │   ├── cache-manager.test.mjs
 │   ├── cli-integration.test.mjs
 │   ├── cli.test.mjs
@@ -25,11 +24,14 @@ test/
 │   ├── spec-compliance-verification.mjs
 │   └── template-discovery.test.mjs
 ├── shared/              # Tests for shared utilities and libraries
+│   ├── canonical-variables.test.mjs
+│   ├── interactive-utils.test.mjs
 │   ├── options-processor.test.mjs
+│   ├── placeholder-schema.test.mjs
+│   ├── schema-build.test.mjs
 │   ├── security.test.mjs
 │   ├── template-metadata-placeholders.test.mjs
-│   ├── template-validator.test.mjs
-│   └── validationUtils.test.mjs
+│   └── template-validator.test.mjs
 ├── fixtures/            # Test fixtures and mock data
 ├── utils/               # Test utilities and helpers
 │   ├── cli.js
@@ -136,11 +138,17 @@ This structure prevents test collisions when additional tools (like `make-templa
 # Run all tests
 npm test
 
-# Run with verbose output
-node test/cli.test.mjs
+# Run quick test suite (recommended for development)
+npm run test:quick
+
+# Run spec compliance verification
+npm run test:spec
+
+# Run with verbose output (individual test)
+node test/create-scaffold/cli.test.mjs
 
 # Run specific test (modify the test file to comment out others)
-# Edit test/cli.test.mjs and comment out unwanted tests
+# Edit test/create-scaffold/cli.test.mjs and comment out unwanted tests
 ```
 
 ## Test Requirements
@@ -220,6 +228,7 @@ The test suite itself follows security best practices:
 Tests are designed to complete within reasonable time limits:
 
 - Individual test timeout: 30 seconds
-- Total suite runtime: ~2-5 minutes (depending on network)
+- Quick test suite runtime: ~10-15 seconds
+- Full test suite runtime: ~2-5 minutes (depending on network)
 - Parallel execution where possible
 - Efficient cleanup and resource management

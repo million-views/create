@@ -1,14 +1,16 @@
 {
     "name": "@m5nv/create-scaffold",
-    "version": "0.4.0",
+    "version": "0.5.0",
     "private": false,
     "type": "module",
-    "description": "Scaffolds new projects for million-views using templates",
+    "description": "Project scaffolding tools: create-scaffold for using templates, make-template for creating them",
     "bin": {
-        "create-scaffold": "./bin/create-scaffold/index.mjs"
+        "create-scaffold": "./bin/create-scaffold/index.mjs",
+        "make-template": "./bin/make-template/index.mjs"
     },
     "exports": {
         ".": "./bin/create-scaffold/index.mjs",
+        "./make-template": "./bin/make-template/index.mjs",
         "./schema/template.json": "./schema/template.json",
         "./schema/template.v1.json": "./schema/template.v1.json",
         "./types/template-schema": {

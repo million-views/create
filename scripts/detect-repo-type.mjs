@@ -3,7 +3,7 @@
 /**
  * Repository Type Detection Script
  *
- * Deterministically identifies if a project is a monorepo or single-project repository
+ * Deterministically identifies if a project is a monorepo or monolith repository
  * based on common patterns and configurations.
  *
  * Also detects whether the current environment is "unborn" (methodology package)
@@ -18,7 +18,7 @@
 import fs from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { fileExists, readPackageJson } from './utils.mjs';
+import { fileExists, readPackageJson, isMethodologyTemplate, countPackageJsonFiles, hasWorkspaceConfig, hasPnpmWorkspace, hasLernaConfig, hasRushConfig, hasMonorepoPatterns } from './utils.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -30,127 +30,20 @@ const absoluteTargetPath = path.resolve(targetPath);
  * Check if this is an "unborn" methodology package vs "reified" project
  */
 async function detectEnvironmentState() {
-  // Check for methodology package markers
-  const methodologyMarkers = [
-    'scripts/detect-repo-type.mjs',
-    'scripts/customize-methodology.mjs',
-    'docs/spec-driven-development.md',
-    'AGENTS.md'
-  ];
-
-  // Must have all methodology-specific files
-  for (const marker of methodologyMarkers) {
-    if (!(await fileExists(path.join(absoluteTargetPath, marker)))) {
-      return 'reified'; // Missing methodology files, so this is a project
-    }
-  }
-
-  // Check if specs directory has only .gitkeep (methodology package)
-  try {
-    const specsDir = path.join(absoluteTargetPath, '.kiro/specs');
-    const entries = await fs.readdir(specsDir, { withFileTypes: true });
-    if (entries.length === 1 && entries[0].name === '.gitkeep') {
-      return 'unborn'; // This is the methodology package itself
-    }
-  } catch {
-    // Specs directory doesn't exist or can't be read
-  }
-
-  return 'reified'; // Has methodology files but actual specs, so it's a project
+  const isMethodology = await isMethodologyTemplate(absoluteTargetPath);
+  return isMethodology ? 'unborn' : 'reified';
 }
 
 /**
  * Count package.json files excluding node_modules
  */
-async function countPackageJsonFiles() {
-  try {
-    const { execSync } = await import('child_process');
-    const command = `cd "${absoluteTargetPath}" && find . -name "package.json" -not -path "./node_modules/*" | wc -l`;
-    const result = execSync(command, { encoding: 'utf8' });
-    return parseInt(result.trim());
-  } catch {
-    // Fallback: manual counting
-    let count = 0;
-    async function traverse(dir) {
-      const entries = await fs.readdir(dir, { withFileTypes: true });
-      for (const entry of entries) {
-        const fullPath = path.join(dir, entry.name);
-        if (entry.isDirectory() && entry.name !== 'node_modules' && entry.name !== '.git') {
-          await traverse(fullPath);
-        } else if (entry.name === 'package.json') {
-          count++;
-        }
-      }
-    }
-    await traverse(absoluteTargetPath);
-    return count;
-  }
-}
-
 /**
  * Check for workspace configuration
  */
-async function hasWorkspaceConfig() {
-  const packageJson = await readPackageJson(path.join(absoluteTargetPath, 'package.json'));
-  return !!(packageJson?.workspaces && packageJson.workspaces.length > 0);
-}
 
 /**
  * Check for pnpm workspace file
  */
-async function hasPnpmWorkspace() {
-  return await fileExists(path.join(absoluteTargetPath, 'pnpm-workspace.yaml'));
-}
-
-/**
- * Check for lerna configuration
- */
-async function hasLernaConfig() {
-  return await fileExists(path.join(absoluteTargetPath, 'lerna.json')) || 
-         await fileExists(path.join(absoluteTargetPath, 'nx.json'));
-}
-
-/**
- * Check for rush configuration
- */
-async function hasRushConfig() {
-  return await fileExists(path.join(absoluteTargetPath, 'rush.json'));
-}
-
-/**
- * Check for common monorepo patterns
- */
-async function hasMonorepoPatterns() {
-  const patterns = [
-    'packages/',
-    'apps/',
-    'libs/',
-    'services/',
-    'tools/',
-    'components/',
-    'modules/'
-  ];
-
-  for (const pattern of patterns) {
-    if (await fileExists(path.join(absoluteTargetPath, pattern))) {
-      // Check if the directory contains package.json files
-      try {
-        const entries = await fs.readdir(path.join(absoluteTargetPath, pattern), { withFileTypes: true });
-        for (const entry of entries) {
-          if (entry.isDirectory()) {
-            const packageJsonPath = path.join(absoluteTargetPath, pattern, entry.name, 'package.json');
-            if (await fileExists(packageJsonPath)) {
-              return true;
-            }
-          }
-        }
-      } catch {
-        // Directory doesn't exist or can't be read
-      }
-    }
-  }
-  return false;
-}
 
 /**
  * Main detection logic
@@ -177,19 +70,19 @@ async function detectRepositoryType() {
     console.log('📋 Use detect-repo-type.mjs on actual projects to determine type');
 
     console.log('\n🔧 For actual projects, expected repository types:');
-    console.log('  • Single-Project: One deployable artifact, flat spec structure');
+    console.log('  • Monolith: One deployable artifact, flat spec structure');
     console.log('  • Monorepo: Multiple deployable packages, hierarchical specs');
 
     return 'methodology-package';
   }
 
   // Reified project - detect repository type
-  const packageJsonCount = await countPackageJsonFiles();
-  const hasWorkspaces = await hasWorkspaceConfig();
-  const hasPnpm = await hasPnpmWorkspace();
-  const hasLerna = await hasLernaConfig();
-  const hasRush = await hasRushConfig();
-  const hasPatterns = await hasMonorepoPatterns();
+  const packageJsonCount = await countPackageJsonFiles(absoluteTargetPath);
+  const hasWorkspaces = await hasWorkspaceConfig(absoluteTargetPath);
+  const hasPnpm = await hasPnpmWorkspace(absoluteTargetPath);
+  const hasLerna = await hasLernaConfig(absoluteTargetPath);
+  const hasRush = await hasRushConfig(absoluteTargetPath);
+  const hasPatterns = await hasMonorepoPatterns(absoluteTargetPath);
 
   console.log(`📦 Package.json files found: ${packageJsonCount}`);
   console.log(`📋 NPM workspaces: ${hasWorkspaces ? 'Yes' : 'No'}`);
@@ -215,11 +108,11 @@ async function detectRepositoryType() {
     console.log('📋 Apply monorepo-specific steering documents');
     console.log('📋 Use cross-package coordination and release orchestration');
   } else {
-    console.log('📄 REPOSITORY TYPE: SINGLE-PROJECT');
+    console.log('📄 REPOSITORY TYPE: MONOLITH');
     console.log('='.repeat(50));
     console.log('✅ This repository produces one deployable artifact');
     console.log('📋 Use flat spec structure: .kiro/specs/feature-name/');
-    console.log('📋 Apply single-project steering documents');
+    console.log('📋 Apply monolith steering documents');
     console.log('📋 Focus on individual package development');
   }
 
@@ -239,7 +132,7 @@ async function detectRepositoryType() {
     console.log('  • diataxis-documentation.md - Documentation framework');
   }
 
-  return isMonorepo ? 'monorepo' : 'single-project';
+  return isMonorepo ? 'monorepo' : 'monolith';
 }
 
 // Run detection if called directly

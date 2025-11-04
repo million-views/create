@@ -4,6 +4,8 @@ inclusion: always
 
 # Greenfield Development Principle
 
+**Scope**: Applies only to production development work following the Kiro Methodology. See AGENTS.md for when this principle does NOT apply (exploratory prototyping, debugging, emergency fixes).
+
 ## Core Principle: Write Everything as First-Time Implementation
 
 All code, documentation, tests, and specifications must be written as if being created for the very first time. No backward compatibility considerations, migration paths, or historical references unless explicitly required by specification.
@@ -210,7 +212,7 @@ function processData(input) {
   it('should support legacy features parameter', () => {
     // Test old behavior
   });
-  
+
   it('should support new options parameter', () => {
     // Test new behavior
   });

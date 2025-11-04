@@ -11,7 +11,7 @@
 import fs from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { colorize, fileExists, getMarkdownFiles, formatResults, calculateExitCode } from './utils.mjs';
+import { colorize, fileExists, getMarkdownFiles, formatResults, calculateExitCode, isMethodologyTemplate } from './utils.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const args = process.argv.slice(2);
@@ -31,7 +31,28 @@ const results = {
 };
 
 /**
- * Validate frontmatter in a markdown file
+ * Check if a file is a placeholder Diátaxis document in the methodology package
+ */
+function isPlaceholderDiataxisDoc(filePath) {
+  const relativePath = path.relative(process.cwd(), filePath);
+
+  // Skip Diátaxis docs that are placeholders (not steering docs)
+  const diataxisPlaceholderDirs = [
+    'docs/tutorial/',
+    'docs/explanation/',
+    'docs/guides/',
+    'docs/how-to/',
+    'docs/reference/'
+  ];
+
+  return diataxisPlaceholderDirs.some(dir => relativePath.startsWith(dir));
+}
+
+/**
+ * Check if this is the methodology package itself (unborn state)
+ */
+/**
+ * Validate frontmatter in markdown files
  */
 async function validateFrontmatter(filePath, content) {
   // Skip frontmatter validation for spec files (requirements.md, design.md, tasks.md)
@@ -42,6 +63,10 @@ async function validateFrontmatter(filePath, content) {
       (specFileName === 'requirements' || specFileName === 'design' || specFileName === 'tasks')) {
     return; // Skip frontmatter validation for spec files
   }
+
+  // Skip title/description validation for steering files (but not templates)
+  const isSteeringFile = relativePath.includes('.kiro/steering/') && !relativePath.includes('.kiro/steering/templates/');
+  const isTemplateFile = relativePath.includes('.kiro/steering/templates/');
 
   const lines = content.split('\n');
   const frontmatterStart = lines.findIndex(line => line.trim() === '---');
@@ -80,10 +105,18 @@ async function validateFrontmatter(filePath, content) {
   }
 
   // Check for recommended frontmatter fields
-  const recommendedFields = ['title', 'description'];
-  if (expectedType !== 'unknown') {
-    recommendedFields.push('type');
+  const recommendedFields = [];
+  if (isTemplateFile) {
+    // Template files should have standard frontmatter
+    recommendedFields.push('title', 'description', 'type');
+  } else if (!isSteeringFile) {
+    // Regular docs should have standard frontmatter
+    recommendedFields.push('title', 'description');
+    if (expectedType !== 'unknown') {
+      recommendedFields.push('type');
+    }
   }
+  // Steering files (non-templates) skip all frontmatter checks
 
   for (const field of recommendedFields) {
     if (!frontmatter[field]) {
@@ -101,6 +134,13 @@ async function validateFrontmatter(filePath, content) {
  * Validate internal links in markdown content
  */
 async function validateLinks(filePath, content, allFiles) {
+  const relativePath = path.relative(process.cwd(), filePath);
+
+  // Skip link validation for steering files (they may contain example/template links)
+  if (relativePath.includes('.kiro/steering/')) {
+    return;
+  }
+
   const linkRegex = /\[([^\]]+)\]\(([^)]+)\)/g;
   const fileDir = path.dirname(filePath);
   const relativePaths = allFiles.map(f => path.relative(fileDir, f));
@@ -186,12 +226,18 @@ function validateDiataxisStructure(filePath) {
 async function validateDocumentation() {
   console.log(colorize('🔍 Validating documentation following Kiro Methodology...', 'blue'));
 
+  const isMethodology = await isMethodologyTemplate(process.cwd(), {
+    checkPath: true,      // Check directory path for methodology indicators
+    checkContent: true    // Check documentation content for placeholder markers
+  });
+
   // Find documentation directories (common patterns)
   const possibleDocDirs = [
     'docs',
     'documentation',
     'README.md', // Check root README
-    '.kiro/specs' // Check spec documentation
+    '.kiro/specs', // Check spec documentation
+    '.kiro/steering' // Check steering documentation
   ];
 
   const docDirs = [];
@@ -218,6 +264,15 @@ async function validateDocumentation() {
   // Validate each file
   for (const file of files) {
     results.files++;
+
+    // Skip validation of placeholder Diátaxis docs in methodology package
+    if (isMethodology && isPlaceholderDiataxisDoc(file)) {
+      if (VERBOSE) {
+        console.log(`Skipping placeholder doc: ${file}`);
+      }
+      continue;
+    }
+
     if (VERBOSE) {
       console.log(`Validating: ${file}`);
     }
