@@ -1,0 +1,103 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "your-org/your-template-name",
+  "name": "Your Template Name",
+  "description": "A brief description of what this template creates",
+  "tags": [
+    "web",
+    "api",
+    "fullstack"
+  ],
+  "author": "Your Name or Organization",
+  "license": "MIT",
+  "dimensions": {
+    "deployment_target": {
+      "values": [
+        "vercel",
+        "netlify",
+        "railway"
+      ]
+    },
+    "features": {
+      "values": [
+        "auth",
+        "database",
+        "api",
+        "ui"
+      ]
+    },
+    "database": {
+      "values": [
+        "postgresql",
+        "mysql",
+        "sqlite"
+      ]
+    },
+    "storage": {
+      "values": [
+        "aws-s3",
+        "vercel-blob",
+        "local"
+      ]
+    },
+    "auth_providers": {
+      "values": [
+        "google",
+        "github",
+        "twitter",
+        "email"
+      ]
+    },
+    "payments": {
+      "values": [
+        "stripe",
+        "paypal"
+      ]
+    },
+    "analytics": {
+      "values": [
+        "mixpanel",
+        "google-analytics",
+        "plausible"
+      ]
+    }
+  },
+  "gates": {
+    "deployment_target": {
+      "platform": "node",
+      "constraint": "Requires Node.js runtime"
+    }
+  },
+  "featureSpecs": {
+    "auth": {
+      "label": "Authentication",
+      "description": "Add user authentication system",
+      "needs": [
+        "database"
+      ]
+    },
+    "database": {
+      "label": "Database",
+      "description": "Add database integration",
+      "needs": []
+    },
+    "api": {
+      "label": "API Routes",
+      "description": "Add API endpoints and routing",
+      "needs": []
+    },
+    "ui": {
+      "label": "User Interface",
+      "description": "Add frontend components and pages",
+      "needs": []
+    }
+  },
+  "hints": {
+    "features": {
+      "auth": "Add secure user authentication with login/signup flows",
+      "database": "Set up database connection and schema management",
+      "api": "Create REST or GraphQL API endpoints",
+      "ui": "Build responsive user interface components"
+    }
+  }
+}

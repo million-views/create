@@ -1,0 +1,147 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "million-views/express-api",
+  "name": "Express.js API Server",
+  "description": "A production-ready Express.js REST API server with TypeScript, authentication, database integration, and comprehensive testing",
+  "version": "1.0.0",
+  "author": "million-views",
+  "license": "MIT",
+  "tags": ["api", "express", "typescript", "rest", "backend"],
+  "dimensions": {
+    "deployment_target": {
+      "values": ["vercel", "railway", "render", "fly", "heroku"],
+      "default": "vercel"
+    },
+    "features": {
+      "values": ["auth", "database", "cors", "rate-limiting", "logging", "validation", "docs"],
+      "default": ["cors", "logging", "validation"]
+    },
+    "database": {
+      "values": ["postgres", "mysql", "sqlite", "mongodb", "none"],
+      "default": "postgres"
+    },
+    "auth_providers": {
+      "values": ["jwt", "passport", "none"],
+      "default": "jwt"
+    }
+  },
+  "gates": {
+    "auth_providers": {
+      "platform": "all",
+      "constraint": "Authentication feature requires selecting an auth provider",
+      "allowed": ["jwt", "passport"]
+    },
+    "database": {
+      "platform": "all",
+      "constraint": "Database feature requires selecting a database type",
+      "allowed": ["postgres", "mysql", "sqlite", "mongodb"]
+    }
+  },
+  "hints": {
+    "features": {
+      "auth": {
+        "label": "Authentication",
+        "description": "Add user authentication with JWT or Passport.js",
+        "needs": ["auth"]
+      },
+      "database": {
+        "label": "Database Integration",
+        "description": "Add database connection and ORM setup",
+        "needs": ["database"]
+      },
+      "cors": {
+        "label": "CORS Support",
+        "description": "Enable Cross-Origin Resource Sharing for web clients"
+      },
+      "rate-limiting": {
+        "label": "Rate Limiting",
+        "description": "Add request rate limiting to prevent abuse"
+      },
+      "logging": {
+        "label": "Structured Logging",
+        "description": "Add Winston-based structured logging"
+      },
+      "validation": {
+        "label": "Request Validation",
+        "description": "Add Joi-based request validation middleware"
+      },
+      "docs": {
+        "label": "API Documentation",
+        "description": "Generate OpenAPI/Swagger documentation"
+      }
+    }
+  },
+  "constants": {
+    "nodeVersion": ">=18.0.0",
+    "typescriptVersion": "^5.0.0"
+  },
+  "setup": {
+    "policy": "strict",
+    "steps": [
+      {
+        "type": "copy",
+        "source": "src/",
+        "target": "src/"
+      },
+      {
+        "type": "copy",
+        "source": "test/",
+        "target": "test/"
+      },
+      {
+        "type": "render",
+        "source": "package.json.hbs",
+        "target": "package.json"
+      },
+      {
+        "type": "render",
+        "source": ".env.example.hbs",
+        "target": ".env.example"
+      },
+      {
+        "type": "render",
+        "source": "README.md.hbs",
+        "target": "README.md"
+      },
+      {
+        "type": "shell",
+        "command": "npm install",
+        "description": "Install dependencies"
+      }
+    ]
+  },
+  "placeholders": [
+    {
+      "name": "projectName",
+      "description": "Name of your API project",
+      "type": "string",
+      "default": "my-express-api",
+      "pattern": "^[a-z0-9-]+$",
+      "required": true
+    },
+    {
+      "name": "port",
+      "description": "Port for the API server",
+      "type": "number",
+      "default": 3000,
+      "min": 1000,
+      "max": 9999,
+      "required": true
+    },
+    {
+      "name": "jwtSecret",
+      "description": "Secret key for JWT tokens",
+      "type": "string",
+      "default": "your-super-secret-jwt-key-change-in-production",
+      "required": false
+    }
+  ],
+  "handoff": [
+    "npm run dev # Start development server",
+    "npm test # Run tests",
+    "npm run build # Build for production",
+    "Configure your database connection in .env",
+    "Set JWT_SECRET in production environment",
+    "Review API documentation at /api/docs"
+  ]
+}

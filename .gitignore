@@ -8,3 +8,26 @@ npm-debug.log*
 .DS_Store
 .tmp-m5nv-create-*/
 package-lock.json
+
+# Test coverage and reports
+*.lcov
+coverage/
+.nyc_output/
+
+# Test projects and fixtures
+test-project/
+test-*/
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS generated files
+Thumbs.db
+*.tmp
+
+# Build artifacts
+*.tgz
+*.tar.gz
