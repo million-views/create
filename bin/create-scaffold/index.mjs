@@ -17,6 +17,7 @@ import {
 } from './preflight-checks.mjs';
 import { createEnvironmentObject } from './environment-factory.mjs';
 import { CacheManager } from './cache-manager.mjs';
+import { TemplateResolver } from './template-resolver.mjs';
 import { Logger } from '../../lib/shared/utils/logger.mjs';
 import { TemplateDiscovery } from './template-discovery.mjs';
 import { DryRunEngine } from './dry-run-engine.mjs';
@@ -31,15 +32,105 @@ import { InteractiveSession } from './interactive-session.mjs';
 import { shouldEnterInteractive } from '../../lib/shared/utils/interactive-utils.mjs';
 import { loadConfig } from './config-loader.mjs';
 import {
-  runTemplateValidation,
-  formatValidationResults,
-  formatValidationResultsAsJson
-} from './template-validation.mjs';
+  handleError,
+  contextualizeError,
+  ErrorMessages,
+  ErrorContext
+} from '../../lib/shared/utils/error-handler.mjs';
+
+// Import validation classes for new schema validation
+import { SelectionValidator } from '../../lib/validation/selection-validator.mjs';
+
+// Import template validation functions
+import { runTemplateValidation, formatValidationResults, formatValidationResultsAsJson } from './template-validation.mjs';
 
 // Default configuration
-const DEFAULT_REPO = 'million-views/templates';
+const DEFAULT_REPO = 'million-views/packages';
 const SETUP_SCRIPT = '_setup.mjs';
 const DEFAULT_AUTHOR_ASSETS_DIR = '__scaffold__';
+
+/**
+ * Validate user selections against template constraints using SelectionValidator
+ * @param {object} params - Validation parameters
+ * @param {string} params.templatePath - Path to template directory
+ * @param {string} params.templateName - Name of the template
+ * @param {object} params.optionsByDimension - Normalized user options by dimension
+ * @param {object} params.metadata - Template metadata
+ * @returns {Promise<{valid: boolean, errors: Array, warnings: Array, derived: object}>}
+ */
+async function validateUserSelections({ templatePath, templateName, optionsByDimension, metadata }) {
+  try {
+    // Load template.json from template directory
+    const templateJsonPath = path.join(templatePath, 'template.json');
+    let templateData;
+
+    try {
+      templateData = JSON.parse(await fs.readFile(templateJsonPath, 'utf8'));
+    } catch (error) {
+      // If template.json doesn't exist or is invalid, skip selection validation
+      // This maintains backward compatibility with older templates
+      return {
+        valid: true,
+        errors: [],
+        warnings: [{
+          type: 'COMPATIBILITY_WARNING',
+          message: 'Template does not use new schema validation (template.json not found or invalid)',
+          path: []
+        }],
+        derived: {}
+      };
+    }
+
+    // Create selection object from user choices
+    const selectionData = {
+      schemaVersion: '1.0.0',
+      templateId: templateData.id || `${templateName}/unknown`,
+      version: templateData.version || '1.0.0',
+      selections: {}
+    };
+
+    // Map user options to selection format
+    for (const [dimensionName, dimensionValue] of Object.entries(optionsByDimension)) {
+      if (dimensionName === 'features') {
+        // Features are stored as array
+        selectionData.selections[dimensionName] = Array.isArray(dimensionValue) ? dimensionValue : [dimensionValue];
+      } else {
+        // Other dimensions are stored as single values
+        selectionData.selections[dimensionName] = dimensionValue;
+      }
+    }
+
+    // Add project metadata if available
+    if (metadata?.name) {
+      selectionData.project = {
+        name: metadata.name,
+        packageManager: 'npm' // Default, could be enhanced to detect from context
+      };
+    }
+
+    // Validate selection against template
+    const validator = new SelectionValidator();
+    // For validation, construct a template object with processed dimensions
+    const templateForValidation = {
+      ...templateData,
+      dimensions: metadata.dimensions
+    };
+    const result = await validator.validate(selectionData, templateForValidation);
+
+    return result;
+  } catch (error) {
+    return {
+      valid: false,
+      errors: [{
+        type: 'VALIDATION_ERROR',
+        message: `Selection validation failed: ${error.message}`,
+        path: []
+      }],
+      warnings: [],
+      derived: {}
+    };
+  }
+}
 
 /**
  * Main function to orchestrate the scaffolding process
@@ -54,7 +145,53 @@ async function main() {
     // Parse arguments using native Node.js parseArgs
     const args = parseArguments();
     const cacheManager = new CacheManager();
+    const templateResolver = new TemplateResolver(cacheManager);
     let logger = null;
+
+    // Handle template URL resolution if --template flag is provided
+    let templateResolution = null;
+    let directTemplatePath = null;
+    
+    if (args.template) {
+      // Check if it's a local template directory path
+      if (args.template.startsWith('/') || args.template.startsWith('./') || args.template.startsWith('../')) {
+        // Direct path to template directory - validate it exists
+        const fs = await import('fs/promises');
+        try {
+          await fs.access(args.template);
+          directTemplatePath = args.template;
+        } catch (error) {
+          console.error(`❌ Template directory not found: "${args.template}"`);
+          process.exit(1);
+        }
+      } else if (args.template.includes('/') || args.template.includes('://') || args.template.startsWith('registry/')) {
+        // This looks like a URL or registry shorthand, use the template resolver
+        try {
+          templateResolution = await templateResolver.resolveTemplate(args.template, {
+            branch: args.branch,
+            logger
+          });
+
+          // Override repo and template arguments for backward compatibility
+          args.repo = null; // Template resolver handles the source
+          args.fromTemplate = null; // We'll extract template name from resolved path
+
+          if (logger) {
+            await logger.logOperation('template_url_resolution', {
+              templateUrl: args.template,
+              resolvedPath: templateResolution.templatePath,
+              parameters: templateResolution.parameters
+            });
+          }
+        } catch (error) {
+          const templateError = ErrorMessages.templateInvalidUrl(args.template, error.message);
+          handleError(templateError, { logger, operation: 'template_resolution', exit: true, includeTechnical: true });
+        }
+      } else {
+        // Simple template name - treat as legacy mode
+        // args.template remains as-is for legacy validation
+      }
+    }
 
     if (args.validateTemplate) {
       const exitCode = await executeTemplateValidation({
@@ -120,9 +257,16 @@ async function main() {
         };
       }
     } catch (error) {
-      const sanitized = sanitizeErrorMessage(error.message ?? String(error));
-      console.error(`❌ Configuration error: ${sanitized}`);
-      process.exit(1);
+      const configError = contextualizeError(error, {
+        context: ErrorContext.CONFIGURATION,
+        userFriendlyMessage: 'Configuration error',
+        suggestions: [
+          'Check your .m5nvrc configuration file',
+          'Ensure the configuration file is valid JSON',
+          'Try running without configuration using --no-config'
+        ]
+      });
+      handleError(configError, { logger: null, operation: 'config_loading', exit: true });
     }
 
     const interactiveDecision = shouldEnterInteractive({
@@ -247,12 +391,17 @@ async function main() {
 
     // Handle validation errors
     if (!validation.isValid) {
-      console.error('❌ Error: Invalid arguments\n');
-      for (const error of validation.errors) {
-        console.error(`  ${error}`);
-      }
-      console.error('\nUse --help for usage information.');
-      process.exit(1);
+      const errorMessage = validation.errors.length > 0
+        ? `Invalid command arguments:\n${validation.errors.map(err => `  • ${err}`).join('\n')}`
+        : 'Invalid command arguments';
+      const argError = new ArgumentError(errorMessage, {
+        suggestions: [
+          'Use --help to see correct usage',
+          'Check that all required arguments are provided',
+          'Verify argument formats match the documentation'
+        ]
+      });
+      handleError(argError, { logger, operation: 'argument_validation', exit: true });
     }
 
     // Initialize logger if log file is specified
@@ -292,39 +441,116 @@ async function main() {
 
     // Handle special modes that don't require full scaffolding
     if (args.listTemplates) {
-      const templateDiscovery = new TemplateDiscovery(cacheManager);
-      const repoUrl = args.repo || DEFAULT_REPO;
-      const branchName = args.branch;
+      if (directTemplatePath) {
+        // Direct template path - check if it's a template or repo
+        const templateDiscovery = new TemplateDiscovery(cacheManager);
+        try {
+          // Check if this is a template directory or a repo with templates
+          const stats = await fs.stat(directTemplatePath);
+          if (stats.isDirectory()) {
+            // Check if it looks like a template directory
+            const isTemplate = await templateDiscovery.isTemplateDirectory(directTemplatePath);
+            if (isTemplate) {
+              // Show info about this single template
+              const metadata = await templateDiscovery.getTemplateMetadata(directTemplatePath);
+              // ast-grep-ignore: no-console-log
+              console.log(`📋 Template information:\n`);
+              // ast-grep-ignore: no-console-log
+              console.log(`📦 ${metadata.name}`);
+              // ast-grep-ignore: no-console-log
+              console.log(`   ${metadata.description}`);
+              // ast-grep-ignore: no-console-log
+              console.log(`   v${metadata.version}`);
+              // ast-grep-ignore: no-console-log
+              console.log(`   Path: ${directTemplatePath}`);
+            } else {
+              // Assume it's a repo directory, list templates
+              // ast-grep-ignore: no-console-log
+              console.log(`📋 Discovering templates from ${args.template}...\n`);
 
-      try {
-        // ast-grep-ignore: no-console-log
-        console.log(`📋 Discovering templates from ${repoUrl}${branchName ? ` (${branchName})` : ''}...\n`);
+              const templates = await templateDiscovery.listTemplatesFromPath(directTemplatePath);
+              const formattedOutput = templateDiscovery.formatTemplateList(templates);
+              // ast-grep-ignore: no-console-log
+              console.log(formattedOutput);
+            }
+          } else {
+            console.error(`❌ "${directTemplatePath}" is not a directory`);
+            process.exit(1);
+          }
+        } catch (error) {
+          console.error(`❌ Failed to read from "${directTemplatePath}": ${error.message}`);
+          process.exit(1);
+        }
+      } else if (templateResolution) {
+        // Template URL provided - list templates from resolved path
+        const templateDiscovery = new TemplateDiscovery(cacheManager);
+        try {
+          // ast-grep-ignore: no-console-log
+          console.log(`📋 Discovering templates from ${args.template}...\n`);
 
-        // First ensure repository is cached by attempting to clone it
-        const cachedRepoPath = await ensureRepositoryCached(repoUrl, branchName, cacheManager, logger);
+          const templates = await templateDiscovery.listTemplatesFromPath(templateResolution.templatePath);
+          const formattedOutput = templateDiscovery.formatTemplateList(templates);
+          // ast-grep-ignore: no-console-log
+          console.log(formattedOutput);
 
-        const templates = await templateDiscovery.listTemplatesFromPath(cachedRepoPath);
-        const formattedOutput = templateDiscovery.formatTemplateList(templates);
-        // ast-grep-ignore: no-console-log
-        console.log(formattedOutput);
-
-        if (logger) {
-          await logger.logOperation('template_discovery', {
-            repoUrl,
-            branchName,
-            templateCount: templates.length,
-            templates: templates.map(t => ({ name: t.name, description: t.description }))
+          if (logger) {
+            await logger.logOperation('template_discovery', {
+              templateUrl: args.template,
+              resolvedPath: templateResolution.templatePath,
+              templateCount: templates.length,
+              templates: templates.map(t => ({ name: t.name, description: t.description }))
+            });
+          }
+        } catch (error) {
+          const listError = contextualizeError(error, {
+            context: ErrorContext.TEMPLATE,
+            userFriendlyMessage: `Failed to list templates from "${args.template}"`,
+            suggestions: [
+              'Check that the template URL is correct',
+              'Ensure the repository is accessible',
+              'Try with --no-cache to refresh cached data'
+            ]
           });
+          handleError(listError, { logger, operation: 'template_discovery', exit: true });
         }
-      } catch (error) {
-        const sanitizedMessage = sanitizeErrorMessage(error.message);
-        console.error(`❌ Error listing templates: ${sanitizedMessage}`);
+      } else {
+        // Legacy repo + template mode
+        const templateDiscovery = new TemplateDiscovery(cacheManager);
+        const repoUrl = args.repo || DEFAULT_REPO;
+        const branchName = args.branch;
 
-        if (logger) {
-          await logger.logError(error, { operation: 'template_discovery', repoUrl, branchName });
+        try {
+          // ast-grep-ignore: no-console-log
+          console.log(`📋 Discovering templates from ${repoUrl}${branchName ? ` (${branchName})` : ''}...\n`);
+
+          // First ensure repository is cached by attempting to clone it
+          const cachedRepoPath = await ensureRepositoryCached(repoUrl, branchName, cacheManager, logger);
+
+          const templates = await templateDiscovery.listTemplatesFromPath(cachedRepoPath);
+          const formattedOutput = templateDiscovery.formatTemplateList(templates);
+          // ast-grep-ignore: no-console-log
+          console.log(formattedOutput);
+
+          if (logger) {
+            await logger.logOperation('template_discovery', {
+              repoUrl,
+              branchName,
+              templateCount: templates.length,
+              templates: templates.map(t => ({ name: t.name, description: t.description }))
+            });
+          }
+        } catch (error) {
+          const listError = contextualizeError(error, {
+            context: ErrorContext.TEMPLATE,
+            userFriendlyMessage: 'Error listing templates',
+            suggestions: [
+              'Check repository URL and branch',
+              'Ensure repository is accessible',
+              'Try with --no-cache to refresh cached data'
+            ]
+          });
+          handleError(listError, { logger, operation: 'template_discovery', exit: true });
         }
-
-        process.exit(1);
       }
 
       process.exit(0);
@@ -332,30 +558,134 @@ async function main() {
 
     if (args.dryRun) {
       // Validate required arguments for dry run
-      if (!args.projectDirectory || !args.template) {
-        console.error('❌ Error: Project directory and --from-template are required for dry run mode\n');
+      if (!args.projectDirectory) {
+        console.error('❌ Error: Project directory is required for dry run mode\n');
         console.error('Use --help for usage information.');
         process.exit(1);
       }
 
+      // Check template argument based on mode
+      if (directTemplatePath) {
+        // Direct template path mode - template path is already validated
+      } else if (templateResolution) {
+        // Template URL mode - already resolved
+      } else {
+        // Legacy mode - require template name
+        if (!args.template) {
+          console.error('❌ Error: --from-template is required for dry run mode\n');
+          console.error('Use --help for usage information.');
+          process.exit(1);
+        }
+      }
+
       const dryRunEngine = new DryRunEngine(cacheManager, logger);
-      const repoUrl = args.repo || DEFAULT_REPO;
-      const branchName = args.branch;
+
+      let dryRunTemplatePath;
+      let dryRunTemplateName;
+      let dryRunRepoUrl;
+      let dryRunBranchName;
+
+      if (directTemplatePath) {
+        // Direct template path mode
+        dryRunTemplatePath = directTemplatePath;
+        dryRunTemplateName = path.basename(directTemplatePath);
+        dryRunRepoUrl = null;
+        dryRunBranchName = null;
+      } else if (templateResolution) {
+        // Template URL mode
+        dryRunTemplatePath = templateResolution.templatePath;
+        dryRunTemplateName = path.basename(templateResolution.templatePath);
+        dryRunRepoUrl = args.template;
+        dryRunBranchName = args.branch;
+      } else {
+        // Legacy mode
+        const repoUrl = args.repo || DEFAULT_REPO;
+        const branchName = args.branch;
+        dryRunRepoUrl = repoUrl;
+        dryRunBranchName = branchName;
+        dryRunTemplateName = args.template;
+
+        const cachedRepoPath = await ensureRepositoryCached(repoUrl, branchName, cacheManager, logger);
+        dryRunTemplatePath = path.join(cachedRepoPath, args.template);
+      }
 
       try {
-        const cachedRepoPath = await ensureRepositoryCached(repoUrl, branchName, cacheManager, logger);
+        // Load template metadata for validation
+        await verifyTemplate(dryRunTemplatePath, dryRunTemplateName);
+        const metadata = await loadTemplateMetadata(dryRunTemplatePath, logger);
+
+        // Validate options against template dimensions (same as normal execution)
+        const validatedInputs = validateAllInputs({
+          projectDirectory: args.projectDirectory,
+          template: dryRunTemplateName,
+          repo: templateResolution ? null : dryRunRepoUrl, // Don't validate registry URLs as repo URLs
+          branch: dryRunBranchName,
+          ide: args.ide ?? null,
+          options: args.options
+        });
+
+        const options = validatedInputs.options ?? [];
+        const normalizedOptionResult = normalizeOptions({
+          rawTokens: options,
+          dimensions: metadata.dimensions
+        });
+
+        if (normalizedOptionResult.unknown.length > 0) {
+          throw new ValidationError(
+            `Template "${dryRunTemplateName}" does not support: ${normalizedOptionResult.unknown.join(', ')}`,
+            'options'
+          );
+        }
+
+        for (const warning of normalizedOptionResult.warnings) {
+          console.warn(`⚠️  ${warning}`);
+        }
+
+        const optionsByDimension = { ...normalizedOptionResult.byDimension };
+        if (validatedInputs.ide && metadata.dimensions.ide && metadata.dimensions.ide.type === 'single') {
+          optionsByDimension.ide = validatedInputs.ide;
+        }
+
+        // Validate user selections against template constraints
+        const selectionValidationResult = await validateUserSelections({
+          templatePath: dryRunTemplatePath,
+          templateName: dryRunTemplateName,
+          optionsByDimension,
+          metadata
+        });
+
+        if (!selectionValidationResult.valid) {
+          // Format validation errors for display
+          const errorMessages = selectionValidationResult.errors.map(error => {
+            let message = error.message;
+            if (error.path && error.path.length > 0) {
+              message += ` (path: ${error.path.join('.')})`;
+            }
+            return message;
+          });
+
+          throw new ValidationError(
+            `Selection validation failed:\n${errorMessages.map(msg => `  • ${msg}`).join('\n')}`,
+            'selection'
+          );
+        }
+
+        // Log warnings for non-blocking issues
+        for (const warning of selectionValidationResult.warnings) {
+          console.warn(`⚠️  ${warning.message}`);
+        }
 
         const preview = await dryRunEngine.previewScaffoldingFromPath(
-          cachedRepoPath,
-          args.template,
+          path.dirname(dryRunTemplatePath),
+          path.basename(dryRunTemplatePath),
           args.projectDirectory
         );
 
         const previewOutput = dryRunEngine.displayPreview({
           operations: preview.operations,
           summary: preview.summary,
-          templateName: args.template,
-          repoUrl,
+          templateName: dryRunTemplateName,
+          repoUrl: dryRunRepoUrl,
           projectDir: args.projectDirectory,
           templatePath: preview.templatePath
         });
@@ -379,9 +709,9 @@ async function main() {
 
         if (logger) {
           await logger.logOperation('dry_run_preview', {
-            repoUrl,
-            branchName,
-            template: args.template,
+            repoUrl: dryRunRepoUrl,
+            branchName: dryRunBranchName,
+            template: dryRunTemplateName,
             projectDirectory: args.projectDirectory,
             operationCount: preview.operations.length,
             summary: preview.summary?.counts || null,
@@ -391,71 +721,147 @@ async function main() {
           });
         }
       } catch (error) {
-        const sanitizedMessage = sanitizeErrorMessage(error.message);
-        console.error(`❌ Error in dry run: ${sanitizedMessage}`);
-
-        if (logger) {
-          await logger.logError(error, {
-            operation: 'dry_run_preview',
-            repoUrl,
-            branchName,
-            template: args.template
-          });
-        }
-
-        process.exit(1);
+        const dryRunError = contextualizeError(error, {
+          context: ErrorContext.RUNTIME,
+          userFriendlyMessage: `Dry run failed: ${error.message}`,
+          suggestions: [
+            'Check template configuration and options',
+            'Run without --dry-run to see more detailed errors',
+            'Verify template exists and is accessible'
+          ]
+        });
+        handleError(dryRunError, { logger, operation: 'dry_run', exit: true });
       }
 
       process.exit(0);
     }
 
     // Perform comprehensive input validation and sanitization
-    const validatedInputs = validateAllInputs({
-      projectDirectory: args.projectDirectory,
-      template: args.template,
-      repo: args.repo || DEFAULT_REPO,
-      branch: args.branch,
-      ide: args.ide,
-      options: args.options
-    });
+    let validatedInputs;
+    let templatePath;
+    let templateName;
+    let repoUrl;
+    let branchName;
+
+    if (directTemplatePath) {
+      // Direct template directory path mode
+      validatedInputs = validateAllInputs({
+        projectDirectory: args.projectDirectory,
+        template: path.basename(directTemplatePath), // Use directory name as template name
+        repo: null, // Not applicable for direct path mode
+        branch: args.branch,
+        ide: args.ide,
+        options: args.options
+      });
+
+      templatePath = directTemplatePath;
+      templateName = path.basename(templatePath);
+      repoUrl = null; // No repository for direct paths
+      branchName = null; // No branch for direct paths
+    } else if (templateResolution) {
+      // Template URL mode - use resolved template
+      validatedInputs = validateAllInputs({
+        projectDirectory: args.projectDirectory,
+        template: path.basename(templateResolution.templatePath), // Use directory name as template name
+        repo: null, // Not applicable for URL mode
+        branch: args.branch,
+        ide: args.ide,
+        options: args.options
+      });
+
+      templatePath = templateResolution.templatePath;
+      templateName = path.basename(templatePath);
+      repoUrl = args.template; // Use the original URL for display
+      branchName = args.branch;
+    } else {
+      // Legacy repo + template mode
+      validatedInputs = validateAllInputs({
+        projectDirectory: args.projectDirectory,
+        template: args.template,
+        repo: args.repo || DEFAULT_REPO,
+        branch: args.branch,
+        ide: args.ide,
+        options: args.options
+      });
+
+      templateName = validatedInputs.template;
+      repoUrl = validatedInputs.repo;
+      branchName = validatedInputs.branch;
+    }
 
     projectDirectory = validatedInputs.projectDirectory;
-    const templateName = validatedInputs.template;
-    const repoUrl = validatedInputs.repo;
-    const branchName = validatedInputs.branch;
 
     // Extract ide and options from validated arguments
     const ide = validatedInputs.ide ?? null;
     const options = validatedInputs.options ?? [];
 
-    // Run comprehensive preflight checks
-    await runAllPreflightChecks(args, repoUrl);
+    // Handle repository setup based on mode
+    let repositoryPath = null;
+    let cleanupRepository = false;
 
-    // ast-grep-ignore: no-console-log
-    console.log(`\n🚀 Creating project: ${projectDirectory}`);
-    // ast-grep-ignore: no-console-log
-    console.log(`📦 Template: ${templateName}`);
-    // ast-grep-ignore: no-console-log
-    console.log(`📁 Repository: ${repoUrl}`);
-    if (branchName) {
+    if (directTemplatePath) {
+      // Direct template directory path mode - no repository setup needed
+      repositoryPath = null;
+      cleanupRepository = false;
+
       // ast-grep-ignore: no-console-log
-      console.log(`🌿 Branch: ${branchName}`);
+      console.log(`\n🚀 Creating project: ${projectDirectory}`);
+      // ast-grep-ignore: no-console-log
+      console.log(`📦 Template: ${templateName}`);
+      // ast-grep-ignore: no-console-log
+      console.log(`📁 Template path: ${directTemplatePath}`);
+      // ast-grep-ignore: no-console-log
+      console.log('');
+    } else if (templateResolution) {
+      // Template URL mode - template is already resolved
+      repositoryPath = path.dirname(templatePath);
+      cleanupRepository = false; // Template resolver handles caching
+
+      // ast-grep-ignore: no-console-log
+      console.log(`\n🚀 Creating project: ${projectDirectory}`);
+      // ast-grep-ignore: no-console-log
+      console.log(`📦 Template: ${templateName}`);
+      // ast-grep-ignore: no-console-log
+      console.log(`🔗 Template URL: ${repoUrl}`);
+      if (branchName) {
+        // ast-grep-ignore: no-console-log
+        console.log(`🌿 Branch: ${branchName}`);
+      }
+      // ast-grep-ignore: no-console-log
+      console.log('');
+    } else {
+      // Legacy repo + template mode - need to clone/setup repository
+      // Run comprehensive preflight checks
+      await runAllPreflightChecks(args, repoUrl);
+
+      // ast-grep-ignore: no-console-log
+      console.log(`\n🚀 Creating project: ${projectDirectory}`);
+      // ast-grep-ignore: no-console-log
+      console.log(`📦 Template: ${templateName}`);
+      // ast-grep-ignore: no-console-log
+      console.log(`📁 Repository: ${repoUrl}`);
+      if (branchName) {
+        // ast-grep-ignore: no-console-log
+        console.log(`🌿 Branch: ${branchName}`);
+      }
+      // ast-grep-ignore: no-console-log
+      console.log('');
+
+      // Clone the template repository using cache-aware operations
+      const cloneResult = await cloneTemplateRepo(repoUrl, branchName, {
+        noCache: args.noCache,
+        cacheTtl: args.cacheTtl ? parseInt(args.cacheTtl) : undefined,
+        cacheManager,
+        logger
+      });
+      repositoryPath = cloneResult.path;
+      cleanupRepository = cloneResult.temporary;
+
+      // For legacy mode, construct template path
+      templatePath = path.join(repositoryPath, templateName);
     }
-    // ast-grep-ignore: no-console-log
-    console.log('');
 
-    // Clone the template repository using cache-aware operations
-    const cloneResult = await cloneTemplateRepo(repoUrl, branchName, {
-      noCache: args.noCache,
-      cacheTtl: args.cacheTtl ? parseInt(args.cacheTtl) : undefined,
-      cacheManager,
-      logger
-    });
-    repositoryPath = cloneResult.path;
-    cleanupRepository = cloneResult.temporary;
-
-    // Verify template exists
-    const templatePath = path.join(repositoryPath, templateName);
+    // Verify template exists and load metadata
     await verifyTemplate(templatePath, templateName);
     const metadata = await loadTemplateMetadata(templatePath, logger);
 
@@ -545,6 +951,42 @@ async function main() {
       raw: options,
       byDimension: optionsByDimension
     };
+
+    // Validate user selections against template constraints
+    const selectionValidationResult = await validateUserSelections({
+      templatePath,
+      templateName,
+      optionsByDimension,
+      metadata
+    });
+
+    if (!selectionValidationResult.valid) {
+      // Format validation errors for display
+      const errorMessages = selectionValidationResult.errors.map(error => {
+        let message = error.message;
+        if (error.path && error.path.length > 0) {
+          message += ` (path: ${error.path.join('.')})`;
+        }
+        return message;
+      });
+
+      throw new ValidationError(
+        `Selection validation failed:\n${errorMessages.map(msg => `  • ${msg}`).join('\n')}`,
+        'selection'
+      );
+    }
+
+    // Log warnings for non-blocking issues
+    for (const warning of selectionValidationResult.warnings) {
+      console.warn(`⚠️  ${warning.message}`);
+    }
+
+    if (logger && selectionValidationResult.warnings.length > 0) {
+      await logger.logOperation('selection_validation_warnings', {
+        template: templateName,
+        warnings: selectionValidationResult.warnings
+      });
+    }
 
     const inputsPayload = placeholderDefinitions.length > 0 && args.experimentalPlaceholderPrompts
       ? resolvedPlaceholderInputs
@@ -640,15 +1082,17 @@ async function main() {
       await safeCleanup(projectDirectory);
     }
 
-    if (error instanceof ArgumentError || error instanceof ValidationError || error instanceof PreflightError) {
-      console.error(`\n❌ ${error.message}`);
-      process.exit(1);
-    } else {
-      // Sanitize error messages to prevent information disclosure
-      const sanitizedMessage = sanitizeErrorMessage(error.message);
-      console.error(`\n❌ Error: ${sanitizedMessage}`);
-      process.exit(1);
-    }
+    // Use centralized error handling
+    const contextualError = contextualizeError(error, {
+      context: ErrorContext.RUNTIME,
+      suggestions: [
+        'Check the command syntax with --help',
+        'Ensure all required arguments are provided',
+        'Verify template and repository URLs are correct'
+      ]
+    });
+
+    handleError(contextualError, { logger: null, operation: 'main_execution' });
   }
 }
 
@@ -740,22 +1184,9 @@ async function loadTemplateMetadata(templatePath, logger) {
 
     return metadata;
   } catch (error) {
-    const sanitized = sanitizeErrorMessage(error.message);
-    console.warn(`⚠️  template.json could not be processed: ${sanitized}`);
-    if (logger) {
-      await logger.logError(error, {
-        operation: 'template_metadata_error',
-        templatePath
-      });
-    }
-    return {
-      raw: null,
-      authoringMode: 'wysiwyg',
-      authorAssetsDir: DEFAULT_AUTHOR_ASSETS_DIR,
-      dimensions: {},
-      handoffSteps: [],
-      supportedOptions: []
-    };
+    // For CLI usage, validation errors should cause the command to fail
+    // Re-throw validation errors instead of swallowing them
+    throw error;
   }
 }
 
@@ -914,10 +1345,8 @@ async function verifyTemplate(templatePath, templateName) {
     await validateDirectoryExists(templatePath, `Template "${templateName}"`);
   } catch (error) {
     if (error.message.includes('not found')) {
-      throw new Error(
-        `Template not found in the repository.\n` +
-        'Please check the template name and try again.'
-      );
+      const templateError = ErrorMessages.templateNotFound(templateName);
+      throw templateError;
     }
     const sanitizedMessage = sanitizeErrorMessage(error.message);
     throw new Error(sanitizedMessage);

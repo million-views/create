@@ -75,6 +75,27 @@ const OPTIONS_SCHEMA = {
   'generate-defaults': {
     type: 'boolean',
     default: false
+  },
+  // Init options
+  'init': {
+    type: 'boolean',
+    default: false
+  },
+  'init-file': {
+    type: 'string'
+  },
+  // Hints options
+  'hints': {
+    type: 'boolean',
+    default: false
+  },
+  // Validation options
+  'lint': {
+    type: 'boolean',
+    default: false
+  },
+  'lint-file': {
+    type: 'string'
   }
 };
 
@@ -110,6 +131,17 @@ RESTORATION OPTIONS:
       --restore-files <files>   Restore only specified files (comma-separated)
       --restore-placeholders    Restore only placeholder values, keep files
       --generate-defaults       Generate .restore-defaults.json configuration
+
+INIT OPTIONS:
+      --init                    Generate skeleton template.json file
+      --init-file <file>        Specify output file for skeleton (default: template.json)
+
+HINTS OPTIONS:
+      --hints                   Display available hints catalog for authoring assistance
+
+VALIDATION OPTIONS:
+      --lint                    Validate template.json against schema
+      --lint-file <file>        Validate specific template.json file
 
 SUPPORTED PROJECT TYPES:
   cf-d1        Cloudflare Worker with D1 database
@@ -156,6 +188,13 @@ RESTORATION EXAMPLES:
 
   make-template --restore --sanitize-undo
     Restore from sanitized undo log (prompts for missing values)
+
+VALIDATION EXAMPLES:
+  make-template --lint
+    Validate template.json in current directory
+
+  make-template --lint-file path/to/template.json
+    Validate specific template.json file
 
 TEMPLATE AUTHOR WORKFLOW:
   1. make-template                    # Convert working project to template
@@ -342,6 +381,234 @@ function handleError(message, exitCode = 1) {
 }
 
 /**
+ * Handle init command for skeleton template generation
+ */
+async function handleInitCommand(options) {
+  const fs = await import('fs/promises');
+  const path = await import('path');
+
+  try {
+    const outputFile = options['init-file'] || 'template.json';
+    const outputPath = path.resolve(outputFile);
+
+    // Check if file already exists
+    try {
+      await fs.access(outputPath);
+      console.log(`⚠️  File ${outputFile} already exists.`);
+      console.log(`   Use --init-file <different-name> to specify a different output file.`);
+      process.exit(1);
+    } catch (error) {
+      // File doesn't exist, which is what we want
+    }
+
+    console.log(`📝 Generating skeleton template.json at ${outputFile}...`);
+
+    // Generate skeleton template.json
+    const skeletonTemplate = generateSkeletonTemplate();
+
+    // Write to file
+    await fs.writeFile(outputPath, JSON.stringify(skeletonTemplate, null, 2));
+
+    console.log('✅ Skeleton template.json generated successfully!');
+    console.log('');
+    console.log('📋 Next steps:');
+    console.log(`   1. Edit ${outputFile} to customize your template`);
+    console.log('   2. Run "make-template --lint" to validate your template');
+    console.log('   3. Test with create-scaffold to ensure it works');
+
+  } catch (error) {
+    handleError(`Init failed: ${error.message}`);
+  }
+}
+
+/**
+ * Generate skeleton template.json with proper structure
+ */
+function generateSkeletonTemplate() {
+  return {
+    "schemaVersion": "1.0.0",
+    "id": "your-org/your-template-name",
+    "name": "Your Template Name",
+    "description": "A brief description of what this template creates",
+    "tags": ["web", "api", "fullstack"],
+    "author": "Your Name or Organization",
+    "license": "MIT",
+    "dimensions": {
+      "deployment_target": {
+        "values": ["vercel", "netlify", "railway"]
+      },
+      "features": {
+        "values": ["auth", "database", "api", "ui"]
+      },
+      "database": {
+        "values": ["postgresql", "mysql", "sqlite"]
+      },
+      "storage": {
+        "values": ["aws-s3", "vercel-blob", "local"]
+      },
+      "auth_providers": {
+        "values": ["google", "github", "twitter", "email"]
+      },
+      "payments": {
+        "values": ["stripe", "paypal"]
+      },
+      "analytics": {
+        "values": ["mixpanel", "google-analytics", "plausible"]
+      }
+    },
+    "gates": {
+      "deployment_target": {
+        "platform": "node",
+        "constraint": "Requires Node.js runtime"
+      }
+    },
+    "featureSpecs": {
+      "auth": {
+        "label": "Authentication",
+        "description": "Add user authentication system",
+        "needs": ["database"]
+      },
+      "database": {
+        "label": "Database",
+        "description": "Add database integration",
+        "needs": []
+      },
+      "api": {
+        "label": "API Routes",
+        "description": "Add API endpoints and routing",
+        "needs": []
+      },
+      "ui": {
+        "label": "User Interface",
+        "description": "Add frontend components and pages",
+        "needs": []
+      }
+    },
+    "hints": {
+      "features": {
+        "auth": "Add secure user authentication with login/signup flows",
+        "database": "Set up database connection and schema management",
+        "api": "Create REST or GraphQL API endpoints",
+        "ui": "Build responsive user interface components"
+      }
+    }
+  };
+}
+
+/**
+ * Handle hints command for displaying hints catalog
+ */
+async function handleHintsCommand(options) {
+  console.log('💡 Available Hints Catalog for Template Authoring');
+  console.log('================================================');
+  console.log('');
+
+  console.log('📋 Feature Hints:');
+  console.log('   These hints provide guidance for template authors when defining features.');
+  console.log('   Use them in your template.json under hints.features to help users understand');
+  console.log('   what each feature provides.');
+  console.log('');
+
+  const featureHints = {
+    'auth': 'Add secure user authentication with login/signup flows, session management, and user profiles',
+    'database': 'Set up database connection, schema management, migrations, and data access patterns',
+    'api': 'Create REST or GraphQL API endpoints, request/response handling, and API documentation',
+    'ui': 'Build responsive user interface components, pages, routing, and interactive elements',
+    'storage': 'Configure file storage solutions for uploads, assets, and media management',
+    'payments': 'Integrate payment processing, subscriptions, and financial transaction handling',
+    'analytics': 'Add tracking, metrics, and analytics for user behavior and application performance',
+    'email': 'Set up email sending, templates, and notification systems',
+    'admin': 'Create administrative interfaces, dashboards, and management tools',
+    'testing': 'Add comprehensive test suites, mocking, and quality assurance tools',
+    'ci-cd': 'Configure continuous integration, deployment pipelines, and automation',
+    'monitoring': 'Set up logging, error tracking, performance monitoring, and alerting',
+    'security': 'Implement security measures, authentication guards, and data protection',
+    'docs': 'Add documentation generation, API docs, and developer guides',
+    'i18n': 'Configure internationalization, localization, and multi-language support'
+  };
+
+  for (const [feature, hint] of Object.entries(featureHints)) {
+    console.log(`   • ${feature}: ${hint}`);
+  }
+
+  console.log('');
+  console.log('📖 Usage in template.json:');
+  console.log('   {');
+  console.log('     "hints": {');
+  console.log('       "features": {');
+  console.log('         "auth": "Add secure user authentication..."');
+  console.log('       }');
+  console.log('     }');
+  console.log('   }');
+  console.log('');
+  console.log('💡 Tip: Use these hints to provide clear, actionable guidance for template users!');
+}
+
+/**
+ * Handle lint command for template validation
+ */
+async function handleLintCommand(options) {
+  const { TemplateValidator } = await import('../../lib/validation/template-validator.mjs');
+
+  try {
+    const validator = new TemplateValidator();
+    const templateFile = options['lint-file'] || 'template.json';
+
+    console.log(`🔍 Validating ${templateFile}...`);
+
+    const result = await validator.validate(templateFile, 'strict');
+
+    if (result.valid) {
+      console.log('✅ Template validation passed!');
+      console.log('');
+      console.log('📋 Validation Summary:');
+      console.log(`   • Schema validation: ✅ Passed`);
+      console.log(`   • Domain validation: ✅ Passed`);
+      console.log(`   • Warnings: ${result.warnings.length}`);
+
+      if (result.warnings.length > 0) {
+        console.log('');
+        console.log('⚠️  Warnings:');
+        result.warnings.forEach((warning, i) => {
+          console.log(`   ${i + 1}. ${warning.message}`);
+        });
+      }
+    } else {
+      console.log('❌ Template validation failed!');
+      console.log('');
+      console.log('📋 Validation Summary:');
+      console.log(`   • Errors: ${result.errors.length}`);
+      console.log(`   • Warnings: ${result.warnings.length}`);
+      console.log('');
+
+      console.log('🚨 Errors:');
+      result.errors.forEach((error, i) => {
+        console.log(`   ${i + 1}. ${error.message}`);
+        if (error.path && error.path.length > 0) {
+          console.log(`      Path: ${error.path.join('.')}`);
+        }
+      });
+
+      if (result.warnings.length > 0) {
+        console.log('');
+        console.log('⚠️  Warnings:');
+        result.warnings.forEach((warning, i) => {
+          console.log(`   ${i + 1}. ${warning.message}`);
+        });
+      }
+
+      process.exit(1);
+    }
+  } catch (error) {
+    if (error.code === 'ENOENT') {
+      handleError(`Template file not found: ${options['lint-file'] || 'template.json'}`);
+    } else {
+      handleError(`Lint failed: ${error.message}`);
+    }
+  }
+}
+
+/**
  * Main CLI function
  * Accepts an optional argv array (e.g. ['--dry-run']) for in-process testing.
  */
@@ -463,6 +730,24 @@ export async function main(argv = null) {
   // Handle generate-defaults workflow
   if (options['generate-defaults']) {
     await generateDefaultsFile();
+    return;
+  }
+
+  // Handle init workflow
+  if (options.init || options['init-file']) {
+    await handleInitCommand(options);
+    return;
+  }
+
+  // Handle hints workflow
+  if (options.hints) {
+    await handleHintsCommand(options);
+    return;
+  }
+
+  // Handle lint workflow
+  if (options.lint || options['lint-file']) {
+    await handleLintCommand(options);
     return;
   }
 

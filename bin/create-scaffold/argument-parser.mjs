@@ -43,15 +43,10 @@ export function parseArguments(argv = process.argv.slice(2)) {
       : [];
 
     const options = {
-      'from-template': {
+      template: {
         type: 'string',
-        short: 't',
-        description: 'Template name to use for scaffolding'
-      },
-      repo: {
-        type: 'string',
-        short: 'r',
-        description: 'Repository URL or user/repo format (default: million-views/templates)'
+        short: 'T',
+        description: 'Template URL or shorthand (create-remix style)'
       },
       branch: {
         type: 'string',
@@ -170,8 +165,7 @@ export function parseArguments(argv = process.argv.slice(2)) {
     // Return parsed arguments in expected format
     return {
       projectDirectory,
-      template: values['from-template'],
-      repo: values.repo,
+      template: values.template,
       branch: values.branch,
       ide: values.ide,
       options: values.options,
@@ -223,7 +217,7 @@ export function validateArguments(args) {
   }
 
   // Show help if no arguments provided (standard CLI behavior)
-  const hasAnyArgs = args.projectDirectory || args.template || args.repo || args.branch ||
+  const hasAnyArgs = args.projectDirectory || args.template || args.branch ||
                      args.ide || args.options || args.logFile || args.listTemplates ||
                      args.dryRun || args.noCache || args.cacheTtl || args.validateTemplate ||
                      args.json || args.placeholders.length > 0 || args.noInputPrompts ||
@@ -243,7 +237,7 @@ export function validateArguments(args) {
     }
 
     if (args.template) {
-      errors.push('The --from-template flag cannot be combined with --validate-template.');
+      errors.push('The --template flag cannot be combined with --validate-template.');
     }
 
     if (errors.length > 0) {
@@ -267,11 +261,7 @@ export function validateArguments(args) {
 
   // Special case: --list-templates doesn't require project directory or template
   if (args.listTemplates) {
-    // Only validate repo and branch if provided
-    if (args.repo) {
-      handleValidationError(validateRepoUrl, args.repo, errors, 'Repository URL validation failed');
-    }
-
+    // Only validate branch if provided
     if (args.branch) {
       handleValidationError(sanitizeBranchName, args.branch, errors, 'Branch name validation failed');
     }
@@ -293,14 +283,27 @@ export function validateArguments(args) {
 
   // Validate required template flag
   if (!args.template) {
-    errors.push('--from-template flag is required');
-  } else {
-    handleValidationError(validateTemplateName, args.template, errors, 'Template name validation failed');
+    errors.push('--template flag is required');
   }
 
-  // Validate repository URL/format if provided
-  if (args.repo) {
-    handleValidationError(validateRepoUrl, args.repo, errors, 'Repository URL validation failed');
+  // Validate template argument if provided
+  if (args.template) {
+    // For --template flag, allow URLs and paths
+    const looksLikeUrl = args.template.includes('/') || 
+                        args.template.includes('://') || 
+                        args.template.startsWith('registry/') ||
+                        args.template.startsWith('./') ||
+                        args.template.startsWith('../');
+    
+    if (looksLikeUrl) {
+      // Basic validation for URLs/paths
+      if (args.template.includes('\0')) {
+        errors.push('Template URL contains null bytes');
+      }
+    } else {
+      // Validate as template name for simple names
+      handleValidationError(validateTemplateName, args.template, errors, 'Template name validation failed');
+    }
   }
 
   // Validate branch name if provided
@@ -348,20 +351,19 @@ export function generateHelpText() {
 @m5nv/create-scaffold - Project scaffolding CLI for Million Views templates
 
 USAGE:
-  npm create @m5nv/scaffold <project-directory> -- --from-template <template-name> [options]
-  npx @m5nv/create-scaffold@latest <project-directory> --from-template <template-name> [options]
+  npm create @m5nv/scaffold <project-directory> -- --template <url> [options]
+  npx @m5nv/create-scaffold@latest <project-directory> --template <url> [options]
 
 ARGUMENTS:
   <project-directory>    Name of the directory to create for your project
 
 OPTIONS:
-  -t, --from-template <name>  Template name to use for scaffolding (required)
-  -r, --repo <repo>      Repository URL or user/repo format
-                         Default: million-views/templates
+  -T, --template <url>   Template URL or shorthand (create-remix style)
                          Examples:
+                           registry/official/express-api
                            user/repo
-                           https://github.com/user/repo.git
-                           /path/to/local/repo
+                           ./local/template/path
+                           https://github.com/user/repo
   -b, --branch <branch>  Git branch to use (default: main/master)
   -i, --ide <ide>        Target IDE for template customization
                          Supported: kiro, vscode, cursor, windsurf
@@ -411,56 +413,56 @@ CONFIGURATION DEFAULTS:
 EXAMPLES:
 
   Basic Usage:
-    # Create a new React project using the default repository
-    npm create @m5nv/scaffold my-app -- --from-template react
+    # Create a new React project using template URL (recommended)
+    npm create @m5nv/scaffold my-app -- --template registry/official/react
 
-    # Use a custom repository
-    npm create @m5nv/scaffold my-app -- --from-template nextjs --repo custom-user/templates
+    # Create using GitHub shorthand
+    npm create @m5nv/scaffold my-app -- --template remix-run/react-router
+
+    # Use a local template directory
+    npm create @m5nv/scaffold my-app -- --template ./my-templates/express-api
 
   IDE & Options:
     # Create project with IDE-specific customization
-    npm create @m5nv/scaffold my-app -- --from-template react --ide kiro
+    npm create @m5nv/scaffold my-app -- --template registry/official/react --ide kiro
 
     # Contextual options for different scenarios
-    npm create @m5nv/scaffold my-app -- --from-template react --options monorepo,no-git,typescript
-    npm create @m5nv/scaffold my-api -- --from-template fastify --options mvp,minimal,testing-focused
-    npm create @m5nv/scaffold my-lib -- --from-template library --options prototype,ci-ready,docker-ready
+    npm create @m5nv/scaffold my-app -- --template registry/official/react --options monorepo,no-git,typescript
+    npm create @m5nv/scaffold my-api -- --template registry/official/fastify --options mvp,minimal,testing-focused
+    npm create @m5nv/scaffold my-lib -- --template registry/official/library --options prototype,ci-ready,docker-ready
 
     # Combine IDE and contextual options
-    npm create @m5nv/scaffold my-app -- --from-template react --ide vscode --options full-featured,typescript
+    npm create @m5nv/scaffold my-app -- --template registry/official/react --ide vscode --options full-featured,typescript
 
   Template Discovery:
     # List available templates from default repository
     npm create @m5nv/scaffold -- --list-templates
 
-    # List templates from custom repository
-    npm create @m5nv/scaffold -- --list-templates --repo user/templates
-
     # List templates from specific branch
-    npm create @m5nv/scaffold -- --list-templates --repo user/templates --branch develop
+    npm create @m5nv/scaffold -- --list-templates --branch develop
 
   Preview & Debugging:
     # Preview operations without executing (dry run)
-    npm create @m5nv/scaffold my-app -- --from-template react --dry-run
+    npm create @m5nv/scaffold my-app -- --template registry/official/react --dry-run
 
     # Enable detailed logging for troubleshooting
-    npm create @m5nv/scaffold my-app -- --from-template react --log-file ./scaffold.log
+    npm create @m5nv/scaffold my-app -- --template registry/official/react --log-file ./scaffold.log
 
     # Combine dry run with logging
-    npm create @m5nv/scaffold my-app -- --from-template react --dry-run --log-file ./preview.log
+    npm create @m5nv/scaffold my-app -- --template registry/official/react --dry-run --log-file ./preview.log
 
   Cache Management:
     # Bypass cache for fresh clone (slower but ensures latest version)
-    npm create @m5nv/scaffold my-app -- --from-template react --no-cache
+    npm create @m5nv/scaffold my-app -- --template registry/official/react --no-cache
 
     # Set custom cache TTL (48 hours)
-    npm create @m5nv/scaffold my-app -- --from-template react --cache-ttl 48
+    npm create @m5nv/scaffold my-app -- --template registry/official/react --cache-ttl 48
 
     # Force fresh template discovery
     npm create @m5nv/scaffold -- --list-templates --no-cache
 
   Using npx directly:
-    npx @m5nv/create-scaffold@latest my-app --from-template react --repo user/templates
+    npx @m5nv/create-scaffold@latest my-app --template registry/official/react
 
 TEMPLATE REPOSITORIES:
   Templates are organized as subdirectories within git repositories.
@@ -555,8 +557,10 @@ For more information, visit: https://github.com/million-views/create
  * Custom error class for argument parsing errors
  */
 export class ArgumentError extends Error {
-  constructor(message) {
+  constructor(message, options = {}) {
     super(message);
     this.name = 'ArgumentError';
+    this.field = options.field;
+    this.suggestions = options.suggestions || [];
   }
 }

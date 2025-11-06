@@ -22,20 +22,73 @@ export async function loadTemplateMetadataFromPath(templatePath) {
     const rawContent = await fs.readFile(templateJsonPath, 'utf8');
     const data = JSON.parse(rawContent);
 
-    const validated = validateTemplateManifest(data);
+    // Check if this is a new schema format (v1.0.0)
+    if (data.schemaVersion === '1.0.0') {
+      // New schema format - validate with TemplateValidator
+      const { TemplateValidator } = await import('../../lib/validation/template-validator.mjs');
+      const validator = new TemplateValidator();
+      const result = await validator.validate(data, 'strict');
+      
+      if (!result.valid) {
+        // Throw an error with the first validation error
+        const firstError = result.errors[0];
+        throw new ValidationError(
+          firstError.message,
+          firstError.path ? firstError.path.join('.') : 'template'
+        );
+      }
 
-    let dimensions = validated.dimensions;
-    if (Object.keys(dimensions).length === 0 && validated.supportedOptions.length > 0) {
-      dimensions = validateDimensionsMetadata({
-        capabilities: {
-          type: 'multi',
-          values: validated.supportedOptions,
-          policy: 'strict',
-        }
-      });
+      // Process dimensions
+      const dimensionsWithTypes = {};
+      for (const [name, definition] of Object.entries(data.dimensions || {})) {
+        const type = Array.isArray(definition.default) ? 'multi' : 'single';
+        dimensionsWithTypes[name] = {
+          ...definition,
+          type,
+          policy: definition.policy || 'strict'
+        };
+      }
+      const dimensions = validateDimensionsMetadata(dimensionsWithTypes);
+      const supportedOptions = deriveSupportedOptions(dimensions);
+
+      return {
+        raw: data,
+        authoringMode: 'wysiwyg', // Default for new schema
+        authorAssetsDir: validateAuthorAssetsDir(null),
+        dimensions,
+        handoffSteps: data.handoff || [],
+        supportedOptions,
+        placeholders: [],
+        canonicalVariables: [],
+      };
+    } else {
+      // Old schema format
+      const validated = validateTemplateManifest(data);
+
+      let dimensions = validated.dimensions;
+      if (Object.keys(dimensions).length === 0 && validated.supportedOptions.length > 0) {
+        dimensions = validateDimensionsMetadata({
+          capabilities: {
+            type: 'multi',
+            values: validated.supportedOptions,
+            policy: 'strict',
+          }
+        });
+      }
+
+      const supportedOptions = deriveSupportedOptions(dimensions);
+
+      return {
+        raw: data,
+        authoringMode: validated.authoringMode,
+        authorAssetsDir: validated.authorAssetsDir,
+        dimensions,
+        handoffSteps: validated.handoffSteps,
+        supportedOptions,
+        placeholders: validated.placeholders,
+        canonicalVariables: validated.canonicalVariables,
+      };
     }
-
-    const supportedOptions = deriveSupportedOptions(dimensions);
 
     return {
       raw: data,

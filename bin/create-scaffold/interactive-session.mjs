@@ -51,7 +51,11 @@ export class InteractiveSession {
 
     try {
       const defaults = await this.#resolveDefaults(initialArgs);
+      console.log('DEBUG: initialArgs:', initialArgs);
+      console.log('DEBUG: defaults:', defaults);
+      console.log('DEBUG: this.defaults:', this.defaults);
       const repo = defaults.repoUrl ?? this.defaults.repo;
+      console.log('DEBUG: repo:', repo);
       const branch = defaults.branchName ?? this.defaults.branch ?? null;
 
       if (!repo) {
@@ -101,7 +105,7 @@ export class InteractiveSession {
         listTemplates: false
       };
 
-      if (!initialArgs.repo) {
+      if (!initialArgs.repo && !initialArgs.template) {
         answers.repo = await this.#promptOptionalText('Repository (owner/name or URL)', answers.repo);
       }
 
@@ -150,9 +154,9 @@ export class InteractiveSession {
   }
 
   async #resolveDefaults(initialArgs) {
-    if (initialArgs.repo || initialArgs.branch) {
+    if (initialArgs.repo || initialArgs.branch || initialArgs.template) {
       return {
-        repoUrl: initialArgs.repo ?? this.defaults.repo,
+        repoUrl: initialArgs.repo ?? initialArgs.template ?? this.defaults.repo,
         branchName: initialArgs.branch ?? this.defaults.branch ?? null
       };
     }

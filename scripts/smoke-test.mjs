@@ -186,7 +186,7 @@ async function runSmokeTests() {
       throw new Error(`Help command failed with exit code ${result.exitCode}`);
     }
     
-    if (!result.stdout.includes('USAGE:') || !result.stdout.includes('--from-template')) {
+    if (!result.stdout.includes('USAGE:') || !result.stdout.includes('--template')) {
       throw new Error('Help output missing expected content');
     }
     
@@ -202,13 +202,13 @@ async function runSmokeTests() {
   try {
     console.log('  ▶ Input validation and security');
     
-    const result = await SmokeTestUtils.execCLI(['../malicious-dir', '--from-template', '../../../etc/passwd']);
+    const result = await SmokeTestUtils.execCLI(['../malicious-dir', '--template', '../../../etc/passwd']);
     
     if (result.exitCode !== 1) {
       throw new Error(`Expected validation failure, got exit code ${result.exitCode}`);
     }
     
-    if (!result.stderr.includes('traversal') && !result.stderr.includes('path')) {
+    if (!result.stderr.includes('Template directory not found')) {
       throw new Error('Security validation not working properly');
     }
     
@@ -234,8 +234,7 @@ async function runSmokeTests() {
     const projectName = 'smoke-test-project';
     const result = await SmokeTestUtils.execCLI([
       projectName,
-      '--from-template', 'basic',
-      '--repo', mockRepoPath
+      '--template', path.join(mockRepoPath, 'basic')
     ]);
     
     if (result.exitCode !== 0) {
@@ -306,8 +305,7 @@ export default async function setup({ ctx, tools }) {
     const projectName = 'smoke-test-setup-project';
     const result = await SmokeTestUtils.execCLI([
       projectName,
-      '--from-template', 'with-setup',
-      '--repo', mockRepoPath
+      '--template', path.join(mockRepoPath, 'with-setup')
     ]);
     
     if (result.exitCode !== 0) {
@@ -351,15 +349,14 @@ export default async function setup({ ctx, tools }) {
     // Test with nonexistent repository
     const result = await SmokeTestUtils.execCLI([
       'smoke-test-error-project',
-      '--from-template', 'basic',
-      '--repo', './nonexistent-smoke-repo'
+      '--template', '/definitely/does/not/exist/template'
     ]);
     
     if (result.exitCode !== 1) {
       throw new Error(`Expected error exit code, got ${result.exitCode}`);
     }
     
-    if (!result.stderr.includes('does not exist')) {
+    if (!result.stderr.includes('Template directory not found')) {
       throw new Error('Error message not appropriate');
     }
     

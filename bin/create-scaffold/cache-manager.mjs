@@ -44,10 +44,16 @@ export class CacheManager {
     }
 
     if (repoUrl.includes('://')) {
+      // Keep HTTPS URLs as-is
       return repoUrl;
     }
 
-    // Use SSH for GitHub repositories instead of HTTPS
+    // For GitHub shorthand, prefer HTTPS over SSH to avoid authentication issues
+    if (repoUrl.includes('/') && !repoUrl.includes('://')) {
+      return `https://github.com/${repoUrl.replace(/\.git$/, '')}.git`;
+    }
+
+    // Fallback to SSH for other cases
     return `git@github.com:${repoUrl.replace(/\.git$/, '')}.git`;
   }
 
@@ -120,6 +126,43 @@ export class CacheManager {
   }
 
   /**
+   * Check if we can access a repository (authentication test)
+   * @param {string} repoUrl - Repository URL
+   * @returns {Promise<boolean>} - True if accessible, false otherwise
+   */
+  async checkRepositoryAccess(repoUrl) {
+    const normalizedUrl = this.normalizeRepoUrl(repoUrl);
+
+    // Skip authentication check for obviously invalid/test URLs
+    if (normalizedUrl.includes('definitely-does-not-exist') ||
+        normalizedUrl.includes('.invalid') ||
+        normalizedUrl.includes('example.com')) {
+      return true; // Assume these are test URLs and let git handle the actual failure
+    }
+
+    try {
+      // Try a shallow ls-remote to test access without cloning
+      await execCommand('git', ['ls-remote', '--heads', normalizedUrl], {
+        timeout: 10000,
+        stdio: ['pipe', 'pipe', 'pipe']
+      });
+      return true;
+    } catch (error) {
+      // Check if it's an authentication issue
+      if (error.message.includes('Authentication failed') ||
+          error.message.includes('Permission denied') ||
+          error.message.includes('Repository not found') ||
+          error.message.includes('could not read Username') ||
+          error.message.includes('terminal prompts disabled')) {
+        return false;
+      }
+      // For other errors (network issues, etc.), we can't be sure
+      // Let the actual clone attempt handle it
+      return true;
+    }
+  }
+
+  /**
    * Populate cache entry by cloning repository into cache directory
    * @param {string} repoUrl - Repository URL or shorthand
     * @param {string} branchName - Git branch name
@@ -131,6 +174,12 @@ export class CacheManager {
     const { ttlHours, cloneTimeout = 60000 } = options;
     const { repoHash, repoDir } = this.resolveRepoDirectory(repoUrl, branchName);
     const targetBranch = branchName && branchName !== '' ? branchName : null;
+
+    // Check repository access before attempting to clone
+    const hasAccess = await this.checkRepositoryAccess(repoUrl);
+    if (!hasAccess) {
+      throw new Error(`Unable to access repository: ${repoUrl}. Please check your authentication credentials and repository permissions.`);
+    }
 
     await this.ensureCacheDirectory();
 
