@@ -11,6 +11,7 @@ import {
   validateProjectDirectory
 } from '../../lib/shared/security.mjs';
 import { resolvePlaceholders, PlaceholderResolutionError } from './placeholder-resolver.mjs';
+import { EnhancedPlaceholderPrompter } from './enhanced-placeholder-prompter.mjs';
 
 const MAX_PROMPT_ATTEMPTS = 3;
 const CANCEL_INPUTS = new Set(['q', 'quit', 'exit']);
@@ -42,6 +43,10 @@ export class InteractiveSession {
     this.prompt = promptAdapter ?? createPrompt({ stdin, stdout });
     this.ownsPrompt = !promptAdapter;
     this.discovery = templateDiscovery ?? new TemplateDiscovery(cacheManager);
+    this.enhancedPrompter = new EnhancedPlaceholderPrompter({
+      promptAdapter: this.prompt,
+      logger: this.logger
+    });
     this.cachedConfiguration = null;
     this.configurationLoaded = false;
   }
@@ -141,7 +146,13 @@ export class InteractiveSession {
       }
 
       if (answers.experimentalPlaceholderPrompts && selection.placeholders.length > 0) {
-        const resolution = await this.#resolvePlaceholdersInteractively(selection.placeholders, answers);
+        const resolution = await this.enhancedPrompter.resolvePlaceholdersEnhanced({
+          definitions: selection.placeholders,
+          flagInputs: answers.placeholders,
+          configDefaults,
+          env: this.env,
+          templateMetadata: selection
+        });
         answers.placeholders = resolution.placeholders;
       }
 
