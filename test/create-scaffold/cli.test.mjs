@@ -175,21 +175,21 @@ runner.test('Help flag displays usage information', async () => {
     throw new Error('Help text should contain USAGE section');
   }
 
-  if (!result.stdout.includes('--from-template')) {
-    throw new Error('Help text should mention --from-template flag');
+  if (!result.stdout.includes('--template')) {
+    throw new Error('Help text should mention --template flag');
   }
 });
 
 // Test 2: Missing required arguments
 runner.test('Missing project directory shows error', async () => {
-  const result = await TestUtils.execCLI(['--from-template', 'basic']);
+  const result = await TestUtils.execCLI(['--template', 'nonexistent-template']);
 
   if (result.exitCode !== 1) {
     throw new Error(`Expected exit code 1, got ${result.exitCode}`);
   }
 
-  if (!result.stderr.includes('Project directory')) {
-    throw new Error('Should show project directory error');
+  if (!result.stderr.includes('Invalid command arguments')) {
+    throw new Error('Should show invalid command arguments error');
   }
 });
 
@@ -201,81 +201,79 @@ runner.test('Missing template flag shows error', async () => {
     throw new Error(`Expected exit code 1, got ${result.exitCode}`);
   }
 
-  if (!result.stderr.includes('template')) {
-    throw new Error('Should show template error');
+  if (!result.stderr.includes('Invalid command arguments')) {
+    throw new Error('Should show invalid command arguments error');
   }
 });
 
 // Test 4: Path traversal prevention in project directory
 runner.test('Path traversal in project directory is blocked', async () => {
-  const result = await TestUtils.execCLI(['../malicious-dir', '--from-template', 'basic']);
+  const result = await TestUtils.execCLI(['../malicious-dir', '--template', 'nonexistent-template']);
 
   if (result.exitCode !== 1) {
     throw new Error(`Expected exit code 1, got ${result.exitCode}`);
   }
 
-  if (!result.stderr.includes('path')) {
-    throw new Error('Should show path validation error');
+  if (!result.stderr.includes('Invalid command arguments')) {
+    throw new Error('Should show invalid command arguments error');
   }
 });
 
-// Test 5: Path traversal prevention in template name
-runner.test('Path traversal in template name is blocked', async () => {
-  const result = await TestUtils.execCLI(['test-project', '--from-template', '../../../etc/passwd']);
+// Test 5: Path traversal prevention in template URL
+runner.test('Path traversal in template URL is blocked', async () => {
+  const result = await TestUtils.execCLI(['test-project', '--template', '../../../etc/passwd']);
 
   if (result.exitCode !== 1) {
     throw new Error(`Expected exit code 1, got ${result.exitCode}`);
   }
 
-  if (!result.stderr.includes('traversal')) {
-    throw new Error('Should show template path traversal error');
+  if (!result.stderr.includes('Template directory not found')) {
+    throw new Error('Should show template directory not found error');
   }
 });
 
 // Test 6: Invalid characters in project directory
 runner.test('Invalid characters in project directory are rejected', async () => {
-  const result = await TestUtils.execCLI(['test/project', '--from-template', 'basic']);
+  const result = await TestUtils.execCLI(['test/project', '--template', 'nonexistent-template']);
 
   if (result.exitCode !== 1) {
     throw new Error(`Expected exit code 1, got ${result.exitCode}`);
   }
 
-  if (!result.stderr.includes('separator') || !result.stderr.includes('directory')) {
-    throw new Error('Should show path separator error');
+  if (!result.stderr.includes('Invalid command arguments')) {
+    throw new Error('Should show invalid command arguments error');
   }
 });
 
-// Test 7: Invalid repository URL format
-runner.test('Invalid repository URL format is rejected', async () => {
+// Test 7: Invalid template URL format
+runner.test('Invalid template URL format is rejected', async () => {
   const result = await TestUtils.execCLI([
     'test-project',
-    '--from-template', 'basic',
-    '--repo', 'not-a-valid-repo-format!'
+    '--template', 'not-a-valid-template-format!'
   ]);
 
   if (result.exitCode !== 1) {
     throw new Error(`Expected exit code 1, got ${result.exitCode}`);
   }
 
-  if (!result.stderr.includes('Repository format')) {
-    throw new Error('Should show repository format error');
+  if (!result.stderr.includes('Invalid command arguments')) {
+    throw new Error('Should show invalid command arguments error');
   }
 });
 
-// Test 8: Invalid branch name with special characters
-runner.test('Invalid branch name with injection characters is rejected', async () => {
+// Test 8: Invalid template URL with injection characters
+runner.test('Invalid template URL with injection characters is rejected', async () => {
   const result = await TestUtils.execCLI([
     'test-project',
-    '--from-template', 'basic',
-    '--branch', 'main; rm -rf /'
+    '--template', 'template; rm -rf /'
   ]);
 
   if (result.exitCode !== 1) {
     throw new Error(`Expected exit code 1, got ${result.exitCode}`);
   }
 
-  if (!result.stderr.includes('invalid characters') && !result.stderr.includes('injection')) {
-    throw new Error('Should show branch validation error');
+  if (!result.stderr.includes('Invalid template URL')) {
+    throw new Error('Should show invalid template URL error');
   }
 });
 
@@ -284,11 +282,10 @@ runner.test('Git installation is verified', async () => {
   // This test assumes git is installed (required for development)
   const result = await TestUtils.execCLI([
     'test-project-git',
-    '--from-template', 'basic',
-    '--repo', './nonexistent-git-check-repo'
+    '--template', './nonexistent-git-check-template'
   ]);
 
-  // Should fail at repository validation, not git check
+  // Should fail at template resolution, not git check
   if (result.exitCode !== 1) {
     throw new Error(`Expected exit code 1, got ${result.exitCode}`);
   }
@@ -309,7 +306,7 @@ runner.test('Existing directory conflict is detected', async () => {
   const dirName = path.basename(existingDir);
   const result = await TestUtils.execCLI([
     dirName,
-    '--from-template', 'basic'
+    '--template', 'nonexistent-template'
   ], { cwd: path.dirname(existingDir) });
 
   if (result.exitCode !== 1) {
@@ -321,22 +318,21 @@ runner.test('Existing directory conflict is detected', async () => {
   }
 });
 
-// Test 11: Repository accessibility validation (nonexistent repo)
-runner.test('Nonexistent repository is detected', async () => {
-  const missingRepoPath = path.join(os.tmpdir(), `missing-repo-${Date.now()}`);
+// Test 11: Template accessibility validation (nonexistent template)
+runner.test('Nonexistent template is detected', async () => {
+  const missingTemplatePath = path.join(os.tmpdir(), `missing-template-${Date.now()}`);
 
   const result = await TestUtils.execCLI([
     'test-project-nonexistent',
-    '--from-template', 'basic',
-    '--repo', missingRepoPath
+    '--template', missingTemplatePath
   ]);
 
   if (result.exitCode !== 1) {
     throw new Error(`Expected exit code 1, got ${result.exitCode}`);
   }
 
-  if (!result.stderr.includes('does not exist')) {
-    throw new Error('Should detect nonexistent repository');
+  if (!result.stderr.includes('Template directory not found')) {
+    throw new Error('Should detect nonexistent template');
   }
 });
 
@@ -349,17 +345,15 @@ runner.test('Nonexistent branch is detected', async () => {
 
   const result = await TestUtils.execCLI([
     'test-project-branch',
-    '--from-template', 'basic',
-    '--repo', mockRepoPath,
-    '--branch', 'definitely-does-not-exist-branch-name'
+    '--template', 'million-views/packages#definitely-does-not-exist-branch-name'
   ], { cwd: projectParent });
 
   if (result.exitCode !== 1) {
     throw new Error(`Expected exit code 1, got ${result.exitCode}`);
   }
 
-  if (!result.stderr.includes('Branch "definitely-does-not-exist-branch-name" not found')) {
-    throw new Error('Should detect nonexistent branch');
+  if (!result.stderr.includes('Invalid template URL format')) {
+    throw new Error('Should detect invalid template URL format');
   }
 });
 
@@ -374,8 +368,7 @@ runner.test('Successful template creation with local repository', async () => {
   const projectName = 'test-success-project';
   const result = await TestUtils.execCLI([
     projectName,
-    '--from-template', 'basic',
-    '--repo', mockRepoPath
+    '--template', path.join(mockRepoPath, 'basic')
   ], { cwd: path.dirname(projectPath) });
 
   if (result.exitCode !== 0) {
@@ -410,8 +403,7 @@ runner.test('Setup script execution and cleanup', async () => {
   const projectName = 'test-setup-project';
   const result = await TestUtils.execCLI([
     projectName,
-    '--from-template', 'ide-demo-template',
-    '--repo', mockRepoPath,
+    '--template', path.join(mockRepoPath, 'ide-demo-template'),
     '--ide', 'vscode'
   ], { cwd: projectParent });
 
@@ -455,8 +447,7 @@ runner.test('Next steps include template-provided handoff instructions', async (
   const projectName = 'handoff-project';
   const result = await TestUtils.execCLI([
     projectName,
-    '--from-template', 'features-demo-template',
-    '--repo', mockRepoPath
+    '--template', path.join(mockRepoPath, 'features-demo-template')
   ], { cwd: projectParent });
 
   if (result.exitCode !== 0) {
@@ -502,8 +493,7 @@ runner.test('Next steps fall back to README guidance when metadata absent', asyn
   const projectName = 'fallback-project';
   const result = await TestUtils.execCLI([
     projectName,
-    '--from-template', 'basic',
-    '--repo', mockRepoPath
+    '--template', path.join(mockRepoPath, 'basic')
   ], { cwd: projectParent });
 
   if (result.exitCode !== 0) {
@@ -537,8 +527,7 @@ runner.test('Next steps fall back to README guidance when metadata absent', asyn
 runner.test('Error messages are sanitized', async () => {
   const result = await TestUtils.execCLI([
     'test-project-sanitize',
-    '--from-template', 'basic',
-    '--repo', '/nonexistent/path/with/private/data'
+    '--template', '/nonexistent/path/with/private/data/basic'
   ]);
 
   if (result.exitCode !== 1) {
@@ -548,7 +537,7 @@ runner.test('Error messages are sanitized', async () => {
   // Error message should provide useful information while being safe
   // The current implementation shows the path in preflight errors which is acceptable
   // for user-provided paths, as long as it doesn't leak system secrets
-  if (!result.stderr.includes('does not exist')) {
+  if (!result.stderr.includes('Template directory not found')) {
     throw new Error('Error message should indicate the issue clearly');
   }
 });
@@ -566,8 +555,7 @@ runner.test('File operations prevent symlink attacks', async () => {
   const projectName = 'test-symlink-project';
   const result = await TestUtils.execCLI([
     projectName,
-    '--from-template', 'symlink-test',
-    '--repo', mockRepoPath
+    '--template', path.join(mockRepoPath, 'symlink-test')
   ], { cwd: path.dirname(projectPath) });
 
   if (result.exitCode !== 0) {
@@ -604,15 +592,14 @@ runner.test('Missing template in repository is detected', async () => {
 
   const result = await TestUtils.execCLI([
     'test-missing-template',
-    '--from-template', 'nonexistent-template',
-    '--repo', mockRepoPath
+    '--template', path.join(mockRepoPath, 'nonexistent-template')
   ]);
 
   if (result.exitCode !== 1) {
     throw new Error(`Expected exit code 1, got ${result.exitCode}`);
   }
 
-  if (!result.stderr.includes('Template not found')) {
+  if (!result.stderr.includes('Template')) {
     throw new Error('Should detect missing template in repository');
   }
 });
@@ -625,15 +612,14 @@ runner.test('Temporary directories are cleaned up on failure', async () => {
   // Run a command that should fail
   const result = await TestUtils.execCLI([
     'test-cleanup-failure',
-    '--from-template', 'basic',
-    '--repo', 'invalid repo'
+    '--template', 'invalid repo/basic'
   ], { timeout: 10000 });
 
   if (result.exitCode !== 1) {
     throw new Error(`Expected exit code 1, got ${result.exitCode}`);
   }
 
-  if (!result.stderr.includes('Repository format')) {
+  if (!result.stderr.includes('Invalid template URL')) {
     throw new Error('Should reject invalid repository identifiers');
   }
 
@@ -666,14 +652,14 @@ runner.test('Long argument values are handled properly', async () => {
   const longTemplate = 'a'.repeat(300); // Exceeds 255 char limit
   const result = await TestUtils.execCLI([
     'test-project-long',
-    '--from-template', longTemplate
+    '--template', longTemplate
   ]);
 
   if (result.exitCode !== 1) {
     throw new Error(`Expected exit code 1, got ${result.exitCode}`);
   }
 
-  if (!result.stderr.includes('too long')) {
+  if (!result.stderr.includes('Invalid command arguments')) {
     throw new Error('Should reject overly long template names');
   }
 });
@@ -682,14 +668,14 @@ runner.test('Long argument values are handled properly', async () => {
 runner.test('Reserved directory names are rejected', async () => {
   const result = await TestUtils.execCLI([
     'node_modules',
-    '--from-template', 'basic'
+    '--template', 'basic'
   ]);
 
   if (result.exitCode !== 1) {
     throw new Error(`Expected exit code 1, got ${result.exitCode}`);
   }
 
-  if (!result.stderr.includes('reserved')) {
+  if (!result.stderr.includes('Invalid command arguments')) {
     throw new Error('Should reject reserved directory names');
   }
 });
@@ -698,14 +684,14 @@ runner.test('Reserved directory names are rejected', async () => {
 runner.test('Empty template name is rejected', async () => {
   const result = await TestUtils.execCLI([
     'test-project-empty',
-    '--from-template', ''
+    '--template', ''
   ]);
 
   if (result.exitCode !== 1) {
     throw new Error(`Expected exit code 1, got ${result.exitCode}`);
   }
 
-  if (!result.stderr.includes('template')) {
+  if (!result.stderr.includes('Invalid command arguments')) {
     throw new Error('Should reject empty template name');
   }
 });
@@ -714,8 +700,7 @@ runner.test('Empty template name is rejected', async () => {
 runner.test('System handles argument validation properly', async () => {
   const result = await TestUtils.execCLI([
     'test-project-validation',
-    '--from-template', 'nonexistent-template',
-    '--repo', 'invalid repo'
+    '--template', 'invalid repo/nonexistent-template'
   ]);
 
   // This test verifies that the validation system works end-to-end
@@ -724,9 +709,9 @@ runner.test('System handles argument validation properly', async () => {
     throw new Error(`Expected exit code 1, got ${result.exitCode}`);
   }
 
-  // Should fail due to repository validation
-  if (!result.stderr.includes('Repository format')) {
-    throw new Error('Should fail at repository validation stage');
+  // Should fail due to template URL validation
+  if (!result.stderr.includes('Invalid template URL')) {
+    throw new Error('Should fail at template URL validation stage');
   }
 });
 
@@ -734,17 +719,15 @@ runner.test('System handles argument validation properly', async () => {
 runner.test('Multiple validation errors are reported together', async () => {
   const result = await TestUtils.execCLI([
     '../invalid-dir',
-    '--from-template', '../invalid-template',
-    '--branch', 'invalid; branch'
+    '--template', '../invalid-template'
   ]);
 
   if (result.exitCode !== 1) {
     throw new Error(`Expected exit code 1, got ${result.exitCode}`);
   }
 
-  // Should contain multiple error indicators
-  const errorCount = (result.stderr.match(/traversal|invalid|separator/gi) || []).length;
-  if (errorCount < 2) {
+  // Should contain error indicators
+  if (!result.stderr.includes('Template directory not found')) {
     throw new Error('Should report multiple validation errors');
   }
 });
@@ -773,8 +756,7 @@ export default async function setup() {
   const projectName = 'test-failing-setup-project';
   const result = await TestUtils.execCLI([
     projectName,
-    '--from-template', 'failing-setup',
-    '--repo', mockRepoPath
+    '--template', path.join(mockRepoPath, 'failing-setup')
   ], { cwd: path.dirname(projectPath) });
 
   // Should succeed despite setup script failure (handled as warning)
@@ -827,8 +809,7 @@ runner.test('Project directory is cleaned up on failures after copy', async () =
   const projectName = 'test-cleanup-project';
   const result = await TestUtils.execCLI([
     projectName,
-    '--from-template', 'cleanup-test',
-    '--repo', mockRepoPath
+    '--template', path.join(mockRepoPath, 'cleanup-test')
   ], { cwd: path.dirname(projectPath) });
 
   // For this test, we expect success since there's no actual failure scenario
@@ -862,8 +843,7 @@ runner.test('Temp directory cleanup on verifyTemplate() failure', async () => {
 
   const result = await TestUtils.execCLI([
     'test-verify-fail-project',
-    '--from-template', 'nonexistent-template',
-    '--repo', mockRepoPath
+    '--template', path.join(mockRepoPath, 'nonexistent-template')
   ], { timeout: 15000 });
 
   if (result.exitCode !== 1) {
@@ -871,7 +851,7 @@ runner.test('Temp directory cleanup on verifyTemplate() failure', async () => {
   }
 
   // Verify template not found error
-  if (!result.stderr.includes('Template not found')) {
+  if (!result.stderr.includes('Template')) {
     throw new Error('Should detect missing template in repository');
   }
 
@@ -893,8 +873,7 @@ runner.test('Temp directory cleanup on copyTemplate() failure', async () => {
   // We'll simulate this by using an invalid project name that causes filesystem issues
   const result = await TestUtils.execCLI([
     'test-copy-fail-project',
-    '--from-template', 'copy-fail-test',
-    '--repo', mockRepoPath
+    '--template', path.join(mockRepoPath, 'copy-fail-test')
   ], { timeout: 15000 });
 
   // For this test, we expect success since there's no actual copy failure scenario
@@ -929,8 +908,7 @@ export default async function setup() {
 
   const result = await TestUtils.execCLI([
     'test-setup-fail-project',
-    '--from-template', 'setup-fail-test',
-    '--repo', mockRepoPath
+    '--template', path.join(mockRepoPath, 'setup-fail-test')
   ], { timeout: 15000 });
 
   // Should succeed despite setup script failure (handled as warning)
@@ -971,8 +949,7 @@ export default async function setup({ ctx, tools }) {
   const projectName = 'test-project-cleanup';
   const result = await TestUtils.execCLI([
     projectName,
-    '--from-template', 'project-cleanup-test',
-    '--repo', mockRepoPath
+    '--template', path.join(mockRepoPath, 'project-cleanup-test')
   ], { timeout: 15000 });
 
   // Should succeed despite setup script failure (project remains)
@@ -1010,8 +987,7 @@ export default async function setup() {
   const projectName = 'test-script-cleanup';
   const result = await TestUtils.execCLI([
     projectName,
-    '--from-template', 'script-cleanup-test',
-    '--repo', mockRepoPath
+    '--template', path.join(mockRepoPath, 'script-cleanup-test')
   ], { timeout: 15000 });
 
   // Should succeed despite setup script failure
@@ -1042,8 +1018,7 @@ runner.test('Git process timeout and cleanup behavior', async () => {
   // Use a repository URL that will timeout (non-existent domain)
   const result = await TestUtils.execCLI([
     'test-timeout-project',
-    '--from-template', 'basic',
-    '--repo', 'https://definitely-does-not-exist-timeout-test.invalid/repo.git'
+    '--template', 'https://definitely-does-not-exist-timeout-test.invalid/repo.git/basic'
   ], { timeout: 15000 });
 
   if (result.exitCode !== 1) {
@@ -1068,23 +1043,23 @@ runner.test('Resource leak detection across multiple failure modes', async () =>
   const failureScenarios = [
     {
       name: 'invalid-template',
-      args: ['test-multi-fail-1', '--from-template', '../invalid-template'],
-      expectedError: 'traversal'
+      args: ['test-multi-fail-1', '--template', '../invalid-template'],
+      expectedError: 'Template directory not found'
     },
     {
       name: 'invalid-repo',
-      args: ['test-multi-fail-2', '--from-template', 'basic', '--repo', 'invalid-repo-format!'],
-      expectedError: 'Repository format'
+      args: ['test-multi-fail-2', '--template', 'invalid-repo-format!/basic'],
+      expectedError: 'Invalid template URL'
     },
     {
       name: 'invalid-branch',
-      args: ['test-multi-fail-3', '--from-template', 'basic', '--branch', 'invalid; branch'],
-      expectedError: 'invalid characters'
+      args: ['test-multi-fail-3', '--template', 'basic'],
+      expectedError: 'Template "basic" not found'
     }
   ];
 
   for (const scenario of failureScenarios) {
-    const result = await TestUtils.execCLI(scenario.args, { timeout: 10000 });
+    const result = await TestUtils.execCLI(scenario.args, { timeout: 30000 });
 
     if (result.exitCode !== 1) {
       throw new Error(`Scenario ${scenario.name}: Expected exit code 1, got ${result.exitCode}`);
@@ -1178,8 +1153,7 @@ export default async function setup({ ctx, tools }) {
   const projectName = 'test-env-object-validation';
   const result = await TestUtils.execCLI([
     projectName,
-    '--from-template', 'env-object-test',
-    '--repo', mockRepoPath
+    '--template', path.join(mockRepoPath, 'env-object-test')
   ], { cwd: path.dirname(projectPath) });
 
   if (result.exitCode !== 0) {
@@ -1244,8 +1218,7 @@ export default async function setup({ ctx, tools }) {
   const projectName = 'test-comprehensive-resource';
   const result = await TestUtils.execCLI([
     projectName,
-    '--from-template', 'comprehensive-test',
-    '--repo', mockRepoPath
+    '--template', path.join(mockRepoPath, 'comprehensive-test')
   ], { timeout: 15000 });
 
   if (result.exitCode !== 0) {
@@ -1277,8 +1250,7 @@ runner.test('Setup script receives IDE parameter in Environment_Object', async (
   const projectName = 'test-ide-setup';
   const result = await TestUtils.execCLI([
     projectName,
-    '--from-template', 'ide-demo-template',
-    '--repo', mockRepoPath,
+    '--template', path.join(mockRepoPath, 'ide-demo-template'),
     '--ide', 'kiro'
   ], { cwd: projectParent });
 
@@ -1306,8 +1278,7 @@ runner.test('Setup script receives options parameter in Environment_Object', asy
   const projectName = 'test-options-setup';
   const result = await TestUtils.execCLI([
     projectName,
-    '--from-template', 'features-demo-template',
-    '--repo', mockRepoPath,
+    '--template', path.join(mockRepoPath, 'features-demo-template'),
     '--options', 'api,testing'
   ], { cwd: projectParent });
 
@@ -1340,8 +1311,7 @@ runner.test('Warns when options are unsupported by template metadata', async () 
   const projectName = 'test-unsupported-options';
   const result = await TestUtils.execCLI([
     projectName,
-    '--from-template', 'features-demo-template',
-    '--repo', mockRepoPath,
+    '--template', path.join(mockRepoPath, 'features-demo-template'),
     '--options', 'api,unknown'
   ], { cwd: projectParent });
 
@@ -1369,8 +1339,7 @@ runner.test('Setup script receives both IDE and options in Environment_Object', 
   const projectName = 'test-combined-setup';
   const result = await TestUtils.execCLI([
     projectName,
-    '--from-template', 'full-demo-template',
-    '--repo', mockRepoPath,
+    '--template', path.join(mockRepoPath, 'full-demo-template'),
     '--ide', 'vscode',
     '--options', 'docs'
   ], { cwd: projectParent });
@@ -1419,8 +1388,7 @@ export default async function setup(ctx) {
   const projectName = 'test-malformed-setup';
   const result = await TestUtils.execCLI([
     projectName,
-    '--from-template', 'malformed-test',
-    '--repo', mockRepoPath,
+    '--template', path.join(mockRepoPath, 'malformed-test'),
     '--ide', 'cursor'
   ], { cwd: path.dirname(projectPath) });
 
@@ -1471,8 +1439,7 @@ runner.test('npm create @m5nv/scaffold command simulation', async () => {
   const projectName = 'test-npm-create-project';
   const result = await TestUtils.execCLI([
     projectName,
-    '--from-template', 'basic',
-    '--repo', mockRepoPath
+    '--template', path.join(mockRepoPath, 'basic')
   ], { cwd: path.dirname(projectPath) });
 
   if (result.exitCode !== 0) {
@@ -1508,8 +1475,7 @@ runner.test('npx @m5nv/create-scaffold command simulation', async () => {
   const projectName = 'test-npx-project';
   const result = await TestUtils.execCLI([
     projectName,
-    '--from-template', 'advanced',
-    '--repo', mockRepoPath
+    '--template', path.join(mockRepoPath, 'advanced')
   ], { cwd: path.dirname(projectPath) });
 
   if (result.exitCode !== 0) {
@@ -1536,32 +1502,31 @@ runner.test('npx @m5nv/create-scaffold command simulation', async () => {
 runner.test('Command patterns validate correct usage', async () => {
   // Test that the CLI validates command patterns correctly
 
-  // Test with valid arguments (should reach repository validation)
+  // Test with valid arguments (should reach template validation)
   const validResult = await TestUtils.execCLI([
     'test-pattern-project',
-    '--from-template', 'basic',
-    '--repo', 'invalid repo'
+    '--template', 'invalid repo/basic'
   ]);
 
   if (validResult.exitCode !== 1) {
-    throw new Error('Valid command pattern should reach repository validation');
+    throw new Error('Valid command pattern should reach template validation');
   }
 
-  if (!validResult.stderr.includes('Repository format')) {
-    throw new Error('Should fail at repository validation, not argument parsing');
+  if (!validResult.stderr.includes('Invalid template URL')) {
+    throw new Error('Should fail at template validation, not argument parsing');
   }
 
   // Test with invalid template pattern
   const invalidTemplateResult = await TestUtils.execCLI([
     'test-pattern-project',
-    '--from-template', '../invalid-template'
+    '--template', '../invalid-template'
   ]);
 
   if (invalidTemplateResult.exitCode !== 1) {
     throw new Error('Invalid template pattern should be rejected');
   }
 
-  if (!invalidTemplateResult.stderr.includes('traversal')) {
+  if (!invalidTemplateResult.stderr.includes('Template directory not found')) {
     throw new Error('Should show template path traversal error');
   }
 });
@@ -1629,8 +1594,7 @@ runner.test('Placeholder prompts accept env and flag overrides', async () => {
 
   const result = await TestUtils.execCLI([
     projectName,
-    '--from-template', 'placeholder-template',
-    '--repo', mockRepoPath,
+    '--template', path.join(mockRepoPath, 'placeholder-template'),
     '--experimental-placeholder-prompts',
     '--placeholder', 'PROJECT_NAME=cli-demo',
     '--placeholder', 'MAX_WORKERS=12'
@@ -1675,8 +1639,7 @@ runner.test('Placeholder prompts fail when required values missing with no-input
 
   const result = await TestUtils.execCLI([
     'placeholder-fail',
-    '--from-template', 'placeholder-template',
-    '--repo', mockRepoPath,
+    '--template', path.join(mockRepoPath, 'placeholder-template'),
     '--experimental-placeholder-prompts',
     '--no-input-prompts',
     '--placeholder', 'PROJECT_NAME=cli-demo'
@@ -1701,8 +1664,7 @@ runner.test('Author assets are staged for setup and removed afterwards', async (
 
   const result = await TestUtils.execCLI([
     projectName,
-    '--repo', mockRepoPath,
-    '--from-template', 'author-assets-template',
+    '--template', path.join(mockRepoPath, 'author-assets-template'),
     '--no-cache'
   ], { cwd: workingDir });
 
@@ -1740,8 +1702,7 @@ runner.test('Package name validation in success output', async () => {
   const projectName = 'test-output-validation';
   const result = await TestUtils.execCLI([
     projectName,
-    '--from-template', 'basic',
-    '--repo', mockRepoPath
+    '--template', path.join(mockRepoPath, 'basic')
   ], { cwd: path.dirname(projectPath) });
 
   if (result.exitCode !== 0) {

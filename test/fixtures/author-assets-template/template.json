@@ -2,8 +2,7 @@
   "name": "author-assets-template",
   "description": "Template for verifying author asset staging and cleanup.",
   "setup": {
-    "authoringMode": "composable",
-    "dimensions": {}
+    "authoringMode": "composable"
   },
   "handoff": [
     "npm install"

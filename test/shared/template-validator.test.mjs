@@ -8,6 +8,7 @@ import test from 'node:test';
 
 import { validateTemplateManifest } from '../../lib/shared/utils/template-validator.mjs';
 import { ValidationError } from '../../lib/shared/security.mjs';
+import { TemplateValidator } from '../../lib/validation/template-validator.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(__dirname, '../..');
@@ -17,6 +18,209 @@ async function loadFixture(name) {
   const raw = await readFile(filePath, 'utf8');
   return JSON.parse(raw);
 }
+
+test('TemplateValidator comprehensive validation', async (t) => {
+  const validator = new TemplateValidator();
+
+  await t.test('validates complete v1.0.0 template successfully', async () => {
+    const template = {
+      schemaVersion: '1.0.0',
+      id: 'test/valid-template',
+      name: 'Valid Template',
+      description: 'A valid template for testing',
+      dimensions: {
+        features: {
+          values: ['auth', 'database', 'api'],
+          default: []
+        },
+        deployment_target: {
+          values: ['vercel', 'netlify'],
+          default: 'vercel'
+        }
+      },
+      gates: {
+        features: {
+          platform: 'node',
+          constraint: 'version >= 18'
+        }
+      },
+      featureSpecs: {
+        auth: {
+          label: 'Authentication',
+          description: 'User authentication system'
+        }
+      },
+      hints: {
+        features: {
+          auth: 'Recommended for most applications'
+        }
+      },
+      handoff: ['npm install']
+    };
+
+    const result = await validator.validate(template, 'strict');
+    assert(result.valid, 'Template should be valid');
+    assert(result.errors.length === 0, 'Should have no errors');
+    assert(result.warnings.length === 0, 'Should have no warnings');
+  });
+
+  await t.test('rejects templates with invalid schema version', async () => {
+    const template = {
+      schemaVersion: '2.0.0',
+      id: 'test/invalid',
+      name: 'Invalid Version',
+      description: 'Template with invalid schema version'
+    };
+
+    const result = await validator.validate(template, 'strict');
+    assert(!result.valid, 'Template should be invalid');
+    assert(result.errors.some(e => e.message.includes('Unsupported schema version')), 'Should report schema version error');
+  });
+
+  await t.test('rejects templates with invalid ID format', async () => {
+    const template = {
+      schemaVersion: '1.0.0',
+      id: 'invalid-id-format',
+      name: 'Invalid ID',
+      description: 'Template with invalid ID format'
+    };
+
+    const result = await validator.validate(template, 'strict');
+    assert(!result.valid, 'Template should be invalid');
+    assert(result.errors.some(e => e.message.includes('Invalid ID format')), 'Should report ID format error');
+  });
+
+  await t.test('validates dimensions schema correctly', async () => {
+    const template = {
+      schemaVersion: '1.0.0',
+      id: 'test/dimensions',
+      name: 'Dimensions Test',
+      description: 'Testing dimensions validation',
+      dimensions: {
+        invalid_dimension: {
+          values: ['test']
+        }
+      }
+    };
+
+    const result = await validator.validate(template, 'strict');
+    assert(!result.valid, 'Template should be invalid');
+    assert(result.errors.some(e => e.message.includes('Unknown dimension')), 'Should report unknown dimension');
+  });
+
+  await t.test('validates gates reference existing dimensions', async () => {
+    const template = {
+      schemaVersion: '1.0.0',
+      id: 'test/gates',
+      name: 'Gates Test',
+      description: 'Testing gates validation',
+      dimensions: {
+        features: {
+          values: ['auth']
+        }
+      },
+      gates: {
+        nonexistent: {
+          platform: 'node',
+          constraint: 'version >= 18'
+        }
+      }
+    };
+
+    const result = await validator.validate(template, 'strict');
+    assert(!result.valid, 'Template should be invalid');
+    assert(result.errors.some(e => e.message.includes('does not correspond to any dimension')), 'Should report gate dimension mismatch');
+  });
+
+  await t.test('validates feature specs reference existing features', async () => {
+    const template = {
+      schemaVersion: '1.0.0',
+      id: 'test/features',
+      name: 'Features Test',
+      description: 'Testing feature specs validation',
+      dimensions: {
+        features: {
+          values: ['auth']
+        }
+      },
+      featureSpecs: {
+        nonexistent: {
+          label: 'Nonexistent Feature',
+          description: 'This feature does not exist'
+        }
+      }
+    };
+
+    const result = await validator.validate(template, 'strict');
+    assert(!result.valid, 'Template should be invalid');
+    assert(result.errors.some(e => e.message.includes('does not correspond to any feature')), 'Should report feature spec mismatch');
+  });
+
+  await t.test('validates feature names follow pattern', async () => {
+    const template = {
+      schemaVersion: '1.0.0',
+      id: 'test/feature-names',
+      name: 'Feature Names Test',
+      description: 'Testing feature name validation',
+      dimensions: {
+        features: {
+          values: ['INVALID_FEATURE', 'valid-feature', 'ValidFeature']
+        }
+      }
+    };
+
+    const result = await validator.validate(template, 'strict');
+    assert(!result.valid, 'Template should be invalid');
+    assert(result.errors.some(e => e.message.includes('Invalid feature name')), 'Should report invalid feature names');
+  });
+
+  await t.test('validates hints reference existing features', async () => {
+    const template = {
+      schemaVersion: '1.0.0',
+      id: 'test/hints',
+      name: 'Hints Test',
+      description: 'Testing hints validation',
+      dimensions: {
+        features: {
+          values: ['auth']
+        }
+      },
+      hints: {
+        features: {
+          nonexistent: 'This hint references a nonexistent feature'
+        }
+      }
+    };
+
+    const result = await validator.validate(template, 'strict');
+    assert(!result.valid, 'Template should be invalid');
+    assert(result.errors.some(e => e.message.includes('does not correspond to any feature')), 'Should report hint mismatch');
+  });
+
+  await t.test('validates lenient policy allows schema errors', async () => {
+    const template = {
+      schemaVersion: '1.0.0',
+      id: 'test/lenient',
+      name: 'Lenient Test',
+      // Missing description
+      dimensions: {
+        invalid_dimension: {
+          values: ['test']
+        }
+      }
+    };
+
+    const result = await validator.validate(template, 'lenient');
+    assert(result.valid, 'Template should be valid in lenient mode');
+    assert(result.warnings.length > 0, 'Should have warnings in lenient mode');
+  });
+
+  await t.test('handles malformed template gracefully', async () => {
+    const result = await validator.validate(null, 'strict');
+    assert(!result.valid, 'Null template should be invalid');
+    assert(result.errors.length > 0, 'Should have errors for null template');
+  });
+});
 
 test('validateTemplateManifest returns normalized values for valid template', async () => {
   const manifest = await loadFixture('placeholder-template');

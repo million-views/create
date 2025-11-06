@@ -1,12 +1,17 @@
 {
-  "name": "features-demo-template",
+  "schemaVersion": "1.0.0",
+  "id": "test/features-demo-template",
+  "name": "Features Demo Template",
   "description": "Fixture exercising feature-driven setup",
+  "dimensions": {
+    "features": {
+      "values": ["api", "auth", "testing"],
+      "default": []
+    }
+  },
   "handoff": [
     "npm install",
     "npm run test",
     "Review docs/overview.md for enabled feature details"
-  ],
-  "setup": {
-    "supportedOptions": ["api", "auth", "testing"]
-  }
+  ]
 }

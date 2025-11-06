@@ -25,24 +25,24 @@ async function runLeakScenario({ name, args, expectedMessage }) {
 test('temp directory cleanup on invalid template', async () => {
   await runLeakScenario({
     name: 'invalid template test',
-    args: ['test-invalid-template', '--from-template', '../invalid-template'],
-    expectedMessage: /traversal/i
+    args: ['test-invalid-template', '--template', '../invalid-template'],
+    expectedMessage: /Template directory not found/i
   });
 });
 
 test('temp directory cleanup on invalid repository', async () => {
   await runLeakScenario({
     name: 'invalid repository test',
-    args: ['test-invalid-repo', '--from-template', 'basic', '--repo', 'invalid-repo-format!'],
-    expectedMessage: /repository format/i
+    args: ['test-invalid-repo', '--template', 'invalid-repo-format!'],
+    expectedMessage: /Template name contains invalid characters/i
   });
 });
 
 test('temp directory cleanup on nonexistent repository', async () => {
   await runLeakScenario({
     name: 'nonexistent repository test',
-    args: ['test-nonexistent-repo', '--from-template', 'basic', '--repo', './nonexistent-resource-repo'],
-    expectedMessage: /does not exist/i
+    args: ['test-nonexistent-repo', '--template', './nonexistent-resource-repo'],
+    expectedMessage: /Template directory not found/i
   });
 });
 

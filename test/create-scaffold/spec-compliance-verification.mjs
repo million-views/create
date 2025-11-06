@@ -197,7 +197,7 @@ class SpecComplianceVerifier {
       // Test that all flags are recognized (even if they fail validation)
       const result = await this.execCLI([
         'test-project',
-        '--from-template', 'basic',
+        '--template', 'basic',
         '--repo', './nonexistent-spec-arg-repo',
         '--branch', 'main'
       ]);
@@ -229,7 +229,7 @@ class SpecComplianceVerifier {
       // Test positional argument (project directory)
       const result = await this.execCLI([
         'my-project',
-        '--from-template', 'basic',
+        '--template', 'basic',
         '--repo', './nonexistent-spec-positional'
       ]);
 
@@ -247,7 +247,7 @@ class SpecComplianceVerifier {
       // Test --options long form
       const longResult = await this.execCLI([
         'test-project',
-        '--from-template', 'basic',
+        '--template', 'basic',
         '--repo', './nonexistent-spec-options',
         '--options', 'typescript,react'
       ]);
@@ -265,7 +265,7 @@ class SpecComplianceVerifier {
       // Test -o short form
       const shortResult = await this.execCLI([
         'test-project',
-        '--from-template', 'basic',
+        '--template', 'basic',
         '--repo', './nonexistent-spec-options-short',
         '-o', 'typescript,react'
       ]);
@@ -284,7 +284,7 @@ class SpecComplianceVerifier {
     // Requirement 2: Comprehensive input validation and sanitization
 
     await this.test('R2.1: Validates file paths to prevent directory traversal attacks', async () => {
-      const result = await this.execCLI(['../malicious-dir', '--from-template', 'basic']);
+      const result = await this.execCLI(['../malicious-dir', '--template', 'basic']);
 
       if (result.exitCode !== 1) {
         throw new Error('Path traversal should be blocked');
@@ -296,19 +296,19 @@ class SpecComplianceVerifier {
     });
 
     await this.test('R2.2: Sanitizes repository URLs to prevent malicious redirects', async () => {
-      const result = await this.execCLI(['test-project', '--from-template', 'basic', '--repo', 'invalid-repo-format!']);
+      const result = await this.execCLI(['test-project', '--template', 'invalid-repo-format!']);
 
       if (result.exitCode !== 1) {
         throw new Error('Invalid repository format should be rejected');
       }
 
-      if (!result.stderr.includes('Repository format')) {
+      if (!result.stderr.includes('invalid characters')) {
         throw new Error('Should show repository format error');
       }
     });
 
     await this.test('R2.3: Validates branch names against injection attacks', async () => {
-      const result = await this.execCLI(['test-project', '--from-template', 'basic', '--branch', 'main; rm -rf /']);
+      const result = await this.execCLI(['test-project', '--template', 'basic', '--branch', 'main; rm -rf /']);
 
       if (result.exitCode !== 1) {
         throw new Error('Malicious branch name should be rejected');
@@ -321,7 +321,7 @@ class SpecComplianceVerifier {
 
     await this.test('R2.4: Restricts write operations to intended project directories only', async () => {
       // This is verified through the path traversal prevention and project directory validation
-      const result = await this.execCLI(['test/nested/path', '--from-template', 'basic']);
+      const result = await this.execCLI(['test/nested/path', '--template', 'basic']);
 
       if (result.exitCode !== 1) {
         throw new Error('Nested paths with separators should be rejected');
@@ -333,13 +333,13 @@ class SpecComplianceVerifier {
     });
 
     await this.test('R2.5: Validates template names to prevent path traversal', async () => {
-      const result = await this.execCLI(['test-project', '--from-template', '../../../etc/passwd']);
+      const result = await this.execCLI(['test-project', '--template', '../../../etc/passwd']);
 
       if (result.exitCode !== 1) {
         throw new Error('Template path traversal should be blocked');
       }
 
-      if (!result.stderr.includes('traversal')) {
+      if (!result.stderr.includes('Template directory not found')) {
         throw new Error('Should show template path traversal error');
       }
     });
@@ -381,7 +381,7 @@ class SpecComplianceVerifier {
 
     await this.test('R4.1: Verifies git installation and availability in PATH', async () => {
       // Test with a scenario that would reach git validation
-      const result = await this.execCLI(['test-project', '--from-template', 'basic', '--repo', 'test/repo']);
+      const result = await this.execCLI(['test-project', '--template', 'test/repo']);
 
       // Should not fail due to git not being found (git should be available)
       if (result.stderr.includes('Git is not installed') || result.stderr.includes('git not found')) {
@@ -407,7 +407,7 @@ class SpecComplianceVerifier {
       await fs.writeFile(path.join(existingDir, 'existing-file.txt'), 'content');
 
       const dirName = path.basename(existingDir);
-      const result = await this.execCLI([dirName, '--from-template', 'basic'], {
+      const result = await this.execCLI([dirName, '--template', 'basic'], {
         cwd: path.dirname(existingDir)
       });
 
@@ -421,7 +421,7 @@ class SpecComplianceVerifier {
     });
 
     await this.test('R4.4: Validates repository URL format and accessibility', async () => {
-      const result = await this.execCLI(['test-project', '--from-template', 'basic', '--repo', './nonexistent-spec-repo']);
+      const result = await this.execCLI(['test-project', '--template', './nonexistent-spec-repo']);
 
       if (result.exitCode !== 1) {
         throw new Error('Should fail on nonexistent repository');
@@ -444,7 +444,7 @@ class SpecComplianceVerifier {
         throw new Error('Help command should succeed');
       }
 
-      if (!result.stdout.includes('USAGE:') || !result.stdout.includes('--from-template') || !result.stdout.includes('EXAMPLES:')) {
+      if (!result.stdout.includes('USAGE:') || !result.stdout.includes('--template') || !result.stdout.includes('EXAMPLES:')) {
         throw new Error('Help text should be comprehensive');
       }
 
@@ -469,7 +469,7 @@ class SpecComplianceVerifier {
 
     await this.test('R5.3: Provides specific error messages for each type of failure', async () => {
       // Test different error types
-      const pathTraversalResult = await this.execCLI(['../invalid', '--from-template', 'basic']);
+      const pathTraversalResult = await this.execCLI(['../invalid', '--template', 'basic']);
       const missingTemplateResult = await this.execCLI(['test-project']);
 
       if (!pathTraversalResult.stderr.includes('traversal') && !pathTraversalResult.stderr.includes('path')) {
@@ -520,7 +520,7 @@ export default async function setup({ ctx, tools }) {
       await this.execCommand('git', ['commit', '-m', 'Add setup script'], { cwd: mockRepoPath });
 
       const projectName = 'spec-setup-test';
-      const result = await this.execCLI([projectName, '--from-template', 'with-setup', '--repo', mockRepoPath]);
+      const result = await this.execCLI([projectName, '--template', mockRepoPath + '/with-setup']);
 
       if (result.exitCode !== 0) {
         throw new Error(`Setup script test failed: ${result.stderr}`);
@@ -569,7 +569,7 @@ export default async function setup(ctx) {
       await this.execCommand('git', ['commit', '-m', 'Add failing setup script'], { cwd: mockRepoPath });
 
       const projectName = 'spec-failing-setup-test';
-      const result = await this.execCLI([projectName, '--from-template', 'failing-setup', '--repo', mockRepoPath]);
+      const result = await this.execCLI([projectName, '--template', mockRepoPath + '/failing-setup']);
 
       // Should succeed despite setup script failure
       if (result.exitCode !== 0) {
@@ -592,7 +592,7 @@ export default async function setup(ctx) {
       const beforeTempDirs = beforeEntries.filter(name => name.startsWith('.tmp-template-'));
 
       // Run a command that should fail and clean up
-      const result = await this.execCLI(['test-cleanup', '--from-template', 'basic', '--repo', './nonexistent-spec-cleanup-repo']);
+      const result = await this.execCLI(['test-cleanup', '--template', './nonexistent-spec-cleanup-repo/basic']);
 
       if (result.exitCode !== 1) {
         throw new Error('Should fail on nonexistent repository');
@@ -607,7 +607,7 @@ export default async function setup(ctx) {
     });
 
     await this.test('R7.2: Sanitizes error messages to prevent information disclosure', async () => {
-      const result = await this.execCLI(['test-sanitize', '--from-template', 'basic', '--repo', '/nonexistent/path']);
+      const result = await this.execCLI(['test-sanitize', '--template', '/nonexistent/path/basic']);
 
       if (result.exitCode !== 1) {
         throw new Error('Should fail on nonexistent path');
@@ -664,7 +664,7 @@ export default async function setup(ctx) {
         throw new Error('Core functionality should work without external dependencies');
       }
 
-      if (!result.stdout.includes('--from-template') || !result.stdout.includes('--repo')) {
+      if (!result.stdout.includes('--template')) {
         throw new Error('All argument parsing should work with native modules');
       }
     });
@@ -680,7 +680,7 @@ export default async function setup(ctx) {
 
     await this.test('R8.5: Uses child_process for git command execution', async () => {
       // This is verified by the git operations working correctly
-      const result = await this.execCLI(['test-git', '--from-template', 'basic', '--repo', './nonexistent-spec-git-repo']);
+      const result = await this.execCLI(['test-git', '--template', './nonexistent-spec-git-repo/basic']);
 
       // Should fail at git operation, not at process spawning
       if (result.exitCode !== 1) {

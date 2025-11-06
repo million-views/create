@@ -111,3 +111,119 @@ test('conflicting values raise validation error', () => {
     }
   );
 });
+
+test('normalizeOptions handles empty input', () => {
+  const result = normalizeOptions({
+    rawTokens: [],
+    dimensions: {}
+  });
+
+  assert.deepEqual(result.byDimension, {});
+  assert.deepEqual(result.unknown, []);
+  assert.deepEqual(result.warnings, []);
+});
+
+test('normalizeOptions initializes single dimensions with defaults', () => {
+  const dimensions = {
+    auth: {
+      type: 'single',
+      values: ['none', 'basic'],
+      default: 'none'
+    }
+  };
+
+  const result = normalizeOptions({
+    rawTokens: [],
+    dimensions
+  });
+
+  assert.equal(result.byDimension.auth, 'none');
+});
+
+test('normalizeOptions initializes multi dimensions with defaults', () => {
+  const dimensions = {
+    features: {
+      type: 'multi',
+      values: ['api', 'db'],
+      default: ['api']
+    }
+  };
+
+  const result = normalizeOptions({
+    rawTokens: [],
+    dimensions
+  });
+
+  assert.deepEqual(result.byDimension.features, ['api']);
+});
+
+test('normalizeOptions throws on missing value', () => {
+  const dimensions = {
+    auth: {
+      type: 'single',
+      values: ['none', 'basic']
+    }
+  };
+
+  assert.throws(() => {
+    normalizeOptions({
+      rawTokens: ['auth='],
+      dimensions
+    });
+  }, ValidationError);
+});
+
+test('normalizeOptions throws on multiple values for single dimension', () => {
+  const dimensions = {
+    auth: {
+      type: 'single',
+      values: ['none', 'basic', 'jwt']
+    }
+  };
+
+  assert.throws(() => {
+    normalizeOptions({
+      rawTokens: ['auth=basic+jwt'],
+      dimensions
+    });
+  }, ValidationError);
+});
+
+test('normalizeOptions enforces dependencies', () => {
+  const dimensions = {
+    auth: {
+      type: 'single',
+      values: ['none', 'basic', 'jwt']
+    },
+    security: {
+      type: 'single',
+      values: ['low', 'high'],
+      requires: {
+        high: ['jwt']
+      }
+    }
+  };
+
+  assert.throws(() => {
+    normalizeOptions({
+      rawTokens: ['auth=basic', 'security=high'],
+      dimensions
+    });
+  }, ValidationError);
+});
+
+test('normalizeOptions sorts multi-dimension values', () => {
+  const dimensions = {
+    features: {
+      type: 'multi',
+      values: ['api', 'db', 'auth', 'cache']
+    }
+  };
+
+  const result = normalizeOptions({
+    rawTokens: ['features=cache+api+db'],
+    dimensions
+  });
+
+  assert.deepEqual(result.byDimension.features, ['api', 'cache', 'db']);
+});

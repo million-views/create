@@ -9,7 +9,7 @@ import {
   ArgumentError
 } from '../../bin/create-scaffold/argument-parser.mjs';
 
-const BASE_ARGS = ['demo-app', '--from-template', 'basic'];
+const BASE_ARGS = ['demo-app', '--template', 'registry/official/basic'];
 
 test('parseArguments captures IDE and options flags', () => {
   const result = parseArguments([

@@ -1,12 +1,17 @@
 {
-  "name": "full-demo-template",
+  "schemaVersion": "1.0.0",
+  "id": "test/full-demo-template",
+  "name": "Full Demo Template",
   "description": "Fixture combining files, JSON, and IDE utilities",
+  "dimensions": {
+    "features": {
+      "values": ["docs"],
+      "default": []
+    }
+  },
   "handoff": [
     "npm install",
     "npm run lint",
     "Open docs/index.md for scaffold overview"
-  ],
-  "setup": {
-    "supportedOptions": ["docs"]
-  }
+  ]
 }
