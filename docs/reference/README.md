@@ -34,14 +34,14 @@ Detailed documentation of the Environment passed to template setup scripts.
 - Implement IDE-specific or option-based customization
 - Handle security considerations in templates
 
-### [Error Codes Reference](error-codes.md)
-Complete listing of exit codes, error messages, and troubleshooting information.
+### [Testing Reference](testing.md)
+Complete reference for running and understanding the test suite, including all test suites, commands, and debugging workflows.
 
 **Use when you need to:**
-- Understand what specific error messages mean
-- Troubleshoot CLI execution problems
-- Debug git, file system, or validation issues
-- Interpret log file contents
+- Run specific test suites in isolation
+- Understand test coverage and architecture
+- Debug failing tests during development
+- Set up testing in CI/CD pipelines
 
 ## Quick Reference Tables
 

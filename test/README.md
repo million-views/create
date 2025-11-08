@@ -134,6 +134,10 @@ This structure prevents test collisions when additional tools (like `make-templa
 
 ## Running Tests
 
+For complete testing commands and workflows, see the [Testing Reference](../docs/reference/testing.md).
+
+### Quick Reference
+
 ```bash
 # Run all tests
 npm test
@@ -141,15 +145,36 @@ npm test
 # Run quick test suite (recommended for development)
 npm run test:quick
 
-# Run spec compliance verification
-npm run test:spec
+# Run specific test suites in isolation
+npm run test:smoke          # Run only smoke tests
+npm run test:functional     # Run only functional tests
+npm run test:integration    # Run only CLI integration tests
+npm run test:spec           # Run only spec compliance tests
 
-# Run with verbose output (individual test)
-node test/create-scaffold/cli.test.mjs
-
-# Run specific test (modify the test file to comment out others)
-# Edit test/create-scaffold/cli.test.mjs and comment out unwanted tests
+# Run any test suite by name
+npm run test:suite "Security Tests"
+npm run test:suite "Template Validator Tests"
 ```
+
+See the [Testing Reference](../docs/reference/testing.md) for the complete list of available test suites and detailed usage instructions.
+
+### Available Test Suites
+
+The test runner supports running individual test suites for focused development and debugging:
+
+- **Environment Factory Tests** - Environment creation and metadata validation
+- **Argument Parser Tests** - CLI argument parsing and validation
+- **Interactive Utils Tests** - Interactive trigger heuristics and environment control
+- **Options Processor Tests** - Normalization of CLI options against template dimensions
+- **Setup Runtime Tests** - Sandbox and tools runtime verification
+- **Security Tests** - Security validation for new IDE and features parameters
+- **Functional Tests** - Comprehensive end-to-end CLI behavior validation
+- **Template Schema Build Tests** - Deterministic generation of schema types and runtime stubs
+- **Template Validator Tests** - Runtime manifest validation aligned with schema constraints
+- **CLI Integration Tests** - Phase 1 feature integration coverage for CLI flags
+- **Spec Compliance Tests** - Verification against all specification requirements
+- **Resource Leak Tests** - Resource management and cleanup validation
+- **Smoke Tests** - Production readiness and integration validation
 
 ## Test Requirements
 

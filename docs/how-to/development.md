@@ -181,23 +181,12 @@ Validation errors reference the offending path and instruct you to re-run with
 
 ## Testing Strategy
 
-### Test Suite Architecture
+The project follows a comprehensive testing strategy with multiple specialized test suites. See the [Testing Reference](../reference/testing.md) for complete information about:
 
-The project maintains comprehensive test coverage across multiple specialized test suites:
-
-#### 1. Functional Tests (`test/cli.test.mjs`)
-
-- Comprehensive end-to-end CLI behavior tests
-- Argument parsing, validation, security, git operations
-- Error handling and user feedback scenarios
-- Real-world usage patterns and edge cases
-
-#### 2. Spec Compliance Tests (`test/spec-compliance-verification.mjs`)
-
-- Comprehensive specification compliance verification
-- Requirements traceability and feature completeness
-- Automated validation of spec-driven development
-- Ensures all documented features work as specified
+- Test suite architecture and coverage
+- Running individual test suites
+- Development workflows and debugging
+- Performance characteristics and troubleshooting
 
 #### 3. Resource Leak Tests (`test/resource-leak-test.mjs`)
 
@@ -288,6 +277,7 @@ npm uninstall -g @m5nv/create-scaffold
 ### Complete Test Suite
 
 ```bash
+```bash
 # Run all test suites with unified reporting
 npm test
 
@@ -297,11 +287,11 @@ npm run test:all
 # Run quick validation (functional + smoke tests only)
 npm run test:quick
 
-# Run individual test suites
-npm run test:functional    # End-to-end CLI behavior tests
-npm run test:spec         # Specification compliance tests
-npm run test:leaks        # Resource management tests
-npm run test:smoke        # Production readiness tests
+# Lint code (zero warnings required)
+npm run lint
+```
+
+See the [Testing Reference](../reference/testing.md) for complete testing commands, individual test suites, and debugging workflows.
 ```
 
 ### Development Testing Workflow
@@ -313,11 +303,15 @@ npm run test:quick
 # Lint code (zero warnings required)
 npm run lint
 
-# Run specific test file for focused development
-node test/cli.test.mjs
-node test/argument-parser.test.mjs
-node test/security.test.mjs
-node test/spec-compliance-verification.mjs
+# Run specific test suites for focused debugging
+npm run test:smoke         # Fast feedback on core functionality
+npm run test:functional    # Debug end-to-end issues
+npm run test:integration   # Debug CLI flag interactions
+
+# Run individual test files for deep debugging
+node test/create-scaffold/cli.test.mjs
+node test/shared/security.test.mjs
+node test/create-scaffold/spec-compliance-verification.mjs
 
 # Test specific functionality
 node test/cache-manager.test.mjs
@@ -642,13 +636,16 @@ cat debug.log  # Review detailed operation logs
 #### Test Debugging
 
 ```bash
-# Run specific test suites for focused debugging
-node test/cli.test.mjs                    # Functional tests
-node test/security.test.mjs               # Security validation
-node test/cache-manager.test.mjs          # Cache functionality
+# Run specific test suites for focused debugging (much better than grep!)
+npm run test:smoke         # Fast feedback on core functionality
+npm run test:functional    # Debug end-to-end issues
+npm run test:integration   # Debug CLI flag interactions
+npm run test:suite "Security Tests"  # Debug specific security issues
 
-# Debug test failures
-npm run test:functional 2>&1 | grep -A 10 "FAILED"
+# Run individual test files for deep debugging
+node test/create-scaffold/cli.test.mjs
+node test/shared/security.test.mjs
+node test/create-scaffold/cache-manager.test.mjs
 ```
 
 #### Common Development Issues

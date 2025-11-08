@@ -70,17 +70,17 @@ See [docs/spec-driven-development.md](docs/spec-driven-development.md) for compl
 
 ### Testing Requirements
 
-```bash
-# All tests must pass before any contribution
-npm test                    # Run complete test suite across all test categories
-npm run test:quick         # Quick validation (functional + smoke tests)
-npm run lint              # Zero warnings required (strict ESLint rules)
+All contributions must maintain comprehensive test coverage. See the [Testing Reference](../docs/reference/testing.md) for complete testing commands and suite information.
 
-# Individual test suites
-npm run test:functional    # End-to-end CLI behavior tests
-npm run test:spec         # Specification compliance tests
-npm run test:leaks        # Resource management tests
-npm run test:smoke        # Production readiness tests
+```bash
+# Quick validation (recommended for development)
+npm run test:quick
+
+# Full test suite (required before any contribution)
+npm test
+
+# Lint code (zero warnings required)
+npm run lint
 ```
 
 ### Security Standards

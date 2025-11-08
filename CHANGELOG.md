@@ -5,7 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.5.0] - 2025-11-03
+## [Unreleased]
+
+### Added
+- **Test Suite Isolation**: Enhanced test runner with `--suite` option to run individual test suites in isolation
+- **New NPM Scripts**: Added `test:suite`, `test:smoke`, `test:functional`, `test:integration`, and `test:spec` scripts for focused testing
+- **Pre-Refactoring Checklist**: Added comprehensive preparation checklist to Kiro Methodology for safe refactoring and breaking changes
+
+### Improved
+- **Developer Experience**: Eliminated need for `grep` commands to isolate failing tests during development
+- **Documentation**: Updated test documentation and contributing guidelines with new testing capabilities
 
 ### Added
 - **Dual-Tool Package**: Integrated `make-template` CLI tool into the `@m5nv/create-scaffold` package

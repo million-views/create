@@ -107,7 +107,50 @@ class TestRunner {
     await fs.rm(this.homeBaseDir, { recursive: true, force: true });
     await fs.mkdir(this.homeBaseDir, { recursive: true });
 
-    const tests = [
+    const tests = this.getAllTestDefinitions();
+
+    for (const test of tests) {
+      const passed = await this.runTest(test);
+      if (!passed) {
+        break;
+      }
+    }
+
+    this.printSummary();
+  }
+
+  async runSuite(suiteName) {
+    console.log(`🎯 Running Specific Test Suite: ${suiteName}`);
+    console.log('='.repeat(60));
+
+    const allTests = this.getAllTestDefinitions();
+    const matchingTest = allTests.find(test => test.name === suiteName);
+
+    if (!matchingTest) {
+      console.error(`❌ Error: Test suite "${suiteName}" not found`);
+      console.log('Available suites:');
+      this.getAvailableSuites().forEach(suite => {
+        console.log(`  - "${suite.name}"`);
+      });
+      process.exit(1);
+    }
+
+    await fs.rm(this.homeBaseDir, { recursive: true, force: true });
+    await fs.mkdir(this.homeBaseDir, { recursive: true });
+
+    const passed = await this.runTest(matchingTest);
+    this.printSummary();
+  }
+
+  getAvailableSuites() {
+    return this.getAllTestDefinitions().map(test => ({
+      name: test.name,
+      description: test.description
+    }));
+  }
+
+  getAllTestDefinitions() {
+    return [
       {
         name: 'Environment Factory Tests',
         command: ['--test', './test/create-scaffold/environment-factory.test.mjs'],
@@ -187,73 +230,6 @@ class TestRunner {
         homeSuffix: 'smoke'
       }
     ];
-
-    for (const test of tests) {
-      const passed = await this.runTest(test);
-      if (!passed) {
-        break;
-      }
-    }
-
-    this.printSummary();
-  }
-
-  async runQuick() {
-    console.log('⚡ Running Quick Test Suite for @m5nv/create-scaffold');
-    console.log('='.repeat(60));
-
-    const tests = [
-      {
-        name: 'Environment Factory Tests',
-        command: ['--test', './test/create-scaffold/environment-factory.test.mjs'],
-        description: 'Environment creation and metadata validation',
-        homeSuffix: 'quick-environment'
-      },
-      {
-        name: 'Argument Parser Tests',
-        command: ['--test', './test/create-scaffold/argument-parser.test.mjs'],
-        description: 'CLI argument parsing and validation smoke coverage',
-        homeSuffix: 'quick-arguments'
-      },
-       {
-         name: 'Quick Interactive Utils Tests',
-         command: ['--test', './test/shared/interactive-utils.test.mjs'],
-         description: 'Interactive trigger heuristics sanity checks'
-       },
-      {
-        name: 'Setup Runtime Tests',
-        command: ['--test', './test/create-scaffold/setup-runtime.test.mjs'],
-        description: 'Sandbox and tools runtime verification',
-        homeSuffix: 'quick-runtime'
-      },
-      {
-        name: 'Functional Tests',
-        command: ['--test', './test/create-scaffold/cli.test.mjs'],
-        description: 'Core CLI functionality validation',
-        homeSuffix: 'quick-functional'
-      },
-      {
-        name: 'Template Validator Tests',
-        command: ['--test', './test/shared/template-validator.test.mjs'],
-        description: 'Schema-aligned manifest validation',
-        homeSuffix: 'quick-template-validator'
-      },
-      {
-        name: 'Smoke Tests',
-        command: ['./scripts/smoke-test.mjs'],
-        description: 'Basic integration validation',
-        homeSuffix: 'quick-smoke'
-      }
-    ];
-
-    for (const test of tests) {
-      const passed = await this.runTest(test);
-      if (!passed) {
-        break;
-      }
-    }
-
-    this.printSummary();
   }
 }
 
@@ -263,6 +239,20 @@ const runner = new TestRunner();
 
 if (args.includes('--quick')) {
   await runner.runQuick();
+} else if (args.includes('--suite')) {
+  const suiteIndex = args.indexOf('--suite');
+  if (suiteIndex + 1 < args.length) {
+    const suiteName = args[suiteIndex + 1];
+    await runner.runSuite(suiteName);
+  } else {
+    console.error('❌ Error: --suite requires a suite name argument');
+    console.log('Usage: node scripts/test-runner.mjs --suite "Suite Name"');
+    console.log('Available suites:');
+    runner.getAvailableSuites().forEach(suite => {
+      console.log(`  - "${suite.name}"`);
+    });
+    process.exit(1);
+  }
 } else {
   await runner.runAll();
 }
