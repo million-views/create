@@ -46,12 +46,12 @@ function sanitizeProjectName(projectName) {
  * @param {string} params.projectName - Project name
  * @param {string} params.cwd - Current working directory
  * @param {string|null|undefined} params.ide - IDE parameter
- * @param {Object} params.options - Normalized options payload
+ * @param {Object} [params.options] - Normalized options payload (optional)
  * @param {string} params.authoringMode - Template authoring mode
  * @returns {Object} - Immutable Environment_Object
  * @throws {ValidationError} - If any parameter is invalid
  */
-export function createEnvironmentObject({ projectDirectory, projectName, cwd, ide, options, authoringMode, inputs, author }) {
+export function createEnvironmentObject({ projectDirectory, projectName, cwd, ide, options = { raw: [], byDimension: {} }, authoringMode, inputs, author }) {
   // Validate and sanitize inputs (but don't resolve to absolute paths yet)
   const sanitizedProjectDir = sanitizePath(projectDirectory);
   const sanitizedProjectName = sanitizeProjectName(projectName);

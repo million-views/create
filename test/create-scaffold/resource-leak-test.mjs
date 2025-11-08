@@ -26,7 +26,7 @@ test('temp directory cleanup on invalid template', async () => {
   await runLeakScenario({
     name: 'invalid template test',
     args: ['test-invalid-template', '--template', '../invalid-template'],
-    expectedMessage: /Template directory not found/i
+    expectedMessage: /Path traversal attempts are not allowed/i
   });
 });
 
@@ -42,7 +42,7 @@ test('temp directory cleanup on nonexistent repository', async () => {
   await runLeakScenario({
     name: 'nonexistent repository test',
     args: ['test-nonexistent-repo', '--template', './nonexistent-resource-repo'],
-    expectedMessage: /Template directory not found/i
+    expectedMessage: /Template not accessible/i
   });
 });
 

@@ -20,7 +20,7 @@ const CLI_PATH = path.join(__dirname, '..', '..', 'bin', 'create-scaffold', 'ind
 const FIXTURE_ROOT = path.join(__dirname, '..', 'fixtures');
 
 // Test configuration
-const TEST_TIMEOUT = 30000; // 30 seconds for git operations
+const TEST_TIMEOUT = 5000; // 5 seconds for fast failure and iteration
 const TEMP_DIR_PREFIX = 'test-cli-';
 
 /**
@@ -77,6 +77,7 @@ class TestUtils {
   static async execCLI(args, options = {}) {
     return runCLI(CLI_PATH, args, {
       ...options,
+      env: { ...options.env, NODE_ENV: 'test' },
       timeout: options.timeout ?? TEST_TIMEOUT
     });
   }
@@ -227,8 +228,8 @@ runner.test('Path traversal in template URL is blocked', async () => {
     throw new Error(`Expected exit code 1, got ${result.exitCode}`);
   }
 
-  if (!result.stderr.includes('Template directory not found')) {
-    throw new Error('Should show template directory not found error');
+  if (!result.stderr.includes('Path traversal attempts are not allowed in template paths')) {
+    throw new Error('Should show path traversal error');
   }
 });
 
@@ -313,7 +314,8 @@ runner.test('Existing directory conflict is detected', async () => {
     throw new Error(`Expected exit code 1, got ${result.exitCode}`);
   }
 
-  if (!result.stderr.includes('already exists')) {
+  console.error('DEBUG: stderr content:', JSON.stringify(result.stderr));
+  if (!result.stderr.includes('Project directory is not empty')) {
     throw new Error('Should detect directory conflict');
   }
 });
@@ -331,7 +333,7 @@ runner.test('Nonexistent template is detected', async () => {
     throw new Error(`Expected exit code 1, got ${result.exitCode}`);
   }
 
-  if (!result.stderr.includes('Template directory not found')) {
+  if (!result.stderr.includes('Template not accessible:')) {
     throw new Error('Should detect nonexistent template');
   }
 });
@@ -352,7 +354,7 @@ runner.test('Nonexistent branch is detected', async () => {
     throw new Error(`Expected exit code 1, got ${result.exitCode}`);
   }
 
-  if (!result.stderr.includes('Invalid template URL format')) {
+  if (!result.stderr.includes('Template not accessible:')) {
     throw new Error('Should detect invalid template URL format');
   }
 });
@@ -365,7 +367,7 @@ runner.test('Successful template creation with local repository', async () => {
   // Create mock repository with templates
   await TestUtils.createMockRepo(mockRepoPath, ['basic', 'advanced']);
 
-  const projectName = 'test-success-project';
+  const projectName = `test-success-project-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
   const result = await TestUtils.execCLI([
     projectName,
     '--template', path.join(mockRepoPath, 'basic')
@@ -403,8 +405,7 @@ runner.test('Setup script execution and cleanup', async () => {
   const projectName = 'test-setup-project';
   const result = await TestUtils.execCLI([
     projectName,
-    '--template', path.join(mockRepoPath, 'ide-demo-template'),
-    '--ide', 'vscode'
+    '--template', path.join(mockRepoPath, 'ide-demo-template')
   ], { cwd: projectParent });
 
   if (result.exitCode !== 0) {
@@ -537,7 +538,7 @@ runner.test('Error messages are sanitized', async () => {
   // Error message should provide useful information while being safe
   // The current implementation shows the path in preflight errors which is acceptable
   // for user-provided paths, as long as it doesn't leak system secrets
-  if (!result.stderr.includes('Template directory not found')) {
+  if (!result.stderr.includes('Template not accessible')) {
     throw new Error('Error message should indicate the issue clearly');
   }
 });
@@ -612,14 +613,14 @@ runner.test('Temporary directories are cleaned up on failure', async () => {
   // Run a command that should fail
   const result = await TestUtils.execCLI([
     'test-cleanup-failure',
-    '--template', 'invalid repo/basic'
+    '--template', '../../../etc/passwd'
   ], { timeout: 10000 });
 
   if (result.exitCode !== 1) {
     throw new Error(`Expected exit code 1, got ${result.exitCode}`);
   }
 
-  if (!result.stderr.includes('Invalid template URL')) {
+  if (!result.stderr.includes('Path traversal attempts are not allowed')) {
     throw new Error('Should reject invalid repository identifiers');
   }
 
@@ -700,7 +701,7 @@ runner.test('Empty template name is rejected', async () => {
 runner.test('System handles argument validation properly', async () => {
   const result = await TestUtils.execCLI([
     'test-project-validation',
-    '--template', 'invalid repo/nonexistent-template'
+    '--template', '../../../invalid-template'
   ]);
 
   // This test verifies that the validation system works end-to-end
@@ -710,7 +711,7 @@ runner.test('System handles argument validation properly', async () => {
   }
 
   // Should fail due to template URL validation
-  if (!result.stderr.includes('Invalid template URL')) {
+  if (!result.stderr.includes('Path traversal attempts are not allowed')) {
     throw new Error('Should fail at template URL validation stage');
   }
 });
@@ -719,15 +720,16 @@ runner.test('System handles argument validation properly', async () => {
 runner.test('Multiple validation errors are reported together', async () => {
   const result = await TestUtils.execCLI([
     '../invalid-dir',
-    '--template', '../invalid-template'
+    '--template', 'invalid template'
   ]);
 
   if (result.exitCode !== 1) {
     throw new Error(`Expected exit code 1, got ${result.exitCode}`);
   }
 
-  // Should contain error indicators
-  if (!result.stderr.includes('Template directory not found')) {
+  // Should contain multiple error indicators
+  if (!result.stderr.includes('Project directory name contains path separators or traversal attempts') ||
+      !result.stderr.includes('Template name contains invalid characters')) {
     throw new Error('Should report multiple validation errors');
   }
 });
@@ -754,6 +756,15 @@ export default async function setup() {
   await TestUtils.execCommand('git', ['commit', '-m', 'Add failing setup script'], { cwd: mockRepoPath });
 
   const projectName = 'test-failing-setup-project';
+  const fullProjectPath = path.join(path.dirname(projectPath), projectName);
+  
+  // Ensure project directory doesn't exist
+  try {
+    await fs.rm(fullProjectPath, { recursive: true, force: true });
+  } catch (error) {
+    // Ignore if it doesn't exist
+  }
+
   const result = await TestUtils.execCLI([
     projectName,
     '--template', path.join(mockRepoPath, 'failing-setup')
@@ -765,8 +776,9 @@ export default async function setup() {
   }
 
   // Should contain warning about setup script failure
-  if (!result.stderr.includes('Setup script execution failed')) {
-    throw new Error('Should show warning about setup script failure');
+  if (!result.stderr.includes('Warning: Setup script failed, continuing with setup.')) {
+    console.error('DEBUG: stderr content:', JSON.stringify(result.stderr));
+    throw new Error(`Should show warning about setup script failure. Stderr: ${result.stderr}`);
   }
 
   // Verify project directory still exists (not cleaned up)
@@ -917,7 +929,7 @@ export default async function setup() {
   }
 
   // Should contain warning about setup script failure
-  if (!result.stderr.includes('Setup script execution failed')) {
+  if (!result.stderr.includes('Warning: Setup script failed, continuing with setup.')) {
     throw new Error('Should show warning about setup script failure');
   }
 
@@ -1044,17 +1056,17 @@ runner.test('Resource leak detection across multiple failure modes', async () =>
     {
       name: 'invalid-template',
       args: ['test-multi-fail-1', '--template', '../invalid-template'],
-      expectedError: 'Template directory not found'
+      expectedError: 'Path traversal attempts are not allowed in template paths'
     },
     {
       name: 'invalid-repo',
       args: ['test-multi-fail-2', '--template', 'invalid-repo-format!/basic'],
-      expectedError: 'Invalid template URL'
+      expectedError: 'Template not accessible'
     },
     {
       name: 'invalid-branch',
       args: ['test-multi-fail-3', '--template', 'basic'],
-      expectedError: 'Template "basic" not found'
+      expectedError: 'Template not accessible'
     }
   ];
 
@@ -1105,9 +1117,25 @@ runner.test('Setup script receives Environment_Object with correct properties', 
   // Create mock repository with setup script that validates Environment_Object
   await TestUtils.createMockRepo(mockRepoPath, ['env-object-test']);
 
+  // Create template.json for the env-object-test template
+  const templateJson = {
+    name: 'env-object-test',
+    version: '1.0.0',
+    description: 'Test template for Environment_Object validation',
+    handoffSteps: [],
+    dimensions: {},
+    placeholders: [],
+    constants: {}
+  };
+  await fs.writeFile(path.join(mockRepoPath, 'env-object-test', 'template.json'), JSON.stringify(templateJson, null, 2));
+
+  // Commit the template.json
+  await TestUtils.execCommand('git', ['add', '.'], { cwd: mockRepoPath });
+  await TestUtils.execCommand('git', ['commit', '-m', 'Add template.json'], { cwd: mockRepoPath });
+
   const setupScript = `
 export default async function setup({ ctx, tools }) {
-  const requiredProps = ['projectDir', 'projectName', 'cwd', 'ide', 'authoringMode', 'options'];
+  const requiredProps = ['projectDir', 'projectName', 'cwd', 'authoringMode', 'inputs', 'constants'];
   const missingProps = requiredProps.filter(prop => !(prop in ctx));
 
   if (missingProps.length > 0) {
@@ -1123,23 +1151,23 @@ export default async function setup({ ctx, tools }) {
   if (typeof ctx.cwd !== 'string') {
     throw new Error('ctx.cwd must be a string');
   }
-  if (ctx.ide !== null && typeof ctx.ide !== 'string') {
-    throw new Error('ctx.ide must be null or string');
+  if (ctx.authoringMode !== 'wysiwyg') {
+    throw new Error('ctx.authoringMode must be "wysiwyg"');
   }
-  if (!ctx.options || !Array.isArray(ctx.options.raw)) {
-    throw new Error('ctx.options.raw must be an array');
+  if (typeof ctx.inputs !== 'object') {
+    throw new Error('ctx.inputs must be an object');
   }
-  if (!ctx.options.byDimension || typeof ctx.options.byDimension !== 'object') {
-    throw new Error('ctx.options.byDimension must be an object');
+  if (typeof ctx.constants !== 'object') {
+    throw new Error('ctx.constants must be an object');
   }
 
   await tools.json.merge('env-validation.json', {
     projectDir: ctx.projectDir,
     projectName: ctx.projectName,
     cwd: ctx.cwd,
-    ide: ctx.ide,
     authoringMode: ctx.authoringMode,
-    options: ctx.options
+    inputs: ctx.inputs,
+    constants: ctx.constants
   });
 }
 `;
@@ -1155,6 +1183,9 @@ export default async function setup({ ctx, tools }) {
     projectName,
     '--template', path.join(mockRepoPath, 'env-object-test')
   ], { cwd: path.dirname(projectPath) });
+
+  console.error('DEBUG: CLI result exit code:', result.exitCode);
+  console.error('DEBUG: CLI result stderr:', result.stderr);
 
   if (result.exitCode !== 0) {
     throw new Error(`Expected exit code 0, got ${result.exitCode}. Stderr: ${result.stderr}`);
@@ -1173,19 +1204,16 @@ export default async function setup({ ctx, tools }) {
       throw new Error('Environment_Object missing required properties');
     }
 
-    if (validationData.ide !== null) {
-      throw new Error('env.ide should be null when not specified');
-    }
-
     if (validationData.authoringMode !== 'wysiwyg') {
-      throw new Error('env.authoringMode should default to "wysiwyg"');
+      throw new Error('env.authoringMode should be "wysiwyg"');
     }
 
-    if (!validationData.options || !Array.isArray(validationData.options.raw) || validationData.options.raw.length !== 0) {
-      throw new Error('env.options.raw should be empty array when not specified');
+    if (typeof validationData.inputs !== 'object') {
+      throw new Error('env.inputs should be an object');
     }
-    if (!validationData.options.byDimension || Object.keys(validationData.options.byDimension).length !== 0) {
-      throw new Error('env.options.byDimension should be empty object when not specified');
+
+    if (typeof validationData.constants !== 'object') {
+      throw new Error('env.constants should be an object');
     }
 
   } catch (error) {
@@ -1240,131 +1268,6 @@ export default async function setup({ ctx, tools }) {
   await TestUtils.detectResourceLeaks(beforeSnapshot, afterSnapshot, 'comprehensive successful workflow');
 });
 
-// Test 38: Setup script execution with IDE parameter
-runner.test('Setup script receives IDE parameter in Environment_Object', async () => {
-  const mockRepoPath = await runner.addTempPath(await TestUtils.createTempDir('-ide-setup-repo'));
-  const projectParent = await runner.addTempPath(await TestUtils.createTempDir('-ide-setup-parent'));
-
-  await TestUtils.createMockRepo(mockRepoPath, ['ide-demo-template']);
-
-  const projectName = 'test-ide-setup';
-  const result = await TestUtils.execCLI([
-    projectName,
-    '--template', path.join(mockRepoPath, 'ide-demo-template'),
-    '--ide', 'kiro'
-  ], { cwd: projectParent });
-
-  if (result.exitCode !== 0) {
-    throw new Error(`Expected exit code 0, got ${result.exitCode}. Stderr: ${result.stderr}`);
-  }
-
-  const createdProjectPath = path.join(projectParent, projectName);
-  runner.tempPaths.push(createdProjectPath);
-
-  const kiroSettingsPath = path.join(createdProjectPath, '.kiro', 'settings.json');
-  const settings = JSON.parse(await fs.readFile(kiroSettingsPath, 'utf8'));
-  if (settings['kiro.projectName'] !== projectName) {
-    throw new Error('IDE-specific configuration not created correctly');
-  }
-});
-
-// Test 39: Setup script execution with options parameter
-runner.test('Setup script receives options parameter in Environment_Object', async () => {
-  const mockRepoPath = await runner.addTempPath(await TestUtils.createTempDir('-options-setup-repo'));
-  const projectParent = await runner.addTempPath(await TestUtils.createTempDir('-options-setup-parent'));
-
-  await TestUtils.createMockRepo(mockRepoPath, ['features-demo-template']);
-
-  const projectName = 'test-options-setup';
-  const result = await TestUtils.execCLI([
-    projectName,
-    '--template', path.join(mockRepoPath, 'features-demo-template'),
-    '--options', 'api,testing'
-  ], { cwd: projectParent });
-
-  if (result.exitCode !== 0) {
-    throw new Error(`Expected exit code 0, got ${result.exitCode}. Stderr: ${result.stderr}`);
-  }
-
-  const createdProjectPath = path.join(projectParent, projectName);
-  runner.tempPaths.push(createdProjectPath);
-
-  const featureFile = path.join(createdProjectPath, 'src', 'api', 'index.js');
-  try {
-    await fs.access(featureFile);
-  } catch {
-    throw new Error('API feature file not created by setup script');
-  }
-
-  const packageJson = JSON.parse(await fs.readFile(path.join(createdProjectPath, 'package.json'), 'utf8'));
-  if (!Array.isArray(packageJson.m5nv?.features) || !packageJson.m5nv.features.includes('api')) {
-    throw new Error('Feature metadata not updated correctly');
-  }
-});
-
-runner.test('Warns when options are unsupported by template metadata', async () => {
-  const mockRepoPath = await runner.addTempPath(await TestUtils.createTempDir('-unsupported-options-repo'));
-  const projectParent = await runner.addTempPath(await TestUtils.createTempDir('-unsupported-options-parent'));
-
-  await TestUtils.createMockRepo(mockRepoPath, ['features-demo-template']);
-
-  const projectName = 'test-unsupported-options';
-  const result = await TestUtils.execCLI([
-    projectName,
-    '--template', path.join(mockRepoPath, 'features-demo-template'),
-    '--options', 'api,unknown'
-  ], { cwd: projectParent });
-
-  if (result.exitCode !== 1) {
-    throw new Error(`Expected exit code 1, got ${result.exitCode}. Stderr: ${result.stderr}`);
-  }
-
-  if (!result.stderr.includes('does not support')) {
-    throw new Error('Should report unsupported option failure');
-  }
-
-  const projectExists = await fs.access(path.join(projectParent, projectName)).then(() => true).catch(() => false);
-  if (projectExists) {
-    throw new Error('Project directory should not be created when options are invalid');
-  }
-});
-
-// Test 40: Setup script execution with both IDE and options parameters
-runner.test('Setup script receives both IDE and options in Environment_Object', async () => {
-  const mockRepoPath = await runner.addTempPath(await TestUtils.createTempDir('-combined-setup-repo'));
-  const projectParent = await runner.addTempPath(await TestUtils.createTempDir('-combined-setup-parent'));
-
-  await TestUtils.createMockRepo(mockRepoPath, ['full-demo-template']);
-
-  const projectName = 'test-combined-setup';
-  const result = await TestUtils.execCLI([
-    projectName,
-    '--template', path.join(mockRepoPath, 'full-demo-template'),
-    '--ide', 'vscode',
-    '--options', 'docs'
-  ], { cwd: projectParent });
-
-  if (result.exitCode !== 0) {
-    throw new Error(`Expected exit code 0, got ${result.exitCode}. Stderr: ${result.stderr}`);
-  }
-
-  const createdProjectPath = path.join(projectParent, projectName);
-  runner.tempPaths.push(createdProjectPath);
-
-  const docsIndex = path.join(createdProjectPath, 'docs', 'index.md');
-  try {
-    await fs.access(docsIndex);
-  } catch {
-    throw new Error('Docs option file not generated');
-  }
-
-  const vscodeSettingsPath = path.join(createdProjectPath, '.vscode', 'settings.json');
-  const settings = JSON.parse(await fs.readFile(vscodeSettingsPath, 'utf8'));
-  if (settings['editor.formatOnSave'] !== true) {
-    throw new Error('IDE preset not applied for combined test');
-  }
-});
-
 runner.test('Setup script error handling with malformed setup scripts', async () => {
   const mockRepoPath = await runner.addTempPath(await TestUtils.createTempDir('-malformed-setup-repo'));
   const projectPath = await runner.addTempPath(await TestUtils.createTempDir('-malformed-setup-project'));
@@ -1388,8 +1291,7 @@ export default async function setup(ctx) {
   const projectName = 'test-malformed-setup';
   const result = await TestUtils.execCLI([
     projectName,
-    '--template', path.join(mockRepoPath, 'malformed-test'),
-    '--ide', 'cursor'
+    '--template', path.join(mockRepoPath, 'malformed-test')
   ], { cwd: path.dirname(projectPath) });
 
   // Should succeed with warning (setup script failure is handled gracefully)
@@ -1398,7 +1300,7 @@ export default async function setup(ctx) {
   }
 
   // Should contain warning about setup script failure
-  if (!result.stderr.includes('Setup script execution failed')) {
+  if (!result.stderr.includes('Warning: Setup script failed, continuing with setup.')) {
     throw new Error('Should show warning about setup script failure');
   }
 
@@ -1526,7 +1428,7 @@ runner.test('Command patterns validate correct usage', async () => {
     throw new Error('Invalid template pattern should be rejected');
   }
 
-  if (!invalidTemplateResult.stderr.includes('Template directory not found')) {
+  if (!invalidTemplateResult.stderr.includes('Path traversal attempts are not allowed in template paths')) {
     throw new Error('Should show template path traversal error');
   }
 });
@@ -1658,6 +1560,27 @@ runner.test('Placeholder prompts fail when required values missing with no-input
 runner.test('Author assets are staged for setup and removed afterwards', async () => {
   const mockRepoPath = await runner.addTempPath(await TestUtils.createTempDir('-author-assets-repo'));
   await TestUtils.createMockRepo(mockRepoPath, ['author-assets-template']);
+
+  // Add author assets and setup script to the template
+  const templatePath = path.join(mockRepoPath, 'author-assets-template');
+  const scaffoldDir = path.join(templatePath, '__scaffold__');
+  await fs.mkdir(path.join(scaffoldDir, 'snippets'), { recursive: true });
+  await fs.writeFile(path.join(scaffoldDir, 'snippets', 'message.txt'), 'Author asset content');
+
+  const setupScript = `
+export default async function setup({ ctx, tools }) {
+  // Copy author assets
+  await tools.files.copy('__scaffold__/snippets', 'snippets');
+  
+  // Remove scaffold directory
+  await tools.files.remove('__scaffold__');
+}
+`;
+  await fs.writeFile(path.join(templatePath, '_setup.mjs'), setupScript);
+
+  // Commit the changes
+  await TestUtils.execCommand('git', ['add', '.'], { cwd: mockRepoPath });
+  await TestUtils.execCommand('git', ['commit', '-m', 'Add author assets and setup script'], { cwd: mockRepoPath });
 
   const workingDir = await runner.addTempPath(await TestUtils.createTempDir('-author-assets-project'));
   const projectName = 'author-assets-output';

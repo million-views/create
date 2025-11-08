@@ -103,6 +103,33 @@ ls -la | grep -E "pnpm-workspace\.yaml"
   - Risk assessment and mitigation strategies
   - Stakeholder coordination for cross-team changes
 
+### Pre-Refactoring Preparation Checklist
+
+**Phase 1: Baseline & Impact Assessment**
+- [ ] **Run full test suite** - Capture current passing state as baseline
+- [ ] **Document current behavior** - Note error messages, validation flows, and edge cases
+- [ ] **Identify change scope** - Flag areas affecting: error messages, validation logic, security checks, API contracts
+- [ ] **Review test coupling** - Identify tests depending on implementation details vs behavior
+
+**Phase 2: Test Strategy Planning** 
+- [ ] **Plan test updates** - For flagged areas, prepare regex patterns or behavioral assertions
+- [ ] **Document validation precedence** - Map current error-catching order for security validations
+- [ ] **Prepare isolation fixes** - Identify tests needing explicit cleanup or mocking
+- [ ] **Create rollback plan** - Know how to revert if tests break unexpectedly
+
+**Phase 3: Execution & Validation**
+- [ ] **Immediate post-change testing** - Run full suite after ANY error message or validation changes
+- [ ] **Security validation audit** - Confirm attack vectors still covered after validation reordering  
+- [ ] **Behavioral regression check** - Ensure improvements don't break intended functionality
+- [ ] **Test isolation verification** - No tests depend on implementation artifacts
+
+**Phase 4: Documentation & Handoff**
+- [ ] **Update error message inventory** - Track all user-facing messages for future test updates
+- [ ] **Document architectural changes** - Validation flows, security boundaries, API contracts
+- [ ] **Flag follow-up work** - Any deferred test improvements or documentation updates
+
+**Key Mindset**: Test failures post-refactoring are often signals of *improvement* - investigate before reverting. Use surgical test updates over code rollbacks when possible.
+
 ## 2. Strict Test-Driven Development
 - Search the codebase for existing patterns before writing new code.
 - Write failing tests first (RED), run them to confirm failure, then implement minimal changes to make them pass (GREEN).

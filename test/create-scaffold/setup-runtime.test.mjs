@@ -24,9 +24,7 @@ function buildContext(baseDir, projectName, overrides = {}) {
     projectDirectory: projectName,
     projectName,
     cwd: baseDir,
-    ide: null,
     authoringMode: 'composable',
-    options: { raw: [], byDimension: {} },
     ...overrides
   });
 }
@@ -285,56 +283,4 @@ test('inputs API exposes resolved placeholder values and applyInputs helper', as
 
   const jsxContents = await fs.readFile(componentFile, 'utf8');
   assert.ok(jsxContents.includes('<h1>Dashboard</h1>'), 'applyInputs should update nested JSX files via default selector');
-});
-
-test('options API exposes dimension-aware helpers', async (t) => {
-  const baseDir = await createTempDir(t, 'runtime-options');
-  const projectName = 'options-demo';
-  const projectDir = path.join(baseDir, projectName);
-  await fs.mkdir(projectDir, { recursive: true });
-
-  const ctx = buildContext(baseDir, projectName, {
-    options: {
-      raw: ['capabilities=auth', 'capabilities=testing', 'stack=react-vite'],
-      byDimension: {
-        capabilities: ['auth', 'testing'],
-        stack: 'react-vite'
-      }
-    }
-  });
-
-  const tools = await buildTools(projectDir, projectName, ctx, {
-    dimensions: {
-      capabilities: Object.freeze({
-        type: 'multi',
-        values: Object.freeze(['auth', 'testing', 'logging']),
-        default: Object.freeze([]),
-        requires: Object.freeze({}),
-        conflicts: Object.freeze({}),
-        policy: 'strict',
-        builtIn: false,
-        description: null
-      }),
-      stack: Object.freeze({
-        type: 'single',
-        values: Object.freeze(['react-vite', 'express']),
-        default: 'react-vite',
-        requires: Object.freeze({}),
-        conflicts: Object.freeze({}),
-        policy: 'strict',
-        builtIn: false,
-        description: null
-      })
-    }
-  });
-
-  assert.ok(tools.options.has('auth'), 'Expected default has() to resolve capabilities dimension');
-  assert.ok(tools.options.in('stack', 'react-vite'), 'Expected stack dimension to reflect selected value');
-
-  const capabilities = tools.options.list('capabilities');
-  assert.ok(Array.isArray(capabilities), 'Capabilities list should be an array');
-  assert.equal(capabilities.length, 2, 'Expected capabilities list to include selected values');
-
-  tools.options.require('capabilities', 'auth');
-  assert.throws(() => tools.options.require('capabilities', 'logging'), SetupSandboxError, 'require() should throw for missing value');
 });

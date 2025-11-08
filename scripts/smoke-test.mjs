@@ -208,7 +208,7 @@ async function runSmokeTests() {
       throw new Error(`Expected validation failure, got exit code ${result.exitCode}`);
     }
     
-    if (!result.stderr.includes('Template directory not found')) {
+    if (!result.stderr.includes('Project directory name contains path separators or traversal attempts')) {
       throw new Error('Security validation not working properly');
     }
     
@@ -356,7 +356,7 @@ export default async function setup({ ctx, tools }) {
       throw new Error(`Expected error exit code, got ${result.exitCode}`);
     }
     
-    if (!result.stderr.includes('Template directory not found')) {
+    if (!result.stderr.includes('Template not accessible')) {
       throw new Error('Error message not appropriate');
     }
     

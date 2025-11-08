@@ -1258,10 +1258,10 @@ export async function createSetupTools({ projectDirectory, projectName, logger, 
   const ctx = {
     projectName,
     projectDir: root,
-    ide: context?.ide ?? null,
+    cwd: process.cwd(),
     authoringMode: context?.authoringMode ?? 'wysiwyg',
-    options: context?.options ?? { raw: [], byDimension: {} },
-    inputs: placeholderInputs
+    inputs: placeholderInputs,
+    constants: context?.constants ?? {}
   };
 
   return Object.freeze({
@@ -1274,7 +1274,7 @@ export async function createSetupTools({ projectDirectory, projectName, logger, 
     logger: createLoggerApi(logger),
     ide: createIdeApi(ctx, root),
     options: createOptionsApi({
-      options: ctx.options,
+      options: { raw: [], byDimension: {} },
       dimensions
     })
   });

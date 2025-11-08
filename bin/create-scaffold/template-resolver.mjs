@@ -2,6 +2,7 @@
 
 import path from 'node:path';
 import { ContextualError, ErrorContext, ErrorSeverity } from '../../lib/shared/utils/error-handler.mjs';
+import { sanitizePath } from '../../lib/shared/security.mjs';
 import { CacheManager } from './cache-manager.mjs';
 
 /**
@@ -68,6 +69,23 @@ export class TemplateResolver {
 
     // Handle local paths
     if (templateUrl.startsWith('/') || templateUrl.startsWith('./') || templateUrl.startsWith('../') || templateUrl.startsWith('~')) {
+      console.error('DEBUG: Template resolver validating local path:', templateUrl);
+      // Validate local paths for security (path traversal prevention)
+      try {
+        sanitizePath(templateUrl);
+        console.error('DEBUG: Template resolver validation passed for:', templateUrl);
+      } catch (error) {
+        console.error('DEBUG: Template resolver validation failed for:', templateUrl, 'error:', error.message);
+        throw new ContextualError(`Invalid template path: ${error.message}`, {
+          context: ErrorContext.USER_INPUT,
+          severity: ErrorSeverity.HIGH,
+          suggestions: [
+            'Avoid using ".." in template paths',
+            'Use absolute paths or paths within the current directory',
+            'Use registry/official/template-name for official templates'
+          ]
+        });
+      }
       return templateUrl;
     }
 

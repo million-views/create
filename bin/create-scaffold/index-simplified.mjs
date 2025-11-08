@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import fs from 'fs/promises';
-import { realpathSync, readFileSync } from 'node:fs';
+import { realpathSync } from 'node:fs';
 import path from 'path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { parseArguments, validateArguments, generateHelpText, ArgumentError } from './argument-parser.mjs';
@@ -9,7 +9,6 @@ import {
   validateAllInputs,
   sanitizeErrorMessage,
   createSecureTempDir,
-  sanitizePath,
   ValidationError,
 } from '../../lib/shared/security.mjs';
 import {
@@ -25,7 +24,7 @@ import { DryRunEngine } from './dry-run-engine.mjs';
 import { execCommand } from '../../lib/shared/utils/command-utils.mjs';
 import { ensureDirectory, safeCleanup, validateDirectoryExists } from '../../lib/shared/utils/fs-utils.mjs';
 import { loadSetupScript, createSetupTools, SetupSandboxError } from './setup-runtime.mjs';
-import { shouldIgnoreTemplateEntry, createTemplateIgnoreSet, stripIgnoredFromTree } from '../../lib/shared/utils/template-ignore.mjs';
+import { shouldIgnoreTemplateEntry, createTemplateIgnoreSet } from '../../lib/shared/utils/template-ignore.mjs';
 import { loadTemplateMetadataFromPath } from './template-metadata.mjs';
 import { normalizeOptions } from './options-processor.mjs';
 import { resolvePlaceholders, PlaceholderResolutionError } from './placeholder-resolver.mjs';
@@ -69,7 +68,7 @@ async function validateUserSelections({ templatePath, templateName, optionsByDim
     let templateData;
 
     try {
-      templateData = JSON.parse(readFileSync(templateJsonPath, 'utf8'));
+      templateData = JSON.parse(await fs.readFile(templateJsonPath, 'utf8'));
     } catch (error) {
       // If template.json doesn't exist or is invalid, skip selection validation
       // This maintains backward compatibility with older templates
@@ -145,31 +144,32 @@ async function main() {
     // Parse arguments using native Node.js parseArgs
     const args = parseArguments();
 
-    // Validate arguments before proceeding
-    const validation = validateArguments(args);
-
-    // Show help if requested or if validation failed
-    if (validation.showHelp || args.help) {
+    // Handle early exit modes first
+    if (args.help) {
       console.log(generateHelpText());
       process.exit(0);
     }
 
-    // Handle validation errors
-    if (!validation.isValid) {
-      const errorMessage = validation.errors.length > 0
-        ? `Invalid command arguments:\n${validation.errors.map(err => `  • ${err}`).join('\n')}`
-        : 'Invalid command arguments';
-      const argError = new ArgumentError(errorMessage, {
-        suggestions: [
-          'Use --help to see correct usage',
-          'Check that all required arguments are provided',
-          'Verify argument formats match the documentation'
-        ]
+    if (args.listTemplates) {
+      const exitCode = await executeListTemplates({
+        jsonOutput: Boolean(args.json)
       });
-      handleError(argError, { operation: 'argument_validation', exit: true });
+      process.exit(exitCode);
     }
 
-    // Load configuration early for early exit modes that might need it
+    if (args.validateTemplate) {
+      const exitCode = await executeTemplateValidation({
+        targetPath: args.validateTemplate,
+        jsonOutput: Boolean(args.json)
+      });
+      process.exit(exitCode);
+    }
+
+    // Initialize cache manager and logger
+    const cacheManager = new CacheManager();
+    const logger = args.logFile ? new Logger(args.logFile) : null;
+
+    // Load configuration if not disabled
     let configMetadata = null;
     try {
       const configResult = await loadConfig({
@@ -191,309 +191,24 @@ async function main() {
         };
       }
     } catch (error) {
-      // For early exit modes, configuration errors should cause failure
-      if (args.listTemplates || args.validateTemplate) {
-        console.error(`❌ Configuration error: ${error.message}`);
-        process.exit(1);
-      }
-      // For other modes, just log and continue
-      console.error(`Warning: Failed to load configuration: ${error.message}`);
-    }
-
-    if (args.listTemplates) {
-      const exitCode = await executeListTemplates({
-        jsonOutput: Boolean(args.json),
-        templatePath: args.template,
-        config: configMetadata
-      });
-      process.exit(exitCode);
-    }
-
-    if (args.validateTemplate) {
-      const exitCode = await executeTemplateValidation({
-        targetPath: args.validateTemplate,
-        jsonOutput: Boolean(args.json)
-      });
-      process.exit(exitCode);
-    }
-
-    // Initialize cache manager and logger
-    const cacheManager = new CacheManager();
-    const logger = args.logFile ? new Logger(args.logFile) : null;
-
-    // Configuration already loaded above for early exit modes
-
-    // Template resolution logic - handle different template input types
-    let templatePath, templateName, repoUrl, branchName, metadata;
-
-    if (args.template) {
-      // Handle different template input types
-      if (args.template.startsWith('/') || args.template.startsWith('./') || args.template.startsWith('../')) {
-        // Direct template directory path - validate for security (prevent path traversal)
-        if (args.template.includes('..')) {
-          handleError(new ValidationError('Path traversal attempts are not allowed in template paths', 'template'), { operation: 'template_validation', exit: true });
-        }
-        templatePath = args.template;
-        templateName = path.basename(args.template);
-        repoUrl = path.dirname(args.template);
-        branchName = null;
-        console.error('DEBUG: Local template path - templatePath:', templatePath, 'repoUrl:', repoUrl);
-      } else if (args.template.includes('://') || args.template.startsWith('registry/')) {
-        // Template URL or registry path - use TemplateResolver
-        const templateResolver = new TemplateResolver(cacheManager);
-        const templateResolution = await templateResolver.resolveTemplate(args.template, {
-          branch: args.branch,
-          logger
-        });
-        templatePath = templateResolution.templatePath;
-        templateName = path.basename(templatePath);
-        repoUrl = args.template;
-        branchName = args.branch;
-      } else {
-        // Repository shorthand - assume it's a template name in default repo
-        const repoUrlResolved = args.repo || DEFAULT_REPO;
-        const branchNameResolved = args.branch;
-        const cachedRepoPath = await ensureRepositoryCached(
-          repoUrlResolved,
-          branchNameResolved,
-          cacheManager,
-          logger,
-          { ttlHours: args.cacheTtl }
-        );
-        templatePath = path.join(cachedRepoPath, args.template);
-        templateName = args.template;
-        repoUrl = repoUrlResolved;
-        branchName = branchNameResolved;
-      }
-    } else {
-      // No template specified - this will be handled by the guided workflow
-      templatePath = null;
-      templateName = null;
-      repoUrl = args.repo || DEFAULT_REPO;
-      branchName = args.branch;
-    }
-
-    // Load template metadata if we have a template path
-    if (templatePath) {
-      metadata = await loadTemplateMetadata(templatePath, logger);
-    }
-
-    // Prepare options and placeholders
-    let options = {};
-    let placeholders = {};
-
-    if (args.options && metadata) {
-      const normalizedOptionResult = normalizeOptions({
-        rawTokens: Array.isArray(args.options) ? args.options : [args.options],
-        dimensions: metadata.dimensions
-      });
-      options = normalizedOptionResult.byDimension;
-    }
-
-    if (args.placeholders && args.experimentalPlaceholderPrompts && metadata) {
-      const placeholderDefinitions = Array.isArray(metadata.placeholders) ? metadata.placeholders : [];
-      if (placeholderDefinitions.length > 0) {
-        const resolution = await resolvePlaceholders({
-          definitions: placeholderDefinitions,
-          flagInputs: args.placeholders,
-          configDefaults: configMetadata?.placeholders ?? [],
-          env: process.env,
-          interactive: false,
-          noInputPrompts: args.noInputPrompts
-        });
-        placeholders = resolution.values;
-      }
-    }
-
-    // Handle dry-run mode
-    if (args.dryRun) {
-      console.error('DEBUG: Dry-run triggered - templatePath:', templatePath, 'templateName:', templateName, 'repoUrl:', repoUrl, 'projectDirectory:', args.projectDirectory);
-      if (!templatePath || !templateName) {
-        throw new Error('--dry-run requires a template to be specified');
-      }
-
-      const dryRunEngine = new DryRunEngine(cacheManager, logger);
-      let preview;
-
-      // Check if repoUrl is a local path or remote repository
-      if (repoUrl && (repoUrl.startsWith('/') || repoUrl.startsWith('./') || repoUrl.startsWith('../'))) {
-        // If repoUrl is a local path, use previewScaffoldingFromPath
-        const repoPath = repoUrl;
-        console.error('DEBUG: Using previewScaffoldingFromPath with repoPath:', repoPath, 'templateName:', templateName, 'projectDir:', args.projectDirectory);
-        preview = await dryRunEngine.previewScaffoldingFromPath(repoPath, templateName, args.projectDirectory);
-      } else if (repoUrl) {
-        // Otherwise, use previewScaffolding for remote repositories
-        preview = await dryRunEngine.previewScaffolding(repoUrl, branchName || 'main', templateName, args.projectDirectory);
-      } else {
-        // For local template paths without repoUrl, use previewScaffoldingFromPath
-        const repoPath = path.dirname(templatePath);
-        preview = await dryRunEngine.previewScaffoldingFromPath(repoPath, templateName, args.projectDirectory);
-      }      // Display preview output
-      console.log('🔍 DRY RUN - Preview Mode');
-      console.log('================================');
-      console.log(`Template: ${templateName}`);
-      console.log(`Source: ${repoUrl}${branchName ? ` (${branchName})` : ''}`);
-      console.log(`Target: ${args.projectDirectory}`);
-      console.log('');
-
-      console.log('📋 Operations Preview:');
-      console.log(`• Files: ${preview.summary.fileCount}`);
-      console.log(`• Directories: ${preview.summary.directoryCount}`);
-      console.log(`• Total operations: ${preview.operations.length}`);
-      console.log('');
-
-      if (preview.operations.length > 0) {
-        console.log('File Operations:');
-        // Group operations by type
-        const fileOps = preview.operations.filter(op => op.type === 'file_copy');
-        const dirOps = preview.operations.filter(op => op.type === 'directory_create');
-
-        if (dirOps.length > 0) {
-          console.log('• Directory Creation:');
-          for (const op of dirOps.slice(0, 5)) { // Show first 5
-            console.log(`  • ${op.relativePath}`);
-          }
-          if (dirOps.length > 5) {
-            console.log(`  ... and ${dirOps.length - 5} more directories`);
-          }
-        }
-
-        if (fileOps.length > 0) {
-          console.log('• File Copy:');
-          // Group by directory for readability
-          const byDir = {};
-          for (const op of fileOps) {
-            const dir = path.dirname(op.relativePath);
-            if (!byDir[dir]) byDir[dir] = [];
-            byDir[dir].push(path.basename(op.relativePath));
-          }
-
-          for (const [dir, files] of Object.entries(byDir)) {
-            console.log(`  • ./${dir}/ (${files.length} files)`);
-          }
-        }
-      }
-
-      // Check for tree command availability
-      const treeCommand = process.env.CREATE_SCAFFOLD_TREE_COMMAND || 'tree';
-      try {
-        if (treeCommand === 'tree') {
-          await execCommand(treeCommand, ['--version'], { stdio: 'pipe' });
-        } else if (treeCommand.endsWith('.js') || treeCommand.endsWith('.mjs')) {
-          // For JS files, check if file exists
-          await fs.access(treeCommand, fs.constants.F_OK);
-        } else {
-          // For other commands, check if they exist
-          await execCommand('which', [treeCommand], { stdio: 'pipe' });
-        }
-        // Tree command available, show tree preview
-        console.log('');
-        console.log('Directory Structure Preview:');
-        console.log('-----------------------------');
-        let treeCmd, treeArgs;
-        if (treeCommand === 'tree') {
-          treeCmd = treeCommand;
-          treeArgs = ['-a', '-I', '.git', templatePath];
-        } else if (treeCommand.endsWith('.js') || treeCommand.endsWith('.mjs')) {
-          // For JavaScript tree commands, execute with node
-          treeCmd = 'node';
-          treeArgs = [treeCommand, templatePath];
-        } else {
-          // For other custom tree commands, execute directly
-          treeCmd = treeCommand;
-          treeArgs = [templatePath];
-        }
-        const treeResult = await execCommand(treeCmd, treeArgs, { stdio: 'pipe' });
-        const ignoreSet = createTemplateIgnoreSet();
-        const filteredTreeResult = stripIgnoredFromTree(treeResult, ignoreSet);
-        console.log(filteredTreeResult);
-      } catch {
-        console.log('');
-        console.log(`Note: Tree command (${treeCommand}) is unavailable for directory structure preview`);
-      }
-
-      console.log('');
-      console.log('✅ Dry run completed - no files were created or modified');
-
-      // Wait for any pending log writes to complete
+      // Configuration errors are non-fatal, just log and continue
       if (logger) {
-        await logger.writeQueue;
+        await logger.logOperation('config_load_error', {
+          error: error.message,
+          path: error.path
+        });
       }
-
-      process.exit(0); // Exit dry-run mode without creating project
     }
 
-    // Execute the guided workflow with all resolved parameters
-    // Always use guided workflow as the default
-    console.error('DEBUG: About to call workflow for project:', args.projectDirectory, 'template:', templatePath);
-    console.error('DEBUG: Template path exists:', !!templatePath);
-    console.error('DEBUG: Project directory:', args.projectDirectory);
-    console.error('DEBUG: NODE_ENV:', process.env.NODE_ENV);
-    if (process.env.NODE_ENV === 'test') {
-      console.log('DEBUG: About to create GuidedSetupWorkflow with:', {
-        projectDirectory: args.projectDirectory,
-        templatePath,
-        templateName,
-        options: !!options,
-        placeholders: !!placeholders,
-        metadata: !!metadata
-      });
-    }
+    // Execute the guided workflow - this is now the only execution path
     const workflow = new GuidedSetupWorkflow({
       cacheManager,
       logger,
-      promptAdapter: process.env.NODE_ENV === 'test' || !process.stdin.isTTY ? {
-        write: (text) => process.stderr.write(text),
-        question: async (question) => {
-          // In test/non-interactive mode, provide default answers
-          if (question.includes('project name') || question.includes('Project name')) {
-            return args.projectDirectory || 'test-project';
-          }
-          if (question.includes('template') || question.includes('Template')) {
-            return templateName || 'basic';
-          }
-          if (question.includes('repository') || question.includes('Repository')) {
-            return repoUrl || DEFAULT_REPO;
-          }
-          if (question.includes('Enter choice')) {
-            return '1'; // Choose first option in menus
-          }
-          // For other questions, provide empty string or skip
-          return '';
-        }
-      } : {
-        write: (text) => process.stdout.write(text),
-        question: async (question) => {
-          process.stdout.write(question);
-          return new Promise((resolve) => {
-            process.stdin.once('data', (data) => {
-              resolve(data.toString().trim());
-            });
-          });
-        }
-      },
-      projectDirectory: args.projectDirectory,
-      templatePath,
-      templateName,
-      repoUrl,
-      branchName,
-      options,
-      ide: args.ide,
-      placeholders,
-      metadata
+      configMetadata,
+      args
     });
 
-    let result;
-    try {
-      result = await workflow.executeWorkflow();
-    } catch (error) {
-      result = {
-        success: false,
-        projectDirectory: args.projectDirectory,
-        templateUsed: templateName,
-        error: error.message
-      };
-    }
+    const result = await workflow.executeWorkflow();
 
     if (logger) {
       await logger.logOperation('workflow_complete', {
@@ -768,7 +483,8 @@ async function verifyTemplate(templatePath, templateName) {
     await validateDirectoryExists(templatePath, `Template "${templateName}"`);
   } catch (error) {
     if (error.message.includes('not found')) {
-      throw new Error('Template directory not found');
+      const templateError = ErrorMessages.templateNotFound(templateName);
+      throw templateError;
     }
     const sanitizedMessage = sanitizeErrorMessage(error.message);
     throw new Error(sanitizedMessage);
@@ -1076,80 +792,7 @@ async function executeSetupScript({ projectDirectory, projectName, ide, options,
   }
 }
 
-async function executeListTemplates({ jsonOutput, templatePath, config }) {
-  try {
-    // Initialize cache manager for template discovery
-    const cacheManager = new CacheManager();
-    const templateDiscovery = new TemplateDiscovery(cacheManager);
 
-    let templates;
-
-    if (templatePath) {
-      // List templates from local path
-      templates = await templateDiscovery.listTemplatesFromPath(templatePath);
-    } else {
-      // Use configured repository or default
-      const repoUrl = config?.defaults?.repo || DEFAULT_REPO;
-      
-      // Check if the repo URL is a local path
-      try {
-        await fs.access(repoUrl);
-        // If it's accessible as a file path, treat it as local
-        templates = await templateDiscovery.listTemplatesFromPath(repoUrl);
-      } catch {
-        // Otherwise, treat it as a remote repository
-        templates = await templateDiscovery.listTemplates(repoUrl, 'main');
-      }
-    }
-
-    if (jsonOutput) {
-      // ast-grep-ignore: no-console-log
-      const repoSource = templatePath || (config?.defaults?.repo || DEFAULT_REPO);
-      console.log(JSON.stringify({
-        repository: repoSource,
-        templates: templates.map(t => ({
-          name: t.name,
-          description: t.description,
-          version: t.version
-        }))
-      }, null, 2));
-    } else {
-      const repoSource = templatePath || (config?.defaults?.repo || DEFAULT_REPO);
-      let source;
-      try {
-        await fs.access(repoSource);
-        source = `local path: ${repoSource}`;
-      } catch {
-        source = `repository: ${repoSource}`;
-      }
-      // ast-grep-ignore: no-console-log
-      console.log(`📦 Available templates from ${source}:\n`);
-
-      if (templates.length === 0) {
-        // ast-grep-ignore: no-console-log
-        console.log('No templates found.');
-        return 0;
-      }
-
-      for (const template of templates) {
-        // ast-grep-ignore: no-console-log
-        console.log(`• ${template.name}`);
-        if (template.description) {
-          // ast-grep-ignore: no-console-log
-          console.log(`  ${template.description}`);
-        }
-        // ast-grep-ignore: no-console-log
-        console.log('');
-      }
-    }
-
-    return 0;
-  } catch (error) {
-    const message = sanitizeErrorMessage(error?.message ?? String(error));
-    console.error(`❌ Failed to list templates: ${message}`);
-    return 1;
-  }
-}
 
 // Run main function when executed directly
 const entryPoint = process.argv[1];

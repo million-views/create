@@ -6,8 +6,6 @@ import {
   validateTemplateName,
   validateRepoUrl,
   sanitizeBranchName,
-  validateIdeParameter,
-  validateOptionsParameter,
   validateLogFilePath,
   validateCacheTtl
 } from '../../lib/shared/security.mjs';
@@ -52,16 +50,6 @@ export function parseArguments(argv = process.argv.slice(2)) {
         type: 'string',
         short: 'b',
         description: 'Git branch to use (default: main/master)'
-      },
-      ide: {
-        type: 'string',
-        short: 'i',
-        description: 'Target IDE (kiro, vscode, cursor, windsurf)'
-      },
-      options: {
-        type: 'string',
-        short: 'o',
-        description: 'Comma-separated list of options to enable'
       },
       'log-file': {
         type: 'string',
@@ -120,6 +108,10 @@ export function parseArguments(argv = process.argv.slice(2)) {
         type: 'boolean',
         description: 'Enable placeholder prompt flow for experimental rollout'
       },
+      guided: {
+        type: 'boolean',
+        description: 'Use guided setup workflow with progress indicators and error recovery'
+      },
       help: {
         type: 'boolean',
         short: 'h',
@@ -167,8 +159,6 @@ export function parseArguments(argv = process.argv.slice(2)) {
       projectDirectory,
       template: values.template,
       branch: values.branch,
-      ide: values.ide,
-      options: values.options,
       logFile: values['log-file'],
       listTemplates: values['list-templates'],
       dryRun: values['dry-run'],
@@ -180,6 +170,7 @@ export function parseArguments(argv = process.argv.slice(2)) {
       noInputPrompts,
       verbose,
       experimentalPlaceholderPrompts,
+      guided: values.guided,
       interactive,
       noInteractive: explicitNoInteractive,
       noConfig,
@@ -300,6 +291,12 @@ export function validateArguments(args) {
       if (args.template.includes('\0')) {
         errors.push('Template URL contains null bytes');
       }
+      // Check for injection characters
+      if (args.template.includes(';') || args.template.includes('|') || args.template.includes('&') || 
+          args.template.includes('`') || args.template.includes('$(') || args.template.includes('${') ||
+          args.template.includes(' ')) {
+        errors.push('Invalid template URL');
+      }
     } else {
       // Validate as template name for simple names
       handleValidationError(validateTemplateName, args.template, errors, 'Template name validation failed');
@@ -309,16 +306,6 @@ export function validateArguments(args) {
   // Validate branch name if provided
   if (args.branch) {
     handleValidationError(sanitizeBranchName, args.branch, errors, 'Branch name validation failed');
-  }
-
-  // Validate IDE parameter if provided
-  if (args.ide) {
-    handleValidationError(validateIdeParameter, args.ide, errors, 'IDE parameter validation failed');
-  }
-
-  // Validate options parameter if provided
-  if (args.options) {
-    handleValidationError(validateOptionsParameter, args.options, errors, 'Options parameter validation failed');
   }
 
   // Validate log file path if provided
@@ -398,6 +385,7 @@ PLACEHOLDER INPUTS:
 GENERAL:
   -h, --help            Show this help message
   --verbose         Enable verbose CLI output (includes placeholder source summary)
+  --guided          Use guided setup workflow with progress indicators and error recovery
   --no-config       Skip configuration file discovery (.m5nvrc)
 
 VALIDATION:

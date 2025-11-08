@@ -3,7 +3,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  validateIdeParameter,
   validateOptionsParameter,
   validateAllInputs,
   ValidationError
@@ -25,71 +24,6 @@ function expectValidationError(fn, { messageIncludes, label }) {
     `Expected ValidationError for ${label}`
   );
 }
-
-test('IDE parameter rejects path traversal attempts', () => {
-  const attempts = ['../kiro', '../../vscode', 'kiro/../malicious', './kiro', '/kiro', '\\kiro', 'kiro\\..\\malicious'];
-
-  for (const attempt of attempts) {
-    expectValidationError(() => validateIdeParameter(attempt), {
-      messageIncludes: 'Invalid IDE',
-      label: `path traversal attempt ${attempt}`
-    });
-  }
-});
-
-test('IDE parameter rejects injection attempts', () => {
-  const attempts = [
-    'kiro; rm -rf /',
-    'kiro && malicious',
-    'kiro | evil',
-    'kiro`malicious`',
-    'kiro$(evil)',
-    'kiro${evil}',
-    'kiro\nmalicious',
-    'kiro\rmalicious',
-    'kiro\tmalicious'
-  ];
-
-  for (const attempt of attempts) {
-    expectValidationError(() => validateIdeParameter(attempt), {
-      messageIncludes: 'Invalid IDE',
-      label: `injection attempt ${attempt}`
-    });
-  }
-});
-
-test('IDE parameter rejects null byte injection', () => {
-  const attempts = ['kiro\0', '\0kiro', 'ki\0ro', 'kiro\0malicious'];
-
-  for (const attempt of attempts) {
-    expectValidationError(() => validateIdeParameter(attempt), {
-      messageIncludes: 'null bytes',
-      label: `null byte attempt ${JSON.stringify(attempt)}`
-    });
-  }
-});
-
-test('IDE parameter handles edge cases safely', () => {
-  const cases = [
-    ' '.repeat(1000),
-    'A'.repeat(1000),
-    '🚀',
-    'кіро',
-    'kiro-test',
-    'kiro_test',
-    'kiro.test'
-  ];
-
-  for (const value of cases) {
-    const label = `edge case ${JSON.stringify(value)}`;
-    try {
-      const result = validateIdeParameter(value);
-      assert.equal(result, null, `Expected null for ${label}`);
-    } catch (error) {
-      assert.ok(error instanceof ValidationError, `Expected ValidationError for ${label}, received ${error.constructor.name}`);
-    }
-  }
-});
 
 test('Options parameter rejects path traversal attempts', () => {
   const attempts = [
@@ -237,15 +171,6 @@ test('Validation functions do not expose environment variables', () => {
 
   for (const attempt of attempts) {
     try {
-      const ideResult = validateIdeParameter(attempt);
-      if (ideResult !== null) {
-        assert.ok(!ideResult.includes('/'), `IDE result should not include slashes for ${attempt}`);
-      }
-    } catch (error) {
-      assert.ok(error instanceof ValidationError, `Unexpected error type for IDE env var test: ${error.constructor.name}`);
-    }
-
-    try {
       const optionsResult = validateOptionsParameter(attempt);
       for (const option of optionsResult) {
         assert.ok(!option.includes('/') && !option.includes('\\'), `Options should not reveal env vars for ${attempt}`);
@@ -261,18 +186,12 @@ test('Validation functions do not leak system paths or IP addresses', () => {
   const ipAttempts = ['127.0.0.1', '192.168.1.1'];
 
   for (const attempt of pathAttempts) {
-    expectValidationError(() => validateIdeParameter(attempt), {
-      label: `IDE system path ${attempt}`
-    });
     expectValidationError(() => validateOptionsParameter(attempt), {
       label: `Options system path ${attempt}`
     });
   }
 
   for (const attempt of ipAttempts) {
-    expectValidationError(() => validateIdeParameter(attempt), {
-      label: `IDE IP address ${attempt}`
-    });
     expectValidationError(() => validateOptionsParameter(attempt), {
       label: `Options IP address ${attempt}`
     });
@@ -291,9 +210,6 @@ test('Input sanitization withstands Unicode and encoded attacks', () => {
   ];
 
   for (const attempt of attempts) {
-    expectValidationError(() => validateIdeParameter(attempt), {
-      label: `IDE Unicode attack ${JSON.stringify(attempt)}`
-    });
     expectValidationError(() => validateOptionsParameter(attempt), {
       label: `Options Unicode attack ${JSON.stringify(attempt)}`
     });

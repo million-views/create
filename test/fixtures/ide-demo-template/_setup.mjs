@@ -1,5 +1,6 @@
 export default async function setup({ ctx, tools }) {
-  tools.logger.info(`Configuring ${ctx.projectName}`, { ide: ctx.ide ?? 'none' });
+  const ide = ctx.constants?.ide ?? 'none';
+  tools.logger.info(`Configuring ${ctx.projectName}`, { ide });
 
   await tools.placeholders.replaceAll(
     { PROJECT_NAME: ctx.projectName },
@@ -17,9 +18,9 @@ export default async function setup({ ctx, tools }) {
   });
 
   await tools.json.set('package.json', 'description', `${ctx.projectName} scaffolded project`);
-  await tools.json.addToArray('package.json', 'keywords', ctx.ide ?? 'ide');
+  await tools.json.addToArray('package.json', 'keywords', ide);
 
-  if (ctx.ide) {
-    await tools.ide.applyPreset(ctx.ide);
+  if (ide !== 'none') {
+    await tools.ide.applyPreset(ide);
   }
 }

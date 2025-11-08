@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import fs from 'fs/promises';
+import { readFileSync } from 'fs';
 import path from 'path';
 import {
   sanitizeErrorMessage,
@@ -16,10 +17,17 @@ import { validateTemplateManifest } from '../../lib/shared/utils/template-valida
  * @returns {Promise<{handoffSteps: string[], authoringMode: string, dimensions: Record<string, any>, raw: any}>}
  */
 export async function loadTemplateMetadataFromPath(templatePath) {
+  console.error('DEBUG: loadTemplateMetadataFromPath called with templatePath:', templatePath);
   const templateJsonPath = path.join(templatePath, 'template.json');
+  console.error('DEBUG: templateJsonPath:', templateJsonPath);
 
   try {
-    const rawContent = await fs.readFile(templateJsonPath, 'utf8');
+    console.error('DEBUG: About to call fs.readFile with:', templateJsonPath);
+    console.error('DEBUG: typeof templateJsonPath:', typeof templateJsonPath);
+    console.error('DEBUG: templateJsonPath value:', JSON.stringify(templateJsonPath));
+    console.error('DEBUG: fs.readFile is:', typeof fs.readFile, fs.readFile);
+    const rawContent = readFileSync((() => { console.error('DEBUG: Inside fs.readFile call, path:', templateJsonPath); return templateJsonPath; })(), 'utf8');
+    console.error('DEBUG: fs.readFile succeeded');
     const data = JSON.parse(rawContent);
 
     // Check if this is a new schema format (v1.0.0)
@@ -60,6 +68,7 @@ export async function loadTemplateMetadataFromPath(templatePath) {
         supportedOptions,
         placeholders: [],
         canonicalVariables: [],
+        constants: data.constants || {}
       };
     } else {
       // Old schema format
@@ -87,6 +96,7 @@ export async function loadTemplateMetadataFromPath(templatePath) {
         supportedOptions,
         placeholders: validated.placeholders,
         canonicalVariables: validated.canonicalVariables,
+        constants: validated.constants || {}
       };
     }
 
@@ -111,6 +121,7 @@ export async function loadTemplateMetadataFromPath(templatePath) {
         supportedOptions: [],
         placeholders: [],
         canonicalVariables: [],
+        constants: {}
       };
     }
 
