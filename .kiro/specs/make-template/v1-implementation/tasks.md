@@ -95,7 +95,7 @@
 #### 2.3 Template Management Tools
 - [x] **Bulk operations support** - Manage multiple dimensions/features at once
 - [ ] **Template diffing** - Compare template versions and changes (defer - git handles this well)
-- [ ] **Intelligent validation reporting** - Schema-aware error analysis with fix suggestions
+- [x] **Intelligent validation reporting** - Schema-aware error analysis with fix suggestions
 
 ##### Bulk Operations Implementation Plan
 - [x] **Design bulk command interface** - Define CLI patterns for batch operations
@@ -128,6 +128,6 @@
 - [x] All required CLI commands implemented and tested
 - [x] Advanced validation catches architectural violations
 - [ ] Template migration tools functional
-- [ ] CLI provides clear feedback for all operations
+- [x] CLI provides clear feedback for all operations
 - [ ] Integration with create-scaffold team successful
 - [ ] Template authoring workflow significantly improved
