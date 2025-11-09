@@ -200,7 +200,7 @@ flags for repository, branch, author metadata, and placeholder values.
 
 1. `CREATE_SCAFFOLD_CONFIG_PATH` (environment override) when set.
 2. Project-level `.m5nvrc` in the current working directory.
-3. User config: `~/.config/m5nv/rc.json` (macOS/Linux) or `%APPDATA%/m5nv/rc.json`
+3. User config: `~/.m5nv/rc.json` (macOS/Linux) or `%APPDATA%/m5nv/rc.json`
    (Windows).
 
 Discovery stops at the first file found unless `CREATE_SCAFFOLD_CONFIG_PATH`

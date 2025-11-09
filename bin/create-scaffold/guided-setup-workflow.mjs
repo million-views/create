@@ -31,7 +31,8 @@ export class GuidedSetupWorkflow {
     options,
     ide,
     placeholders,
-    metadata
+    metadata,
+    allowFallback = false
   }) {
     // Debug logging for test environment
     if (process.env.NODE_ENV === 'test') {
@@ -58,6 +59,7 @@ export class GuidedSetupWorkflow {
     this.ide = ide;
     this.placeholders = placeholders || [];
     this.metadata = metadata || {};
+    this.allowFallback = allowFallback;
 
     this.stateFile = path.join(this.resolvedProjectDirectory, WORKFLOW_STATE_FILE);
     this.workflowState = {
@@ -475,6 +477,7 @@ export class GuidedSetupWorkflow {
     }
 
     // Validate template exists and is accessible
+    let templateAccessible = true;
     try {
       // Additional security check for path traversal in template paths
       if (this.templateName.includes('..') || this.templateName.includes('../') || this.templateName.includes('..\\')) {
@@ -482,7 +485,24 @@ export class GuidedSetupWorkflow {
       }
       await fs.access(this.templatePath);
     } catch (error) {
-      throw new Error(`Template not accessible: ${this.templatePath}`);
+      if (this.allowFallback) {
+        // Template not accessible but fallback is allowed - we'll use fallback mode
+        templateAccessible = false;
+        this.workflowState.useFallback = true;
+      } else {
+        // Fallback not allowed - re-throw the error
+        throw new Error(`Template not accessible: ${this.templatePath}`);
+      }
+    }
+
+    if (!templateAccessible) {
+      // Log that we're using fallback mode
+      if (this.logger) {
+        await this.logger.logOperation('template_fallback', {
+          templatePath: this.templatePath,
+          reason: 'template_not_accessible'
+        });
+      }
     }
 
     return { success: true, message: 'All validations passed' };
@@ -537,6 +557,42 @@ export class GuidedSetupWorkflow {
 
     // Create project directory
     await ensureDirectory(this.resolvedProjectDirectory, 0o755, 'project directory');
+
+    // Check if we should use fallback mode (template not accessible)
+    if (this.workflowState.useFallback) {
+      if (process.env.NODE_ENV === 'test') {
+        console.error('DEBUG: Using fallback mode - creating basic project structure');
+      }
+      // Create a basic README.md
+      const readmePath = path.join(this.resolvedProjectDirectory, 'README.md');
+      const readmeContent = `# ${path.basename(this.projectDirectory)}
+
+Project created with @m5nv/create-scaffold using template: ${this.templateName}
+
+## Getting Started
+
+This project was created from a template that was not found. A basic project structure has been set up for you.
+
+## Next Steps
+
+1. Add your project files
+2. Update package.json with your dependencies
+3. Configure your build and test scripts
+`;
+      await fs.writeFile(readmePath, readmeContent);
+
+      // Create a basic .gitignore
+      const gitignorePath = path.join(this.resolvedProjectDirectory, '.gitignore');
+      const gitignoreContent = `node_modules/
+*.log
+.env
+.DS_Store
+`;
+      await fs.writeFile(gitignorePath, gitignoreContent);
+
+      console.log('DEBUG: Fallback template copy completed');
+      return { success: true, message: 'Basic project structure created (template not found)' };
+    }
 
     // Copy all files from template to project directory
     const ignoreSet = createTemplateIgnoreSet();

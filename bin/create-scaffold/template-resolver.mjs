@@ -2,7 +2,7 @@
 
 import path from 'node:path';
 import { ContextualError, ErrorContext, ErrorSeverity } from '../../lib/shared/utils/error-handler.mjs';
-import { sanitizePath } from '../../lib/shared/security.mjs';
+import { sanitizePath, validateRepoUrl } from '../../lib/shared/security.mjs';
 import { CacheManager } from './cache-manager.mjs';
 
 /**
@@ -10,8 +10,48 @@ import { CacheManager } from './cache-manager.mjs';
  * Resolves template URLs to template directories and extracts parameters
  */
 export class TemplateResolver {
-  constructor(cacheManager = new CacheManager()) {
+  constructor(cacheManager = new CacheManager(), config = {}) {
     this.cacheManager = cacheManager;
+    this.config = config;
+  }
+
+  /**
+   * Resolve registry aliases - if templateUrl matches registry/template format, return the mapped value
+   * @param {string} templateUrl - Template URL that might be a registry alias
+   * @returns {string} - Resolved URL (original or mapped value)
+   */
+  resolveRegistryAlias(templateUrl) {
+    const registries = this.config?.defaults?.registries;
+    if (!registries || typeof registries !== 'object') {
+      return templateUrl;
+    }
+
+    // Check if templateUrl matches registry/template format
+    const slashIndex = templateUrl.indexOf('/');
+    if (slashIndex === -1) {
+      return templateUrl; // No slash, not a registry reference
+    }
+
+    const registryName = templateUrl.substring(0, slashIndex);
+    const templateName = templateUrl.substring(slashIndex + 1);
+
+    if (!templateName) {
+      return templateUrl; // No template name after slash
+    }
+
+    // Check if registry exists
+    const registry = registries[registryName];
+    if (!registry || typeof registry !== 'object') {
+      return templateUrl; // Registry doesn't exist
+    }
+
+    // Check if template exists in registry
+    const mappedUrl = registry[templateName];
+    if (typeof mappedUrl === 'string' && mappedUrl.trim()) {
+      return mappedUrl.trim();
+    }
+
+    return templateUrl; // Template not found in registry
   }
 
   /**
@@ -23,11 +63,14 @@ export class TemplateResolver {
   async resolveTemplate(templateUrl, options = {}) {
     const { branch = 'main', logger } = options;
 
-    // Validate the URL format
-    const validatedUrl = this.validateTemplateUrl(templateUrl);
+    // First check if templateUrl matches a registry alias
+    const resolvedUrl = this.resolveRegistryAlias(templateUrl);
 
-    // Parse URL to extract components
-    const parsed = this.parseTemplateUrl(validatedUrl);
+    // Validate the URL format (may strip branch for validation)
+    const validatedUrl = this.validateTemplateUrl(resolvedUrl);
+
+    // Parse URL to extract components (use original resolved URL to preserve branch info)
+    const parsed = this.parseTemplateUrl(resolvedUrl);
 
     // Resolve to actual template directory
     const templatePath = await this.resolveToPath(parsed, { branch, logger });
@@ -62,27 +105,19 @@ export class TemplateResolver {
       });
     }
 
-    // Handle registry URLs
-    if (templateUrl.startsWith('registry/')) {
-      return templateUrl; // Registry URLs have their own validation
-    }
-
     // Handle local paths
     if (templateUrl.startsWith('/') || templateUrl.startsWith('./') || templateUrl.startsWith('../') || templateUrl.startsWith('~')) {
-      console.error('DEBUG: Template resolver validating local path:', templateUrl);
       // Validate local paths for security (path traversal prevention)
       try {
         sanitizePath(templateUrl);
-        console.error('DEBUG: Template resolver validation passed for:', templateUrl);
       } catch (error) {
-        console.error('DEBUG: Template resolver validation failed for:', templateUrl, 'error:', error.message);
         throw new ContextualError(`Invalid template path: ${error.message}`, {
           context: ErrorContext.USER_INPUT,
           severity: ErrorSeverity.HIGH,
           suggestions: [
             'Avoid using ".." in template paths',
             'Use absolute paths or paths within the current directory',
-            'Use registry/official/template-name for official templates'
+            'Configure registries in .m5nvrc and use registry/template-name format'
           ]
         });
       }
@@ -91,15 +126,22 @@ export class TemplateResolver {
 
     // Handle full URLs and GitHub shorthand
     try {
-      return validateRepoUrl(templateUrl);
+      // For GitHub shorthand with branch syntax (user/repo#branch), validate the user/repo part only
+      let urlToValidate = templateUrl;
+      if (!templateUrl.includes('://') && templateUrl.includes('#')) {
+        const hashIndex = templateUrl.indexOf('#');
+        urlToValidate = templateUrl.substring(0, hashIndex);
+      }
+      return validateRepoUrl(urlToValidate);
     } catch (error) {
       throw new ContextualError(`Invalid template URL format: ${templateUrl}`, {
         context: ErrorContext.USER_INPUT,
         severity: ErrorSeverity.HIGH,
         technicalDetails: error.message,
         suggestions: [
-          'Use registry/official/template-name for official templates',
+          'Configure registries in .m5nvrc and use registry/template-name format',
           'Use user/repo for GitHub repositories',
+          'Use user/repo#branch for specific branches',
           'Use https://github.com/user/repo for full URLs',
           'Use ./path/to/local/template for local templates'
         ]
@@ -113,29 +155,6 @@ export class TemplateResolver {
    * @returns {object} - Parsed URL components
    */
   parseTemplateUrl(templateUrl) {
-    // Handle registry URLs: registry/official/express-api
-    if (templateUrl.startsWith('registry/')) {
-      const parts = templateUrl.split('/');
-      if (parts.length < 3) {
-        throw new ContextualError('Invalid registry URL format', {
-          context: ErrorContext.USER_INPUT,
-          severity: ErrorSeverity.HIGH,
-          technicalDetails: `Expected: registry/namespace/template, got: ${templateUrl}`,
-          suggestions: [
-            'Use format: registry/official/template-name',
-            'Available namespaces: official',
-            'Run with --list-templates to see available templates'
-          ]
-        });
-      }
-      return {
-        type: 'registry',
-        namespace: parts[1],
-        template: parts[2],
-        parameters: parts.slice(3)
-      };
-    }
-
     // Handle local paths
     if (templateUrl.startsWith('/') || templateUrl.startsWith('./') || templateUrl.startsWith('../') || templateUrl.startsWith('~')) {
       return {
@@ -150,28 +169,41 @@ export class TemplateResolver {
       return this.parseFullUrl(templateUrl);
     }
 
-    // Handle GitHub shorthand: owner/repo or owner/repo/path
+    // Handle GitHub shorthand with branch: owner/repo#branch or owner/repo#branch/path
     if (!templateUrl.includes('://') && templateUrl.includes('/')) {
-      const parts = templateUrl.split('/');
+      // Check if there's a #branch suffix
+      const hashIndex = templateUrl.indexOf('#');
+      let branch = null;
+      let repoPart = templateUrl;
+      
+      if (hashIndex !== -1) {
+        branch = templateUrl.substring(hashIndex + 1);
+        repoPart = templateUrl.substring(0, hashIndex);
+      }
+      
+      const parts = repoPart.split('/');
       if (parts.length >= 2) {
-        return {
+        const result = {
           type: 'github-shorthand',
           owner: parts[0],
-          repo: parts[1],
+          repo: parts[1].replace(/\.git$/, ''), // Remove .git suffix if present
           subpath: parts.slice(2).join('/'),
+          branch: branch,
           parameters: []
         };
+        return result;
       }
     }
 
-    throw new ContextualError(`Unsupported template URL format: ${templateUrl}`, {
+    throw new ContextualError(`Unsupported template URL format: ${templateUrl} (checked local, full URL, and GitHub shorthand)`, {
       context: ErrorContext.USER_INPUT,
       severity: ErrorSeverity.HIGH,
       suggestions: [
-        'Use registry/official/template-name for official templates',
         'Use user/repo for GitHub repositories',
+        'Use user/repo#branch for specific branches',
         'Use https://github.com/user/repo for full URLs',
-        'Use ./path/to/local/template for local templates'
+        'Use ./path/to/local/template for local templates',
+        'Configure registries in .m5nvrc for custom aliases'
       ]
     });
   }
@@ -285,14 +317,15 @@ export class TemplateResolver {
         return this.resolveLocalPath(parsed.path);
 
       case 'github-shorthand':
-        const fullUrl = `https://github.com/${parsed.owner}/${parsed.repo}`;
-        const cachedPath = await this.cacheManager.getCachedRepo(fullUrl, branch);
-        if (cachedPath) {
-          return parsed.subpath ? path.join(cachedPath, parsed.subpath) : cachedPath;
+        const shorthandUrl = `https://github.com/${parsed.owner}/${parsed.repo}`;
+        const shorthandBranch = parsed.branch || branch;
+        const shorthandCachedPath = await this.cacheManager.getCachedRepo(shorthandUrl, shorthandBranch);
+        if (shorthandCachedPath) {
+          return parsed.subpath ? path.join(shorthandCachedPath, parsed.subpath) : shorthandCachedPath;
         }
         // Need to populate cache
-        const populatedPath = await this.cacheManager.populateCache(fullUrl, branch);
-        return parsed.subpath ? path.join(populatedPath, parsed.subpath) : populatedPath;
+        const shorthandPopulatedPath = await this.cacheManager.populateCache(shorthandUrl, shorthandBranch);
+        return parsed.subpath ? path.join(shorthandPopulatedPath, parsed.subpath) : shorthandPopulatedPath;
 
       case 'github-repo':
         const repoUrl = `https://github.com/${parsed.owner}/${parsed.repo}`;
@@ -340,9 +373,6 @@ export class TemplateResolver {
         // Handle tarball URLs, GitHub URLs, etc.
         return this.resolveFullUrl(parsed, options);
 
-      case 'registry':
-        return this.resolveRegistryUrl(parsed, options);
-
       default:
         throw new Error(`Unsupported URL type: ${parsed.type}`);
     }
@@ -386,12 +416,10 @@ export class TemplateResolver {
    * @returns {Promise<string>} - Template path
    */
   async resolveRegistryUrl(parsed, options) {
-    // For now, map registry URLs to local template directories
-    // Future: implement actual registry system
+    // For now, map registry URLs to template directories
+    // Note: Local registry folder removed - use config-based registries instead
     const registryMappings = {
       'official': {
-        'express-api': 'registry/official/express-api',
-        'react-spa': 'registry/official/react-spa',
         'nextjs-app': 'million-views/packages/nextjs-app'
       }
     };
@@ -403,7 +431,7 @@ export class TemplateResolver {
         severity: ErrorSeverity.HIGH,
         suggestions: [
           'Available namespaces: official',
-          'Use registry/official/template-name format',
+          'Configure registries in .m5nvrc for custom aliases',
           'Run with --list-templates to see available templates'
         ]
       });
@@ -424,7 +452,15 @@ export class TemplateResolver {
 
     // For local registry templates, return the path directly
     if (templatePath.startsWith('registry/')) {
-      return path.resolve(templatePath);
+      throw new ContextualError('Local registry paths are no longer supported', {
+        context: ErrorContext.TEMPLATE,
+        severity: ErrorSeverity.HIGH,
+        suggestions: [
+          'Configure registries in your .m5nvrc config file',
+          'Use registry aliases like "myregistry/template" after configuration',
+          'Use GitHub URLs or local paths directly'
+        ]
+      });
     }
 
     // For GitHub repos, resolve as before

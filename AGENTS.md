@@ -62,6 +62,21 @@ grep -E '"workspaces"' package.json
 ls -la | grep -E "pnpm-workspace\.yaml"
 ```
 
+## Artifact Organization
+
+### Transient & Ephemeral Artifacts
+- **Location**: All transient, ephemeral, or temporary artifacts must be created under the `tmp/` folder
+- **Purpose**: Keep the repository root clean and avoid committing temporary files
+- **Examples**: Test artifacts, build outputs, generated documentation, experimental prototypes
+- **Cleanup**: Always implement proper cleanup for temporary artifacts
+- **Naming**: Use descriptive names with timestamps when needed (e.g., `tmp/test-run-20241108/`)
+
+### Permanent Repository Structure
+- **Code**: Core source code stays in appropriate directories (`bin/`, `lib/`, `src/`, etc.)
+- **Tests**: Test files belong in `test/` directory
+- **Documentation**: Documentation goes in `docs/` directory
+- **Configuration**: Configuration files stay at appropriate levels
+
 ## Workflow by Repository Type
 
 ### Monolith Workflow

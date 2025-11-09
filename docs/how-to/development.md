@@ -144,7 +144,7 @@ optional during local development.
 
 1. `CREATE_SCAFFOLD_CONFIG_PATH` (overrides everything when set).
 2. Project-level `.m5nvrc` in your working directory.
-3. User config: `~/.config/m5nv/rc.json` (macOS/Linux) or `%APPDATA%/m5nv/rc.json`
+3. User config: `~/.m5nv/rc.json` (macOS/Linux) or `%APPDATA%/m5nv/rc.json`
    (Windows).
 
 Run with `--no-config` to skip discovery entirely. This is useful when testing

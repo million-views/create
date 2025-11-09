@@ -59,9 +59,14 @@ function resolveCandidatePaths({ cwd, env }) {
   }
 
   const projectCandidate = path.resolve(cwd, CONFIG_FILENAME);
-  const userCandidate = resolveUserConfigPath(env);
+  const userConfigPaths = resolveUserConfigPath(env);
 
-  return [projectCandidate, userCandidate];
+  // Return array with project config first, then user configs (primary then fallback)
+  return [
+    projectCandidate,
+    userConfigPaths.primary,
+    userConfigPaths.fallback
+  ].filter(Boolean);
 }
 
 function resolveString(value) {
@@ -106,13 +111,21 @@ function resolveUserConfigPath(env) {
     return null;
   }
 
+  // Primary location: ~/.m5nv/rc.json (consistent with cache location)
+  const primaryPath = path.join(homeDir, '.m5nv', 'rc.json');
+
+  // For backward compatibility, also check old location during migration
+  let fallbackPath = null;
   if (platform === 'win32') {
     const appData = resolveString(env.APPDATA) || path.join(homeDir, 'AppData', 'Roaming');
-    return path.resolve(appData, 'm5nv', 'rc.json');
+    fallbackPath = path.resolve(appData, 'm5nv', 'rc.json');
+  } else {
+    const configBase = path.resolve(homeDir, '.config');
+    fallbackPath = path.join(configBase, 'm5nv', 'rc.json');
   }
 
-  const configBase = path.resolve(homeDir, '.config');
-  return path.join(configBase, 'm5nv', 'rc.json');
+  // Return both paths - loader will check primary first, then fallback
+  return { primary: primaryPath, fallback: fallbackPath };
 }
 
 async function readConfigFile(filePath) {
@@ -148,11 +161,14 @@ function normalizeConfigPayload(payload, filePath) {
     );
   }
 
-  const allowedKeys = new Set(['repo', 'branch', 'author', 'placeholders']);
+  // Allow known top-level keys plus product-specific sections
+  const knownKeys = new Set(['repo', 'branch', 'author', 'placeholders', 'registries']);
   for (const key of Object.keys(payload)) {
-    if (!allowedKeys.has(key)) {
+    // Allow any key that could be a product name (kebab-case, camelCase, etc.)
+    // Only reject obviously invalid keys
+    if (!knownKeys.has(key) && !/^[a-zA-Z][a-zA-Z0-9_-]*$/.test(key)) {
       throw wrapValidationError(
-        `Configuration file ${filePath} contains unsupported key "${key}"`,
+        `Configuration file ${filePath} contains invalid key "${key}"`,
         'config.keys'
       );
     }
@@ -176,6 +192,25 @@ function normalizeConfigPayload(payload, filePath) {
   }
 
   defaults.placeholders = normalizePlaceholders(payload.placeholders, filePath);
+
+  // Handle registries - check both top-level and product-specific locations
+  let registries = null;
+
+  // First check top-level registries (backward compatibility)
+  if (Object.prototype.hasOwnProperty.call(payload, 'registries')) {
+    registries = payload.registries;
+  }
+
+  // Then check product-specific registries (new structure)
+  const productName = 'create-scaffold'; // This could be made configurable
+  if (payload[productName] && typeof payload[productName] === 'object' &&
+      payload[productName].registries) {
+    registries = payload[productName].registries;
+  }
+
+  if (registries) {
+    defaults.registries = normalizeRegistries(registries, filePath);
+  }
 
   return Object.freeze(defaults);
 }
@@ -367,6 +402,94 @@ function normalizePlaceholders(value, filePath) {
   }
 
   return Object.freeze(entries);
+}
+
+function normalizeRegistries(value, filePath) {
+  if (value === undefined || value === null) {
+    return Object.freeze({});
+  }
+
+  if (typeof value !== 'object' || Array.isArray(value)) {
+    throw wrapValidationError(
+      `Configuration file ${filePath} registries must be an object`,
+      'config.registries'
+    );
+  }
+
+  const registries = Object.create(null);
+
+  for (const [registryName, templates] of Object.entries(value)) {
+    if (typeof registryName !== 'string') {
+      throw wrapValidationError(
+        `Configuration file ${filePath} registry name must be a string`,
+        'config.registries'
+      );
+    }
+
+    const trimmedRegistryName = registryName.trim();
+    if (!trimmedRegistryName) {
+      throw wrapValidationError(
+        `Configuration file ${filePath} registry name cannot be empty`,
+        'config.registries'
+      );
+    }
+
+    if (typeof templates !== 'object' || Array.isArray(templates)) {
+      throw wrapValidationError(
+        `Configuration file ${filePath} registry "${registryName}" must be an object mapping template names to URLs`,
+        'config.registries'
+      );
+    }
+
+    const normalizedTemplates = Object.create(null);
+
+    for (const [templateName, url] of Object.entries(templates)) {
+      if (typeof templateName !== 'string') {
+        throw wrapValidationError(
+          `Configuration file ${filePath} template name in registry "${registryName}" must be a string`,
+          'config.registries'
+        );
+      }
+
+      const trimmedTemplateName = templateName.trim();
+      if (!trimmedTemplateName) {
+        throw wrapValidationError(
+          `Configuration file ${filePath} template name in registry "${registryName}" cannot be empty`,
+          'config.registries'
+        );
+      }
+
+      if (typeof url !== 'string') {
+        throw wrapValidationError(
+          `Configuration file ${filePath} template "${templateName}" in registry "${registryName}" value must be a string`,
+          'config.registries'
+        );
+      }
+
+      const trimmedUrl = url.trim();
+      if (!trimmedUrl) {
+        throw wrapValidationError(
+          `Configuration file ${filePath} template "${templateName}" in registry "${registryName}" value cannot be empty`,
+          'config.registries'
+        );
+      }
+
+      // Basic validation - should be a valid template URL format
+      try {
+        // Allow any string for now - validation will happen during resolution
+        normalizedTemplates[trimmedTemplateName] = trimmedUrl;
+      } catch (error) {
+        throw wrapValidationError(
+          `Configuration file ${filePath} template "${templateName}" in registry "${registryName}" contains invalid URL: ${error.message}`,
+          'config.registries'
+        );
+      }
+    }
+
+    registries[trimmedRegistryName] = Object.freeze(normalizedTemplates);
+  }
+
+  return Object.freeze(registries);
 }
 
 function wrapValidationError(message, field) {

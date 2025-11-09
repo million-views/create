@@ -17,10 +17,13 @@ const CLI_PATH = path.join(__dirname, '..', 'bin', 'create-scaffold', 'index.mjs
 
 class SmokeTestUtils {
   static async execCLI(args, options = {}) {
+    // Create a temporary working directory under tmp/ for test isolation
+    const testCwd = await this.createTempDir('-test-cwd');
+    
     return new Promise((resolve) => {
       const child = spawn('node', [CLI_PATH, ...args], {
         stdio: ['pipe', 'pipe', 'pipe'],
-        cwd: options.cwd || process.cwd(),
+        cwd: options.cwd || testCwd,
         env: { ...process.env, ...options.env }
       });
 
@@ -41,7 +44,8 @@ class SmokeTestUtils {
           exitCode: -1,
           stdout,
           stderr: stderr + '\nTest timeout',
-          timedOut: true
+          timedOut: true,
+          cwd: options.cwd || testCwd
         });
       }, options.timeout || 30000);
 
@@ -51,7 +55,8 @@ class SmokeTestUtils {
           exitCode: code,
           stdout,
           stderr,
-          timedOut: false
+          timedOut: false,
+          cwd: options.cwd || testCwd
         });
       });
 
@@ -61,7 +66,8 @@ class SmokeTestUtils {
           exitCode: -1,
           stdout,
           stderr: stderr + error.message,
-          error: true
+          error: true,
+          cwd: options.cwd || testCwd
         });
       });
     });
@@ -242,7 +248,7 @@ async function runSmokeTests() {
     }
     
     // Verify project was created correctly
-    const projectPath = path.join(process.cwd(), projectName);
+    const projectPath = path.join(result.cwd, projectName);
     tempPaths.push(projectPath);
     
     const packageJsonPath = path.join(projectPath, 'package.json');
@@ -312,7 +318,7 @@ export default async function setup({ ctx, tools }) {
       throw new Error(`Setup script test failed: ${result.stderr}`);
     }
     
-    const projectPath = path.join(process.cwd(), projectName);
+    const projectPath = path.join(result.cwd, projectName);
     tempPaths.push(projectPath);
     
     // Verify setup script ran

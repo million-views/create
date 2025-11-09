@@ -7,14 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Added
-- **Test Suite Isolation**: Enhanced test runner with `--suite` option to run individual test suites in isolation
-- **New NPM Scripts**: Added `test:suite`, `test:smoke`, `test:functional`, `test:integration`, and `test:spec` scripts for focused testing
-- **Pre-Refactoring Checklist**: Added comprehensive preparation checklist to Kiro Methodology for safe refactoring and breaking changes
+### Fixed
+- **Branch URL Parsing**: Fixed template resolver to properly handle GitHub repository shorthand with branch syntax (e.g., `owner/repo#branch`)
+- **Test Isolation**: Implemented comprehensive test isolation to prevent test artifacts from cluttering repository root, following Kiro Methodology guidelines
+- **Test Execution Context**: Updated test utilities to return working directory information, ensuring tests validate behavior in correct execution contexts
 
 ### Improved
-- **Developer Experience**: Eliminated need for `grep` commands to isolate failing tests during development
-- **Documentation**: Updated test documentation and contributing guidelines with new testing capabilities
+- **Repository Cleanliness**: All test executions now run in temporary directories, maintaining clean repository root as per Kiro Methodology
+- **Test Reliability**: Enhanced test suite stability by eliminating cross-test contamination and ensuring proper resource cleanup
 
 ### Added
 - **Dual-Tool Package**: Integrated `make-template` CLI tool into the `@m5nv/create-scaffold` package

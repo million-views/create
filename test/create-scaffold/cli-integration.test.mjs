@@ -35,6 +35,15 @@ class IntegrationTestUtils {
     return tempPath;
   }
 
+  static async createTestWorkDir(suffix = '') {
+    const timestamp = Date.now();
+    const random = Math.random().toString(36).slice(2, 8);
+    const dirName = `test-workdir-${timestamp}-${random}${suffix}`;
+    const workDir = path.join(__dirname, '..', '..', 'tmp', dirName);
+    await fs.mkdir(workDir, { recursive: true });
+    return workDir;
+  }
+
   static async cleanup(paths) {
     for (const p of Array.isArray(paths) ? paths : [paths]) {
       try {
@@ -46,10 +55,13 @@ class IntegrationTestUtils {
   }
 
   static async execCLI(args, options = {}) {
+    // Create a temporary working directory under tmp/ for test isolation
+    const testCwd = await this.createTempDir('-test-cwd');
+    
     return new Promise((resolve) => {
       const child = spawn('node', [CLI_PATH, ...args], {
         stdio: ['pipe', 'pipe', 'pipe'],
-        cwd: options.cwd || process.cwd(),
+        cwd: options.cwd || testCwd,
         env: { ...process.env, ...options.env }
       });
 
@@ -193,14 +205,33 @@ const runner = {
       const previousTempPaths = runner.tempPaths;
       const currentTempPaths = [];
 
+      // Create a work directory for this test under tmp/
+      const testWorkDir = await IntegrationTestUtils.createTestWorkDir(`-${name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`);
+      currentTempPaths.push(testWorkDir);
+
       runner.tempPaths = currentTempPaths;
       runner.addTempPath = async (tempPath) => {
         currentTempPaths.push(tempPath);
         return tempPath;
       };
 
+      // Create a wrapper function that provides the workDir to the test
+      const wrappedFn = async () => {
+        // Set the work directory as the default cwd for execCLI calls in this test
+        const originalExecCLI = IntegrationTestUtils.execCLI;
+        IntegrationTestUtils.execCLI = (args, options = {}) => {
+          return originalExecCLI.call(IntegrationTestUtils, args, { ...options, cwd: options.cwd || testWorkDir });
+        };
+
+        try {
+          await fn(testWorkDir);
+        } finally {
+          IntegrationTestUtils.execCLI = originalExecCLI;
+        }
+      };
+
       try {
-        await fn();
+        await wrappedFn();
       } finally {
         for (const tempPath of currentTempPaths) {
           t.after(async () => {
@@ -303,22 +334,37 @@ runner.test('--list-templates flag shows available templates', async () => {
   // Create mock repository with multiple templates
   await IntegrationTestUtils.createMockRepo(mockRepoPath, ['basic', 'react', 'vue']);
 
+  // Create a config file that defines a registry pointing to our mock repo
+  const configDir = await runner.addTempPath(await IntegrationTestUtils.createTempDir('-list-templates-config'));
+  const configPath = path.join(configDir, '.m5nvrc');
+  await fs.writeFile(configPath, JSON.stringify({
+    registries: {
+      test: {
+        basic: path.join(mockRepoPath, 'basic'),
+        react: path.join(mockRepoPath, 'react'),
+        vue: path.join(mockRepoPath, 'vue')
+      }
+    }
+  }), 'utf8');
+
   const result = await IntegrationTestUtils.execCLI([
     '--list-templates',
-    '--template', mockRepoPath
-  ]);
+    '--registry', 'test'
+  ], {
+    cwd: configDir
+  });
 
   if (result.exitCode !== 0) {
     throw new Error(`Expected exit code 0, got ${result.exitCode}. Stderr: ${result.stderr}`);
   }
 
-  // Should show template listing
+  // Should show template listing from the test registry
   if (!result.stdout.includes('basic')) {
     throw new Error('Should list basic template');
   }
 
-  if (!result.stdout.includes('React Template')) {
-    throw new Error('Should list React Template');
+  if (!result.stdout.includes('react')) {
+    throw new Error('Should list react template');
   }
 
   if (!result.stdout.includes('vue')) {
@@ -393,7 +439,13 @@ runner.test('configuration defaults apply to list-templates', async () => {
   await IntegrationTestUtils.createMockRepo(mockRepoPath, ['basic']);
 
   const configPath = path.join(configDir, '.m5nvrc');
-  await fs.writeFile(configPath, JSON.stringify({ repo: mockRepoPath }), 'utf8');
+  await fs.writeFile(configPath, JSON.stringify({
+    registries: {
+      testrepo: {
+        basic: path.join(mockRepoPath, 'basic')
+      }
+    }
+  }), 'utf8');
 
   const result = await IntegrationTestUtils.execCLI([
     '--list-templates'
@@ -405,8 +457,8 @@ runner.test('configuration defaults apply to list-templates', async () => {
     throw new Error(`Expected exit code 0 when using configuration defaults, got ${result.exitCode}. Stderr: ${result.stderr}`);
   }
 
-  if (!result.stdout.includes(mockRepoPath)) {
-    throw new Error('CLI output should reference repository from configuration defaults');
+  if (!result.stdout.includes('testrepo')) {
+    throw new Error('CLI output should show configured registry');
   }
 });
 
@@ -450,7 +502,7 @@ runner.test('--no-config skips invalid configuration files', async () => {
 });
 
 // Test 2: --dry-run flag integration
-runner.test('--dry-run flag shows preview without execution', async () => {
+runner.test('--dry-run flag shows preview without execution', async (workDir) => {
   const mockRepoPath = await runner.addTempPath(await IntegrationTestUtils.createTempDir('-dry-run-repo'));
 
   // Create mock repository
@@ -489,7 +541,7 @@ runner.test('--dry-run flag shows preview without execution', async () => {
 
   // Should not create actual project directory
   try {
-    await fs.access('test-dry-run-project');
+    await fs.access(path.join(workDir, 'test-dry-run-project'));
     throw new Error('Dry run should not create actual project directory');
   } catch (error) {
     if (error.code !== 'ENOENT') {
@@ -500,7 +552,7 @@ runner.test('--dry-run flag shows preview without execution', async () => {
 });
 
 // Test 2b: tree preview when custom tree command available
-runner.test('--dry-run includes tree preview when tree command available', async () => {
+runner.test('--dry-run includes tree preview when tree command available', async (workDir) => {
   const mockRepoPath = await runner.addTempPath(await IntegrationTestUtils.createTempDir('-dry-run-tree-repo'));
   await IntegrationTestUtils.createMockRepo(mockRepoPath, ['basic']);
 
@@ -534,7 +586,7 @@ runner.test('--dry-run includes tree preview when tree command available', async
 });
 
 // Test 2c: tree preview skip message when tree command missing
-runner.test('--dry-run warns when tree command is unavailable', async () => {
+runner.test('--dry-run warns when tree command is unavailable', async (workDir) => {
   const mockRepoPath = await runner.addTempPath(await IntegrationTestUtils.createTempDir('-dry-run-no-tree-repo'));
   await IntegrationTestUtils.createMockRepo(mockRepoPath, ['basic']);
 
@@ -565,6 +617,7 @@ runner.test('--dry-run warns when tree command is unavailable', async () => {
 // Test 3: --log-file flag integration
 runner.test('--log-file flag enables detailed logging', async () => {
   const mockRepoPath = await runner.addTempPath(await IntegrationTestUtils.createTempDir('-log-file-repo'));
+  const workDir = await runner.addTempPath(await IntegrationTestUtils.createTestWorkDir('-log-file'));
   const logDir = path.join(process.cwd(), `.tmp-logs-${Date.now()}-${Math.random().toString(36).slice(2)}`);
   await fs.mkdir(logDir, { recursive: true });
   await runner.addTempPath(logDir);
@@ -577,7 +630,7 @@ runner.test('--log-file flag enables detailed logging', async () => {
     'test-log-project',
     '--template', path.join(mockRepoPath, 'basic'),
     '--log-file', logFilePath
-  ]);
+  ], { cwd: workDir });
 
   if (result.exitCode !== 0) {
     throw new Error(`Expected exit code 0, got ${result.exitCode}. Stderr: ${result.stderr}`);
@@ -604,7 +657,7 @@ runner.test('--log-file flag enables detailed logging', async () => {
   }
 
   try {
-    await fs.access(path.join('test-log-project', '.template-undo.json'));
+    await fs.access(path.join(workDir, 'test-log-project', '.template-undo.json'));
     throw new Error('Template undo artifact should not be copied to the project');
   } catch (error) {
     if (error.code !== 'ENOENT') {
@@ -612,12 +665,11 @@ runner.test('--log-file flag enables detailed logging', async () => {
     }
   }
 
-  // Clean up created project
-  runner.tempPaths.push('test-log-project');
+  // Clean up created project (automatically handled by workDir cleanup)
 });
 
 // Test 4: --no-cache flag integration
-runner.test('--no-cache flag bypasses cache system', async () => {
+runner.test('--no-cache flag bypasses cache system', async (workDir) => {
   const mockRepoPath = await runner.addTempPath(await IntegrationTestUtils.createTempDir('-no-cache-repo'));
 
   // Create mock repository
@@ -635,8 +687,7 @@ runner.test('--no-cache flag bypasses cache system', async () => {
 
   // Should indicate cache bypass (if implemented)
   // For now, just verify project was created successfully
-  const projectPath = 'test-no-cache-project';
-  runner.tempPaths.push(projectPath);
+  const projectPath = path.join(workDir, 'test-no-cache-project');
 
   try {
     await fs.access(projectPath);
@@ -658,6 +709,7 @@ runner.test('--no-cache flag bypasses cache system', async () => {
 // Test 5: --cache-ttl flag integration
 runner.test('--cache-ttl flag sets custom TTL', async () => {
   const mockRepoPath = await runner.addTempPath(await IntegrationTestUtils.createTempDir('-cache-ttl-repo'));
+  const workDir = await runner.addTempPath(await IntegrationTestUtils.createTestWorkDir('-cache-ttl'));
 
   // Create mock repository
   await IntegrationTestUtils.createMockRepo(mockRepoPath, ['basic']);
@@ -666,15 +718,14 @@ runner.test('--cache-ttl flag sets custom TTL', async () => {
     'test-cache-ttl-project',
     '--template', path.join(mockRepoPath, 'basic'),
     '--cache-ttl', '48'
-  ]);
+  ], { cwd: workDir });
 
   if (result.exitCode !== 0) {
     throw new Error(`Expected exit code 0, got ${result.exitCode}. Stderr: ${result.stderr}`);
   }
 
   // Verify project was created
-  const projectPath = 'test-cache-ttl-project';
-  runner.tempPaths.push(projectPath);
+  const projectPath = path.join(workDir, 'test-cache-ttl-project');
 
   try {
     await fs.access(projectPath);
@@ -766,7 +817,7 @@ runner.test('Combined flags work together correctly', async () => {
 });
 
 // Test 7: Cache integration with existing workflow
-runner.test('Cache integration works with existing scaffolding workflow', async () => {
+runner.test('Cache integration works with existing scaffolding workflow', async (workDir) => {
   const mockRepoPath = await runner.addTempPath(await IntegrationTestUtils.createTempDir('-cache-workflow-repo'));
 
   // Create mock repository
@@ -782,8 +833,6 @@ runner.test('Cache integration works with existing scaffolding workflow', async 
     throw new Error(`First run failed: ${firstResult.stderr}`);
   }
 
-  runner.tempPaths.push('test-cache-first-project');
-
   // Second run should use cache (faster)
   const secondResult = await IntegrationTestUtils.execCLI([
     'test-cache-second-project',
@@ -794,19 +843,17 @@ runner.test('Cache integration works with existing scaffolding workflow', async 
     throw new Error(`Second run failed: ${secondResult.stderr}`);
   }
 
-  runner.tempPaths.push('test-cache-second-project');
-
   // Both projects should be created successfully
   try {
-    await fs.access('test-cache-first-project');
-    await fs.access('test-cache-second-project');
+    await fs.access(path.join(workDir, 'test-cache-first-project'));
+    await fs.access(path.join(workDir, 'test-cache-second-project'));
   } catch {
     throw new Error('Both projects should be created successfully');
   }
 
   for (const projectName of ['test-cache-first-project', 'test-cache-second-project']) {
     try {
-      await fs.access(path.join(projectName, '.template-undo.json'));
+      await fs.access(path.join(workDir, projectName, '.template-undo.json'));
       throw new Error(`Template undo artifact should not be copied to ${projectName}`);
     } catch (error) {
       if (error.code !== 'ENOENT') {
@@ -860,23 +907,38 @@ runner.test('Template discovery shows metadata when available', async () => {
   // Create mock repository with templates that have metadata
   await IntegrationTestUtils.createMockRepo(mockRepoPath, ['basic', 'react', 'vue']);
 
+  // Create a config file that defines a registry pointing to our mock repo
+  const configDir = await runner.addTempPath(await IntegrationTestUtils.createTempDir('-metadata-config'));
+  const configPath = path.join(configDir, '.m5nvrc');
+  await fs.writeFile(configPath, JSON.stringify({
+    registries: {
+      test: {
+        basic: path.join(mockRepoPath, 'basic'),
+        react: path.join(mockRepoPath, 'react'),
+        vue: path.join(mockRepoPath, 'vue')
+      }
+    }
+  }), 'utf8');
+
   const result = await IntegrationTestUtils.execCLI([
     '--list-templates',
-    '--template', mockRepoPath
-  ]);
+    '--registry', 'test'
+  ], {
+    cwd: configDir
+  });
 
   if (result.exitCode !== 0) {
     throw new Error(`Expected exit code 0, got ${result.exitCode}. Stderr: ${result.stderr}`);
   }
 
   // Should show template names
-  if (!result.stdout.includes('basic') || !result.stdout.includes('React Template') || !result.stdout.includes('vue')) {
+  if (!result.stdout.includes('basic') || !result.stdout.includes('react') || !result.stdout.includes('vue')) {
     throw new Error('Should list all templates');
   }
 
-  // Should show metadata for react template (has template.json)
-  if (!result.stdout.includes('Modern React application') && !result.stdout.includes('React Template')) {
-    throw new Error('Should show metadata for templates with template.json');
+  // Should show registry context
+  if (!result.stdout.includes('test registry')) {
+    throw new Error('Should show registry context for templates');
   }
 });
 
@@ -1017,11 +1079,24 @@ runner.test('Early exit modes (--list-templates, --dry-run) work correctly', asy
   // Create mock repository
   await IntegrationTestUtils.createMockRepo(mockRepoPath, ['basic']);
 
+  // Create a config file that defines a registry
+  const configDir = await runner.addTempPath(await IntegrationTestUtils.createTempDir('-early-exit-config'));
+  const configPath = path.join(configDir, '.m5nvrc');
+  await fs.writeFile(configPath, JSON.stringify({
+    registries: {
+      test: {
+        basic: path.join(mockRepoPath, 'basic')
+      }
+    }
+  }), 'utf8');
+
   // Test --list-templates early exit
   const listResult = await IntegrationTestUtils.execCLI([
     '--list-templates',
-    '--template', mockRepoPath
-  ]);
+    '--registry', 'test'
+  ], {
+    cwd: configDir
+  });
 
   if (listResult.exitCode !== 0) {
     throw new Error(`List templates should exit successfully: ${listResult.stderr}`);
@@ -1034,9 +1109,11 @@ runner.test('Early exit modes (--list-templates, --dry-run) work correctly', asy
   // Test --dry-run early exit (doesn't create project)
   const dryRunResult = await IntegrationTestUtils.execCLI([
     'test-early-exit-project',
-    '--template', path.join(mockRepoPath, 'basic'),
+    '--template', 'test/basic',
     '--dry-run'
-  ]);
+  ], {
+    cwd: configDir
+  });
 
   if (dryRunResult.exitCode !== 0) {
     throw new Error(`Dry run should exit successfully: ${dryRunResult.stderr}`);
@@ -1062,7 +1139,7 @@ runner.test('Early exit modes (--list-templates, --dry-run) work correctly', asy
 });
 
 // Test 12: Feature initialization is conditional
-runner.test('Feature modules are initialized conditionally based on flags', async () => {
+runner.test('Feature modules are initialized conditionally based on flags', async (workDir) => {
   const mockRepoPath = await runner.addTempPath(await IntegrationTestUtils.createTempDir('-conditional-init-repo'));
 
   // Create mock repository
@@ -1078,8 +1155,6 @@ runner.test('Feature modules are initialized conditionally based on flags', asyn
     throw new Error(`Normal operation should succeed: ${normalResult.stderr}`);
   }
 
-  runner.tempPaths.push('test-conditional-project');
-
   // Should not show cache-specific or logging-specific messages unless flags are used
   if (normalResult.stdout.includes('cache') && !normalResult.stdout.includes('Cloning')) {
     throw new Error('Should not show cache-specific messages without cache flags');
@@ -1087,13 +1162,13 @@ runner.test('Feature modules are initialized conditionally based on flags', asyn
 
   // Verify project was created
   try {
-    await fs.access('test-conditional-project');
+    await fs.access(path.join(workDir, 'test-conditional-project'));
   } catch {
     throw new Error('Project should be created successfully');
   }
 
   try {
-    await fs.access(path.join('test-conditional-project', '.template-undo.json'));
+    await fs.access(path.join(workDir, 'test-conditional-project', '.template-undo.json'));
     throw new Error('Template undo artifact should not be copied during normal operation');
   } catch (error) {
     if (error.code !== 'ENOENT') {

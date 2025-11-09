@@ -75,11 +75,20 @@ class TestUtils {
   }
 
   static async execCLI(args, options = {}) {
-    return runCLI(CLI_PATH, args, {
+    // Create a temporary working directory under tmp/ for test isolation
+    const testCwd = await this.createTempDir('-test-cwd');
+    await runner.addTempPath(testCwd);
+    
+    const result = await runCLI(CLI_PATH, args, {
       ...options,
+      cwd: options.cwd || testCwd,
       env: { ...options.env, NODE_ENV: 'test' },
       timeout: options.timeout ?? TEST_TIMEOUT
     });
+
+    // Add cwd to result for tests that need to know where execution happened
+    result.cwd = options.cwd || testCwd;
+    return result;
   }
 
   static async createMockRepo(repoPath, templates = ['basic']) {
@@ -354,8 +363,8 @@ runner.test('Nonexistent branch is detected', async () => {
     throw new Error(`Expected exit code 1, got ${result.exitCode}`);
   }
 
-  if (!result.stderr.includes('Template not accessible:')) {
-    throw new Error('Should detect invalid template URL format');
+  if (!result.stderr.includes('fatal: Remote branch definitely-does-not-exist-branch-name not found')) {
+    throw new Error('Should detect nonexistent branch');
   }
 });
 
@@ -970,7 +979,7 @@ export default async function setup({ ctx, tools }) {
   }
 
   // Verify project directory exists (not cleaned up on setup failure)
-  const projectPath = path.join(process.cwd(), projectName);
+  const projectPath = path.join(result.cwd, projectName);
   try {
     await fs.access(projectPath);
     runner.tempPaths.push(projectPath); // Mark for cleanup
@@ -1060,13 +1069,13 @@ runner.test('Resource leak detection across multiple failure modes', async () =>
     },
     {
       name: 'invalid-repo',
-      args: ['test-multi-fail-2', '--template', 'invalid-repo-format!/basic'],
+      args: ['test-multi-fail-2', '--template', '/invalid/repo/path'],
       expectedError: 'Template not accessible'
     },
     {
       name: 'invalid-branch',
-      args: ['test-multi-fail-3', '--template', 'basic'],
-      expectedError: 'Template not accessible'
+      args: ['test-multi-fail-3', '--template', 'million-views/packages#definitely-does-not-exist-branch-name'],
+      expectedError: 'fatal: Remote branch definitely-does-not-exist-branch-name not found'
     }
   ];
 
@@ -1254,7 +1263,7 @@ export default async function setup({ ctx, tools }) {
   }
 
   // Verify project was created
-  const projectPath = path.join(process.cwd(), projectName);
+  const projectPath = path.join(result.cwd, projectName);
   runner.tempPaths.push(projectPath);
 
   try {

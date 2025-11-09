@@ -57,7 +57,11 @@ export function parseArguments(argv = process.argv.slice(2)) {
       },
       'list-templates': {
         type: 'boolean',
-        description: 'Display available templates from repository'
+        description: 'Display available registries or templates from a specific registry'
+      },
+      registry: {
+        type: 'string',
+        description: 'Registry name to list templates from (used with --list-templates)'
       },
       'dry-run': {
         type: 'boolean',
@@ -161,6 +165,7 @@ export function parseArguments(argv = process.argv.slice(2)) {
       branch: values.branch,
       logFile: values['log-file'],
       listTemplates: values['list-templates'],
+      registry: values.registry,
       dryRun: values['dry-run'],
       noCache: values['no-cache'],
       cacheTtl: values['cache-ttl'],
@@ -282,7 +287,6 @@ export function validateArguments(args) {
     // For --template flag, allow URLs and paths
     const looksLikeUrl = args.template.includes('/') || 
                         args.template.includes('://') || 
-                        args.template.startsWith('registry/') ||
                         args.template.startsWith('./') ||
                         args.template.startsWith('../');
     
@@ -347,7 +351,7 @@ ARGUMENTS:
 OPTIONS:
   -T, --template <url>   Template URL or shorthand (create-remix style)
                          Examples:
-                           registry/official/express-api
+                           favorites/express-api
                            user/repo
                            ./local/template/path
                            https://github.com/user/repo
@@ -394,15 +398,15 @@ VALIDATION:
       --json         Emit machine-readable JSON results (use with --validate-template)
 
 CONFIGURATION DEFAULTS:
-  The CLI looks for .m5nvrc in the current directory, then ~/.config/m5nv/rc.json (macOS/Linux)
+  The CLI looks for .m5nvrc in the current directory, then ~/.m5nv/rc.json (macOS/Linux)
   or %APPDATA%/m5nv/rc.json (Windows). Override discovery with CREATE_SCAFFOLD_CONFIG_PATH.
   Provide repo, branch, author, and placeholders to avoid repeating flags.
 
 EXAMPLES:
 
   Basic Usage:
-    # Create a new React project using template URL (recommended)
-    npm create @m5nv/scaffold my-app -- --template registry/official/react
+    # Create a new React project using registry alias (configure in .m5nvrc)
+    npm create @m5nv/scaffold my-app -- --template favorites/react-spa
 
     # Create using GitHub shorthand
     npm create @m5nv/scaffold my-app -- --template remix-run/react-router
@@ -412,45 +416,48 @@ EXAMPLES:
 
   IDE & Options:
     # Create project with IDE-specific customization
-    npm create @m5nv/scaffold my-app -- --template registry/official/react --ide kiro
+    npm create @m5nv/scaffold my-app -- --template favorites/react-spa --ide kiro
 
     # Contextual options for different scenarios
-    npm create @m5nv/scaffold my-app -- --template registry/official/react --options monorepo,no-git,typescript
-    npm create @m5nv/scaffold my-api -- --template registry/official/fastify --options mvp,minimal,testing-focused
-    npm create @m5nv/scaffold my-lib -- --template registry/official/library --options prototype,ci-ready,docker-ready
+    npm create @m5nv/scaffold my-app -- --template favorites/react-spa --options monorepo,no-git,typescript
+    npm create @m5nv/scaffold my-api -- --template favorites/express-api --options mvp,minimal,testing-focused
+    npm create @m5nv/scaffold my-lib -- --template company/library --options prototype,ci-ready,docker-ready
 
     # Combine IDE and contextual options
-    npm create @m5nv/scaffold my-app -- --template registry/official/react --ide vscode --options full-featured,typescript
+    npm create @m5nv/scaffold my-app -- --template favorites/react-spa --ide vscode --options full-featured,typescript
 
   Template Discovery:
-    # List available templates from default repository
+    # List available registries
     npm create @m5nv/scaffold -- --list-templates
+
+    # List templates from specific registry
+    npm create @m5nv/scaffold -- --list-templates --registry favorites
 
     # List templates from specific branch
     npm create @m5nv/scaffold -- --list-templates --branch develop
 
   Preview & Debugging:
     # Preview operations without executing (dry run)
-    npm create @m5nv/scaffold my-app -- --template registry/official/react --dry-run
+    npm create @m5nv/scaffold my-app -- --template favorites/react-spa --dry-run
 
     # Enable detailed logging for troubleshooting
-    npm create @m5nv/scaffold my-app -- --template registry/official/react --log-file ./scaffold.log
+    npm create @m5nv/scaffold my-app -- --template favorites/react-spa --log-file ./scaffold.log
 
     # Combine dry run with logging
-    npm create @m5nv/scaffold my-app -- --template registry/official/react --dry-run --log-file ./preview.log
+    npm create @m5nv/scaffold my-app -- --template favorites/react-spa --dry-run --log-file ./preview.log
 
   Cache Management:
     # Bypass cache for fresh clone (slower but ensures latest version)
-    npm create @m5nv/scaffold my-app -- --template registry/official/react --no-cache
+    npm create @m5nv/scaffold my-app -- --template favorites/react-spa --no-cache
 
     # Set custom cache TTL (48 hours)
-    npm create @m5nv/scaffold my-app -- --template registry/official/react --cache-ttl 48
+    npm create @m5nv/scaffold my-app -- --template favorites/react-spa --cache-ttl 48
 
     # Force fresh template discovery
     npm create @m5nv/scaffold -- --list-templates --no-cache
 
   Using npx directly:
-    npx @m5nv/create-scaffold@latest my-app --template registry/official/react
+    npx @m5nv/create-scaffold@latest my-app --template favorites/react-spa
 
 TEMPLATE REPOSITORIES:
   Templates are organized as subdirectories within git repositories.
@@ -461,6 +468,11 @@ TEMPLATE REPOSITORIES:
   - Templates are cached locally for faster subsequent operations
   - Cache entries expire after 24 hours by default
   - Use --no-cache to bypass cache and get latest version
+
+  Configuration Location: ~/.m5nv/rc.json
+  - User preferences and registry definitions are stored here
+  - Project-specific overrides can be set in .m5nvrc
+  - Supports shared configuration for multiple m5nv products
 
 CONTEXTUAL OPTIONS:
   The --options parameter enables template customization based on your specific

@@ -50,6 +50,7 @@ import { GuidedSetupWorkflow } from './guided-setup-workflow.mjs';
 
 // Default configuration
 const DEFAULT_REPO = 'million-views/packages';
+const DEFAULT_REGISTRY = 'git@github.com:million-views/templates.git';
 const SETUP_SCRIPT = '_setup.mjs';
 const DEFAULT_AUTHOR_ASSETS_DIR = '__scaffold__';
 
@@ -203,7 +204,7 @@ async function main() {
     if (args.listTemplates) {
       const exitCode = await executeListTemplates({
         jsonOutput: Boolean(args.json),
-        templatePath: args.template,
+        registryName: args.registry,
         config: configMetadata
       });
       process.exit(exitCode);
@@ -225,31 +226,47 @@ async function main() {
 
     // Template resolution logic - handle different template input types
     let templatePath, templateName, repoUrl, branchName, metadata;
+    let allowFallback = false;
+
+    // First, check if the template is a registry alias and resolve it
+    let resolvedTemplate = args.template;
+    if (args.template && !args.template.includes('://') && !args.template.startsWith('/') && !args.template.startsWith('./') && !args.template.startsWith('../')) {
+      const tempResolver = new TemplateResolver(cacheManager, configMetadata);
+      resolvedTemplate = tempResolver.resolveRegistryAlias(args.template);
+    }
 
     if (args.template) {
+            // Process template URL
       // Handle different template input types
-      if (args.template.startsWith('/') || args.template.startsWith('./') || args.template.startsWith('../')) {
+      if (args.template.startsWith('/') || args.template.startsWith('./') || args.template.startsWith('../') || 
+          (resolvedTemplate.startsWith('/') || resolvedTemplate.startsWith('./') || resolvedTemplate.startsWith('../'))) {
+        console.error('DEBUG: Taking local path branch');
         // Direct template directory path - validate for security (prevent path traversal)
-        if (args.template.includes('..')) {
+        const templateToUse = (resolvedTemplate.startsWith('/') || resolvedTemplate.startsWith('./') || resolvedTemplate.startsWith('../')) 
+          ? resolvedTemplate 
+          : args.template;
+        if (templateToUse.includes('..')) {
           handleError(new ValidationError('Path traversal attempts are not allowed in template paths', 'template'), { operation: 'template_validation', exit: true });
         }
-        templatePath = args.template;
-        templateName = path.basename(args.template);
-        repoUrl = path.dirname(args.template);
+        templatePath = templateToUse;
+        templateName = path.basename(templateToUse);
+        repoUrl = path.dirname(templateToUse);
         branchName = null;
-        console.error('DEBUG: Local template path - templatePath:', templatePath, 'repoUrl:', repoUrl);
-      } else if (args.template.includes('://') || args.template.startsWith('registry/')) {
-        // Template URL or registry path - use TemplateResolver
-        const templateResolver = new TemplateResolver(cacheManager);
-        const templateResolution = await templateResolver.resolveTemplate(args.template, {
+        allowFallback = false; // Local paths should not fallback
+      } else if (resolvedTemplate.includes('://') || resolvedTemplate.includes('#')) {
+        // Template URL (including resolved registry aliases) or URL with branch syntax - use TemplateResolver
+        const templateResolver = new TemplateResolver(cacheManager, configMetadata);
+        const templateResolution = await templateResolver.resolveTemplate(resolvedTemplate, {
           branch: args.branch,
           logger
         });
         templatePath = templateResolution.templatePath;
         templateName = path.basename(templatePath);
-        repoUrl = args.template;
+        repoUrl = resolvedTemplate;
         branchName = args.branch;
+        allowFallback = false; // URLs should not fallback
       } else {
+        console.error('DEBUG: Taking repository shorthand branch');
         // Repository shorthand - assume it's a template name in default repo
         const repoUrlResolved = args.repo || DEFAULT_REPO;
         const branchNameResolved = args.branch;
@@ -264,6 +281,7 @@ async function main() {
         templateName = args.template;
         repoUrl = repoUrlResolved;
         branchName = branchNameResolved;
+        allowFallback = true; // Repository templates should fallback
       }
     } else {
       // No template specified - this will be handled by the guided workflow
@@ -271,6 +289,7 @@ async function main() {
       templateName = null;
       repoUrl = args.repo || DEFAULT_REPO;
       branchName = args.branch;
+      allowFallback = true; // No template specified should allow fallback
     }
 
     // Load template metadata if we have a template path
@@ -307,7 +326,6 @@ async function main() {
 
     // Handle dry-run mode
     if (args.dryRun) {
-      console.error('DEBUG: Dry-run triggered - templatePath:', templatePath, 'templateName:', templateName, 'repoUrl:', repoUrl, 'projectDirectory:', args.projectDirectory);
       if (!templatePath || !templateName) {
         throw new Error('--dry-run requires a template to be specified');
       }
@@ -315,12 +333,10 @@ async function main() {
       const dryRunEngine = new DryRunEngine(cacheManager, logger);
       let preview;
 
-      // Check if repoUrl is a local path or remote repository
-      if (repoUrl && (repoUrl.startsWith('/') || repoUrl.startsWith('./') || repoUrl.startsWith('../'))) {
-        // If repoUrl is a local path, use previewScaffoldingFromPath
-        const repoPath = repoUrl;
-        console.error('DEBUG: Using previewScaffoldingFromPath with repoPath:', repoPath, 'templateName:', templateName, 'projectDir:', args.projectDirectory);
-        preview = await dryRunEngine.previewScaffoldingFromPath(repoPath, templateName, args.projectDirectory);
+      // Check if this is a local template directory (templatePath is set and repoUrl is local)
+      if (templatePath && repoUrl && (repoUrl.startsWith('/') || repoUrl.startsWith('./') || repoUrl.startsWith('../') || repoUrl === '.')) {
+        // For local template directories, use previewScaffoldingFromPath directly
+        preview = await dryRunEngine.previewScaffoldingFromPath(templatePath, args.projectDirectory);
       } else if (repoUrl) {
         // Otherwise, use previewScaffolding for remote repositories
         preview = await dryRunEngine.previewScaffolding(repoUrl, branchName || 'main', templateName, args.projectDirectory);
@@ -480,7 +496,8 @@ async function main() {
       options,
       ide: args.ide,
       placeholders,
-      metadata
+      metadata,
+      allowFallback
     });
 
     let result;
@@ -1076,7 +1093,23 @@ async function executeSetupScript({ projectDirectory, projectName, ide, options,
   }
 }
 
-async function executeListTemplates({ jsonOutput, templatePath, config }) {
+async function listDefaultRegistryTemplates(cacheManager) {
+  try {
+    const templateDiscovery = new TemplateDiscovery(cacheManager);
+    const templates = await templateDiscovery.listTemplates(DEFAULT_REGISTRY, 'main');
+    return templates.map(template => ({
+      name: template.name,
+      description: template.description || `Template from default registry`,
+      version: template.version || 'N/A'
+    }));
+  } catch (error) {
+    // If default registry is unreachable, return empty array
+    console.warn(`Warning: Could not load default registry: ${error.message}`);
+    return [];
+  }
+}
+
+async function executeListTemplates({ jsonOutput, registryName, config }) {
   try {
     // Initialize cache manager for template discovery
     const cacheManager = new CacheManager();
@@ -1084,29 +1117,46 @@ async function executeListTemplates({ jsonOutput, templatePath, config }) {
 
     let templates;
 
-    if (templatePath) {
-      // List templates from local path
-      templates = await templateDiscovery.listTemplatesFromPath(templatePath);
+    if (registryName) {
+      // List templates from specific registry
+      const registries = config?.defaults?.registries;
+      if (registries && typeof registries === 'object' && registries[registryName]) {
+        // List templates from registry
+        const registry = registries[registryName];
+        templates = Object.keys(registry).map(name => ({
+          name,
+          description: `Template from ${registryName} registry`,
+          version: 'N/A'
+        }));
+      } else {
+        throw new Error(`Registry '${registryName}' not found in configuration`);
+      }
     } else {
-      // Use configured repository or default
-      const repoUrl = config?.defaults?.repo || DEFAULT_REPO;
-      
-      // Check if the repo URL is a local path
-      try {
-        await fs.access(repoUrl);
-        // If it's accessible as a file path, treat it as local
-        templates = await templateDiscovery.listTemplatesFromPath(repoUrl);
-      } catch {
-        // Otherwise, treat it as a remote repository
-        templates = await templateDiscovery.listTemplates(repoUrl, 'main');
+      // List all available registries
+      const registries = config?.defaults?.registries;
+      if (registries && typeof registries === 'object') {
+        const registryNames = Object.keys(registries);
+        if (registryNames.length > 0) {
+          templates = registryNames.map(name => ({
+            name,
+            description: `Registry with ${Object.keys(registries[name]).length} templates`,
+            version: 'N/A'
+          }));
+        } else {
+          // No user-defined registries, fall back to default registry
+          templates = await listDefaultRegistryTemplates(cacheManager);
+        }
+      } else {
+        // No config at all, fall back to default registry
+        templates = await listDefaultRegistryTemplates(cacheManager);
       }
     }
 
     if (jsonOutput) {
       // ast-grep-ignore: no-console-log
-      const repoSource = templatePath || (config?.defaults?.repo || DEFAULT_REPO);
+      const source = registryName ? `registry: ${registryName}` : 'all registries';
       console.log(JSON.stringify({
-        repository: repoSource,
+        source,
         templates: templates.map(t => ({
           name: t.name,
           description: t.description,
@@ -1114,16 +1164,15 @@ async function executeListTemplates({ jsonOutput, templatePath, config }) {
         }))
       }, null, 2));
     } else {
-      const repoSource = templatePath || (config?.defaults?.repo || DEFAULT_REPO);
-      let source;
+      const source = registryName ? `registry: ${registryName}` : 'all registries';
+      let sourceDisplay;
       try {
-        await fs.access(repoSource);
-        source = `local path: ${repoSource}`;
+        sourceDisplay = `from ${source}`;
       } catch {
-        source = `repository: ${repoSource}`;
+        sourceDisplay = `from ${source}`;
       }
       // ast-grep-ignore: no-console-log
-      console.log(`📦 Available templates from ${source}:\n`);
+      console.log(`📦 Available templates ${sourceDisplay}:\n`);
 
       if (templates.length === 0) {
         // ast-grep-ignore: no-console-log
