@@ -235,18 +235,30 @@
               "description": "Human-readable description of the constraint."
             },
             "allowed": {
-              "type": "array",
-              "items": {
-                "type": "string"
+              "type": "object",
+              "patternProperties": {
+                "^[a-z][a-z0-9_-]*$": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "description": "Allowed values for this dimension on this platform."
+                }
               },
-              "description": "Allowed values for this dimension on this platform."
+              "description": "Dimension values allowed on this platform."
             },
             "forbidden": {
-              "type": "array",
-              "items": {
-                "type": "string"
+              "type": "object",
+              "patternProperties": {
+                "^[a-z][a-z0-9_-]*$": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "description": "Forbidden values for this dimension on this platform."
+                }
               },
-              "description": "Forbidden values for this dimension on this platform."
+              "description": "Dimension values forbidden on this platform."
             }
           }
         }
@@ -275,12 +287,15 @@
               "description": "Detailed description of what this feature provides."
             },
             "needs": {
-              "type": "array",
-              "items": {
-                "type": "string",
-                "pattern": "^[a-z][a-z0-9_-]*$"
+              "type": "object",
+              "patternProperties": {
+                "^[a-z][a-z0-9_-]*$": {
+                  "type": "string",
+                  "enum": ["required", "optional", "none"],
+                  "description": "Requirement level for this dimension: required=must be enabled, optional=can be enabled, none=cannot be enabled."
+                }
               },
-              "description": "Other features that must be enabled for this feature to work."
+              "description": "Dimension requirements for this feature to work properly."
             },
             "category": {
               "type": "string",
@@ -315,11 +330,16 @@
                   "minLength": 1,
                   "maxLength": 500
                 },
-                "tags": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
+                "needs": {
+                  "type": "object",
+                  "patternProperties": {
+                    "^[a-z][a-z0-9_-]*$": {
+                      "type": "string",
+                      "enum": ["required", "optional", "none"],
+                      "description": "Suggested requirement level for this dimension."
+                    }
+                  },
+                  "description": "Suggested dimension requirements for this feature."
                 },
                 "category": {
                   "type": "string",

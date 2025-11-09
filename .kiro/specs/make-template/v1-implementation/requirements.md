@@ -1,0 +1,63 @@
+# Requirements: make-template V1 Implementation
+
+## Overview
+Implement Phase 1 of the make-template V1 architectural vision to establish schema foundation and core infrastructure for template authoring with gates, hints, featureSpecs, and constants support.
+
+## Business Context
+The current make-template tool generates templates incompatible with the V1 create-scaffold architecture. Template authors need proper tooling to create V1-compliant templates with platform constraints, feature specifications, and authoring guidance.
+
+## Functional Requirements
+
+### Schema Implementation
+- **template.v1.json Schema**: Define complete JSON schema for V1 template authoring with gates, hints, featureSpecs, and constants sections
+- **selection.v1.json Schema**: Define schema for user selection workflows capturing final configuration choices
+- **Schema Validation**: Ensure schemas are valid JSON Schema Draft 2020-12 compliant
+
+### Template Generation
+- **--init Command Enhancement**: Modify existing --init command to generate V1-compliant skeleton templates
+- **Constants Section**: Include fixed template attributes (language, framework, styling, CI, etc.)
+- **Gates Structure**: Add platform compatibility constraints for deployment targets
+- **Hints Catalog**: Include advisory feature definitions for UI seeding
+- **FeatureSpecs**: Add detailed feature specifications with needs declarations
+
+### Core Validation Infrastructure
+- **TemplateValidator V1 Support**: Extend existing TemplateValidator to handle V1 schema validation
+- **Gates Validation Logic**: Implement platform constraint enforcement (e.g., Cloudflare Workers database/storage limitations)
+- **FeatureSpecs Validation**: Validate feature requirements and compatibility
+- **Constants vs Dimensions Separation**: Ensure proper distinction between fixed and configurable attributes
+
+## Non-Functional Requirements
+
+### Compatibility
+- **Backward Compatibility**: V1 implementation should not break existing make-template functionality
+- **Schema Evolution**: Support for future schema versions through version detection
+- **Integration Points**: Seamless integration with create-scaffold V1 architecture
+
+### Quality
+- **Comprehensive Testing**: Full test coverage for new functionality
+- **Error Handling**: Clear error messages for validation failures
+- **Performance**: Validation should complete within reasonable time limits
+
+### Documentation
+- **Schema Documentation**: Clear documentation of all schema fields and their purposes
+- **CLI Documentation**: Updated help text and usage examples
+- **Migration Guide**: Guidance for template authors migrating to V1
+
+## Success Criteria
+- Generated templates pass V1 schema validation
+- Basic gates system functional with platform constraints
+- Hints catalog included in generated skeletons
+- Core validation working correctly for all V1 features
+- Integration testing passes with create-scaffold team
+
+## Dependencies
+- Architecture memos (memo-01.md, memo-02.md) for schema specifications
+- Existing TemplateValidator infrastructure
+- Current make-template CLI structure
+- JSON Schema validation libraries
+
+## Risks & Mitigations
+- **Schema Complexity**: Incremental implementation with extensive testing
+- **Integration Issues**: Early coordination with create-scaffold team
+- **Breaking Changes**: Isolated V1 implementation without affecting current functionality</content>
+<parameter name="filePath">/Users/vijay/workspaces/ws-million-views/create/.kiro/specs/make-template/v1-implementation/requirements.md

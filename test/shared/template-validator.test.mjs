@@ -117,19 +117,25 @@ test('TemplateValidator comprehensive validation', async (t) => {
       dimensions: {
         features: {
           values: ['auth']
+        },
+        database: {
+          values: ['postgres']
         }
       },
       gates: {
-        nonexistent: {
-          platform: 'node',
-          constraint: 'version >= 18'
+        cloudflare: {
+          platform: 'edge',
+          constraint: 'Limited capabilities',
+          allowed: {
+            nonexistent: ['value'] // references unknown dimension
+          }
         }
       }
     };
 
     const result = await validator.validate(template, 'strict');
     assert(!result.valid, 'Template should be invalid');
-    assert(result.errors.some(e => e.message.includes('does not correspond to any dimension')), 'Should report gate dimension mismatch');
+    assert(result.errors.some(e => e.message.includes('references unknown dimension')), 'Should report unknown dimension reference');
   });
 
   await t.test('validates feature specs reference existing features', async () => {

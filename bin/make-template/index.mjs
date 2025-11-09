@@ -433,63 +433,165 @@ function generateSkeletonTemplate() {
     "tags": ["web", "api", "fullstack"],
     "author": "Your Name or Organization",
     "license": "MIT",
+    "constants": {
+      "language": "typescript",
+      "framework": "nextjs",
+      "styling": "tailwind",
+      "testing": "jest",
+      "ci": "github-actions"
+    },
     "dimensions": {
       "deployment_target": {
-        "values": ["vercel", "netlify", "railway"]
+        "values": ["vercel", "netlify", "railway", "render", "fly", "heroku"]
       },
       "features": {
-        "values": ["auth", "database", "api", "ui"]
+        "values": ["auth", "database", "api", "ui", "storage", "payments", "analytics"]
       },
       "database": {
-        "values": ["postgresql", "mysql", "sqlite"]
+        "values": ["postgresql", "mysql", "sqlite", "mongodb", "redis", "d1", "tursodb", "none"]
       },
       "storage": {
-        "values": ["aws-s3", "vercel-blob", "local"]
+        "values": ["aws-s3", "cloudflare-r2", "vercel-blob", "local", "none"]
       },
       "auth_providers": {
-        "values": ["google", "github", "twitter", "email"]
+        "values": ["google", "github", "twitter", "email", "none"]
       },
       "payments": {
-        "values": ["stripe", "paypal"]
+        "values": ["stripe", "paypal", "none"]
       },
       "analytics": {
-        "values": ["mixpanel", "google-analytics", "plausible"]
+        "values": ["mixpanel", "posthog", "google-analytics", "plausible", "none"]
       }
     },
     "gates": {
-      "deployment_target": {
-        "platform": "node",
-        "constraint": "Requires Node.js runtime"
+      "cloudflare-workers": {
+        "platform": "edge",
+        "constraint": "Limited runtime capabilities for edge computing",
+        "allowed": {
+          "database": ["sqlite", "tursodb", "d1", "none"],
+          "storage": ["cloudflare-r2", "none"]
+        }
+      },
+      "deno-deploy": {
+        "platform": "edge",
+        "constraint": "Deno runtime with limited storage options",
+        "allowed": {
+          "database": ["sqlite", "tursodb", "none"],
+          "storage": ["none"]
+        }
+      },
+      "linode": {
+        "platform": "vm",
+        "constraint": "Full VM with file system access",
+        "allowed": {
+          "database": ["sqlite", "tursodb", "postgresql", "mysql", "mongodb", "redis", "none"],
+          "storage": ["local", "aws-s3", "none"]
+        }
       }
     },
     "featureSpecs": {
       "auth": {
         "label": "Authentication",
-        "description": "Add user authentication system",
-        "needs": ["database"]
+        "description": "Add user authentication system with login/signup flows",
+        "needs": {
+          "database": "required"
+        },
+        "category": "authentication"
       },
       "database": {
-        "label": "Database",
-        "description": "Add database integration",
-        "needs": []
+        "label": "Database Integration",
+        "description": "Set up database connection and schema management",
+        "needs": {},
+        "category": "database"
       },
       "api": {
         "label": "API Routes",
-        "description": "Add API endpoints and routing",
-        "needs": []
+        "description": "Create REST or GraphQL API endpoints",
+        "needs": {},
+        "category": "api"
       },
       "ui": {
         "label": "User Interface",
-        "description": "Add frontend components and pages",
-        "needs": []
+        "description": "Build responsive user interface components",
+        "needs": {},
+        "category": "ui"
+      },
+      "storage": {
+        "label": "File Storage",
+        "description": "Add file upload and storage capabilities",
+        "needs": {},
+        "category": "storage"
+      },
+      "payments": {
+        "label": "Payment Processing",
+        "description": "Integrate payment processing, subscriptions, and billing management",
+        "needs": {
+          "database": "required"
+        },
+        "category": "payments"
+      },
+      "analytics": {
+        "label": "Analytics Tracking",
+        "description": "Add user analytics and tracking",
+        "needs": {},
+        "category": "analytics"
       }
     },
     "hints": {
       "features": {
-        "auth": "Add secure user authentication with login/signup flows",
-        "database": "Set up database connection and schema management",
-        "api": "Create REST or GraphQL API endpoints",
-        "ui": "Build responsive user interface components"
+        "auth": {
+          "label": "Authentication System",
+          "description": "Add secure user authentication with login/signup flows, password reset, and session management",
+          "needs": {
+            "database": "required"
+          },
+          "category": "authentication",
+          "tags": ["security", "users", "login"]
+        },
+        "database": {
+          "label": "Database Integration",
+          "description": "Set up database connection, schema management, and data access patterns",
+          "needs": {},
+          "category": "database",
+          "tags": ["data", "persistence", "orm"]
+        },
+        "api": {
+          "label": "API Endpoints",
+          "description": "Create REST or GraphQL API endpoints with proper routing and middleware",
+          "needs": {},
+          "category": "api",
+          "tags": ["rest", "graphql", "routing"]
+        },
+        "ui": {
+          "label": "User Interface",
+          "description": "Build responsive user interface components with modern design patterns",
+          "needs": {},
+          "category": "ui",
+          "tags": ["frontend", "components", "responsive"]
+        },
+        "storage": {
+          "label": "File Storage",
+          "description": "Add file upload, storage, and media management capabilities",
+          "needs": {},
+          "category": "storage",
+          "tags": ["files", "upload", "media"]
+        },
+        "payments": {
+          "label": "Payment Processing",
+          "description": "Integrate payment processing, subscriptions, and billing management",
+          "needs": {
+            "database": "required"
+          },
+          "category": "payments",
+          "tags": ["billing", "subscriptions", "commerce"]
+        },
+        "analytics": {
+          "label": "Analytics Tracking",
+          "description": "Add user analytics, event tracking, and performance monitoring",
+          "needs": {},
+          "category": "analytics",
+          "tags": ["tracking", "metrics", "insights"]
+        }
       }
     }
   };
