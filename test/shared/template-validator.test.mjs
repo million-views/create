@@ -48,6 +48,14 @@ test('TemplateValidator comprehensive validation', async (t) => {
         auth: {
           label: 'Authentication',
           description: 'User authentication system'
+        },
+        database: {
+          label: 'Database',
+          description: 'Database integration'
+        },
+        api: {
+          label: 'API',
+          description: 'API endpoints'
         }
       },
       hints: {

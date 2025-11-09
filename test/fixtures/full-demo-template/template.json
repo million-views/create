@@ -9,6 +9,13 @@
       "default": []
     }
   },
+  "featureSpecs": {
+    "docs": {
+      "label": "Documentation",
+      "description": "Add documentation files and setup",
+      "needs": {}
+    }
+  },
   "handoff": [
     "npm install",
     "npm run lint",

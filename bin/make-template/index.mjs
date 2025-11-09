@@ -97,6 +97,14 @@ const OPTIONS_SCHEMA = {
   'lint-file': {
     type: 'string'
   },
+  'suggest': {
+    type: 'boolean',
+    default: false
+  },
+  'fix': {
+    type: 'boolean',
+    default: false
+  },
   // Phase 2: Advanced CLI commands
   'add-dimension': {
     type: 'string'
@@ -173,6 +181,8 @@ HINTS OPTIONS:
 VALIDATION OPTIONS:
       --lint                    Validate template.json against schema
       --lint-file <file>        Validate specific template.json file
+      --suggest                 Show intelligent fix suggestions for validation errors
+      --fix                     Auto-apply safe fixes for validation errors
 
 TEMPLATE MANAGEMENT OPTIONS:
       --add-dimension <name>    Add configurable dimension to template
@@ -689,14 +699,16 @@ async function handleHintsCommand(options) {
 }
 
 /**
- * Handle lint command for template validation
+ * Handle lint command for template validation with intelligent suggestions
  */
 async function handleLintCommand(options) {
   const { TemplateValidator } = await import('../../lib/validation/template-validator.mjs');
+  const fs = await import('fs/promises');
 
   try {
     const validator = new TemplateValidator();
     const templateFile = options['lint-file'] || 'template.json';
+    const enableSuggestions = options.suggest || options.fix;
 
     console.log(`🔍 Validating ${templateFile}...`);
 
@@ -718,7 +730,7 @@ async function handleLintCommand(options) {
           if (warning.path && warning.path.length > 0) {
             console.log(`      Path: ${warning.path.join('.')}`);
           }
-          if (warning.suggestion) {
+          if (enableSuggestions && warning.suggestion) {
             console.log(`      💡 Suggestion: ${warning.suggestion}`);
           }
         });
@@ -731,14 +743,37 @@ async function handleLintCommand(options) {
       console.log(`   • Warnings: ${result.warnings.length}`);
       console.log('');
 
-      console.log('🚨 Errors:');
+      // Handle auto-fix if requested
+      if (options.fix) {
+        const fixesApplied = await applyIntelligentFixes(templateFile, result.errors);
+        if (fixesApplied > 0) {
+          console.log(`🔧 Applied ${fixesApplied} automatic fix(es)`);
+          console.log('');
+          // Re-validate after fixes
+          console.log('� Re-validating after fixes...');
+          const revalidateResult = await validator.validate(templateFile, 'strict');
+          if (revalidateResult.valid) {
+            console.log('✅ Template validation passed after fixes!');
+            return;
+          } else {
+            console.log('⚠️  Some issues remain after auto-fixes');
+            result.errors = revalidateResult.errors;
+            result.warnings = revalidateResult.warnings;
+          }
+        }
+      }
+
+      console.log('�🚨 Errors:');
       result.errors.forEach((error, i) => {
         console.log(`   ${i + 1}. ${error.message}`);
         if (error.path && error.path.length > 0) {
           console.log(`      Path: ${error.path.join('.')}`);
         }
-        if (error.suggestion) {
+        if (enableSuggestions && error.suggestion) {
           console.log(`      💡 Suggestion: ${error.suggestion}`);
+        }
+        if (enableSuggestions && error.command) {
+          console.log(`      🛠️  Command: ${error.command}`);
         }
       });
 
@@ -750,7 +785,7 @@ async function handleLintCommand(options) {
           if (warning.path && warning.path.length > 0) {
             console.log(`      Path: ${warning.path.join('.')}`);
           }
-          if (warning.suggestion) {
+          if (enableSuggestions && warning.suggestion) {
             console.log(`      💡 Suggestion: ${warning.suggestion}`);
           }
         });
@@ -764,6 +799,87 @@ async function handleLintCommand(options) {
     } else {
       handleError(`Lint failed: ${error.message}`);
     }
+  }
+}
+
+/**
+ * Apply intelligent fixes for safe validation errors
+ * @param {string} templateFile - Path to template file
+ * @param {Array} errors - Validation errors
+ * @returns {Promise<number>} Number of fixes applied
+ */
+async function applyIntelligentFixes(templateFile, errors) {
+  const fs = await import('fs/promises');
+  let fixesApplied = 0;
+
+  try {
+    // Read current template
+    const templateContent = await fs.readFile(templateFile, 'utf8');
+    let template = JSON.parse(templateContent);
+
+    for (const error of errors) {
+      if (error.type === 'DOMAIN_ERROR' && error.autoFix) {
+        try {
+          // Apply the fix based on error type
+          switch (error.autoFix.type) {
+            case 'add-missing-feature-spec':
+              if (!template.featureSpecs) {
+                template.featureSpecs = {};
+              }
+              template.featureSpecs[error.autoFix.feature] = {
+                label: error.autoFix.feature.charAt(0).toUpperCase() + error.autoFix.feature.slice(1).replace(/_/g, ' '),
+                description: `Description for ${error.autoFix.feature} feature`,
+                needs: {}
+              };
+              fixesApplied++;
+              console.log(`   ✓ Added missing feature spec for '${error.autoFix.feature}'`);
+              break;
+
+            case 'add-missing-dimension':
+              if (!template.dimensions) {
+                template.dimensions = {};
+              }
+              template.dimensions[error.autoFix.dimension] = {
+                values: []
+              };
+              fixesApplied++;
+              console.log(`   ✓ Added missing dimension '${error.autoFix.dimension}'`);
+              break;
+
+            case 'fix-schema-version':
+              template.schemaVersion = '1.0.0';
+              fixesApplied++;
+              console.log(`   ✓ Updated schema version to '1.0.0'`);
+              break;
+
+            case 'fix-id-format':
+              // Simple heuristic: convert to lowercase and replace spaces/underscores with hyphens
+              const fixedId = error.autoFix.currentId.toLowerCase()
+                .replace(/[^a-z0-9-/]/g, '-')
+                .replace(/-+/g, '-')
+                .replace(/^-|-$/g, '');
+              if (fixedId.includes('/')) {
+                template.id = fixedId;
+                fixesApplied++;
+                console.log(`   ✓ Fixed ID format to '${fixedId}'`);
+              }
+              break;
+          }
+        } catch (fixError) {
+          console.log(`   ⚠️  Failed to apply fix for: ${error.message}`);
+        }
+      }
+    }
+
+    // Write back if any fixes were applied
+    if (fixesApplied > 0) {
+      await fs.writeFile(templateFile, JSON.stringify(template, null, 2));
+    }
+
+    return fixesApplied;
+  } catch (error) {
+    console.log(`   ⚠️  Error during auto-fix: ${error.message}`);
+    return fixesApplied;
   }
 }
 
@@ -1533,7 +1649,7 @@ export async function main(argv = null) {
   }
 
   // Handle lint workflow
-  if (options.lint || options['lint-file']) {
+  if (options.lint || options['lint-file'] || options.suggest || options.fix) {
     await handleLintCommand(options);
     return;
   }
