@@ -60,12 +60,36 @@
         "google-analytics",
         "plausible"
       ]
+    },
+    "auth": {
+      "values": []
+    },
+    "ui_framework": {
+      "values": []
     }
   },
   "gates": {
     "deployment_target": {
       "platform": "node",
       "constraint": "Requires Node.js runtime"
+    },
+    "node": {
+      "platform": "node",
+      "constraint": "Platform-specific constraints for node",
+      "allowed": {},
+      "forbidden": {}
+    },
+    "deno": {
+      "platform": "deno",
+      "constraint": "Platform-specific constraints for deno",
+      "allowed": {},
+      "forbidden": {}
+    },
+    "browser": {
+      "platform": "browser",
+      "constraint": "Platform-specific constraints for browser",
+      "allowed": {},
+      "forbidden": {}
     }
   },
   "featureSpecs": {

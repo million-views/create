@@ -117,6 +117,16 @@ const OPTIONS_SCHEMA = {
   },
   'migrate-file': {
     type: 'string'
+  },
+  // Bulk operations for Phase 2
+  'bulk-add-dimensions': {
+    type: 'string'
+  },
+  'bulk-set-compat': {
+    type: 'string'
+  },
+  'bulk-set-needs': {
+    type: 'string'
   }
 };
 
@@ -168,6 +178,9 @@ TEMPLATE MANAGEMENT OPTIONS:
       --add-dimension <name>    Add configurable dimension to template
       --set-compat <platform>   Set platform compatibility gates
       --set-needs <feature>     Configure feature requirements
+      --bulk-add-dimensions <names>  Add multiple dimensions (comma-separated)
+      --bulk-set-compat <platforms>  Set compatibility gates for multiple platforms (comma-separated)
+      --bulk-set-needs <features>     Configure requirements for multiple features (comma-separated)
       --preview                 Preview template UI based on hints
       --migrate                 Migrate legacy template to V1 format
       --migrate-file <file>     Migrate specific template file to V1
@@ -949,6 +962,269 @@ async function handleSetNeedsCommand(options) {
 }
 
 /**
+ * Handle bulk-add-dimensions command for adding multiple dimensions to templates
+ */
+async function handleBulkAddDimensionsCommand(options) {
+  const fs = await import('fs/promises');
+
+  try {
+    const dimensionNamesStr = options['bulk-add-dimensions'];
+    const templateFile = 'template.json';
+
+    // Parse dimension names
+    const dimensionNames = dimensionNamesStr.split(',').map(name => name.trim()).filter(name => name.length > 0);
+
+    if (dimensionNames.length === 0) {
+      console.log('❌ No dimension names provided');
+      console.log('   Usage: make-template --bulk-add-dimensions <name1,name2,name3>');
+      process.exit(1);
+    }
+
+    // Validate all dimension names
+    const invalidNames = dimensionNames.filter(name => !/^[a-z][a-z0-9_-]*$/.test(name));
+    if (invalidNames.length > 0) {
+      console.log(`❌ Invalid dimension names: ${invalidNames.join(', ')}`);
+      console.log('   Dimension names must match pattern: ^[a-z][a-z0-9_-]*$');
+      process.exit(1);
+    }
+
+    // Check if template.json exists
+    try {
+      await fs.access(templateFile);
+    } catch (error) {
+      console.log(`❌ Template file not found: ${templateFile}`);
+      console.log('   Run "make-template --init" first to create a template.');
+      process.exit(1);
+    }
+
+    // Read and parse template
+    const templateContent = await fs.readFile(templateFile, 'utf8');
+    const template = JSON.parse(templateContent);
+
+    // Initialize dimensions if not present
+    if (!template.dimensions) {
+      template.dimensions = {};
+    }
+
+    // Track added and skipped dimensions
+    const added = [];
+    const skipped = [];
+
+    for (const dimensionName of dimensionNames) {
+      if (template.dimensions[dimensionName]) {
+        skipped.push(dimensionName);
+      } else {
+        template.dimensions[dimensionName] = {
+          values: []
+        };
+        added.push(dimensionName);
+      }
+    }
+
+    // Write back to file if any dimensions were added
+    if (added.length > 0) {
+      await fs.writeFile(templateFile, JSON.stringify(template, null, 2));
+    }
+
+    // Report results
+    if (added.length > 0) {
+      console.log(`✅ Added ${added.length} dimension(s) to ${templateFile}:`);
+      added.forEach(name => console.log(`   + ${name}`));
+    }
+
+    if (skipped.length > 0) {
+      console.log(`⚠️  Skipped ${skipped.length} existing dimension(s):`);
+      skipped.forEach(name => console.log(`   - ${name} (already exists)`));
+    }
+
+    if (added.length > 0) {
+      console.log('');
+      console.log('📋 Next steps:');
+      console.log(`   1. Edit ${templateFile} to add values to the new dimensions`);
+      console.log('   2. Run "make-template --lint" to validate your changes');
+    }
+
+  } catch (error) {
+    handleError(`Bulk add dimensions failed: ${error.message}`);
+  }
+}
+
+/**
+ * Handle bulk-set-compat command for setting compatibility gates for multiple platforms
+ */
+async function handleBulkSetCompatCommand(options) {
+  const fs = await import('fs/promises');
+
+  try {
+    const platformsStr = options['bulk-set-compat'];
+    const templateFile = 'template.json';
+
+    // Parse platform names
+    const platforms = platformsStr.split(',').map(name => name.trim()).filter(name => name.length > 0);
+
+    if (platforms.length === 0) {
+      console.log('❌ No platform names provided');
+      console.log('   Usage: make-template --bulk-set-compat <platform1,platform2,platform3>');
+      process.exit(1);
+    }
+
+    // Check if template.json exists
+    try {
+      await fs.access(templateFile);
+    } catch (error) {
+      console.log(`❌ Template file not found: ${templateFile}`);
+      console.log('   Run "make-template --init" first to create a template.');
+      process.exit(1);
+    }
+
+    // Read and parse template
+    const templateContent = await fs.readFile(templateFile, 'utf8');
+    const template = JSON.parse(templateContent);
+
+    // Initialize gates if not present
+    if (!template.gates) {
+      template.gates = {};
+    }
+
+    // Track added and skipped platforms
+    const added = [];
+    const skipped = [];
+
+    for (const platform of platforms) {
+      if (template.gates[platform]) {
+        skipped.push(platform);
+      } else {
+        template.gates[platform] = {
+          platform: platform,
+          constraint: `Platform-specific constraints for ${platform}`,
+          allowed: {},
+          forbidden: {}
+        };
+        added.push(platform);
+      }
+    }
+
+    // Write back to file if any gates were added
+    if (added.length > 0) {
+      await fs.writeFile(templateFile, JSON.stringify(template, null, 2));
+    }
+
+    // Report results
+    if (added.length > 0) {
+      console.log(`✅ Added compatibility gates for ${added.length} platform(s) to ${templateFile}:`);
+      added.forEach(name => console.log(`   + ${name}`));
+    }
+
+    if (skipped.length > 0) {
+      console.log(`⚠️  Skipped ${skipped.length} existing platform(s):`);
+      skipped.forEach(name => console.log(`   - ${name} (already exists)`));
+    }
+
+    if (added.length > 0) {
+      console.log('');
+      console.log('📋 Next steps:');
+      console.log(`   1. Edit ${templateFile} to configure allowed/forbidden values for the new gates`);
+      console.log('   2. Run "make-template --lint" to validate your changes');
+    }
+
+  } catch (error) {
+    handleError(`Bulk set compatibility failed: ${error.message}`);
+  }
+}
+
+/**
+ * Handle bulk-set-needs command for configuring requirements for multiple features
+ */
+async function handleBulkSetNeedsCommand(options) {
+  const fs = await import('fs/promises');
+
+  try {
+    const featuresStr = options['bulk-set-needs'];
+    const templateFile = 'template.json';
+
+    // Parse feature names
+    const features = featuresStr.split(',').map(name => name.trim()).filter(name => name.length > 0);
+
+    if (features.length === 0) {
+      console.log('❌ No feature names provided');
+      console.log('   Usage: make-template --bulk-set-needs <feature1,feature2,feature3>');
+      process.exit(1);
+    }
+
+    // Check if template.json exists
+    try {
+      await fs.access(templateFile);
+    } catch (error) {
+      console.log(`❌ Template file not found: ${templateFile}`);
+      console.log('   Run "make-template --init" first to create a template.');
+      process.exit(1);
+    }
+
+    // Read and parse template
+    const templateContent = await fs.readFile(templateFile, 'utf8');
+    const template = JSON.parse(templateContent);
+
+    // Check if features exist in dimensions
+    const availableFeatures = template.dimensions?.features?.values || [];
+    const missingFeatures = features.filter(feature => !availableFeatures.includes(feature));
+
+    if (missingFeatures.length > 0) {
+      console.log(`❌ Features not found in template dimensions: ${missingFeatures.join(', ')}`);
+      console.log('   Add these features to dimensions.features.values first.');
+      process.exit(1);
+    }
+
+    // Initialize featureSpecs if not present
+    if (!template.featureSpecs) {
+      template.featureSpecs = {};
+    }
+
+    // Track added and skipped features
+    const added = [];
+    const skipped = [];
+
+    for (const feature of features) {
+      if (template.featureSpecs[feature]) {
+        skipped.push(feature);
+      } else {
+        template.featureSpecs[feature] = {
+          label: feature.charAt(0).toUpperCase() + feature.slice(1).replace(/_/g, ' '),
+          description: `Description for ${feature} feature`,
+          needs: {}
+        };
+        added.push(feature);
+      }
+    }
+
+    // Write back to file if any specs were added
+    if (added.length > 0) {
+      await fs.writeFile(templateFile, JSON.stringify(template, null, 2));
+    }
+
+    // Report results
+    if (added.length > 0) {
+      console.log(`✅ Added feature specs for ${added.length} feature(s) to ${templateFile}:`);
+      added.forEach(name => console.log(`   + ${name}`));
+    }
+
+    if (skipped.length > 0) {
+      console.log(`⚠️  Skipped ${skipped.length} existing feature(s):`);
+      skipped.forEach(name => console.log(`   - ${name} (already exists)`));
+    }
+
+    if (added.length > 0) {
+      console.log('');
+      console.log('📋 Next steps:');
+      console.log(`   1. Edit ${templateFile} to configure needs requirements for the new features`);
+      console.log('   2. Run "make-template --lint" to validate your changes');
+    }
+
+  } catch (error) {
+    handleError(`Bulk set needs failed: ${error.message}`);
+  }
+}
+
+/**
  * Handle preview command for rendering UI preview based on hints
  */
 async function handlePreviewCommand(options) {
@@ -1275,6 +1551,22 @@ export async function main(argv = null) {
 
   if (options['set-needs']) {
     await handleSetNeedsCommand(options);
+    return;
+  }
+
+  // Handle bulk operations
+  if (options['bulk-add-dimensions']) {
+    await handleBulkAddDimensionsCommand(options);
+    return;
+  }
+
+  if (options['bulk-set-compat']) {
+    await handleBulkSetCompatCommand(options);
+    return;
+  }
+
+  if (options['bulk-set-needs']) {
+    await handleBulkSetNeedsCommand(options);
     return;
   }
 
