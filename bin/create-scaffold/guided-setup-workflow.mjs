@@ -77,11 +77,15 @@ export class GuidedSetupWorkflow {
       ide: this.ide,
       placeholders: this.placeholders,
       progress: {
-        totalSteps: 8,
+        totalSteps: 12,
         currentStepIndex: 0,
         stepNames: [
           'initialization',
           'validation',
+          'dimension_selection',
+          'hints_display',
+          'gate_enforcement',
+          'feature_validation',
           'directory_setup',
           'template_copy',
           'placeholder_resolution',
@@ -93,6 +97,317 @@ export class GuidedSetupWorkflow {
       errors: [],
       warnings: []
     };
+  }
+
+  /**
+   * Check if this is a V1 template
+   */
+  #isV1Template() {
+    return this.metadata?.schemaVersion === '1.0.0';
+  }
+
+  /**
+   * Execute dimension selection for V1 templates
+   */
+  async #executeDimensionSelection() {
+    if (process.env.NODE_ENV === 'test') {
+      console.error('DEBUG: executeDimensionSelection called');
+    }
+
+    if (!this.#isV1Template()) {
+      return { success: true, message: 'Not a V1 template, skipping dimension selection' };
+    }
+
+    const dimensions = this.metadata?.dimensions || {};
+    if (Object.keys(dimensions).length === 0) {
+      return { success: true, message: 'No dimensions to select' };
+    }
+
+    // Initialize selections if not already done
+    if (!this.workflowState.dimensionSelections) {
+      this.workflowState.dimensionSelections = {};
+    }
+
+    // For each dimension, prompt user to select options
+    for (const [dimName, dimConfig] of Object.entries(dimensions)) {
+      if (this.workflowState.dimensionSelections[dimName]) {
+        // Already selected, skip
+        continue;
+      }
+
+      await this.prompt.write(`\n📋 Dimension: ${dimName}\n`);
+      if (dimConfig.description) {
+        await this.prompt.write(`${dimConfig.description}\n`);
+      }
+
+      // Handle different dimension structures
+      let options = [];
+      if (dimConfig.values) {
+        // Simple format: values array
+        options = dimConfig.values;
+      } else if (dimConfig.options) {
+        // Structured format: options array with id/name objects
+        options = dimConfig.options.map(opt => opt.name || opt.id);
+      }
+
+      if (options.length === 0) {
+        await this.prompt.write(`No options available for dimension ${dimName}\n`);
+        continue;
+      }
+
+      await this.prompt.write('Available options:\n');
+      for (let i = 0; i < options.length; i++) {
+        await this.prompt.write(`   ${i + 1}. ${options[i]}\n`);
+      }
+
+      const choice = await this.#promptChoice(`Select option for ${dimName}`, options);
+      const selectedOption = options[choice];
+
+      // Store the selection
+      this.workflowState.dimensionSelections[dimName] = selectedOption;
+
+      await this.prompt.write(`Selected: ${selectedOption}\n`);
+    }
+
+    return { success: true, message: 'Dimension selection completed' };
+  }
+
+  /**
+   * Execute hints display for V1 templates
+   */
+  async #executeHintsDisplay() {
+    if (process.env.NODE_ENV === 'test') {
+      console.error('DEBUG: executeHintsDisplay called');
+    }
+
+    if (!this.#isV1Template()) {
+      return { success: true, message: 'Not a V1 template, skipping hints display' };
+    }
+
+    const hints = this.metadata?.hints || {};
+    const dimensionSelections = this.workflowState.dimensionSelections || {};
+
+    if (Object.keys(hints).length === 0) {
+      return { success: true, message: 'No hints to display' };
+    }
+
+    // Display hints for selected dimensions
+    await this.prompt.write(`\n💡 Template Guidance:\n`);
+
+    // Show hints for features dimension if it exists and has hints
+    if (hints.features && dimensionSelections.features) {
+      const selectedFeatures = Array.isArray(dimensionSelections.features)
+        ? dimensionSelections.features
+        : [dimensionSelections.features];
+
+      for (const selectedFeature of selectedFeatures) {
+        if (hints.features[selectedFeature]) {
+          const hint = hints.features[selectedFeature];
+          await this.prompt.write(`\n📋 ${hint.label || selectedFeature}:\n`);
+          if (hint.description) {
+            await this.prompt.write(`${hint.description}\n`);
+          }
+          if (hint.category) {
+            await this.prompt.write(`Category: ${hint.category}\n`);
+          }
+          if (hint.tags && hint.tags.length > 0) {
+            await this.prompt.write(`Tags: ${hint.tags.join(', ')}\n`);
+          }
+        }
+      }
+    }
+
+    // Show hints for other dimensions if they exist
+    for (const [dimName, selectedValue] of Object.entries(dimensionSelections)) {
+      if (dimName !== 'features' && hints[dimName] && hints[dimName][selectedValue]) {
+        const hint = hints[dimName][selectedValue];
+        await this.prompt.write(`\n📋 ${dimName} - ${selectedValue}:\n`);
+        if (hint.description) {
+          await this.prompt.write(`${hint.description}\n`);
+        }
+        if (hint.category) {
+          await this.prompt.write(`Category: ${hint.category}\n`);
+        }
+      }
+    }
+
+    await this.prompt.write(`\n💡 This guidance helps you understand what will be included in your project.\n`);
+
+    return { success: true, message: 'Hints display completed' };
+  }
+
+  /**
+   * Execute gate enforcement for V1 templates
+   */
+  async #executeGateEnforcement() {
+    if (process.env.NODE_ENV === 'test') {
+      console.error('DEBUG: executeGateEnforcement called');
+    }
+
+    if (!this.#isV1Template()) {
+      return { success: true, message: 'Not a V1 template, skipping gate enforcement' };
+    }
+
+    const gates = this.metadata?.gates || {};
+    const dimensionSelections = this.workflowState.dimensionSelections || {};
+
+    if (Object.keys(gates).length === 0) {
+      return { success: true, message: 'No gates to enforce' };
+    }
+
+    if (Object.keys(dimensionSelections).length === 0) {
+      return { success: true, message: 'No dimension selections to validate' };
+    }
+
+    // Check each gate to see if it applies to the selected dimensions
+    const violations = [];
+
+    for (const [gateName, gateConfig] of Object.entries(gates)) {
+      // Check if this gate applies (e.g., if deployment_target is cloudflare-workers)
+      const gateApplies = this.#doesGateApply(gateName, gateConfig, dimensionSelections);
+
+      if (gateApplies) {
+        // Validate that all selected options are allowed by this gate
+        const gateViolations = this.#validateGateConstraints(gateName, gateConfig, dimensionSelections);
+        violations.push(...gateViolations);
+      }
+    }
+
+    if (violations.length > 0) {
+      // Show violations and ask user to fix them
+      await this.prompt.write(`\n❌ Gate Enforcement Violations:\n`);
+      for (const violation of violations) {
+        await this.prompt.write(`  • ${violation.message}\n`);
+      }
+
+      await this.prompt.write(`\nPlease adjust your selections to resolve these conflicts.\n`);
+      return { success: false, message: 'Gate violations detected', violations };
+    }
+
+    return { success: true, message: 'Gate enforcement passed' };
+  }
+
+  /**
+   * Check if a gate applies to the current dimension selections
+   */
+  #doesGateApply(gateName, gateConfig, dimensionSelections) {
+    // Gates are typically keyed by specific dimension values
+    // For example, "cloudflare-workers" gate applies when deployment_target is "cloudflare-workers"
+    // We need to determine which dimension this gate applies to
+
+    // For now, assume gates apply when their name matches a selected dimension value
+    // This works for the current template structure where gates are named after deployment targets
+    for (const [dimName, selectedValue] of Object.entries(dimensionSelections)) {
+      if (selectedValue === gateName) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Validate that selected options are allowed by the gate
+   */
+  #validateGateConstraints(gateName, gateConfig, dimensionSelections) {
+    const violations = [];
+
+    if (gateConfig.allowed) {
+      for (const [constrainedDim, allowedValues] of Object.entries(gateConfig.allowed)) {
+        const selectedValue = dimensionSelections[constrainedDim];
+
+        if (selectedValue && !allowedValues.includes(selectedValue)) {
+          violations.push({
+            gate: gateName,
+            dimension: constrainedDim,
+            selected: selectedValue,
+            allowed: allowedValues,
+            message: `${gateName} constraint: ${constrainedDim} '${selectedValue}' is not allowed. Allowed: ${allowedValues.join(', ')}`
+          });
+        }
+      }
+    }
+
+    return violations;
+  }
+
+  /**
+   * Execute feature validation for V1 templates
+   */
+  async #executeFeatureValidation() {
+    if (process.env.NODE_ENV === 'test') {
+      console.error('DEBUG: executeFeatureValidation called');
+    }
+
+    if (!this.#isV1Template()) {
+      return { success: true, message: 'Not a V1 template, skipping feature validation' };
+    }
+
+    const featureSpecs = this.metadata?.featureSpecs || {};
+    const dimensionSelections = this.workflowState.dimensionSelections || {};
+
+    if (Object.keys(featureSpecs).length === 0) {
+      return { success: true, message: 'No feature specs to validate' };
+    }
+
+    // Check if any selected features have requirements
+    const violations = [];
+
+    // Check features dimension to see what features were selected
+    const selectedFeatures = dimensionSelections.features;
+    if (!selectedFeatures) {
+      return { success: true, message: 'No features selected to validate' };
+    }
+
+    // Handle both single feature and array of features
+    const featuresToCheck = Array.isArray(selectedFeatures) ? selectedFeatures : [selectedFeatures];
+
+    for (const selectedFeature of featuresToCheck) {
+      if (featureSpecs[selectedFeature] && featureSpecs[selectedFeature].needs) {
+        const needs = featureSpecs[selectedFeature].needs;
+
+        // Check each requirement
+        for (const [requiredDim, requirement] of Object.entries(needs)) {
+          const selectedValue = dimensionSelections[requiredDim];
+
+          if (requirement === 'required') {
+            // Must have a non-"none" value selected
+            if (!selectedValue || selectedValue === 'none') {
+              violations.push({
+                feature: selectedFeature,
+                dimension: requiredDim,
+                requirement: requirement,
+                message: `Feature '${selectedFeature}' requires a ${requiredDim} to be selected`
+              });
+            }
+          } else if (typeof requirement === 'string') {
+            // Specific value required
+            if (selectedValue !== requirement) {
+              violations.push({
+                feature: selectedFeature,
+                dimension: requiredDim,
+                requirement: requirement,
+                selected: selectedValue,
+                message: `Feature '${selectedFeature}' requires ${requiredDim} to be '${requirement}' but '${selectedValue}' was selected`
+              });
+            }
+          }
+          // Could extend for other requirement types like arrays, etc.
+        }
+      }
+    }
+
+    if (violations.length > 0) {
+      // Show violations and ask user to fix them
+      await this.prompt.write(`\n❌ Feature Validation Violations:\n`);
+      for (const violation of violations) {
+        await this.prompt.write(`  • ${violation.message}\n`);
+      }
+
+      await this.prompt.write(`\nPlease adjust your selections to resolve these conflicts.\n`);
+      return { success: false, message: 'Feature validation violations detected', violations };
+    }
+
+    return { success: true, message: 'Feature validation passed' };
   }
 
   /**
@@ -113,6 +428,10 @@ export class GuidedSetupWorkflow {
       const steps = [
         { name: 'initialization', method: () => this.#executeInitialization() },
         { name: 'validation', method: () => this.#executeValidation() },
+        { name: 'dimension_selection', method: () => this.#executeDimensionSelection(), condition: () => this.#isV1Template() },
+        { name: 'hints_display', method: () => this.#executeHintsDisplay(), condition: () => this.#isV1Template() },
+        { name: 'gate_enforcement', method: () => this.#executeGateEnforcement(), condition: () => this.#isV1Template() },
+        { name: 'feature_validation', method: () => this.#executeFeatureValidation(), condition: () => this.#isV1Template() },
         { name: 'directory_setup', method: () => this.#executeDirectorySetup() },
         { name: 'template_copy', method: () => this.#executeTemplateCopy() },
         { name: 'placeholder_resolution', method: () => this.#executePlaceholderResolution() },
@@ -132,6 +451,15 @@ export class GuidedSetupWorkflow {
         const step = steps[i];
         this.workflowState.currentStep = step.name;
         this.workflowState.progress.currentStepIndex = i;
+
+        // Check if step has a condition and skip if not met
+        if (step.condition && !step.condition()) {
+          if (process.env.NODE_ENV === 'test') {
+            console.error(`DEBUG: Skipping conditional step: ${step.name}`);
+          }
+          await this.#displayStepStatus(step.name, 'skipped', 'Not applicable');
+          continue;
+        }
 
         // Skip completed steps unless resuming from failure
         if (this.workflowState.completedSteps.includes(step.name) &&
@@ -890,9 +1218,9 @@ This project was created from a template that was not found. A basic project str
    */
   async #promptChoice(question, options) {
     await this.prompt.write(`${question}:\n`);
-    options.forEach((option, index) => {
-      this.prompt.write(`   ${index + 1}. ${option}\n`);
-    });
+    for (let i = 0; i < options.length; i++) {
+      await this.prompt.write(`   ${i + 1}. ${options[i]}\n`);
+    }
 
     while (true) {
       const input = (await this.prompt.question('Enter choice (number): ')).trim();

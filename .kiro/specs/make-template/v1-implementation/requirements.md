@@ -59,5 +59,4 @@ The current make-template tool generates templates incompatible with the V1 crea
 ## Risks & Mitigations
 - **Schema Complexity**: Incremental implementation with extensive testing
 - **Integration Issues**: Early coordination with create-scaffold team
-- **Breaking Changes**: Isolated V1 implementation without affecting current functionality</content>
-<parameter name="filePath">/Users/vijay/workspaces/ws-million-views/create/.kiro/specs/make-template/v1-implementation/requirements.md
+- **Breaking Changes**: Isolated V1 implementation without affecting current functionality

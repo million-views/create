@@ -40,7 +40,6 @@
 
 #### 2.3 Documentation Updates
 - [x] **Update README** - Document V1 schema features and authoring workflow
-- [x] **Create migration guide** - Help existing template authors migrate to V1
 - [x] **Update CLI documentation** - New command options and V1-specific features
 - [x] **Add schema field documentation** - Detailed explanations of all V1 schema fields
 
@@ -48,6 +47,7 @@
 - [x] Generated templates pass V1 schema validation
 - [x] Basic gates system functional with platform constraints
 - [x] Hints catalog included in generated skeletons
+- [x] Hints display system implemented in guided workflow
 - [x] Core validation working correctly for all V1 features
 - [x] All tests passing with good coverage
 - [x] Documentation updated and accurate
@@ -56,7 +56,6 @@
 - [ ] **Incremental implementation** - Test each schema component individually before integration
 - [ ] **Comprehensive validation** - Extensive testing at each step with edge cases
 - [ ] **Clear specifications** - Well-defined requirements from architecture memos
-- [ ] **Backward compatibility** - Ensure existing functionality remains unaffected
 
 ## Dependencies
 - Architecture memos (memo-01.md, memo-02.md) for schema specifications
@@ -65,7 +64,62 @@
 - JSON Schema validation libraries
 
 ## Next Phase Preparation
-- [ ] **Phase 2 planning** - CLI enhancement and advanced features (Weeks 3-4)
+- [x] **Phase 2 planning** - CLI enhancement and advanced features (Weeks 3-4)
 - [ ] **Stakeholder coordination** - Align with create-scaffold team on integration requirements
-- [ ] **Testing environment setup** - Prepare for more comprehensive integration testing</content>
-<parameter name="filePath">/Users/vijay/workspaces/ws-million-views/create/.kiro/specs/make-template/v1-implementation/tasks.md
+- [ ] **Testing environment setup** - Prepare for more comprehensive integration testing
+
+## Phase 2: CLI Enhancement & Advanced Features (Weeks 3-4)
+
+### Objectives
+- Provide advanced CLI tools for template authoring
+- Implement sophisticated validation and management features
+- Enable full template ecosystem participation
+
+### Week 3: New CLI Commands
+
+#### 2.1 New CLI Commands Implementation
+- [x] **`add-dimension` command** - Add configurable dimensions to existing templates
+- [x] **`set-compat` command** - Define platform compatibility gates for deployment targets
+- [x] **`set-needs` command** - Configure feature requirements and dependencies
+- [x] **`preview` command** - Render UI preview based on hints catalog
+- [x] **Command argument parsing** - Add new CLI options and validation
+- [x] **Command help documentation** - Update help text for new commands
+
+#### 2.2 Enhanced Validation Features
+- [x] **Gates enforcement validation** - Validate deployment target compatibility at runtime
+- [x] **Feature needs checking** - Ensure feature requirements are met before enabling
+- [x] **Cross-dimension validation** - Verify dimension combinations are compatible
+- [x] **Hints validation** - Ensure hints align with featureSpecs definitions
+- [x] **Advanced error reporting** - Detailed validation messages with suggestions
+
+#### 2.3 Template Management Tools
+- [ ] **Bulk operations support** - Manage multiple dimensions/features at once
+- [ ] **Template diffing** - Compare template versions and changes
+- [ ] **Validation reporting** - Detailed error and warning reports with fix suggestions
+
+### Week 4: Integration & Ecosystem Features
+
+#### 2.4 Ecosystem Participation
+- [ ] **Template marketplace integration** - Compatibility with template registries
+- [ ] **UI integration support** - Hints catalog consumption by authoring UIs
+- [ ] **Cross-template validation** - Validate templates against ecosystem standards
+- [ ] **Template sharing features** - Export/import templates with metadata
+
+#### 2.5 Advanced Features
+- [ ] **Template composition** - Combine multiple templates into complex projects
+- [ ] **Conditional logic** - Support for conditional feature/dimension enabling
+- [ ] **Template inheritance** - Base templates with customization layers
+
+#### 2.6 Testing & Documentation
+- [ ] **CLI command tests** - Comprehensive testing for all new commands
+- [ ] **Integration tests** - End-to-end workflow testing with create-scaffold
+- [ ] **User documentation** - CLI usage guides and examples
+- [ ] **API documentation** - Programmatic usage documentation
+
+### Phase 2 Success Criteria
+- [x] All required CLI commands implemented and tested
+- [x] Advanced validation catches architectural violations
+- [ ] Template migration tools functional
+- [ ] CLI provides clear feedback for all operations
+- [ ] Integration with create-scaffold team successful
+- [ ] Template authoring workflow significantly improved

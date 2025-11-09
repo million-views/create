@@ -96,6 +96,27 @@ const OPTIONS_SCHEMA = {
   },
   'lint-file': {
     type: 'string'
+  },
+  // Phase 2: Advanced CLI commands
+  'add-dimension': {
+    type: 'string'
+  },
+  'set-compat': {
+    type: 'string'
+  },
+  'set-needs': {
+    type: 'string'
+  },
+  'preview': {
+    type: 'boolean',
+    default: false
+  },
+  'migrate': {
+    type: 'boolean',
+    default: false
+  },
+  'migrate-file': {
+    type: 'string'
   }
 };
 
@@ -142,6 +163,14 @@ HINTS OPTIONS:
 VALIDATION OPTIONS:
       --lint                    Validate template.json against schema
       --lint-file <file>        Validate specific template.json file
+
+TEMPLATE MANAGEMENT OPTIONS:
+      --add-dimension <name>    Add configurable dimension to template
+      --set-compat <platform>   Set platform compatibility gates
+      --set-needs <feature>     Configure feature requirements
+      --preview                 Preview template UI based on hints
+      --migrate                 Migrate legacy template to V1 format
+      --migrate-file <file>     Migrate specific template file to V1
 
 SUPPORTED PROJECT TYPES:
   cf-d1        Cloudflare Worker with D1 database
@@ -673,6 +702,12 @@ async function handleLintCommand(options) {
         console.log('⚠️  Warnings:');
         result.warnings.forEach((warning, i) => {
           console.log(`   ${i + 1}. ${warning.message}`);
+          if (warning.path && warning.path.length > 0) {
+            console.log(`      Path: ${warning.path.join('.')}`);
+          }
+          if (warning.suggestion) {
+            console.log(`      💡 Suggestion: ${warning.suggestion}`);
+          }
         });
       }
     } else {
@@ -689,6 +724,9 @@ async function handleLintCommand(options) {
         if (error.path && error.path.length > 0) {
           console.log(`      Path: ${error.path.join('.')}`);
         }
+        if (error.suggestion) {
+          console.log(`      💡 Suggestion: ${error.suggestion}`);
+        }
       });
 
       if (result.warnings.length > 0) {
@@ -696,6 +734,12 @@ async function handleLintCommand(options) {
         console.log('⚠️  Warnings:');
         result.warnings.forEach((warning, i) => {
           console.log(`   ${i + 1}. ${warning.message}`);
+          if (warning.path && warning.path.length > 0) {
+            console.log(`      Path: ${warning.path.join('.')}`);
+          }
+          if (warning.suggestion) {
+            console.log(`      💡 Suggestion: ${warning.suggestion}`);
+          }
         });
       }
 
@@ -708,6 +752,371 @@ async function handleLintCommand(options) {
       handleError(`Lint failed: ${error.message}`);
     }
   }
+}
+
+/**
+ * Handle add-dimension command for adding dimensions to templates
+ */
+async function handleAddDimensionCommand(options) {
+  const fs = await import('fs/promises');
+
+  try {
+    const dimensionName = options['add-dimension'];
+    const templateFile = 'template.json';
+
+    // Validate dimension name
+    if (!/^[a-z][a-z0-9_-]*$/.test(dimensionName)) {
+      console.log(`❌ Invalid dimension name: ${dimensionName}`);
+      console.log('   Dimension names must match pattern: ^[a-z][a-z0-9_-]*$');
+      process.exit(1);
+    }
+
+    // Check if template.json exists
+    try {
+      await fs.access(templateFile);
+    } catch (error) {
+      console.log(`❌ Template file not found: ${templateFile}`);
+      console.log('   Run "make-template --init" first to create a template.');
+      process.exit(1);
+    }
+
+    // Read and parse template
+    const templateContent = await fs.readFile(templateFile, 'utf8');
+    const template = JSON.parse(templateContent);
+
+    // Check if dimension already exists
+    if (template.dimensions && template.dimensions[dimensionName]) {
+      console.log(`❌ Dimension '${dimensionName}' already exists in template.`);
+      process.exit(1);
+    }
+
+    // Initialize dimensions if not present
+    if (!template.dimensions) {
+      template.dimensions = {};
+    }
+
+    // Add the new dimension with default structure
+    template.dimensions[dimensionName] = {
+      values: []
+    };
+
+    // Write back to file
+    await fs.writeFile(templateFile, JSON.stringify(template, null, 2));
+
+    console.log(`✅ Added dimension '${dimensionName}' to ${templateFile}`);
+    console.log('');
+    console.log('📋 Next steps:');
+    console.log(`   1. Edit ${templateFile} to add values to the '${dimensionName}' dimension`);
+    console.log('   2. Run "make-template --lint" to validate your changes');
+
+  } catch (error) {
+    handleError(`Add dimension failed: ${error.message}`);
+  }
+}
+
+/**
+ * Handle set-compat command for setting platform compatibility gates
+ */
+async function handleSetCompatCommand(options) {
+  const fs = await import('fs/promises');
+
+  try {
+    const platform = options['set-compat'];
+    const templateFile = 'template.json';
+
+    // Validate platform name
+    if (!platform || platform.trim() === '') {
+      console.log('❌ Platform name is required for --set-compat');
+      console.log('   Usage: make-template --set-compat <platform>');
+      process.exit(1);
+    }
+
+    // Check if template.json exists
+    try {
+      await fs.access(templateFile);
+    } catch (error) {
+      console.log(`❌ Template file not found: ${templateFile}`);
+      console.log('   Run "make-template --init" first to create a template.');
+      process.exit(1);
+    }
+
+    // Read and parse template
+    const templateContent = await fs.readFile(templateFile, 'utf8');
+    const template = JSON.parse(templateContent);
+
+    // Initialize gates if not present
+    if (!template.gates) {
+      template.gates = {};
+    }
+
+    // Check if gate already exists
+    if (template.gates[platform]) {
+      console.log(`⚠️  Gate for platform '${platform}' already exists.`);
+      console.log('   Edit template.json directly to modify existing gates.');
+      process.exit(1);
+    }
+
+    // Add the new gate with default structure
+    template.gates[platform] = {
+      platform: platform,
+      constraint: `Platform-specific constraints for ${platform}`,
+      allowed: {},
+      forbidden: {}
+    };
+
+    // Write back to file
+    await fs.writeFile(templateFile, JSON.stringify(template, null, 2));
+
+    console.log(`✅ Added compatibility gate for platform '${platform}' to ${templateFile}`);
+    console.log('');
+    console.log('📋 Next steps:');
+    console.log(`   1. Edit ${templateFile} to configure allowed/forbidden values for dimensions`);
+    console.log('   2. Run "make-template --lint" to validate your changes');
+
+  } catch (error) {
+    handleError(`Set compatibility failed: ${error.message}`);
+  }
+}
+
+/**
+ * Handle set-needs command for configuring feature requirements
+ */
+async function handleSetNeedsCommand(options) {
+  const fs = await import('fs/promises');
+
+  try {
+    const feature = options['set-needs'];
+    const templateFile = 'template.json';
+
+    // Validate feature name
+    if (!feature || feature.trim() === '') {
+      console.log('❌ Feature name is required for --set-needs');
+      console.log('   Usage: make-template --set-needs <feature>');
+      process.exit(1);
+    }
+
+    // Check if template.json exists
+    try {
+      await fs.access(templateFile);
+    } catch (error) {
+      console.log(`❌ Template file not found: ${templateFile}`);
+      console.log('   Run "make-template --init" first to create a template.');
+      process.exit(1);
+    }
+
+    // Read and parse template
+    const templateContent = await fs.readFile(templateFile, 'utf8');
+    const template = JSON.parse(templateContent);
+
+    // Check if feature exists in dimensions
+    if (!template.dimensions?.features?.values?.includes(feature)) {
+      console.log(`❌ Feature '${feature}' not found in template dimensions.`);
+      console.log('   Add the feature to dimensions.features.values first.');
+      process.exit(1);
+    }
+
+    // Initialize featureSpecs if not present
+    if (!template.featureSpecs) {
+      template.featureSpecs = {};
+    }
+
+    // Check if feature spec already exists
+    if (template.featureSpecs[feature]) {
+      console.log(`⚠️  Feature spec for '${feature}' already exists.`);
+      console.log('   Edit template.json directly to modify existing feature specs.');
+      process.exit(1);
+    }
+
+    // Add the new feature spec with default structure
+    template.featureSpecs[feature] = {
+      label: feature.charAt(0).toUpperCase() + feature.slice(1).replace(/_/g, ' '),
+      description: `Description for ${feature} feature`,
+      needs: {}
+    };
+
+    // Write back to file
+    await fs.writeFile(templateFile, JSON.stringify(template, null, 2));
+
+    console.log(`✅ Added feature spec for '${feature}' to ${templateFile}`);
+    console.log('');
+    console.log('📋 Next steps:');
+    console.log(`   1. Edit ${templateFile} to configure needs requirements for the feature`);
+    console.log('   2. Run "make-template --lint" to validate your changes');
+
+  } catch (error) {
+    handleError(`Set needs failed: ${error.message}`);
+  }
+}
+
+/**
+ * Handle preview command for rendering UI preview based on hints
+ */
+async function handlePreviewCommand(options) {
+  const fs = await import('fs/promises');
+
+  try {
+    const templateFile = 'template.json';
+
+    // Check if template.json exists
+    try {
+      await fs.access(templateFile);
+    } catch (error) {
+      console.log(`❌ Template file not found: ${templateFile}`);
+      console.log('   Run "make-template --init" first to create a template.');
+      process.exit(1);
+    }
+
+    // Read and parse template
+    const templateContent = await fs.readFile(templateFile, 'utf8');
+    const template = JSON.parse(templateContent);
+
+    console.log('🎨 Template Preview');
+    console.log('==================');
+
+    // Display basic template info
+    console.log(`Name: ${template.name || 'Unnamed Template'}`);
+    console.log(`ID: ${template.id || 'No ID'}`);
+    console.log(`Description: ${template.description || 'No description'}`);
+    console.log('');
+
+    // Display constants
+    if (template.constants) {
+      console.log('📋 Constants:');
+      Object.entries(template.constants).forEach(([key, value]) => {
+        console.log(`   ${key}: ${value}`);
+      });
+      console.log('');
+    }
+
+    // Display dimensions
+    if (template.dimensions) {
+      console.log('🔧 Dimensions:');
+      Object.entries(template.dimensions).forEach(([dimName, dimConfig]) => {
+        console.log(`   ${dimName}: [${dimConfig.values?.join(', ') || 'none'}]`);
+      });
+      console.log('');
+    }
+
+    // Display features from hints catalog
+    if (template.hints?.features) {
+      console.log('✨ Available Features:');
+      Object.entries(template.hints.features).forEach(([featureName, featureInfo]) => {
+        console.log(`   ${featureInfo.label || featureName}`);
+        console.log(`     ${featureInfo.description || 'No description'}`);
+        if (featureInfo.category) {
+          console.log(`     Category: ${featureInfo.category}`);
+        }
+        console.log('');
+      });
+    }
+
+    // Display gates
+    if (template.gates) {
+      console.log('🚧 Platform Gates:');
+      Object.entries(template.gates).forEach(([platform, gateConfig]) => {
+        console.log(`   ${platform}: ${gateConfig.constraint || 'No constraint specified'}`);
+      });
+      console.log('');
+    }
+
+  } catch (error) {
+    handleError(`Preview failed: ${error.message}`);
+  }
+}
+
+/**
+ * Handle migrate command for upgrading legacy templates to V1
+ */
+async function handleMigrateCommand(options) {
+  const fs = await import('fs/promises');
+
+  try {
+    const templateFile = options['migrate-file'] || 'template.json';
+
+    // Check if template file exists
+    try {
+      await fs.access(templateFile);
+    } catch (error) {
+      console.log(`❌ Template file not found: ${templateFile}`);
+      process.exit(1);
+    }
+
+    // Read and parse template
+    const templateContent = await fs.readFile(templateFile, 'utf8');
+    const template = JSON.parse(templateContent);
+
+    console.log(`🔄 Migrating ${templateFile} to V1 format...`);
+
+    // Check if already V1
+    if (template.schemaVersion === '1.0.0') {
+      console.log('✅ Template is already in V1 format.');
+      return;
+    }
+
+    // Perform migration
+    const migratedTemplate = migrateToV1(template);
+
+    // Create backup
+    const backupFile = `${templateFile}.backup`;
+    await fs.writeFile(backupFile, templateContent);
+    console.log(`📋 Created backup: ${backupFile}`);
+
+    // Write migrated template
+    await fs.writeFile(templateFile, JSON.stringify(migratedTemplate, null, 2));
+
+    console.log(`✅ Successfully migrated ${templateFile} to V1 format!`);
+    console.log('');
+    console.log('📋 Next steps:');
+    console.log('   1. Run "make-template --lint" to validate the migrated template');
+    console.log('   2. Review and customize the new V1 features (gates, hints, etc.)');
+
+  } catch (error) {
+    handleError(`Migration failed: ${error.message}`);
+  }
+}
+
+/**
+ * Migrate legacy template to V1 format
+ */
+function migrateToV1(legacyTemplate) {
+  const v1Template = {
+    schemaVersion: '1.0.0',
+    id: legacyTemplate.id || 'migrated/template',
+    name: legacyTemplate.name || 'Migrated Template',
+    description: legacyTemplate.description || 'Migrated from legacy format',
+    tags: legacyTemplate.tags || [],
+    author: legacyTemplate.author || 'Unknown',
+    license: legacyTemplate.license || 'MIT',
+    constants: {},
+    dimensions: {},
+    gates: {},
+    featureSpecs: {},
+    hints: {
+      features: {}
+    }
+  };
+
+  // Migrate dimensions
+  if (legacyTemplate.dimensions) {
+    v1Template.dimensions = legacyTemplate.dimensions;
+  }
+
+  // Migrate gates if they exist in legacy format
+  if (legacyTemplate.gates) {
+    v1Template.gates = legacyTemplate.gates;
+  }
+
+  // Migrate feature specs
+  if (legacyTemplate.featureSpecs) {
+    v1Template.featureSpecs = legacyTemplate.featureSpecs;
+  }
+
+  // Migrate hints
+  if (legacyTemplate.hints) {
+    v1Template.hints = legacyTemplate.hints;
+  }
+
+  return v1Template;
 }
 
 /**
@@ -850,6 +1259,32 @@ export async function main(argv = null) {
   // Handle lint workflow
   if (options.lint || options['lint-file']) {
     await handleLintCommand(options);
+    return;
+  }
+
+  // Handle Phase 2: Template management workflows
+  if (options['add-dimension']) {
+    await handleAddDimensionCommand(options);
+    return;
+  }
+
+  if (options['set-compat']) {
+    await handleSetCompatCommand(options);
+    return;
+  }
+
+  if (options['set-needs']) {
+    await handleSetNeedsCommand(options);
+    return;
+  }
+
+  if (options.preview) {
+    await handlePreviewCommand(options);
+    return;
+  }
+
+  if (options.migrate || options['migrate-file']) {
+    await handleMigrateCommand(options);
     return;
   }
 

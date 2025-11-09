@@ -68,7 +68,11 @@ export async function loadTemplateMetadataFromPath(templatePath) {
         supportedOptions,
         placeholders: [],
         canonicalVariables: [],
-        constants: data.constants || {}
+        constants: data.constants || {},
+        schemaVersion: data.schemaVersion,
+        gates: data.gates || {},
+        featureSpecs: data.featureSpecs || {},
+        hints: data.hints || {}
       };
     } else {
       // Old schema format

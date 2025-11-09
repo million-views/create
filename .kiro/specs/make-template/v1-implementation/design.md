@@ -163,5 +163,4 @@ Declarative feature requirements:
 ### Performance Tests
 - Large template validation performance
 - Memory usage with complex schemas
-- Concurrent validation handling</content>
-<parameter name="filePath">/Users/vijay/workspaces/ws-million-views/create/.kiro/specs/make-template/v1-implementation/design.md
+- Concurrent validation handling
