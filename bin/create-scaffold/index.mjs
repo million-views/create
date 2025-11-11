@@ -694,7 +694,7 @@ async function main() {
         question: async (question) => {
           // In test/non-interactive mode, provide default answers
           if (question.includes('project name') || question.includes('Project name')) {
-            return args.projectDirectory || 'test-project';
+            return args.projectDirectory || './tmp/test-project';
           }
           if (question.includes('template') || question.includes('Template')) {
             return templateName || 'basic';
@@ -730,8 +730,7 @@ async function main() {
       options,
       ide: args.ide,
       placeholders,
-      metadata,
-      allowFallback
+      metadata
     });
 
     let result;

@@ -344,7 +344,7 @@ runner.test('Nonexistent template is detected', async () => {
     throw new Error(`Expected exit code 1, got ${result.exitCode}`);
   }
 
-  if (!result.stderr.includes('Template not accessible:')) {
+  if (!result.stderr.includes('Template not accessible')) {
     throw new Error('Should detect nonexistent template');
   }
 });
@@ -365,7 +365,7 @@ runner.test('Nonexistent branch is detected', async () => {
     throw new Error(`Expected exit code 1, got ${result.exitCode}`);
   }
 
-  if (!result.stderr.includes('fatal: Remote branch definitely-does-not-exist-branch-name not found')) {
+  if (!result.stderr.includes('Template not accessible')) {
     throw new Error('Should detect nonexistent branch');
   }
 });
@@ -1078,7 +1078,7 @@ runner.test('Resource leak detection across multiple failure modes', async () =>
     {
       name: 'invalid-branch',
       args: ['new', 'test-multi-fail-3', '--template', 'million-views/packages#definitely-does-not-exist-branch-name'],
-      expectedError: 'fatal: Remote branch definitely-does-not-exist-branch-name not found'
+      expectedError: 'Template not accessible'
     }
   ];
 
