@@ -451,7 +451,7 @@ async function main() {
 
     // Initialize cache manager and logger
     const cacheManager = new CacheManager();
-    const logger = args['log-file'] ? new Logger(args['log-file']) : null;
+    const logger = args['log-file'] ? new Logger('file', 'info', args['log-file']) : null;
 
     // Configuration already loaded above for early exit modes
 

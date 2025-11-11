@@ -347,8 +347,8 @@ export function validateArguments(args) {
   }
 
   // Validate log file path if provided
-  if (args.logFile !== undefined) {
-    handleValidationError(validateLogFilePath, args.logFile, errors, 'Log file path validation failed');
+  if (args['log-file'] !== undefined) {
+    handleValidationError(validateLogFilePath, args['log-file'], errors, 'Log file path validation failed');
   }
 
   // Validate cache TTL if provided
