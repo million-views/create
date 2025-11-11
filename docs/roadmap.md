@@ -8,7 +8,7 @@ related_docs:
   - "phase-1-features.md"
   - "how-to/development.md"
   - "../CONTRIBUTING.md"
-last_updated: "2025-11-01"
+last_updated: "2025-11-11"
 ---
 
 # Roadmap
@@ -22,7 +22,7 @@ release tracking.
 | ------- | ------- | -------------------- | -------------- | ------------- | ------------------------------------------------ |
 | Phase 1 | v0.3    | Core user experience | ✅ Delivered   | 2025 Q2       | Caching, logging, discovery, dry run complete    |
 | Phase 2 | v0.4    | Developer experience | ✅ Delivered   | 2025 Q4       | Validation tooling, config defaults, interactive |
-| Phase 3 | v0.5    | Advanced workflows   | 🟡 In planning | 2026 Q1       | Multi-template orchestration, power-user support |
+| Phase 3 | v0.5    | Advanced workflows   | � Ready for dev | 2026 Q1       | Multi-template orchestration, power-user support |
 | Phase 4 | v0.6    | Ecosystem health     | 🟡 In planning | 2026 Q2       | Automated quality and governance                 |
 
 Status key: ✅ Delivered · 🟢 In progress · 🟡 In planning · 🔴 At risk · ⚪ On
@@ -123,6 +123,13 @@ reduction in template onboarding support tickets.
 **Objective:** Enable complex project compositions and advanced automation use
 cases.
 
+**Status:** 📋 Specifications Complete (November 2025)
+- **Requirements:** Comprehensive requirements documented with functional/non-functional specs
+- **Design:** Technical architecture designed for composition engine, dependency resolution, conflict management
+- **Implementation Plan:** 10-week phased rollout with detailed task breakdown
+- **Testing Strategy:** Unit, integration, and performance testing plans defined
+
+**Features Ready for Development:**
 - **Multi-Template Projects:** Add `--from-templates frontend,backend` to stage
   multiple templates in one run with orchestrated setup sequencing. **Impact:**
   Low – niche but high-value for larger teams; high complexity.
