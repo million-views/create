@@ -9,7 +9,11 @@ import {
   validateLogFilePath,
   validateCacheTtl
 } from '../../lib/shared/security.mjs';
+import { ArgumentError } from '../../lib/shared/utils/error-classes.mjs';
 import { handleValidationError } from '../../lib/shared/utils/validation-utils.mjs';
+
+// Re-export for backward compatibility with tests
+export { ArgumentError };
 import { TERMINOLOGY, GLOBAL_OPTIONS } from '../../lib/shared/ontology.mjs';
 
 /**
@@ -608,18 +612,4 @@ SECURITY:
 
 For more information, visit: https://github.com/million-views/create
 `;
-}
-
-
-
-/**
- * Custom error class for argument parsing errors
- */
-export class ArgumentError extends Error {
-  constructor(message, options = {}) {
-    super(message);
-    this.name = 'ArgumentError';
-    this.field = options.field;
-    this.suggestions = options.suggestions || [];
-  }
 }
