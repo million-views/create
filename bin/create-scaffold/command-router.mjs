@@ -4,11 +4,6 @@ import { TERMINOLOGY } from '../../../create/lib/shared/ontology.mjs';
 import { executeNewCommand } from './commands/new.mjs';
 import { executeListCommand } from './commands/list.mjs';
 import { executeValidateCommand } from './commands/validate.mjs';
-import {
-  handleError,
-  contextualizeError,
-  ErrorContext
-} from '../../../create/lib/shared/utils/error-handler.mjs';
 import { sanitizeBranchName } from '../../../create/lib/shared/security.mjs';
 
 /**
@@ -107,12 +102,12 @@ export class CommandRouter {
         if (!args.projectDirectory) {
           return { isValid: false, error: 'Project directory name is required' };
         }
-        
+
         // Validate template is provided
         if (!args[TERMINOLOGY.OPTION.TEMPLATE]) {
           return { isValid: false, error: '--template flag is required' };
         }
-        
+
         // Validate branch name if provided
         if (args[TERMINOLOGY.OPTION.BRANCH]) {
           try {
@@ -121,7 +116,7 @@ export class CommandRouter {
             return { isValid: false, error: `Branch name validation failed: ${error.message}` };
           }
         }
-        
+
         // Validate cache TTL if provided
         if (args[TERMINOLOGY.OPTION.CACHE_TTL]) {
           const ttl = parseInt(args[TERMINOLOGY.OPTION.CACHE_TTL], 10);
@@ -129,21 +124,21 @@ export class CommandRouter {
             return { isValid: false, error: 'Cache TTL must be a number between 1 and 720 hours' };
           }
         }
-        
+
         // Validate conflicting cache flags
         if (args[TERMINOLOGY.OPTION.NO_CACHE] && args[TERMINOLOGY.OPTION.CACHE_TTL]) {
           return { isValid: false, error: 'cannot use both --no-cache and --cache-ttl' };
         }
-        
+
         break;
-        
+
       case TERMINOLOGY.COMMAND.VALIDATE:
         // Validate path is provided
         if (!args.path) {
           return { isValid: false, error: 'Template path is required' };
         }
         break;
-        
+
       case TERMINOLOGY.COMMAND.LIST:
         // Validate branch if provided
         if (args[TERMINOLOGY.OPTION.BRANCH]) {
@@ -154,7 +149,7 @@ export class CommandRouter {
         }
         break;
     }
-    
+
     return { isValid: true };
   }
 

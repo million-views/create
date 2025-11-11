@@ -1,6 +1,7 @@
 /** @type {import('eslint').Linter.Config[]} */
 export default [
   {
+    ignores: ['tmp/**'],
     files: ['**/*.mjs', '**/*.js'],
     languageOptions: {
       ecmaVersion: 'latest',

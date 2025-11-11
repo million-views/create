@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import path from 'node:path';
+import fs from 'node:fs/promises';
 import { ContextualError, ErrorContext, ErrorSeverity } from '../../lib/shared/utils/error-handler.mjs';
 import { sanitizePath, validateRepoUrl } from '../../lib/shared/security.mjs';
 import { CacheManager } from './cache-manager.mjs';
@@ -67,7 +68,7 @@ export class TemplateResolver {
     const resolvedUrl = this.resolveRegistryAlias(templateUrl);
 
     // Validate the URL format (may strip branch for validation)
-    const validatedUrl = this.validateTemplateUrl(resolvedUrl);
+    const _validatedUrl = this.validateTemplateUrl(resolvedUrl);
 
     // Parse URL to extract components (use original resolved URL to preserve branch info)
     const parsed = this.parseTemplateUrl(resolvedUrl);
@@ -116,9 +117,9 @@ export class TemplateResolver {
         ]
       });
     }
-    
+
     // Check for command injection characters
-    if (templateUrl.includes(';') || templateUrl.includes('|') || templateUrl.includes('&') || 
+    if (templateUrl.includes(';') || templateUrl.includes('|') || templateUrl.includes('&') ||
         templateUrl.includes('`') || templateUrl.includes('$(') || templateUrl.includes('${')) {
       throw new ContextualError('Template not accessible', {
         context: ErrorContext.SECURITY,
@@ -200,12 +201,12 @@ export class TemplateResolver {
       const hashIndex = templateUrl.indexOf('#');
       let branch = null;
       let repoPart = templateUrl;
-      
+
       if (hashIndex !== -1) {
         branch = templateUrl.substring(hashIndex + 1);
         repoPart = templateUrl.substring(0, hashIndex);
       }
-      
+
       const parts = repoPart.split('/');
       if (parts.length >= 2) {
         const result = {
@@ -213,7 +214,7 @@ export class TemplateResolver {
           owner: parts[0],
           repo: parts[1].replace(/\.git$/, ''), // Remove .git suffix if present
           subpath: parts.slice(2).join('/'),
-          branch: branch,
+          branch,
           parameters: []
         };
         return result;
@@ -335,7 +336,7 @@ export class TemplateResolver {
    * @returns {Promise<string>} - Template directory path
    */
   async resolveToPath(parsed, options = {}) {
-    const { branch = 'main', logger } = options;
+    const { branch = 'main', _logger } = options;
 
     switch (parsed.type) {
       case 'local':
@@ -505,9 +506,8 @@ export class TemplateResolver {
     // For GitHub repos, resolve as before
     const shorthandParsed = {
       type: 'github-shorthand',
-      type: 'github-shorthand',
-      owner: repoPath.split('/')[0],
-      repo: repoPath.split('/')[1],
+      owner: templatePath.split('/')[0],
+      repo: templatePath.split('/')[1],
       subpath: '',
       parameters: []
     };
@@ -544,7 +544,7 @@ export class TemplateResolver {
       const templateJsonPath = path.join(templatePath, 'template.json');
       const content = await fs.readFile(templateJsonPath, 'utf8');
       return JSON.parse(content);
-    } catch (error) {
+    } catch (_error) {
       // Return minimal metadata for backward compatibility
       return {
         id: path.basename(templatePath),

@@ -9,7 +9,7 @@
 
 import { test } from 'node:test';
 import assert from 'node:assert';
-import { readFile } from 'node:fs/promises';
+import { _readFile } from 'node:fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
 

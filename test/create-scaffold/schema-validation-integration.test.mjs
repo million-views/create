@@ -9,7 +9,7 @@
 
 import { test } from 'node:test';
 import assert from 'node:assert';
-import { readFile, writeFile, mkdir, rm } from 'node:fs/promises';
+import { _readFile, writeFile, mkdir, rm } from 'node:fs/promises';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execSync } from 'node:child_process';

@@ -2,7 +2,6 @@
 
 import fs from 'fs/promises';
 import path from 'path';
-import crypto from 'crypto';
 import os from 'os';
 import { ensureDirectory, safeCleanup, readJsonFile, writeJsonFile } from '../../lib/shared/utils/fs-utils.mjs';
 import { execCommand } from '../../lib/shared/utils/command-utils.mjs';
@@ -26,8 +25,8 @@ export class CacheManager {
     const normalizedUrl = this.normalizeRepoUrl(repoUrl);
     const protocol = this.getProtocolFromUrl(normalizedUrl);
     const repoName = this.getRepoNameFromUrl(normalizedUrl);
-    const branchSuffix = branchName && branchName !== '' && branchName !== 'main' && branchName !== 'master' 
-      ? `-${branchName}` 
+    const branchSuffix = branchName && branchName !== '' && branchName !== 'main' && branchName !== 'master'
+      ? `-${branchName}`
       : '';
     const repoDir = path.join(this.cacheDir, protocol, `${repoName}${branchSuffix}`);
     return { repoHash: `${protocol}/${repoName}${branchSuffix}`, repoDir };
@@ -66,16 +65,16 @@ export class CacheManager {
     if (normalizedUrl.startsWith('/') || normalizedUrl.startsWith('.') || normalizedUrl.startsWith('~')) {
       return 'local';
     }
-    
+
     if (normalizedUrl.startsWith('git@')) {
       return 'git';
     }
-    
+
     if (normalizedUrl.includes('://')) {
       const url = new URL(normalizedUrl);
       return url.protocol.replace(':', '');
     }
-    
+
     return 'unknown';
   }
 
@@ -89,7 +88,7 @@ export class CacheManager {
       // For local paths, use the directory name
       return path.basename(normalizedUrl).replace(/\.git$/, '');
     }
-    
+
     if (normalizedUrl.startsWith('git@')) {
       // git@github.com:user/repo.git -> user-repo
       const match = normalizedUrl.match(/git@[^:]+:(.+)\.git$/);
@@ -97,13 +96,13 @@ export class CacheManager {
         return match[1].replace('/', '-');
       }
     }
-    
+
     if (normalizedUrl.includes('://')) {
       const url = new URL(normalizedUrl);
       const pathname = url.pathname.replace(/^\//, '').replace(/\.git$/, '');
       return pathname.replace('/', '-');
     }
-    
+
     // Fallback: use the original string with slashes replaced
     return normalizedUrl.replace(/[^\w-]/g, '-');
   }
@@ -251,7 +250,6 @@ export class CacheManager {
 
     return await this.populateCache(repoUrl, branchName, populateOptions);
   }
-
 
 
   /**

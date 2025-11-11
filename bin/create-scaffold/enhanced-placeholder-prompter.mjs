@@ -91,7 +91,7 @@ export class EnhancedPlaceholderPrompter {
   /**
    * Group placeholders into logical workflow steps
    */
-  #groupPlaceholdersByWorkflow(definitions, templateMetadata) {
+  #groupPlaceholdersByWorkflow(definitions, _templateMetadata) {
     const groups = [];
     const processed = new Set();
 

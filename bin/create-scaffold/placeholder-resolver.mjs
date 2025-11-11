@@ -25,7 +25,11 @@ export class PlaceholderResolutionError extends Error {
  * @param {Function} [params.promptAdapter] - Custom prompt implementation for testing.
  * @param {stream.Readable} [params.stdin]
  * @param {stream.Writable} [params.stdout]
- * @returns {Promise<{ values: Readonly<Record<string, any>>, report: ReadonlyArray<Object>, unknownTokens: ReadonlyArray<string> }>} resolved placeholder payload
+ * @returns {Promise<{
+ *   values: Readonly<Record<string, any>>,
+ *   report: ReadonlyArray<Object>,
+ *   unknownTokens: ReadonlyArray<string>
+ * }>} resolved placeholder payload
  */
 export async function resolvePlaceholders({
   definitions = [],

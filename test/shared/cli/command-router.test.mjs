@@ -51,7 +51,7 @@ describe('CLI Command Router', () => {
       };
 
       const commandHandlers = {
-        test: async ({ globalOptions, commandOptions, positionals }) => {
+        test: async ({ _globalOptions, commandOptions, positionals }) => {
           return `Executed test with ${commandOptions.output} and ${positionals[0]}`;
         }
       };

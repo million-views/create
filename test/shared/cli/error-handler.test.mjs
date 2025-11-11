@@ -2,7 +2,7 @@
 
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import { CLIErrorHandler, createErrorHandler, exitWithError, CLIErrorHandler as ErrorHandler } from '../../../lib/cli/error-handler.mjs';
+import { CLIErrorHandler, createErrorHandler, _exitWithError, CLIErrorHandler as ErrorHandler } from '../../../lib/cli/error-handler.mjs';
 import { ErrorContext, ErrorSeverity } from '../../../lib/shared/utils/error-handler.mjs';
 
 describe('CLI Error Handler', () => {
@@ -147,7 +147,7 @@ describe('CLI Error Handler', () => {
     it('should format and log error', () => {
       // This test would require mocking process.exit and console.error
       // For now, just ensure it doesn't throw
-      const error = new Error('Test');
+      const _error = new Error('Test');
       assert.doesNotThrow(() => {
         // We can't actually test exitWithError without mocking process.exit
         // as it would terminate the test runner

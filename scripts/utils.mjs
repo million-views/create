@@ -48,7 +48,7 @@ export async function getMarkdownFiles(dirs) {
   for (const dir of dirs) {
     try {
       await traverse(dir);
-    } catch (error) {
+    } catch (_error) {
       // Skip directories that don't exist or can't be read
       continue;
     }

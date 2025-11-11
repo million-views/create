@@ -6,9 +6,7 @@
  */
 
 import { parseArgs } from 'util';
-import { access } from 'fs/promises';
-import { constants } from 'fs';
-import { realpathSync } from 'fs';
+import { access, constants, realpathSync } from 'fs/promises';
 import { RestorationEngine } from '../../../lib/shared/make-template/restoration-engine.mjs';
 import { TERMINOLOGY } from '../../../lib/shared/ontology.mjs';
 
@@ -134,7 +132,11 @@ function validateArguments(options) {
   const errors = [];
 
   // Validate restoration option combinations
-  const restorationOptions = [TERMINOLOGY.OPTION.RESTORE_FILES, TERMINOLOGY.OPTION.RESTORE_PLACEHOLDERS, TERMINOLOGY.OPTION.GENERATE_DEFAULTS];
+  const restorationOptions = [
+    TERMINOLOGY.OPTION.RESTORE_FILES,
+    TERMINOLOGY.OPTION.RESTORE_PLACEHOLDERS,
+    TERMINOLOGY.OPTION.GENERATE_DEFAULTS
+  ];
   const activeRestorationOptions = restorationOptions.filter(opt => options[opt]);
 
   if (activeRestorationOptions.length > 1) {
@@ -206,7 +208,7 @@ function handleError(message, exitCode = 1) {
 /**
  * Main restore command function
  */
-export async function main(argv = null, config = {}) {
+export async function main(argv = null, _config = {}) {
   let parsedArgs;
 
   try {
@@ -266,7 +268,7 @@ export async function main(argv = null, config = {}) {
   // restoration engine can proceed.
   try {
     await access('.template-undo.json', constants.F_OK);
-  } catch (err) {
+  } catch (_err) {
     handleError('.template-undo.json not found. Cannot restore without an undo log.', 1);
   }
 

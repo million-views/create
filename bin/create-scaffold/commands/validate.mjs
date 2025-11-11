@@ -20,7 +20,7 @@ export async function executeValidateCommand(args) {
     }
 
     const jsonOutput = Boolean(args[TERMINOLOGY.OPTION.JSON]);
-    const verbose = Boolean(args[TERMINOLOGY.OPTION.VERBOSE]);
+    const _verbose = Boolean(args[TERMINOLOGY.OPTION.VERBOSE]);
 
     // Run template validation
     const validationResult = await runTemplateValidation({ targetPath });

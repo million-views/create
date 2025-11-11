@@ -76,7 +76,7 @@ export async function runTemplateValidation({ targetPath }) {
   };
 }
 
-export function formatValidationResults({ targetPath, status, summary, results }) {
+export function formatValidationResults({ targetPath, _status, summary, results }) {
   const lines = [];
   lines.push(`🔍 Validating template at ${targetPath}`);
   lines.push('');

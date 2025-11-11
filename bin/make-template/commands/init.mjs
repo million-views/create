@@ -64,171 +64,171 @@ For more information, visit: https://github.com/m5nv/make-template
  */
 function generateSkeletonTemplate() {
   return {
-    "schemaVersion": "1.0.0",
-    "id": "your-org/your-template-name",
-    "name": "Your Template Name",
-    "description": "A brief description of what this template creates",
-    "tags": ["web", "api", "fullstack"],
-    "author": "Your Name or Organization",
-    "license": "MIT",
-    "constants": {
-      "language": "typescript",
-      "framework": "nextjs",
-      "styling": "tailwind",
-      "testing": "jest",
-      "ci": "github-actions"
+    'schemaVersion': '1.0.0',
+    'id': 'your-org/your-template-name',
+    'name': 'Your Template Name',
+    'description': 'A brief description of what this template creates',
+    'tags': ['web', 'api', 'fullstack'],
+    'author': 'Your Name or Organization',
+    'license': 'MIT',
+    'constants': {
+      'language': 'typescript',
+      'framework': 'nextjs',
+      'styling': 'tailwind',
+      'testing': 'jest',
+      'ci': 'github-actions'
     },
-    "dimensions": {
-      "deployment_target": {
-        "values": ["vercel", "netlify", "railway", "render", "fly", "heroku"]
+    'dimensions': {
+      'deployment_target': {
+        'values': ['vercel', 'netlify', 'railway', 'render', 'fly', 'heroku']
       },
-      "features": {
-        "values": ["auth", "database", "api", "ui", "storage", "payments", "analytics"]
+      'features': {
+        'values': ['auth', 'database', 'api', 'ui', 'storage', 'payments', 'analytics']
       },
-      "database": {
-        "values": ["postgresql", "mysql", "sqlite", "mongodb", "redis", "d1", "tursodb", "none"]
+      'database': {
+        'values': ['postgresql', 'mysql', 'sqlite', 'mongodb', 'redis', 'd1', 'tursodb', 'none']
       },
-      "storage": {
-        "values": ["aws-s3", "cloudflare-r2", "vercel-blob", "local", "none"]
+      'storage': {
+        'values': ['aws-s3', 'cloudflare-r2', 'vercel-blob', 'local', 'none']
       },
-      "auth_providers": {
-        "values": ["google", "github", "twitter", "email", "none"]
+      'auth_providers': {
+        'values': ['google', 'github', 'twitter', 'email', 'none']
       },
-      "payments": {
-        "values": ["stripe", "paypal", "none"]
+      'payments': {
+        'values': ['stripe', 'paypal', 'none']
       },
-      "analytics": {
-        "values": ["mixpanel", "posthog", "google-analytics", "plausible", "none"]
+      'analytics': {
+        'values': ['mixpanel', 'posthog', 'google-analytics', 'plausible', 'none']
       }
     },
-    "gates": {
-      "cloudflare-workers": {
-        "platform": "edge",
-        "constraint": "Limited runtime capabilities for edge computing",
-        "allowed": {
-          "database": ["sqlite", "tursodb", "d1", "none"],
-          "storage": ["cloudflare-r2", "none"]
+    'gates': {
+      'cloudflare-workers': {
+        'platform': 'edge',
+        'constraint': 'Limited runtime capabilities for edge computing',
+        'allowed': {
+          'database': ['sqlite', 'tursodb', 'd1', 'none'],
+          'storage': ['cloudflare-r2', 'none']
         }
       },
-      "deno-deploy": {
-        "platform": "edge",
-        "constraint": "Deno runtime with limited storage options",
-        "allowed": {
-          "database": ["sqlite", "tursodb", "none"],
-          "storage": ["none"]
+      'deno-deploy': {
+        'platform': 'edge',
+        'constraint': 'Deno runtime with limited storage options',
+        'allowed': {
+          'database': ['sqlite', 'tursodb', 'none'],
+          'storage': ['none']
         }
       },
-      "linode": {
-        "platform": "vm",
-        "constraint": "Full VM with file system access",
-        "allowed": {
-          "database": ["sqlite", "tursodb", "postgresql", "mysql", "mongodb", "redis", "none"],
-          "storage": ["local", "aws-s3", "none"]
+      'linode': {
+        'platform': 'vm',
+        'constraint': 'Full VM with file system access',
+        'allowed': {
+          'database': ['sqlite', 'tursodb', 'postgresql', 'mysql', 'mongodb', 'redis', 'none'],
+          'storage': ['local', 'aws-s3', 'none']
         }
       }
     },
-    "featureSpecs": {
-      "auth": {
-        "label": "Authentication",
-        "description": "Add user authentication system with login/signup flows",
-        "needs": {
-          "database": "required"
+    'featureSpecs': {
+      'auth': {
+        'label': 'Authentication',
+        'description': 'Add user authentication system with login/signup flows',
+        'needs': {
+          'database': 'required'
         },
-        "category": "authentication"
+        'category': 'authentication'
       },
-      "database": {
-        "label": "Database Integration",
-        "description": "Set up database connection and schema management",
-        "needs": {},
-        "category": "database"
+      'database': {
+        'label': 'Database Integration',
+        'description': 'Set up database connection and schema management',
+        'needs': {},
+        'category': 'database'
       },
-      "api": {
-        "label": "API Routes",
-        "description": "Create REST or GraphQL API endpoints",
-        "needs": {},
-        "category": "api"
+      'api': {
+        'label': 'API Routes',
+        'description': 'Create REST or GraphQL API endpoints',
+        'needs': {},
+        'category': 'api'
       },
-      "ui": {
-        "label": "User Interface",
-        "description": "Build responsive user interface components",
-        "needs": {},
-        "category": "ui"
+      'ui': {
+        'label': 'User Interface',
+        'description': 'Build responsive user interface components',
+        'needs': {},
+        'category': 'ui'
       },
-      "storage": {
-        "label": "File Storage",
-        "description": "Add file upload and storage capabilities",
-        "needs": {},
-        "category": "storage"
+      'storage': {
+        'label': 'File Storage',
+        'description': 'Add file upload and storage capabilities',
+        'needs': {},
+        'category': 'storage'
       },
-      "payments": {
-        "label": "Payment Processing",
-        "description": "Integrate payment processing, subscriptions, and billing management",
-        "needs": {
-          "database": "required"
+      'payments': {
+        'label': 'Payment Processing',
+        'description': 'Integrate payment processing, subscriptions, and billing management',
+        'needs': {
+          'database': 'required'
         },
-        "category": "payments"
+        'category': 'payments'
       },
-      "analytics": {
-        "label": "Analytics Tracking",
-        "description": "Add user analytics and tracking",
-        "needs": {},
-        "category": "analytics"
+      'analytics': {
+        'label': 'Analytics Tracking',
+        'description': 'Add user analytics and tracking',
+        'needs': {},
+        'category': 'analytics'
       }
     },
-    "hints": {
-      "features": {
-        "auth": {
-          "label": "Authentication System",
-          "description": "Add secure user authentication with login/signup flows, password reset, and session management",
-          "needs": {
-            "database": "required"
+    'hints': {
+      'features': {
+        'auth': {
+          'label': 'Authentication System',
+          'description': 'Add secure user authentication with login/signup flows, password reset, and session management',
+          'needs': {
+            'database': 'required'
           },
-          "category": "authentication",
-          "tags": ["security", "users", "login"]
+          'category': 'authentication',
+          'tags': ['security', 'users', 'login']
         },
-        "database": {
-          "label": "Database Integration",
-          "description": "Set up database connection, schema management, migrations, and data access patterns",
-          "needs": {},
-          "category": "database",
-          "tags": ["data", "persistence", "orm"]
+        'database': {
+          'label': 'Database Integration',
+          'description': 'Set up database connection, schema management, migrations, and data access patterns',
+          'needs': {},
+          'category': 'database',
+          'tags': ['data', 'persistence', 'orm']
         },
-        "api": {
-          "label": "API Endpoints",
-          "description": "Create REST or GraphQL API endpoints with proper routing and middleware",
-          "needs": {},
-          "category": "api",
-          "tags": ["rest", "graphql", "routing"]
+        'api': {
+          'label': 'API Endpoints',
+          'description': 'Create REST or GraphQL API endpoints with proper routing and middleware',
+          'needs': {},
+          'category': 'api',
+          'tags': ['rest', 'graphql', 'routing']
         },
-        "ui": {
-          "label": "User Interface",
-          "description": "Build responsive user interface components with modern design patterns",
-          "needs": {},
-          "category": "ui",
-          "tags": ["frontend", "components", "responsive"]
+        'ui': {
+          'label': 'User Interface',
+          'description': 'Build responsive user interface components with modern design patterns',
+          'needs': {},
+          'category': 'ui',
+          'tags': ['frontend', 'components', 'responsive']
         },
-        "storage": {
-          "label": "File Storage",
-          "description": "Add file storage solutions for uploads, assets, and media management",
-          "needs": {},
-          "category": "storage",
-          "tags": ["files", "upload", "media"]
+        'storage': {
+          'label': 'File Storage',
+          'description': 'Add file storage solutions for uploads, assets, and media management',
+          'needs': {},
+          'category': 'storage',
+          'tags': ['files', 'upload', 'media']
         },
-        "payments": {
-          "label": "Payment Processing",
-          "description": "Integrate payment processing, subscriptions, and billing management",
-          "needs": {
-            "database": "required"
+        'payments': {
+          'label': 'Payment Processing',
+          'description': 'Integrate payment processing, subscriptions, and billing management',
+          'needs': {
+            'database': 'required'
           },
-          "category": "payments",
-          "tags": ["billing", "subscriptions", "commerce"]
+          'category': 'payments',
+          'tags': ['billing', 'subscriptions', 'commerce']
         },
-        "analytics": {
-          "label": "Analytics Tracking",
-          "description": "Add user analytics, event tracking, and performance monitoring",
-          "needs": {},
-          "category": "analytics",
-          "tags": ["tracking", "metrics", "insights"]
+        'analytics': {
+          'label': 'Analytics Tracking',
+          'description': 'Add user analytics, event tracking, and performance monitoring',
+          'needs': {},
+          'category': 'analytics',
+          'tags': ['tracking', 'metrics', 'insights']
         }
       }
     }
@@ -246,7 +246,7 @@ function handleError(message, exitCode = 1) {
 /**
  * Main init command function
  */
-export async function main(argv = null, config = {}) {
+export async function main(argv = null, _config = {}) {
   let parsedArgs;
 
   try {
@@ -299,7 +299,7 @@ export async function main(argv = null, config = {}) {
       console.log(`⚠️  File ${outputFile} already exists.`);
       console.log(`   Use --init-file <different-name> to specify a different output file.`);
       process.exit(1);
-    } catch (error) {
+    } catch (_error) {
       // File doesn't exist, which is what we want
     }
 

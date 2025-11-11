@@ -149,7 +149,6 @@ export class InteractiveSession {
         const resolution = await this.enhancedPrompter.resolvePlaceholdersEnhanced({
           definitions: selection.placeholders,
           flagInputs: answers.placeholders,
-          configDefaults,
           env: this.env,
           templateMetadata: selection
         });

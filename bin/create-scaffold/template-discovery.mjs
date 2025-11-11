@@ -171,12 +171,12 @@ export class TemplateDiscovery {
       }
     }
 
-  metadata.supportedOptions = structuredMetadata.supportedOptions;
-  metadata.authoringMode = structuredMetadata.authoringMode;
-  metadata.dimensions = structuredMetadata.dimensions;
-  metadata.handoff = structuredMetadata.handoffSteps;
-  metadata.placeholders = structuredMetadata.placeholders ?? [];
-  metadata.canonicalVariables = structuredMetadata.canonicalVariables ?? [];
+    metadata.supportedOptions = structuredMetadata.supportedOptions;
+    metadata.authoringMode = structuredMetadata.authoringMode;
+    metadata.dimensions = structuredMetadata.dimensions;
+    metadata.handoff = structuredMetadata.handoffSteps;
+    metadata.placeholders = structuredMetadata.placeholders ?? [];
+    metadata.canonicalVariables = structuredMetadata.canonicalVariables ?? [];
 
     return metadata;
   }

@@ -13,8 +13,7 @@
 
 import fs from 'fs/promises';
 import path from 'path';
-import { fileURLToPath } from 'url';
-import { colorize, fileExists, readPackageJson, formatResults, calculateExitCode, isMethodologyTemplate, countPackageJsonFiles, hasWorkspaceConfig, hasPnpmWorkspace, hasLernaConfig, hasRushConfig, detectRepositoryType } from './utils.mjs';
+import { colorize, readPackageJson, formatResults, isMethodologyTemplate, detectRepositoryType } from './utils.mjs';
 
 // Track validation results
 const results = {
@@ -60,21 +59,21 @@ async function hasSpecFiles(dirPath) {
  */
 async function validateProjectContainer(projectDir, categoryName) {
   const projectName = path.basename(projectDir);
-  
+
   try {
     const entries = await fs.readdir(projectDir, { withFileTypes: true });
-    
+
     if (entries.length === 0) {
       results.warnings.push(`Project container '${categoryName}/${projectName}' is empty`);
       return;
     }
-    
+
     // Check each subdirectory for specs
     for (const entry of entries) {
       if (entry.isDirectory()) {
         const specPath = path.join(projectDir, entry.name);
         const hasSpecFilesCheck = await hasSpecFiles(specPath);
-        
+
         if (hasSpecFilesCheck) {
           await validateSpecDirectory(specPath, `${categoryName}/${projectName}`);
         } else {
@@ -84,7 +83,7 @@ async function validateProjectContainer(projectDir, categoryName) {
         results.warnings.push(`Unexpected file in project '${categoryName}/${projectName}': ${entry.name}`);
       }
     }
-    
+
   } catch (error) {
     results.errors.push(`Error reading project container '${categoryName}/${projectName}': ${error.message}`);
   }
@@ -225,10 +224,10 @@ async function validateMonorepoSpecCategory(categoryDir) {
     for (const entry of entries) {
       if (entry.isDirectory()) {
         const entryPath = path.join(categoryDir, entry.name);
-        
+
         // Check if this directory contains spec files directly (traditional spec)
         const hasSpecFilesDirect = await hasSpecFiles(entryPath);
-        
+
         if (hasSpecFilesDirect) {
           // This is a spec directory
           await validateSpecDirectory(entryPath, categoryName);

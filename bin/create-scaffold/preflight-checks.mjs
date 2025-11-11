@@ -393,7 +393,6 @@ export async function validateRepositoryAccessibility(repoUrl, branchName = null
 }
 
 
-
 /**
  * Run all preflight checks in sequence
  * @param {Object} args - Parsed command line arguments

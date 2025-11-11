@@ -3,9 +3,7 @@
 import { loadConfig } from '../config-loader.mjs';
 import { TERMINOLOGY } from '../../../../create/lib/shared/ontology.mjs';
 import {
-  handleError,
-  contextualizeError,
-  ErrorContext
+  handleError
 } from '../../../../create/lib/shared/utils/error-handler.mjs';
 
 /**

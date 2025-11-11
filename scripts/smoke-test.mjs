@@ -19,7 +19,7 @@ class SmokeTestUtils {
   static async execCLI(args, options = {}) {
     // Create a temporary working directory under tmp/ for test isolation
     const testCwd = await this.createTempDir('-test-cwd');
-    
+
     return new Promise((resolve) => {
       const child = spawn('node', [CLI_PATH, ...args], {
         stdio: ['pipe', 'pipe', 'pipe'],
@@ -94,7 +94,7 @@ class SmokeTestUtils {
 
   static async createMockRepo(repoPath, templates = ['basic']) {
     await fs.mkdir(repoPath, { recursive: true });
-    
+
     // Initialize git repo
     await this.execCommand('git', ['init'], { cwd: repoPath });
     await this.execCommand('git', ['config', 'user.name', 'Smoke Test'], { cwd: repoPath });
@@ -104,7 +104,7 @@ class SmokeTestUtils {
     for (const template of templates) {
       const templatePath = path.join(repoPath, template);
       await fs.mkdir(templatePath, { recursive: true });
-      
+
       // Create realistic template files
       await fs.writeFile(
         path.join(templatePath, 'package.json'),
@@ -119,12 +119,12 @@ class SmokeTestUtils {
           }
         }, null, 2)
       );
-      
+
       await fs.writeFile(
         path.join(templatePath, 'index.js'),
         `console.log('Hello from ${template} template!');\n`
       );
-      
+
       await fs.writeFile(
         path.join(templatePath, 'README.md'),
         `# ${template.charAt(0).toUpperCase() + template.slice(1)} Template\n\nThis is a ${template} project template.\n\n## Getting Started\n\n\`\`\`bash\nnpm start\n\`\`\`\n`
@@ -177,7 +177,7 @@ class SmokeTestUtils {
 
 async function runSmokeTests() {
   console.log('🔥 Running Comprehensive Smoke Tests\n');
-  
+
   const tempPaths = [];
   let passed = 0;
   let failed = 0;
@@ -185,17 +185,17 @@ async function runSmokeTests() {
   // Test 1: Help functionality
   try {
     console.log('  ▶ CLI help functionality');
-    
+
     const result = await SmokeTestUtils.execCLI(['--help']);
-    
+
     if (result.exitCode !== 0) {
       throw new Error(`Help command failed with exit code ${result.exitCode}`);
     }
-    
+
     if (!result.stdout.includes('USAGE:') || !result.stdout.includes('--template')) {
       throw new Error('Help output missing expected content');
     }
-    
+
     console.log('  ✅ CLI help functionality');
     passed++;
   } catch (error) {
@@ -207,17 +207,17 @@ async function runSmokeTests() {
   // Test 2: Input validation
   try {
     console.log('  ▶ Input validation and security');
-    
+
     const result = await SmokeTestUtils.execCLI(['new', '../malicious-dir', '--template', '../../../etc/passwd']);
-    
+
     if (result.exitCode !== 1) {
       throw new Error(`Expected validation failure, got exit code ${result.exitCode}`);
     }
-    
+
     if (!result.stderr.includes('Path traversal attempts are not allowed')) {
       throw new Error('Security validation not working properly');
     }
-    
+
     console.log('  ✅ Input validation and security');
     passed++;
   } catch (error) {
@@ -229,40 +229,40 @@ async function runSmokeTests() {
   // Test 3: End-to-end project creation with local repository
   try {
     console.log('  ▶ End-to-end project creation');
-    
+
     // Create a mock repository
     const mockRepoPath = await SmokeTestUtils.createTempDir('-mock-repo');
     tempPaths.push(mockRepoPath);
-    
+
     await SmokeTestUtils.createMockRepo(mockRepoPath, ['basic', 'advanced', 'minimal']);
-    
+
     // Create project using the mock repository
     const projectName = 'smoke-test-project';
     const result = await SmokeTestUtils.execCLI([
       'new', projectName,
       '--template', path.join(mockRepoPath, 'basic')
     ]);
-    
+
     if (result.exitCode !== 0) {
       throw new Error(`Project creation failed: ${result.stderr}`);
     }
-    
+
     // Verify project was created correctly
     const projectPath = path.join(result.cwd, projectName);
     tempPaths.push(projectPath);
-    
+
     const packageJsonPath = path.join(projectPath, 'package.json');
     const packageJson = JSON.parse(await fs.readFile(packageJsonPath, 'utf8'));
-    
+
     if (packageJson.name !== 'basic-project') {
       throw new Error('Template files not copied correctly');
     }
-    
+
     // Verify other template files exist
     await fs.access(path.join(projectPath, 'index.js'));
     await fs.access(path.join(projectPath, 'README.md'));
     await fs.access(path.join(projectPath, '.gitignore'));
-    
+
     // Verify .git directory was removed from template
     try {
       await fs.access(path.join(projectPath, '.git'));
@@ -273,7 +273,7 @@ async function runSmokeTests() {
       }
       // Expected - .git should not exist
     }
-    
+
     console.log('  ✅ End-to-end project creation');
     passed++;
   } catch (error) {
@@ -285,13 +285,13 @@ async function runSmokeTests() {
   // Test 4: Setup script execution
   try {
     console.log('  ▶ Setup script execution and cleanup');
-    
+
     // Create a mock repository with setup script
     const mockRepoPath = await SmokeTestUtils.createTempDir('-setup-repo');
     tempPaths.push(mockRepoPath);
-    
+
     await SmokeTestUtils.createMockRepo(mockRepoPath, ['with-setup']);
-    
+
     // Add setup script to template
     const setupScriptPath = path.join(mockRepoPath, 'with-setup', '_setup.mjs');
     const setupScript = `
@@ -303,31 +303,31 @@ export default async function setup({ ctx, tools }) {
 }
 `;
     await fs.writeFile(setupScriptPath, setupScript);
-    
+
     // Commit the setup script
     await SmokeTestUtils.execCommand('git', ['add', '.'], { cwd: mockRepoPath });
     await SmokeTestUtils.execCommand('git', ['commit', '-m', 'Add setup script'], { cwd: mockRepoPath });
-    
+
     const projectName = 'smoke-test-setup-project';
     const result = await SmokeTestUtils.execCLI([
       'new', projectName,
       '--template', path.join(mockRepoPath, 'with-setup')
     ]);
-    
+
     if (result.exitCode !== 0) {
       throw new Error(`Setup script test failed: ${result.stderr}`);
     }
-    
+
     const projectPath = path.join(result.cwd, projectName);
     tempPaths.push(projectPath);
-    
+
     // Verify setup script ran
     const markerPath = path.join(projectPath, 'setup-state.json');
     const markerContent = JSON.parse(await fs.readFile(markerPath, 'utf8'));
     if (!markerContent.completed || markerContent.project !== projectName) {
       throw new Error('Setup script did not execute properly');
     }
-    
+
     // Verify setup script was removed
     const setupScriptInProject = path.join(projectPath, '_setup.mjs');
     try {
@@ -339,7 +339,7 @@ export default async function setup({ ctx, tools }) {
       }
       // Expected - setup script should be removed
     }
-    
+
     console.log('  ✅ Setup script execution and cleanup');
     passed++;
   } catch (error) {
@@ -351,28 +351,28 @@ export default async function setup({ ctx, tools }) {
   // Test 5: Error handling and resource cleanup
   try {
     console.log('  ▶ Error handling and resource cleanup');
-    
+
     // Test with nonexistent repository
     const result = await SmokeTestUtils.execCLI([
       'new', 'smoke-test-error-project',
       '--template', '/definitely/does/not/exist/template'
     ]);
-    
+
     if (result.exitCode !== 1) {
       throw new Error(`Expected error exit code, got ${result.exitCode}`);
     }
-    
+
     if (!result.stderr.includes('Template not accessible')) {
       throw new Error('Error message not appropriate');
     }
-    
+
     // Verify no temporary directories were left behind
     const entries = await fs.readdir(process.cwd());
     const tempDirs = entries.filter(name => name.startsWith('.tmp-template-'));
     if (tempDirs.length > 0) {
       throw new Error(`Temporary directories not cleaned up: ${tempDirs.join(', ')}`);
     }
-    
+
     console.log('  ✅ Error handling and resource cleanup');
     passed++;
   } catch (error) {
@@ -384,30 +384,30 @@ export default async function setup({ ctx, tools }) {
   // Test 6: Spec requirements verification
   try {
     console.log('  ▶ Spec requirements verification');
-    
+
     // Verify zero external dependencies
     const packageJsonPath = path.join(__dirname, '..', 'package.json');
     const packageJson = JSON.parse(await fs.readFile(packageJsonPath, 'utf8'));
-    
+
     if (packageJson.dependencies && Object.keys(packageJson.dependencies).length > 0) {
       throw new Error('CLI tool should have zero runtime dependencies');
     }
-    
+
     // Verify correct bin entry
     if (!packageJson.bin || !packageJson.bin['create-scaffold'] || packageJson.bin['create-scaffold'] !== './bin/create-scaffold/index.mjs') {
       throw new Error('Incorrect bin entry in package.json');
     }
-    
+
     // Verify ESM configuration
     if (packageJson.type !== 'module') {
       throw new Error('Package should be configured as ESM module');
     }
-    
+
     // Verify Node.js version requirement
     if (!packageJson.engines || !packageJson.engines.node || !packageJson.engines.node.includes('22')) {
       throw new Error('Should require Node.js 22+');
     }
-    
+
     console.log('  ✅ Spec requirements verification');
     passed++;
   } catch (error) {

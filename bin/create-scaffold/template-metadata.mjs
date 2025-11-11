@@ -7,7 +7,7 @@ import {
   sanitizeErrorMessage,
   ValidationError,
   validateDimensionsMetadata,
-  validateAuthorAssetsDir,
+  validateAuthorAssetsDir
 } from '../../lib/shared/security.mjs';
 import { validateTemplateManifest } from '../../lib/shared/utils/template-validator.mjs';
 
@@ -36,7 +36,7 @@ export async function loadTemplateMetadataFromPath(templatePath) {
       const { TemplateValidator } = await import('../../lib/validation/template-validator.mjs');
       const validator = new TemplateValidator();
       const result = await validator.validate(data, 'strict');
-      
+
       if (!result.valid) {
         // Throw an error with the first validation error
         const firstError = result.errors[0];
@@ -84,7 +84,7 @@ export async function loadTemplateMetadataFromPath(templatePath) {
           capabilities: {
             type: 'multi',
             values: validated.supportedOptions,
-            policy: 'strict',
+            policy: 'strict'
           }
         });
       }
@@ -103,17 +103,6 @@ export async function loadTemplateMetadataFromPath(templatePath) {
         constants: validated.constants || {}
       };
     }
-
-    return {
-      raw: data,
-      authoringMode: validated.authoringMode,
-      authorAssetsDir: validated.authorAssetsDir,
-      dimensions,
-      handoffSteps: validated.handoffSteps,
-      supportedOptions,
-      placeholders: validated.placeholders,
-      canonicalVariables: validated.canonicalVariables,
-    };
   } catch (error) {
     if (error.code === 'ENOENT') {
       return {

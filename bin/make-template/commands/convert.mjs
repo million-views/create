@@ -6,9 +6,7 @@
  */
 
 import { parseArgs } from 'util';
-import { readFile, access } from 'fs/promises';
-import { constants } from 'fs';
-import { realpathSync } from 'fs';
+import { readFile, access, constants, realpathSync } from 'fs/promises';
 import { ConversionEngine } from '../../../lib/shared/make-template/engine.mjs';
 import { TERMINOLOGY } from '../../../lib/shared/ontology.mjs';
 
@@ -141,7 +139,7 @@ async function validateProjectDirectory() {
   try {
     // Check if package.json exists
     await access('package.json', constants.F_OK);
-  } catch (error) {
+  } catch (_error) {
     // Detect running in system root (dangerous) and provide a clearer message
     if (process.cwd && process.cwd() === '/') {
       errors.push('Running in the system root directory is not recommended and may be dangerous. Please run this command in a project directory.');
@@ -164,7 +162,7 @@ function handleError(message, exitCode = 1) {
 /**
  * Main convert command function
  */
-export async function main(argv = null, config = {}) {
+export async function main(argv = null, _config = {}) {
   let parsedArgs;
 
   try {
@@ -236,7 +234,7 @@ export async function main(argv = null, config = {}) {
         console.error('');
         process.exit(1);
       }
-    } catch (error) {
+    } catch (_error) {
       // If we can't read package.json, continue (other validation will catch this)
     }
 

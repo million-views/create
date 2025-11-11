@@ -4,7 +4,6 @@ import { parseArgs } from 'util';
 import {
   validateProjectDirectory,
   validateTemplateName,
-  validateRepoUrl,
   sanitizeBranchName,
   validateLogFilePath,
   validateCacheTtl
@@ -14,7 +13,7 @@ import { handleValidationError } from '../../lib/shared/utils/validation-utils.m
 
 // Re-export for backward compatibility with tests
 export { ArgumentError };
-import { TERMINOLOGY, GLOBAL_OPTIONS } from '../../lib/shared/ontology.mjs';
+import { TERMINOLOGY } from '../../lib/shared/ontology.mjs';
 
 /**
  * Parse command line arguments using native Node.js util.parseArgs
@@ -247,12 +246,17 @@ export function validateArguments(args) {
   }
 
   // Show help if no arguments provided (standard CLI behavior)
-  const hasAnyArgs = args.projectDirectory || args[TERMINOLOGY.OPTION.TEMPLATE] || args[TERMINOLOGY.OPTION.BRANCH] ||
-                     args.ide || args.options || args[TERMINOLOGY.OPTION.LOG_FILE] || args[TERMINOLOGY.OPTION.LIST_TEMPLATES] ||
-                     args[TERMINOLOGY.OPTION.DRY_RUN] || args[TERMINOLOGY.OPTION.NO_CACHE] || args[TERMINOLOGY.OPTION.CACHE_TTL] || args[TERMINOLOGY.OPTION.VALIDATE_TEMPLATE] ||
-                     args[TERMINOLOGY.OPTION.JSON] || (args[TERMINOLOGY.OPTION.PLACEHOLDER] && args[TERMINOLOGY.OPTION.PLACEHOLDER].length > 0) || args[TERMINOLOGY.OPTION.NO_INPUT_PROMPTS] ||
-                     args[TERMINOLOGY.OPTION.VERBOSE] || args[TERMINOLOGY.OPTION.EXPERIMENTAL_PLACEHOLDER_PROMPTS] || args[TERMINOLOGY.OPTION.INTERACTIVE] ||
-                     args[TERMINOLOGY.OPTION.NON_INTERACTIVE] || args[TERMINOLOGY.OPTION.NO_CONFIG];
+  const hasAnyArgs = args.projectDirectory || args[TERMINOLOGY.OPTION.TEMPLATE] ||
+                     args[TERMINOLOGY.OPTION.BRANCH] || args.ide || args.options ||
+                     args[TERMINOLOGY.OPTION.LOG_FILE] || args[TERMINOLOGY.OPTION.LIST_TEMPLATES] ||
+                     args[TERMINOLOGY.OPTION.DRY_RUN] || args[TERMINOLOGY.OPTION.NO_CACHE] ||
+                     args[TERMINOLOGY.OPTION.CACHE_TTL] || args[TERMINOLOGY.OPTION.VALIDATE_TEMPLATE] ||
+                     args[TERMINOLOGY.OPTION.JSON] ||
+                     (args[TERMINOLOGY.OPTION.PLACEHOLDER] && args[TERMINOLOGY.OPTION.PLACEHOLDER].length > 0) ||
+                     args[TERMINOLOGY.OPTION.NO_INPUT_PROMPTS] || args[TERMINOLOGY.OPTION.VERBOSE] ||
+                     args[TERMINOLOGY.OPTION.EXPERIMENTAL_PLACEHOLDER_PROMPTS] ||
+                     args[TERMINOLOGY.OPTION.INTERACTIVE] || args[TERMINOLOGY.OPTION.NON_INTERACTIVE] ||
+                     args[TERMINOLOGY.OPTION.NO_CONFIG];
   if (!hasAnyArgs) {
     return { isValid: true, showHelp: true };
   }
@@ -319,18 +323,18 @@ export function validateArguments(args) {
   // Validate template argument if provided
   if (args.template) {
     // For --template flag, allow URLs and paths
-    const looksLikeUrl = args.template.includes('/') || 
-                        args.template.includes('://') || 
+    const looksLikeUrl = args.template.includes('/') ||
+                        args.template.includes('://') ||
                         args.template.startsWith('./') ||
                         args.template.startsWith('../');
-    
+
     if (looksLikeUrl) {
       // Basic validation for URLs/paths
       if (args.template.includes('\0')) {
         errors.push('Template URL contains null bytes');
       }
       // Check for injection characters
-      if (args.template.includes(';') || args.template.includes('|') || args.template.includes('&') || 
+      if (args.template.includes(';') || args.template.includes('|') || args.template.includes('&') ||
           args.template.includes('`') || args.template.includes('$(') || args.template.includes('${') ||
           args.template.includes(' ')) {
         errors.push('Invalid template URL');

@@ -1,36 +1,25 @@
 #!/usr/bin/env node
 
 import fs from 'fs/promises';
-import { realpathSync, readFileSync } from 'node:fs';
+import { realpathSync } from 'node:fs';
 import path from 'path';
-import { fileURLToPath, pathToFileURL } from 'node:url';
+import { fileURLToPath } from 'node:url';
 import { parseArguments, validateArguments, generateHelpText, ArgumentError } from './argument-parser.mjs';
 import {
-  validateAllInputs,
   sanitizeErrorMessage,
-  createSecureTempDir,
-  sanitizePath,
-  ValidationError,
+  ValidationError
 } from '../../lib/shared/security.mjs';
-import {
-  runAllPreflightChecks,
-  PreflightError
-} from './preflight-checks.mjs';
-import { createEnvironmentObject } from './environment-factory.mjs';
 import { CacheManager } from './cache-manager.mjs';
 import { TemplateResolver } from './template-resolver.mjs';
 import { Logger } from '../../lib/shared/utils/logger.mjs';
 import { TemplateDiscovery } from './template-discovery.mjs';
 import { DryRunEngine } from './dry-run-engine.mjs';
 import { execCommand } from '../../lib/shared/utils/command-utils.mjs';
-import { ensureDirectory, safeCleanup, validateDirectoryExists } from '../../lib/shared/utils/fs-utils.mjs';
-import { loadSetupScript, createSetupTools, SetupSandboxError } from './setup-runtime.mjs';
-import { shouldIgnoreTemplateEntry, createTemplateIgnoreSet, stripIgnoredFromTree } from '../../lib/shared/utils/template-ignore.mjs';
+import { validateDirectoryExists } from '../../lib/shared/utils/fs-utils.mjs';
+import { createTemplateIgnoreSet, stripIgnoredFromTree } from '../../lib/shared/utils/template-ignore.mjs';
 import { loadTemplateMetadataFromPath } from './template-metadata.mjs';
 import { normalizeOptions } from './options-processor.mjs';
-import { resolvePlaceholders, PlaceholderResolutionError } from './placeholder-resolver.mjs';
-import { InteractiveSession } from './interactive-session.mjs';
-import { shouldEnterInteractive } from '../../lib/shared/utils/interactive-utils.mjs';
+import { resolvePlaceholders } from './placeholder-resolver.mjs';
 import { createConfigManager } from '../../lib/cli/config-manager.mjs';
 import {
   handleError,
@@ -40,7 +29,6 @@ import {
 } from '../../lib/shared/utils/error-handler.mjs';
 
 // Import validation classes for new schema validation
-import { SelectionValidator } from '../../lib/validation/selection-validator.mjs';
 
 // Import template validation functions
 import { runTemplateValidation, formatValidationResults, formatValidationResultsAsJson } from './template-validation.mjs';
@@ -51,91 +39,6 @@ import { GuidedSetupWorkflow } from './guided-setup-workflow.mjs';
 // Default configuration
 const DEFAULT_REPO = 'million-views/packages';
 const DEFAULT_REGISTRY = 'git@github.com:million-views/templates.git';
-const SETUP_SCRIPT = '_setup.mjs';
-const DEFAULT_AUTHOR_ASSETS_DIR = '__scaffold__';
-
-/**
- * Validate user selections against template constraints using SelectionValidator
- * @param {object} params - Validation parameters
- * @param {string} params.templatePath - Path to template directory
- * @param {string} params.templateName - Name of the template
- * @param {object} params.optionsByDimension - Normalized user options by dimension
- * @param {object} params.metadata - Template metadata
- * @returns {Promise<{valid: boolean, errors: Array, warnings: Array, derived: object}>}
- */
-async function validateUserSelections({ templatePath, templateName, optionsByDimension, metadata }) {
-  try {
-    // Load template.json from template directory
-    const templateJsonPath = path.join(templatePath, 'template.json');
-    let templateData;
-
-    try {
-      templateData = JSON.parse(readFileSync(templateJsonPath, 'utf8'));
-    } catch (error) {
-      // If template.json doesn't exist or is invalid, skip selection validation
-      // This maintains backward compatibility with older templates
-      return {
-        valid: true,
-        errors: [],
-        warnings: [{
-          type: 'COMPATIBILITY_WARNING',
-          message: 'Template does not use new schema validation (template.json not found or invalid)',
-          path: []
-        }],
-        derived: {}
-      };
-    }
-
-    // Create selection object from user choices
-    const selectionData = {
-      schemaVersion: '1.0.0',
-      templateId: templateData.id || `${templateName}/unknown`,
-      version: templateData.version || '1.0.0',
-      selections: {}
-    };
-
-    // Map user options to selection format
-    for (const [dimensionName, dimensionValue] of Object.entries(optionsByDimension)) {
-      if (dimensionName === 'features') {
-        // Features are stored as array
-        selectionData.selections[dimensionName] = Array.isArray(dimensionValue) ? dimensionValue : [dimensionValue];
-      } else {
-        // Other dimensions are stored as single values
-        selectionData.selections[dimensionName] = dimensionValue;
-      }
-    }
-
-    // Add project metadata if available
-    if (metadata?.name) {
-      selectionData.project = {
-        name: metadata.name,
-        packageManager: 'npm' // Default, could be enhanced to detect from context
-      };
-    }
-
-    // Validate selection against template
-    const validator = new SelectionValidator();
-    // For validation, construct a template object with processed dimensions
-    const templateForValidation = {
-      ...templateData,
-      dimensions: metadata.dimensions
-    };
-    const result = await validator.validate(selectionData, templateForValidation);
-
-    return result;
-  } catch (error) {
-    return {
-      valid: false,
-      errors: [{
-        type: 'VALIDATION_ERROR',
-        message: `Selection validation failed: ${error.message}`,
-        path: []
-      }],
-      warnings: [],
-      derived: {}
-    };
-  }
-}
 
 // Import command router
 import { routeCommand } from './command-router.mjs';
@@ -156,12 +59,17 @@ async function main() {
     const firstArg = process.argv[2]; // First argument after 'create-scaffold'
 
     // List of valid commands
-    const validCommands = [TERMINOLOGY.COMMAND.NEW, TERMINOLOGY.COMMAND.LIST, TERMINOLOGY.COMMAND.INFO, TERMINOLOGY.COMMAND.VALIDATE];
+    const validCommands = [
+      TERMINOLOGY.COMMAND.NEW,
+      TERMINOLOGY.COMMAND.LIST,
+      TERMINOLOGY.COMMAND.INFO,
+      TERMINOLOGY.COMMAND.VALIDATE
+    ];
 
     if (firstArg && validCommands.includes(firstArg)) {
       // Use new command routing
       const remainingArgs = process.argv.slice(3); // Arguments after command
-      
+
       // Parse arguments for the command using a simple flag parser
       const commandArgs = {};
       for (let i = 0; i < remainingArgs.length; i++) {
@@ -185,7 +93,7 @@ async function main() {
           }
         }
       }
-      
+
       // Extract positional arguments (non-flag arguments)
       const positionalArgs = [];
       let i = 0;
@@ -210,7 +118,7 @@ async function main() {
           i++;
         }
       }
-      
+
       const exitCode = await routeCommand(firstArg, positionalArgs, commandArgs);
       process.exit(exitCode);
     }
@@ -457,7 +365,6 @@ async function main() {
 
     // Template resolution logic - handle different template input types
     let templatePath, templateName, repoUrl, branchName, metadata;
-    let allowFallback = false;
 
     // First, check if the template is a registry alias and resolve it
     let resolvedTemplate = args.template;
@@ -469,12 +376,12 @@ async function main() {
     if (args.template) {
             // Process template URL
       // Handle different template input types
-      if (args.template.startsWith('/') || args.template.startsWith('./') || args.template.startsWith('../') || 
+      if (args.template.startsWith('/') || args.template.startsWith('./') || args.template.startsWith('../') ||
           (resolvedTemplate.startsWith('/') || resolvedTemplate.startsWith('./') || resolvedTemplate.startsWith('../'))) {
         console.error('DEBUG: Taking local path branch');
         // Direct template directory path - validate for security (prevent path traversal)
-        const templateToUse = (resolvedTemplate.startsWith('/') || resolvedTemplate.startsWith('./') || resolvedTemplate.startsWith('../')) 
-          ? resolvedTemplate 
+        const templateToUse = (resolvedTemplate.startsWith('/') || resolvedTemplate.startsWith('./') || resolvedTemplate.startsWith('../'))
+          ? resolvedTemplate
           : args.template;
         if (templateToUse.includes('..')) {
           handleError(new ValidationError('Path traversal attempts are not allowed in template paths', 'template'), { operation: 'template_validation', exit: true });
@@ -483,7 +390,6 @@ async function main() {
         templateName = path.basename(templateToUse);
         repoUrl = path.dirname(templateToUse);
         branchName = null;
-        allowFallback = false; // Local paths should not fallback
       } else if (resolvedTemplate.includes('://') || resolvedTemplate.includes('#')) {
         // Template URL (including resolved registry aliases) or URL with branch syntax - use TemplateResolver
         const templateResolver = new TemplateResolver(cacheManager, configMetadata);
@@ -495,7 +401,6 @@ async function main() {
         templateName = path.basename(templatePath);
         repoUrl = resolvedTemplate;
         branchName = args.branch;
-        allowFallback = false; // URLs should not fallback
       } else {
         console.error('DEBUG: Taking repository shorthand branch');
         // Repository shorthand - assume it's a template name in default repo
@@ -512,7 +417,6 @@ async function main() {
         templateName = args.template;
         repoUrl = repoUrlResolved;
         branchName = branchNameResolved;
-        allowFallback = true; // Repository templates should fallback
       }
     } else {
       // No template specified - this will be handled by the guided workflow
@@ -520,7 +424,6 @@ async function main() {
       templateName = null;
       repoUrl = args.repo || DEFAULT_REPO;
       branchName = args.branch;
-      allowFallback = true; // No template specified should allow fallback
     }
 
     // Load template metadata if we have a template path
@@ -864,311 +767,9 @@ async function loadTemplateMetadata(templatePath, logger) {
 }
 
 /**
- * Clone the template repository using cache-aware operations
- */
-async function cloneTemplateRepo(repoUrl, branchName, options = {}) {
-  const { noCache, cacheTtl, cacheManager, logger } = options;
-
-  if (logger) {
-    await logger.logOperation('git_clone_start', {
-      repoUrl,
-      branchName,
-      noCache: !!noCache,
-      cacheTtl
-    });
-  }
-
-  // If cache is disabled, use direct cloning
-  if (noCache) {
-    // ast-grep-ignore: no-console-log
-    console.log('📥 Cloning template repository (cache disabled)...');
-    const tempPath = await directCloneRepo(repoUrl, branchName, logger);
-    return {
-      path: tempPath,
-      temporary: true
-    };
-  }
-
-  // Use cache-aware repository access
-  try {
-    // ast-grep-ignore: no-console-log
-    console.log('📥 Accessing template repository...');
-    const cachedPath = await ensureRepositoryCached(
-      repoUrl,
-      branchName,
-      cacheManager,
-      logger,
-      {
-        ttlHours: cacheTtl
-      }
-    );
-
-    return {
-      path: cachedPath,
-      temporary: false
-    };
-  } catch (error) {
-    if (logger) {
-      await logger.logError(error, {
-        operation: 'git_clone_cached',
-        repoUrl,
-        branchName
-      });
-    }
-
-    // Provide helpful error messages based on common issues
-    const sanitizedErrorMessage = sanitizeErrorMessage(error.message);
-
-    if (error.message.includes('Repository not found')) {
-      throw new Error(
-        `Repository not found.\n` +
-        'Please check that:\n' +
-        '  1. The repository exists\n' +
-        '  2. You have access to it\n' +
-        '  3. Your git credentials are configured correctly'
-      );
-    } else if (error.message.includes('branch') && branchName) {
-      throw new Error(
-        `Branch not found in repository.\n` +
-        'Please check the branch name and try again.'
-      );
-    } else if (error.message.includes('Authentication failed') || error.message.includes('403')) {
-      throw new Error(
-        'Authentication failed.\n' +
-        'Please ensure your git credentials are configured correctly.\n' +
-        'For private repositories, you need to set up:\n' +
-        '  - SSH keys: https://docs.github.com/en/authentication/connecting-to-github-with-ssh\n' +
-        '  - Personal Access Token: https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token'
-      );
-    } else if (error.message.includes('timed out')) {
-      throw new Error(
-        'Git clone operation timed out.\n' +
-        'This may be due to:\n' +
-        '  • Network connectivity issues\n' +
-        '  • Large repository size\n' +
-        '  • Repository server being slow or unavailable\n' +
-        '  • Firewall or proxy blocking the connection\n\n' +
-        'Please check your network connection and try again.'
-      );
-    } else {
-      throw new Error(`Failed to access repository: ${sanitizedErrorMessage}`);
-    }
-  }
-}
-
-/**
- * Direct clone repository (fallback for --no-cache)
- */
-async function directCloneRepo(repoUrl, branchName, logger) {
-  const tempDir = createSecureTempDir();
-
-  const cloneArgs = ['clone', '--depth', '1'];
-
-  if (branchName) {
-    cloneArgs.push('--branch', branchName);
-  }
-
-  // Convert user/repo format to full GitHub URL if needed
-  let fullRepoUrl;
-  if (repoUrl.startsWith('/') || repoUrl.startsWith('.') || repoUrl.startsWith('~')) {
-    fullRepoUrl = repoUrl;
-  } else if (repoUrl.includes('://')) {
-    fullRepoUrl = repoUrl;
-  } else {
-    fullRepoUrl = `https://github.com/${repoUrl}.git`;
-  }
-
-  cloneArgs.push(fullRepoUrl, tempDir);
-
-  try {
-    await execCommand('git', cloneArgs, { timeout: 60000, stdio: ['inherit', 'pipe', 'pipe'] });
-
-    if (logger) {
-      await logger.logOperation('git_clone_direct', {
-        repoUrl,
-        branchName,
-        tempDir,
-        fullRepoUrl
-      });
-    }
-  } catch (error) {
-    // Clean up temp directory if clone failed
-    await safeCleanup(tempDir);
-
-    if (logger) {
-      await logger.logError(error, {
-        operation: 'git_clone_direct',
-        repoUrl,
-        branchName,
-        tempDir
-      });
-    }
-
-    throw error;
-  }
-
-  return tempDir;
-}
-
-/**
- * Verify that the template subdirectory exists
- */
-async function verifyTemplate(templatePath, templateName) {
-  try {
-    await validateDirectoryExists(templatePath, `Template "${templateName}"`);
-  } catch (error) {
-    if (error.message.includes('not found')) {
-      throw ErrorMessages.templateNotFound(templateName);
-    }
-    throw contextualizeError(error, {
-      context: ErrorContext.TEMPLATE,
-      userFriendlyMessage: `Failed to verify template "${templateName}"`
-    });
-  }
-}
-
-/**
- * Copy template files to project directory
- */
-async function copyTemplate(templatePath, projectDirectory, logger, options = {}) {
-  // ast-grep-ignore: no-console-log
-  console.log('📋 Copying template files...');
-
-  if (logger) {
-    await logger.logOperation('file_copy_start', {
-      templatePath,
-      projectDirectory
-    });
-  }
-
-  try {
-    // Create project directory
-    await ensureDirectory(projectDirectory, 0o755, 'project directory');
-
-    // Copy all files from template to project directory
-    const ignoreSet = options.ignoreSet ?? createTemplateIgnoreSet();
-    await copyRecursive(templatePath, projectDirectory, logger, ignoreSet);
-
-    // Remove .git directory if it exists in the copied template
-    const gitDir = path.join(projectDirectory, '.git');
-    await safeCleanup(gitDir);
-
-    if (logger) {
-      await logger.logOperation('file_copy_complete', {
-        templatePath,
-        projectDirectory
-      });
-    }
-
-  } catch (err) {
-    if (logger) {
-      await logger.logError(err, {
-        operation: 'file_copy',
-        templatePath,
-        projectDirectory
-      });
-    }
-
-    const sanitizedMessage = sanitizeErrorMessage(err.message);
-    throw new Error(`Failed to copy template: ${sanitizedMessage}`);
-  }
-}
-
-/**
- * Recursively copy directory contents
- */
-async function copyRecursive(src, dest, logger, ignoreSet) {
-  const entries = await fs.readdir(src, { withFileTypes: true });
-
-  await ensureDirectory(dest, 0o755, 'destination directory');
-
-  for (const entry of entries) {
-    const srcPath = path.join(src, entry.name);
-    const destPath = path.join(dest, entry.name);
-
-    if (shouldIgnoreTemplateEntry(entry.name, ignoreSet)) {
-      continue;
-    }
-
-    if (entry.isDirectory()) {
-      await copyRecursive(srcPath, destPath, logger, ignoreSet);
-    } else {
-      await fs.copyFile(srcPath, destPath);
-
-      if (logger) {
-        await logger.logFileCopy(srcPath, destPath);
-      }
-    }
-  }
-}
-
-/**
- * Stage author-only assets inside the project directory so setup scripts can
- * consume snippets before the directory is removed from the final scaffold.
- */
-async function stageAuthorAssets(templatePath, projectDirectory, authorAssetsDir, logger) {
-  const normalizedDir = typeof authorAssetsDir === 'string' && authorAssetsDir.trim()
-    ? authorAssetsDir.trim()
-    : DEFAULT_AUTHOR_ASSETS_DIR;
-
-  const source = path.join(templatePath, normalizedDir);
-  let stats;
-  try {
-    stats = await fs.stat(source);
-  } catch (error) {
-    if (error.code === 'ENOENT') {
-      return;
-    }
-    throw error;
-  }
-
-  if (!stats.isDirectory()) {
-    return;
-  }
-
-  const destination = path.join(projectDirectory, normalizedDir);
-  await fs.cp(source, destination, {
-    recursive: true,
-    force: true,
-    filter: (src) => !shouldIgnoreTemplateEntry(path.basename(src))
-  });
-
-  if (logger) {
-    await logger.logOperation('author_assets_staged', {
-      templatePath,
-      projectDirectory,
-      authorAssetsDir: normalizedDir
-    });
-  }
-}
-
-/**
  * Remove staged author assets after setup completes so the generated project
  * remains clean.
  */
-async function cleanupAuthorAssets(projectDirectory, authorAssetsDir, logger) {
-  const normalizedDir = typeof authorAssetsDir === 'string' && authorAssetsDir.trim()
-    ? authorAssetsDir.trim()
-    : DEFAULT_AUTHOR_ASSETS_DIR;
-
-  const target = path.join(projectDirectory, normalizedDir);
-  try {
-    await fs.rm(target, { recursive: true, force: true });
-  } catch (error) {
-    if (error.code === 'ENOENT') {
-      return;
-    }
-    throw error;
-  }
-
-  if (logger) {
-    await logger.logOperation('author_assets_removed', {
-      projectDirectory,
-      authorAssetsDir: normalizedDir
-    });
-  }
-}
-
 async function executeTemplateValidation({ targetPath, jsonOutput }) {
   try {
     const result = await runTemplateValidation({ targetPath });
@@ -1189,149 +790,9 @@ async function executeTemplateValidation({ targetPath, jsonOutput }) {
   }
 }
 
-/**
- * Execute optional setup script if it exists
- */
-async function executeSetupScript({ projectDirectory, projectName, ide, options, authoringMode, dimensions = {}, logger, inputs = Object.freeze({}), author = null }) {
-  const setupScriptPath = path.join(projectDirectory, SETUP_SCRIPT);
-
-  // Check if setup script exists
-  try {
-    await fs.access(setupScriptPath);
-  } catch {
-    // Setup script doesn't exist - this is fine
-    return;
-  }
-
-  if (logger) {
-    await logger.logOperation('setup_script_start', {
-      setupScriptPath,
-      projectDirectory,
-      ide,
-      options: options?.raw ?? []
-    });
-  }
-
-  // eslint-disable-next-line no-unused-vars
-  function printPlaceholderSummary(report) {
-    if (!Array.isArray(report) || report.length === 0) {
-      return;
-    }
-
-    // ast-grep-ignore: no-console-log
-    console.log('🧩 Placeholder inputs:');
-    for (const entry of report) {
-      const source = entry.source ?? 'default';
-      const sensitive = entry.sensitive === true;
-      const valueDisplay = sensitive ? '[redacted]' : formatPlaceholderValue(entry.value);
-      const sensitiveNote = sensitive ? ' (sensitive)' : '';
-      const valueSuffix = sensitive ? ' [redacted]' : valueDisplay ? ` (${valueDisplay})` : '';
-      // ast-grep-ignore: no-console-log
-      console.log(`  ${entry.token} ← ${source}${sensitiveNote}${valueSuffix}`);
-    }
-    // ast-grep-ignore: no-console-log
-    console.log('');
-  }
-
-  function formatPlaceholderValue(value) {
-    if (value === undefined || value === null) {
-      return '';
-    }
-
-    if (typeof value === 'string') {
-      return value;
-    }
-
-    if (typeof value === 'number' || typeof value === 'boolean') {
-      return String(value);
-    }
-
-    try {
-      return JSON.stringify(value);
-    } catch {
-      return String(value);
-    }
-  }
-
-  // Setup script exists, ensure it gets cleaned up regardless of what happens
-  try {
-    // ast-grep-ignore: no-console-log
-    console.log('⚙️  Running template setup script...');
-
-    // Import and execute the setup script
-    const ctx = createEnvironmentObject({
-      projectDirectory,
-      projectName,
-      cwd: process.cwd(),
-      ide,
-      options,
-      authoringMode,
-      inputs,
-      author
-    });
-
-    const tools = await createSetupTools({
-      projectDirectory,
-      projectName,
-      logger,
-      context: ctx,
-      dimensions
-    });
-
-    await loadSetupScript(setupScriptPath, ctx, tools, logger);
-
-    if (logger) {
-      await logger.logSetupScript(setupScriptPath, 'success', 'Setup script executed successfully');
-    }
-
-  } catch (err) {
-    if (logger) {
-      await logger.logSetupScript(setupScriptPath, 'failed', err.message);
-      await logger.logError(err, {
-        operation: 'setup_script_execution',
-        setupScriptPath,
-        projectDirectory
-      });
-    }
-
-    let message = err.message;
-    if (err instanceof SetupSandboxError) {
-      message = err.message;
-    } else {
-      message = sanitizeErrorMessage(message);
-    }
-
-    console.warn(`⚠️  Warning: Setup script execution failed: ${message}`);
-    console.warn('Continuing without setup...');
-  } finally {
-    // Remove the setup script after execution attempt (success or failure)
-    try {
-      await fs.unlink(setupScriptPath);
-
-      if (logger) {
-        await logger.logOperation('setup_script_cleanup', {
-          setupScriptPath,
-          removed: true
-        });
-      }
-    } catch {
-      // Ignore cleanup errors - setup script may have already been removed
-      // or there may be permission issues, but we don't want to fail the entire process
-      if (logger) {
-        await logger.logOperation('setup_script_cleanup', {
-          setupScriptPath,
-          removed: false,
-          reason: 'cleanup_failed'
-        });
-      }
-    }
-  }
-}
-
 async function listDefaultRegistryTemplates(cacheManager) {
   try {
-    const templateDiscovery = new TemplateDiscovery(cacheManager);
-    const templates = await templateDiscovery.listTemplates(DEFAULT_REGISTRY, 'main');
+    const templates = await new TemplateDiscovery(cacheManager).listTemplates(DEFAULT_REGISTRY, 'main');
     return templates.map(template => ({
       name: template.name,
       description: template.description || `Template from default registry`,
@@ -1348,7 +809,6 @@ async function executeListTemplates({ jsonOutput, registryName, config }) {
   try {
     // Initialize cache manager for template discovery
     const cacheManager = new CacheManager();
-    const templateDiscovery = new TemplateDiscovery(cacheManager);
 
     let templates;
 

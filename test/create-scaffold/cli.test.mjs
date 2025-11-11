@@ -769,11 +769,11 @@ export default async function setup() {
 
   const projectName = 'test-failing-setup-project';
   const fullProjectPath = path.join(path.dirname(projectPath), projectName);
-  
+
   // Ensure project directory doesn't exist
   try {
     await fs.rm(fullProjectPath, { recursive: true, force: true });
-  } catch (error) {
+  } catch (_error) {
     // Ignore if it doesn't exist
   }
 

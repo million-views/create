@@ -62,7 +62,7 @@ function handleError(message, exitCode = 1) {
 /**
  * Main hints command function
  */
-export async function main(argv = null, config = {}) {
+export async function main(argv = null, _config = {}) {
   let parsedArgs;
 
   try {

@@ -136,7 +136,7 @@ test('validateAllInputs accumulates multiple validation failures', () => {
   const maliciousInputs = {
     projectDirectory: '../evil',
     template: '../../malicious',
-    repo: 'javascript:alert("xss")',
+    repo: 'javascript:alert("xss")', // eslint-disable-line no-script-url
     branch: 'main; rm -rf /',
     ide: 'evil-ide',
     options: 'auth,../malicious,database'

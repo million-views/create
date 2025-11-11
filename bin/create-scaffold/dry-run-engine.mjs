@@ -3,8 +3,7 @@
 import fs from 'fs';
 import path from 'path';
 import { validateDirectoryExists } from '../../lib/shared/utils/fs-utils.mjs';
-import { execCommand } from '../../lib/shared/utils/command-utils.mjs';
-import { shouldIgnoreTemplateEntry, stripIgnoredFromTree, createTemplateIgnoreSet } from '../../lib/shared/utils/template-ignore.mjs';
+import { shouldIgnoreTemplateEntry, createTemplateIgnoreSet } from '../../lib/shared/utils/template-ignore.mjs';
 import { loadTemplateMetadataFromPath } from './template-metadata.mjs';
 
 /**
@@ -200,7 +199,7 @@ export class DryRunEngine {
   /**
    * Extract placeholders from template files
    */
-  extractPlaceholders(files, templatePath) {
+  extractPlaceholders(files, _templatePath) {
     const placeholders = new Set();
 
     for (const file of files) {

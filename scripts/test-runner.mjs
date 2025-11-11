@@ -138,7 +138,7 @@ class TestRunner {
     await fs.rm(this.homeBaseDir, { recursive: true, force: true });
     await fs.mkdir(this.homeBaseDir, { recursive: true });
 
-    const passed = await this.runTest(matchingTest);
+    const _passed = await this.runTest(matchingTest);
     this.printSummary();
   }
 
@@ -163,12 +163,12 @@ class TestRunner {
         description: 'CLI argument parsing and validation smoke coverage',
         homeSuffix: 'argument-parser'
       },
-       {
-         name: 'Interactive Utils Tests',
-         command: ['--test', './test/shared/interactive-utils.test.mjs'],
-         description: 'Interactive trigger heuristics and environment control',
-         homeSuffix: 'interactive-utils'
-       },
+      {
+        name: 'Interactive Utils Tests',
+        command: ['--test', './test/shared/interactive-utils.test.mjs'],
+        description: 'Interactive trigger heuristics and environment control',
+        homeSuffix: 'interactive-utils'
+      },
       {
         name: 'Options Processor Tests',
         command: ['--test', './test/shared/options-processor.test.mjs'],

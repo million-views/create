@@ -86,7 +86,7 @@ async function applyIntelligentFixes(templateFile, errors) {
   try {
     // Read current template
     const templateContent = await fs.readFile(templateFile, 'utf8');
-    let template = JSON.parse(templateContent);
+    const template = JSON.parse(templateContent);
 
     for (const error of errors) {
       if (error.type === 'DOMAIN_ERROR' && error.autoFix) {
@@ -136,7 +136,7 @@ async function applyIntelligentFixes(templateFile, errors) {
               }
               break;
           }
-        } catch (fixError) {
+        } catch (_fixError) {
           console.log(`   ⚠️  Failed to apply fix for: ${error.message}`);
         }
       }
@@ -165,7 +165,7 @@ function handleError(message, exitCode = 1) {
 /**
  * Main validate command function
  */
-export async function main(argv = null, config = {}) {
+export async function main(argv = null, _config = {}) {
   let parsedArgs;
 
   try {

@@ -84,7 +84,7 @@ const FILE_MANIFEST = {
   // SKIP_ALWAYS: User-owned files that should never be touched
   SKIP_ALWAYS: [
     'README.md',  // Always user-owned for existing projects
-    'package.json',
+    'package.json'
     // Any user-created content in docs/, scripts/, etc.
   ]
 };

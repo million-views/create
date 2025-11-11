@@ -92,7 +92,7 @@ export function normalizeOptions({ rawTokens = [], dimensions = {} }) {
           definition,
           warnings,
           unknown,
-          token,
+          token
         });
         continue;
       }
@@ -117,7 +117,7 @@ export function normalizeOptions({ rawTokens = [], dimensions = {} }) {
   return {
     byDimension,
     warnings,
-    unknown,
+    unknown
   };
 }
 

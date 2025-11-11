@@ -112,7 +112,7 @@ export class CLITestRunner {
           if (response && child.stdin.writable) {
             child.stdin.write(response + '\n');
           }
-        } catch (error) {
+        } catch (_error) {
           // No more responses or simulator closed
           break;
         }

@@ -3,9 +3,8 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { createSecureTempDir, sanitizeErrorMessage, validateAllInputs } from '../../lib/shared/security.mjs';
+import { sanitizeErrorMessage, validateAllInputs } from '../../lib/shared/security.mjs';
 import { ensureDirectory, safeCleanup } from '../../lib/shared/utils/fs-utils.mjs';
-import { execCommand } from '../../lib/shared/utils/command-utils.mjs';
 import { createTemplateIgnoreSet, shouldIgnoreTemplateEntry } from '../../lib/shared/utils/template-ignore.mjs';
 import { createSetupTools, loadSetupScript } from './setup-runtime.mjs';
 import { ContextualError, ErrorContext, ErrorSeverity } from '../../lib/shared/utils/error-handler.mjs';
@@ -296,7 +295,7 @@ export class GuidedSetupWorkflow {
 
     // For now, assume gates apply when their name matches a selected dimension value
     // This works for the current template structure where gates are named after deployment targets
-    for (const [dimName, selectedValue] of Object.entries(dimensionSelections)) {
+    for (const [_dimName, selectedValue] of Object.entries(dimensionSelections)) {
       if (selectedValue === gateName) {
         return true;
       }
@@ -374,7 +373,7 @@ export class GuidedSetupWorkflow {
               violations.push({
                 feature: selectedFeature,
                 dimension: requiredDim,
-                requirement: requirement,
+                requirement,
                 message: `Feature '${selectedFeature}' requires a ${requiredDim} to be selected`
               });
             }
@@ -384,7 +383,7 @@ export class GuidedSetupWorkflow {
               violations.push({
                 feature: selectedFeature,
                 dimension: requiredDim,
-                requirement: requirement,
+                requirement,
                 selected: selectedValue,
                 message: `Feature '${selectedFeature}' requires ${requiredDim} to be '${requirement}' but '${selectedValue}' was selected`
               });
@@ -577,7 +576,7 @@ export class GuidedSetupWorkflow {
   /**
    * Handle step errors with recovery options
    */
-  async #handleStepError(stepName, error, currentIndex, totalSteps) {
+  async #handleStepError(stepName, error, _currentIndex, _totalSteps) {
     const errorMessage = sanitizeErrorMessage(error.message);
     this.workflowState.errors.push({
       step: stepName,
@@ -686,7 +685,7 @@ export class GuidedSetupWorkflow {
           await this.#displayDetailedErrorLog();
           break;
       }
-    } catch (cleanupError) {
+    } catch (_cleanupError) {
       // If cleanup prompt fails, just clean up automatically
       await this.#cleanupPartialSetup();
     }
@@ -700,7 +699,7 @@ export class GuidedSetupWorkflow {
       process.stdout.write('✅ Project created successfully!\n');
       process.stdout.write('\n📂 Next steps:\n');
       process.stdout.write(`  cd ${this.projectDirectory}\n`);
-      
+
       const resolvedHandoff = (this.metadata?.handoffSteps && this.metadata.handoffSteps.length > 0)
         ? this.metadata.handoffSteps
         : ['Review README.md for additional instructions'];
@@ -822,7 +821,7 @@ export class GuidedSetupWorkflow {
         // No template path provided
         templateAccessible = false;
       }
-    } catch (error) {
+    } catch (_error) {
       templateAccessible = false;
     }
 
@@ -856,7 +855,7 @@ export class GuidedSetupWorkflow {
     const packageJsonPath = path.join(this.resolvedProjectDirectory, 'package.json');
     try {
       await fs.access(packageJsonPath);
-    } catch (error) {
+    } catch (_error) {
       // Create a basic package.json if template doesn't have one
       const basicPackage = {
         name: path.basename(this.projectDirectory),
@@ -1044,7 +1043,7 @@ export class GuidedSetupWorkflow {
     // Clean up workflow state file
     try {
       await fs.unlink(this.stateFile);
-    } catch (error) {
+    } catch (_error) {
       // Ignore if file doesn't exist
     }
 
@@ -1072,7 +1071,7 @@ export class GuidedSetupWorkflow {
       Object.assign(this.workflowState, savedState);
       this.workflowState.resumed = true;
 
-    } catch (error) {
+    } catch (_error) {
       // No existing state or invalid state file
       this.workflowState.resumed = false;
     }
@@ -1100,7 +1099,7 @@ export class GuidedSetupWorkflow {
     try {
       await fs.access(this.stateFile);
       return true;
-    } catch (error) {
+    } catch (_error) {
       return false;
     }
   }

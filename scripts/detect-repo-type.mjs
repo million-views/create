@@ -9,16 +9,16 @@
  * Also detects whether the current environment is "unborn" (methodology package)
  * or "reified" (actual project using the methodology).
  *
-  * Usage: 
+  * Usage:
  *   node scripts/detect-repo-type.mjs              # Analyze current directory
  *   node scripts/detect-repo-type.mjs /path/to/repo # Analyze specific path
  *   node scripts/detect-repo-type.mjs /path/to/repository
  */
 
-import fs from 'fs/promises';
+import _fs from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { fileExists, readPackageJson, isMethodologyTemplate, countPackageJsonFiles, hasWorkspaceConfig, hasPnpmWorkspace, hasLernaConfig, hasRushConfig, hasMonorepoPatterns } from './utils.mjs';
+import { _fileExists, _readPackageJson, isMethodologyTemplate, countPackageJsonFiles, hasWorkspaceConfig, hasPnpmWorkspace, hasLernaConfig, hasRushConfig, hasMonorepoPatterns } from './utils.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 

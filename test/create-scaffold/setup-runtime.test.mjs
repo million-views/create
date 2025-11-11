@@ -253,7 +253,7 @@ test('inputs API exposes resolved placeholder values and applyInputs helper', as
   const componentDir = path.join(projectDir, 'src');
   await fs.mkdir(componentDir, { recursive: true });
   const componentFile = path.join(componentDir, 'App.jsx');
-  await fs.writeFile(componentFile, "export default function App() {\n  return <h1>{{TITLE}}</h1>;\n}\n");
+  await fs.writeFile(componentFile, 'export default function App() {\n  return <h1>{{TITLE}}</h1>;\n}\n');
 
   const ctx = buildContext(baseDir, projectName, {
     inputs: Object.freeze({

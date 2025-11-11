@@ -2,46 +2,25 @@
 
 import fs from 'fs/promises';
 import path from 'path';
-import { fileURLToPath, pathToFileURL } from 'node:url';
-import { parseArguments, validateArguments, generateHelpText, ArgumentError } from '../argument-parser.mjs';
 import {
-  validateAllInputs,
-  sanitizeErrorMessage,
-  createSecureTempDir,
-  sanitizePath,
-  ValidationError,
+  ValidationError
 } from '../../../lib/shared/security.mjs';
-import {
-  runAllPreflightChecks,
-  PreflightError
-} from '../preflight-checks.mjs';
-import { createEnvironmentObject } from '../environment-factory.mjs';
 import { CacheManager } from '../cache-manager.mjs';
 import { TemplateResolver } from '../template-resolver.mjs';
 import { Logger } from '../../../lib/shared/utils/logger.mjs';
-import { TemplateDiscovery } from '../template-discovery.mjs';
 import { DryRunEngine } from '../dry-run-engine.mjs';
 import { execCommand } from '../../../lib/shared/utils/command-utils.mjs';
-import { ensureDirectory, safeCleanup, validateDirectoryExists } from '../../../lib/shared/utils/fs-utils.mjs';
-import { shouldIgnoreTemplateEntry, createTemplateIgnoreSet, stripIgnoredFromTree } from '../../../lib/shared/utils/template-ignore.mjs';
+import { validateDirectoryExists } from '../../../lib/shared/utils/fs-utils.mjs';
+import { createTemplateIgnoreSet, stripIgnoredFromTree } from '../../../lib/shared/utils/template-ignore.mjs';
 import { loadTemplateMetadataFromPath } from '../template-metadata.mjs';
 import { normalizeOptions } from '../options-processor.mjs';
-import { resolvePlaceholders, PlaceholderResolutionError } from '../placeholder-resolver.mjs';
-import { InteractiveSession } from '../interactive-session.mjs';
-import { shouldEnterInteractive } from '../../../lib/shared/utils/interactive-utils.mjs';
+import { resolvePlaceholders } from '../placeholder-resolver.mjs';
 import { loadConfig } from '../config-loader.mjs';
 import {
   handleError,
   contextualizeError,
-  ErrorMessages,
   ErrorContext
 } from '../../../lib/shared/utils/error-handler.mjs';
-
-// Import validation classes for new schema validation
-import { SelectionValidator } from '../../../lib/validation/selection-validator.mjs';
-
-// Import template validation functions
-import { runTemplateValidation, formatValidationResults, formatValidationResultsAsJson } from '../template-validation.mjs';
 
 // Import guided setup workflow
 import { GuidedSetupWorkflow } from '../guided-setup-workflow.mjs';
@@ -50,9 +29,6 @@ import { GuidedSetupWorkflow } from '../guided-setup-workflow.mjs';
 import { TERMINOLOGY } from '../../../../create/lib/shared/ontology.mjs';
 
 const DEFAULT_REPO = 'million-views/packages';
-const DEFAULT_REGISTRY = 'git@github.com:million-views/templates.git';
-const SETUP_SCRIPT = '_setup.mjs';
-const DEFAULT_AUTHOR_ASSETS_DIR = '__scaffold__';
 
 /**
  * Execute the 'new' command - create a new project from a template
@@ -91,7 +67,7 @@ export async function executeNewCommand(args) {
 
     // Template resolution logic - handle different template input types
     let templatePath, templateName, repoUrl, branchName, metadata;
-    let allowFallback = false;
+    let _allowFallback = false;
 
     // First, check if the template is a registry alias and resolve it
     let resolvedTemplate = args[TERMINOLOGY.OPTION.TEMPLATE];
@@ -106,8 +82,8 @@ export async function executeNewCommand(args) {
       if (args[TERMINOLOGY.OPTION.TEMPLATE].includes('\0')) {
         handleError(new ValidationError('Template contains null bytes', 'template'), { operation: 'template_validation', exit: true });
       }
-      if (args[TERMINOLOGY.OPTION.TEMPLATE].includes(';') || args[TERMINOLOGY.OPTION.TEMPLATE].includes('|') || 
-          args[TERMINOLOGY.OPTION.TEMPLATE].includes('&') || args[TERMINOLOGY.OPTION.TEMPLATE].includes('`') || 
+      if (args[TERMINOLOGY.OPTION.TEMPLATE].includes(';') || args[TERMINOLOGY.OPTION.TEMPLATE].includes('|') ||
+          args[TERMINOLOGY.OPTION.TEMPLATE].includes('&') || args[TERMINOLOGY.OPTION.TEMPLATE].includes('`') ||
           args[TERMINOLOGY.OPTION.TEMPLATE].includes('$(') || args[TERMINOLOGY.OPTION.TEMPLATE].includes('${')) {
         handleError(new ValidationError('Template not accessible', 'template'), { operation: 'template_validation', exit: true });
       }
@@ -120,8 +96,8 @@ export async function executeNewCommand(args) {
           resolvedTemplate.startsWith('/') || resolvedTemplate.startsWith('./') || resolvedTemplate.startsWith('../')) {
         console.error('DEBUG: Taking local path branch');
         // Direct template directory path - validate for security (prevent path traversal)
-        const templateToUse = (resolvedTemplate.startsWith('/') || resolvedTemplate.startsWith('./') || resolvedTemplate.startsWith('../')) 
-          ? resolvedTemplate 
+        const templateToUse = (resolvedTemplate.startsWith('/') || resolvedTemplate.startsWith('./') || resolvedTemplate.startsWith('../'))
+          ? resolvedTemplate
           : args[TERMINOLOGY.OPTION.TEMPLATE];
         if (templateToUse.includes('..')) {
           handleError(new ValidationError('Path traversal attempts are not allowed in template paths', 'template'), { operation: 'template_validation', exit: true });
@@ -130,9 +106,9 @@ export async function executeNewCommand(args) {
         templateName = path.basename(templateToUse);
         repoUrl = path.dirname(templateToUse);
         branchName = null;
-        allowFallback = false; // Local paths should not fallback
+        _allowFallback = false; // Local paths should not fallback
       } else if (resolvedTemplate.includes('://') || resolvedTemplate.includes('#') || resolvedTemplate.includes('/')) {
-        // Template URL (including resolved registry aliases), URL with branch syntax, or repo/template shorthand - use TemplateResolver
+        // Template URL, URL with branch syntax, or repo/template shorthand - use TemplateResolver
         const templateResolver = new TemplateResolver(cacheManager, configMetadata);
         const templateResolution = await templateResolver.resolveTemplate(resolvedTemplate, {
           branch: args[TERMINOLOGY.OPTION.BRANCH],
@@ -142,7 +118,7 @@ export async function executeNewCommand(args) {
         templateName = path.basename(templatePath);
         repoUrl = resolvedTemplate;
         branchName = args[TERMINOLOGY.OPTION.BRANCH];
-        allowFallback = false; // URLs and repo/template specs should not fallback
+        _allowFallback = false; // URLs and repo/template specs should not fallback
       } else {
         console.error('DEBUG: Taking repository shorthand branch');
         // Repository shorthand - assume it's a template name in default repo
@@ -159,7 +135,7 @@ export async function executeNewCommand(args) {
         templateName = args[TERMINOLOGY.OPTION.TEMPLATE];
         repoUrl = repoUrlResolved;
         branchName = branchNameResolved;
-        allowFallback = true; // Repository templates should fallback
+        _allowFallback = true; // Repository templates should fallback
       }
     } else {
       // No template specified - this will be handled by the guided workflow
@@ -167,7 +143,7 @@ export async function executeNewCommand(args) {
       templateName = null;
       repoUrl = args.repo || DEFAULT_REPO;
       branchName = args[TERMINOLOGY.OPTION.BRANCH];
-      allowFallback = true; // No template specified should allow fallback
+      _allowFallback = true; // No template specified should allow fallback
     }
 
     // Load template metadata if we have a template path

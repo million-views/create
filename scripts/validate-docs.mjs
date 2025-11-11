@@ -11,7 +11,7 @@
 import fs from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { colorize, fileExists, getMarkdownFiles, formatResults, calculateExitCode, isMethodologyTemplate } from './utils.mjs';
+import { colorize, fileExists, getMarkdownFiles, formatResults, isMethodologyTemplate } from './utils.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const args = process.argv.slice(2);
@@ -143,11 +143,11 @@ async function validateLinks(filePath, content, allFiles) {
 
   const linkRegex = /\[([^\]]+)\]\(([^)]+)\)/g;
   const fileDir = path.dirname(filePath);
-  const relativePaths = allFiles.map(f => path.relative(fileDir, f));
+  const _relativePaths = allFiles.map(f => path.relative(fileDir, f));
 
   let match;
   while ((match = linkRegex.exec(content)) !== null) {
-    const [fullMatch, text, link] = match;
+    const [_fullMatch, text, link] = match;
     results.links++;
 
     // Skip external links and anchors
@@ -181,7 +181,7 @@ function validateCodeExamples(filePath, content) {
 
   let match;
   while ((match = codeBlockRegex.exec(content)) !== null) {
-    const [fullMatch, language, code] = match;
+    const [_fullMatch, language, code] = match;
     results.codeExamples++;
 
     // Basic validation - check for common issues
@@ -294,7 +294,10 @@ async function validateDocumentation() {
   formatResults('VALIDATION RESULTS', results);
 
   // Summary
-  const totalIssues = results.errors.length + results.warnings.length + results.brokenLinks.length + results.missingFrontmatter.length;
+  const totalIssues = results.errors.length +
+    results.warnings.length +
+    results.brokenLinks.length +
+    results.missingFrontmatter.length;
 
   if (totalIssues === 0) {
     return 0;

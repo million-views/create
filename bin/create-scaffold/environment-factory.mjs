@@ -6,7 +6,7 @@ import {
   sanitizePath,
   validateProjectDirectory,
   validateIdeParameter,
-  validateAuthoringMode,
+  validateAuthoringMode
 } from '../../lib/shared/security.mjs';
 
 /**
@@ -38,7 +38,6 @@ function sanitizeProjectName(projectName) {
 }
 
 
-
 /**
  * Create Environment_Object with input validation and immutability
  * @param {Object} params - Parameters for environment object creation
@@ -51,7 +50,16 @@ function sanitizeProjectName(projectName) {
  * @returns {Object} - Immutable Environment_Object
  * @throws {ValidationError} - If any parameter is invalid
  */
-export function createEnvironmentObject({ projectDirectory, projectName, cwd, ide, options = { raw: [], byDimension: {} }, authoringMode, inputs, author }) {
+export function createEnvironmentObject({
+  projectDirectory,
+  projectName,
+  cwd,
+  ide,
+  options = { raw: [], byDimension: {} },
+  authoringMode,
+  inputs,
+  author
+}) {
   // Validate and sanitize inputs (but don't resolve to absolute paths yet)
   const sanitizedProjectDir = sanitizePath(projectDirectory);
   const sanitizedProjectName = sanitizeProjectName(projectName);

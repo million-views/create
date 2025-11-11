@@ -133,7 +133,7 @@ test('runCLITest Convenience Function', async (t) => {
     const simulator = new InteractiveSimulator([]);
 
     // Mock the runner methods to avoid actual CLI execution
-    let execCalled = false;
+    const _execCalled = false;
     let assertCalled = false;
 
     runner.runInteractiveTest = async () => ({

@@ -7,7 +7,6 @@
  */
 import { test } from 'node:test';
 import fs from 'node:fs/promises';
-import fsSync from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
 import { fileURLToPath } from 'node:url';
@@ -264,11 +263,11 @@ const INTERACTIVE_PROMPT_PLAN = Object.freeze([
   { prompt: 'Enable experimental placeholder prompts?', input: 'n' }
 ]);
 
-async function runInteractiveFlow({ args, envOverrides = {}, cwd, promptPlan = INTERACTIVE_PROMPT_PLAN }) {
+async function runInteractiveFlow({ args, _envOverrides = {}, cwd, promptPlan = INTERACTIVE_PROMPT_PLAN }) {
   // Create a mock prompt adapter that returns predetermined responses
   let responseIndex = 0;
   const mockPrompt = {
-    async question(message) {
+    async question(_message) {
       if (responseIndex < promptPlan.length) {
         const response = promptPlan[responseIndex].input;
         responseIndex++;
@@ -276,7 +275,7 @@ async function runInteractiveFlow({ args, envOverrides = {}, cwd, promptPlan = I
       }
       return ''; // Default empty response if we run out
     },
-    async write(message) {
+    async write(_message) {
       // For testing, we don't need to capture output here
     },
     async close() {
@@ -561,7 +560,7 @@ runner.test('--dry-run flag shows preview without execution', async (workDir) =>
 });
 
 // Test 2b: tree preview when custom tree command available
-runner.test('--dry-run includes tree preview when tree command available', async (workDir) => {
+runner.test('--dry-run includes tree preview when tree command available', async (_workDir) => {
   const mockRepoPath = await runner.addTempPath(await IntegrationTestUtils.createTempDir('-dry-run-tree-repo'));
   await IntegrationTestUtils.createMockRepo(mockRepoPath, ['basic']);
 
@@ -595,7 +594,7 @@ runner.test('--dry-run includes tree preview when tree command available', async
 });
 
 // Test 2c: tree preview skip message when tree command missing
-runner.test('--dry-run warns when tree command is unavailable', async (workDir) => {
+runner.test('--dry-run warns when tree command is unavailable', async (_workDir) => {
   const mockRepoPath = await runner.addTempPath(await IntegrationTestUtils.createTempDir('-dry-run-no-tree-repo'));
   await IntegrationTestUtils.createMockRepo(mockRepoPath, ['basic']);
 
@@ -641,11 +640,11 @@ runner.test('--log-file flag enables detailed logging', async () => {
     '--template', path.join(mockRepoPath, 'basic'),
     '--log-file', logFilePath
   ];
-  
+
   console.log('DEBUG: About to call execCLI with args:', cliArgs);
   console.log('DEBUG: logFilePath:', logFilePath);
 
-  const result = await IntegrationTestUtils.execCLI(cliArgs, { 
+  const result = await IntegrationTestUtils.execCLI(cliArgs, {
     cwd: workDir
   });
 
@@ -780,7 +779,7 @@ runner.test('Combined flags work together correctly', async () => {
   // Clean up any existing project directory
   try {
     await fs.rm('test-combined-project', { recursive: true, force: true });
-  } catch (error) {
+  } catch (_error) {
     // Ignore if it doesn't exist
   }
 

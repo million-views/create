@@ -7,13 +7,10 @@
  * compatible with @m5nv/create-scaffold.
  */
 
-import { parseArgs } from 'node:util';
-import { access, constants, readFile } from 'node:fs/promises';
+import { access, constants } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
-import { dirname, join } from 'node:path';
+import { dirname } from 'node:path';
 import { realpathSync } from 'node:fs';
-import { ConversionEngine } from '../../lib/shared/make-template/engine.mjs';
-import { RestorationEngine } from '../../lib/shared/make-template/restoration-engine.mjs';
 import { PROJECT_TYPES } from '../../lib/shared/make-template/config.mjs';
 import { TERMINOLOGY } from '../../lib/shared/ontology.mjs';
 import { createConfigManager } from '../../lib/cli/config-manager.mjs';
@@ -24,121 +21,6 @@ const __dirname = dirname(__filename);
 // When tests call main(argv) in-process we set this flag so error handling
 // can throw instead of calling process.exit which would kill the test runner.
 let IN_PROCESS = false;
-
-/**
- * CLI Options Schema for util.parseArgs
- */
-const OPTIONS_SCHEMA = {
-  [TERMINOLOGY.OPTION.HELP]: {
-    type: 'boolean',
-    short: 'h',
-    default: false
-  },
-  [TERMINOLOGY.OPTION.DRY_RUN]: {
-    type: 'boolean',
-    default: false
-  },
-  [TERMINOLOGY.OPTION.YES]: {
-    type: 'boolean',
-    short: 'y',
-    default: false
-  },
-  [TERMINOLOGY.OPTION.TYPE]: {
-    type: 'string'
-  },
-  [TERMINOLOGY.OPTION.PLACEHOLDER_FORMAT]: {
-    type: 'string',
-    default: '{{NAME}}'
-  },
-  [TERMINOLOGY.OPTION.SANITIZE_UNDO]: {
-    type: 'boolean',
-    default: false
-  },
-  [TERMINOLOGY.OPTION.QUIET]: {
-    type: 'boolean',
-    default: false
-  },
-  [TERMINOLOGY.OPTION.FORCE_LENIENT]: {
-    type: 'boolean',
-    default: false
-  },
-  // Restoration options
-  [TERMINOLOGY.OPTION.RESTORE]: {
-    type: 'boolean',
-    default: false
-  },
-  [TERMINOLOGY.OPTION.RESTORE_FILES]: {
-    type: 'string'
-  },
-  [TERMINOLOGY.OPTION.RESTORE_PLACEHOLDERS]: {
-    type: 'boolean',
-    default: false
-  },
-  [TERMINOLOGY.OPTION.GENERATE_DEFAULTS]: {
-    type: 'boolean',
-    default: false
-  },
-  // Init options
-  [TERMINOLOGY.OPTION.INIT]: {
-    type: 'boolean',
-    default: false
-  },
-  [TERMINOLOGY.OPTION.INIT_FILE]: {
-    type: 'string'
-  },
-  // Hints options
-  [TERMINOLOGY.OPTION.HINTS]: {
-    type: 'boolean',
-    default: false
-  },
-  // Validation options
-  [TERMINOLOGY.OPTION.LINT]: {
-    type: 'boolean',
-    default: false
-  },
-  [TERMINOLOGY.OPTION.LINT_FILE]: {
-    type: 'string'
-  },
-  [TERMINOLOGY.OPTION.SUGGEST]: {
-    type: 'boolean',
-    default: false
-  },
-  [TERMINOLOGY.OPTION.FIX]: {
-    type: 'boolean',
-    default: false
-  },
-  // Phase 2: Advanced CLI commands
-  [TERMINOLOGY.OPTION.ADD_DIMENSION]: {
-    type: 'string'
-  },
-  [TERMINOLOGY.OPTION.SET_COMPAT]: {
-    type: 'string'
-  },
-  [TERMINOLOGY.OPTION.SET_NEEDS]: {
-    type: 'string'
-  },
-  [TERMINOLOGY.OPTION.PREVIEW]: {
-    type: 'boolean',
-    default: false
-  },
-  [TERMINOLOGY.OPTION.MIGRATE]: {
-    type: 'boolean',
-    default: false
-  },
-  [TERMINOLOGY.OPTION.MIGRATE_FILE]: {
-    type: 'string'
-  },
-  // Bulk operations for Phase 2
-  [TERMINOLOGY.OPTION.BULK_ADD_DIMENSIONS]: {
-    type: 'string'
-  },
-  [TERMINOLOGY.OPTION.BULK_SET_COMPAT]: {
-    type: 'string'
-  },
-  [TERMINOLOGY.OPTION.BULK_SET_NEEDS]: {
-    type: 'string'
-  }
-};
 
 /**
  * Display help text and usage information
@@ -249,7 +131,7 @@ For more information, visit: https://github.com/m5nv/make-template
 /**
  * Validate CLI arguments
  */
-function validateArguments(options) {
+function _validateArguments(options) {
   const errors = [];
 
   // Validate project type if specified
@@ -268,12 +150,20 @@ function validateArguments(options) {
   }
 
   // Validate restoration option combinations
-  const restorationOptions = [TERMINOLOGY.OPTION.RESTORE, TERMINOLOGY.OPTION.RESTORE_FILES, TERMINOLOGY.OPTION.RESTORE_PLACEHOLDERS, TERMINOLOGY.OPTION.GENERATE_DEFAULTS];
-  const activeRestorationOptions = restorationOptions.filter(opt => options[opt]);
+  const restorationOptions = [
+    TERMINOLOGY.OPTION.RESTORE,
+    TERMINOLOGY.OPTION.RESTORE_FILES,
+    TERMINOLOGY.OPTION.RESTORE_PLACEHOLDERS,
+    TERMINOLOGY.OPTION.GENERATE_DEFAULTS
+  ];
+  const activeRestorationOptions = restorationOptions.filter(
+    opt => options[opt]
+  );
 
   if (activeRestorationOptions.length > 1) {
     // Allow restore with restore-files or restore-placeholders
-    if (options[TERMINOLOGY.OPTION.RESTORE] && (options[TERMINOLOGY.OPTION.RESTORE_FILES] || options[TERMINOLOGY.OPTION.RESTORE_PLACEHOLDERS])) {
+    if (options[TERMINOLOGY.OPTION.RESTORE] &&
+        (options[TERMINOLOGY.OPTION.RESTORE_FILES] || options[TERMINOLOGY.OPTION.RESTORE_PLACEHOLDERS])) {
       // This is valid - selective restoration
     } else if (options[TERMINOLOGY.OPTION.GENERATE_DEFAULTS] && activeRestorationOptions.length > 1) {
       errors.push('--generate-defaults cannot be combined with other restoration options');
@@ -313,13 +203,16 @@ function validateArguments(options) {
 /**
  * Validate project directory and required files
  */
-async function validateProjectDirectory() {
+/**
+ * Validate project directory
+ */
+async function _validateProjectDirectory() {
   const errors = [];
 
   try {
     // Check if package.json exists
     await access('package.json', constants.F_OK);
-  } catch (error) {
+  } catch (_error) {
     // Detect running in system root (dangerous) and provide a clearer message
     if (process.cwd && process.cwd() === '/') {
       errors.push('Running in the system root directory is not recommended and may be dangerous. Please run this command in a project directory.');
@@ -334,7 +227,7 @@ async function validateProjectDirectory() {
 /**
  * Generate .restore-defaults.json configuration file
  */
-async function generateDefaultsFile() {
+async function _generateDefaultsFile() {
   const { DefaultsManager } = await import('../lib/restoration/defaults-manager.js');
   const defaultsManager = new DefaultsManager();
 
@@ -387,7 +280,7 @@ function handleError(message, exitCode = 1) {
 /**
  * Handle init command for skeleton template generation
  */
-async function handleInitCommand(options) {
+async function _handleInitCommand(options) {
   const fs = await import('fs/promises');
   const path = await import('path');
 
@@ -401,7 +294,7 @@ async function handleInitCommand(options) {
       console.log(`⚠️  File ${outputFile} already exists.`);
       console.log(`   Use --init-file <different-name> to specify a different output file.`);
       process.exit(1);
-    } catch (error) {
+    } catch (_error) {
       // File doesn't exist, which is what we want
     }
 
@@ -430,171 +323,171 @@ async function handleInitCommand(options) {
  */
 function generateSkeletonTemplate() {
   return {
-    "schemaVersion": "1.0.0",
-    "id": "your-org/your-template-name",
-    "name": "Your Template Name",
-    "description": "A brief description of what this template creates",
-    "tags": ["web", "api", "fullstack"],
-    "author": "Your Name or Organization",
-    "license": "MIT",
-    "constants": {
-      "language": "typescript",
-      "framework": "nextjs",
-      "styling": "tailwind",
-      "testing": "jest",
-      "ci": "github-actions"
+    'schemaVersion': '1.0.0',
+    'id': 'your-org/your-template-name',
+    'name': 'Your Template Name',
+    'description': 'A brief description of what this template creates',
+    'tags': ['web', 'api', 'fullstack'],
+    'author': 'Your Name or Organization',
+    'license': 'MIT',
+    'constants': {
+      'language': 'typescript',
+      'framework': 'nextjs',
+      'styling': 'tailwind',
+      'testing': 'jest',
+      'ci': 'github-actions'
     },
-    "dimensions": {
-      "deployment_target": {
-        "values": ["vercel", "netlify", "railway", "render", "fly", "heroku"]
+    'dimensions': {
+      'deployment_target': {
+        'values': ['vercel', 'netlify', 'railway', 'render', 'fly', 'heroku']
       },
-      "features": {
-        "values": ["auth", "database", "api", "ui", "storage", "payments", "analytics"]
+      'features': {
+        'values': ['auth', 'database', 'api', 'ui', 'storage', 'payments', 'analytics']
       },
-      "database": {
-        "values": ["postgresql", "mysql", "sqlite", "mongodb", "redis", "d1", "tursodb", "none"]
+      'database': {
+        'values': ['postgresql', 'mysql', 'sqlite', 'mongodb', 'redis', 'd1', 'tursodb', 'none']
       },
-      "storage": {
-        "values": ["aws-s3", "cloudflare-r2", "vercel-blob", "local", "none"]
+      'storage': {
+        'values': ['aws-s3', 'cloudflare-r2', 'vercel-blob', 'local', 'none']
       },
-      "auth_providers": {
-        "values": ["google", "github", "twitter", "email", "none"]
+      'auth_providers': {
+        'values': ['google', 'github', 'twitter', 'email', 'none']
       },
-      "payments": {
-        "values": ["stripe", "paypal", "none"]
+      'payments': {
+        'values': ['stripe', 'paypal', 'none']
       },
-      "analytics": {
-        "values": ["mixpanel", "posthog", "google-analytics", "plausible", "none"]
+      'analytics': {
+        'values': ['mixpanel', 'posthog', 'google-analytics', 'plausible', 'none']
       }
     },
-    "gates": {
-      "cloudflare-workers": {
-        "platform": "edge",
-        "constraint": "Limited runtime capabilities for edge computing",
-        "allowed": {
-          "database": ["sqlite", "tursodb", "d1", "none"],
-          "storage": ["cloudflare-r2", "none"]
+    'gates': {
+      'cloudflare-workers': {
+        'platform': 'edge',
+        'constraint': 'Limited runtime capabilities for edge computing',
+        'allowed': {
+          'database': ['sqlite', 'tursodb', 'd1', 'none'],
+          'storage': ['cloudflare-r2', 'none']
         }
       },
-      "deno-deploy": {
-        "platform": "edge",
-        "constraint": "Deno runtime with limited storage options",
-        "allowed": {
-          "database": ["sqlite", "tursodb", "none"],
-          "storage": ["none"]
+      'deno-deploy': {
+        'platform': 'edge',
+        'constraint': 'Deno runtime with limited storage options',
+        'allowed': {
+          'database': ['sqlite', 'tursodb', 'none'],
+          'storage': ['none']
         }
       },
-      "linode": {
-        "platform": "vm",
-        "constraint": "Full VM with file system access",
-        "allowed": {
-          "database": ["sqlite", "tursodb", "postgresql", "mysql", "mongodb", "redis", "none"],
-          "storage": ["local", "aws-s3", "none"]
+      'linode': {
+        'platform': 'vm',
+        'constraint': 'Full VM with file system access',
+        'allowed': {
+          'database': ['sqlite', 'tursodb', 'postgresql', 'mysql', 'mongodb', 'redis', 'none'],
+          'storage': ['local', 'aws-s3', 'none']
         }
       }
     },
-    "featureSpecs": {
-      "auth": {
-        "label": "Authentication",
-        "description": "Add user authentication system with login/signup flows",
-        "needs": {
-          "database": "required"
+    'featureSpecs': {
+      'auth': {
+        'label': 'Authentication',
+        'description': 'Add user authentication system with login/signup flows',
+        'needs': {
+          'database': 'required'
         },
-        "category": "authentication"
+        'category': 'authentication'
       },
-      "database": {
-        "label": "Database Integration",
-        "description": "Set up database connection and schema management",
-        "needs": {},
-        "category": "database"
+      'database': {
+        'label': 'Database Integration',
+        'description': 'Set up database connection and schema management',
+        'needs': {},
+        'category': 'database'
       },
-      "api": {
-        "label": "API Routes",
-        "description": "Create REST or GraphQL API endpoints",
-        "needs": {},
-        "category": "api"
+      'api': {
+        'label': 'API Routes',
+        'description': 'Create REST or GraphQL API endpoints',
+        'needs': {},
+        'category': 'api'
       },
-      "ui": {
-        "label": "User Interface",
-        "description": "Build responsive user interface components",
-        "needs": {},
-        "category": "ui"
+      'ui': {
+        'label': 'User Interface',
+        'description': 'Build responsive user interface components',
+        'needs': {},
+        'category': 'ui'
       },
-      "storage": {
-        "label": "File Storage",
-        "description": "Add file upload and storage capabilities",
-        "needs": {},
-        "category": "storage"
+      'storage': {
+        'label': 'File Storage',
+        'description': 'Add file upload and storage capabilities',
+        'needs': {},
+        'category': 'storage'
       },
-      "payments": {
-        "label": "Payment Processing",
-        "description": "Integrate payment processing, subscriptions, and billing management",
-        "needs": {
-          "database": "required"
+      'payments': {
+        'label': 'Payment Processing',
+        'description': 'Integrate payment processing, subscriptions, and billing management',
+        'needs': {
+          'database': 'required'
         },
-        "category": "payments"
+        'category': 'payments'
       },
-      "analytics": {
-        "label": "Analytics Tracking",
-        "description": "Add user analytics and tracking",
-        "needs": {},
-        "category": "analytics"
+      'analytics': {
+        'label': 'Analytics Tracking',
+        'description': 'Add user analytics and tracking',
+        'needs': {},
+        'category': 'analytics'
       }
     },
-    "hints": {
-      "features": {
-        "auth": {
-          "label": "Authentication System",
-          "description": "Add secure user authentication with login/signup flows, password reset, and session management",
-          "needs": {
-            "database": "required"
+    'hints': {
+      'features': {
+        'auth': {
+          'label': 'Authentication System',
+          'description': 'Add secure user authentication with login/signup flows, password reset, and session management',
+          'needs': {
+            'database': 'required'
           },
-          "category": "authentication",
-          "tags": ["security", "users", "login"]
+          'category': 'authentication',
+          'tags': ['security', 'users', 'login']
         },
-        "database": {
-          "label": "Database Integration",
-          "description": "Set up database connection, schema management, and data access patterns",
-          "needs": {},
-          "category": "database",
-          "tags": ["data", "persistence", "orm"]
+        'database': {
+          'label': 'Database Integration',
+          'description': 'Set up database connection, schema management, and data access patterns',
+          'needs': {},
+          'category': 'database',
+          'tags': ['data', 'persistence', 'orm']
         },
-        "api": {
-          "label": "API Endpoints",
-          "description": "Create REST or GraphQL API endpoints with proper routing and middleware",
-          "needs": {},
-          "category": "api",
-          "tags": ["rest", "graphql", "routing"]
+        'api': {
+          'label': 'API Endpoints',
+          'description': 'Create REST or GraphQL API endpoints with proper routing and middleware',
+          'needs': {},
+          'category': 'api',
+          'tags': ['rest', 'graphql', 'routing']
         },
-        "ui": {
-          "label": "User Interface",
-          "description": "Build responsive user interface components with modern design patterns",
-          "needs": {},
-          "category": "ui",
-          "tags": ["frontend", "components", "responsive"]
+        'ui': {
+          'label': 'User Interface',
+          'description': 'Build responsive user interface components with modern design patterns',
+          'needs': {},
+          'category': 'ui',
+          'tags': ['frontend', 'components', 'responsive']
         },
-        "storage": {
-          "label": "File Storage",
-          "description": "Add file upload, storage, and media management capabilities",
-          "needs": {},
-          "category": "storage",
-          "tags": ["files", "upload", "media"]
+        'storage': {
+          'label': 'File Storage',
+          'description': 'Add file upload, storage, and media management capabilities',
+          'needs': {},
+          'category': 'storage',
+          'tags': ['files', 'upload', 'media']
         },
-        "payments": {
-          "label": "Payment Processing",
-          "description": "Integrate payment processing, subscriptions, and billing management",
-          "needs": {
-            "database": "required"
+        'payments': {
+          'label': 'Payment Processing',
+          'description': 'Integrate payment processing, subscriptions, and billing management',
+          'needs': {
+            'database': 'required'
           },
-          "category": "payments",
-          "tags": ["billing", "subscriptions", "commerce"]
+          'category': 'payments',
+          'tags': ['billing', 'subscriptions', 'commerce']
         },
-        "analytics": {
-          "label": "Analytics Tracking",
-          "description": "Add user analytics, event tracking, and performance monitoring",
-          "needs": {},
-          "category": "analytics",
-          "tags": ["tracking", "metrics", "insights"]
+        'analytics': {
+          'label': 'Analytics Tracking',
+          'description': 'Add user analytics, event tracking, and performance monitoring',
+          'needs': {},
+          'category': 'analytics',
+          'tags': ['tracking', 'metrics', 'insights']
         }
       }
     }
@@ -604,7 +497,7 @@ function generateSkeletonTemplate() {
 /**
  * Handle hints command for displaying hints catalog
  */
-async function handleHintsCommand(options) {
+async function _handleHintsCommand(_options) {
   console.log('💡 Available Hints Catalog for Template Authoring');
   console.log('================================================');
   console.log('');
@@ -653,9 +546,9 @@ async function handleHintsCommand(options) {
 /**
  * Handle lint command for template validation with intelligent suggestions
  */
-async function handleLintCommand(options) {
+async function _handleLintCommand(options) {
   const { TemplateValidator } = await import('../../lib/validation/template-validator.mjs');
-  const fs = await import('fs/promises');
+  const _fs = await import('fs/promises');
 
   try {
     const validator = new TemplateValidator();
@@ -767,7 +660,7 @@ async function applyIntelligentFixes(templateFile, errors) {
   try {
     // Read current template
     const templateContent = await fs.readFile(templateFile, 'utf8');
-    let template = JSON.parse(templateContent);
+    const template = JSON.parse(templateContent);
 
     for (const error of errors) {
       if (error.type === 'DOMAIN_ERROR' && error.autoFix) {
@@ -817,7 +710,7 @@ async function applyIntelligentFixes(templateFile, errors) {
               }
               break;
           }
-        } catch (fixError) {
+        } catch (_fixError) {
           console.log(`   ⚠️  Failed to apply fix for: ${error.message}`);
         }
       }
@@ -838,7 +731,7 @@ async function applyIntelligentFixes(templateFile, errors) {
 /**
  * Handle add-dimension command for adding dimensions to templates
  */
-async function handleAddDimensionCommand(options) {
+async function _handleAddDimensionCommand(options) {
   const fs = await import('fs/promises');
 
   try {
@@ -855,7 +748,7 @@ async function handleAddDimensionCommand(options) {
     // Check if template.json exists
     try {
       await fs.access(templateFile);
-    } catch (error) {
+    } catch (_error) {
       console.log(`❌ Template file not found: ${templateFile}`);
       console.log('   Run "make-template --init" first to create a template.');
       process.exit(1);
@@ -898,7 +791,7 @@ async function handleAddDimensionCommand(options) {
 /**
  * Handle set-compat command for setting platform compatibility gates
  */
-async function handleSetCompatCommand(options) {
+async function _handleSetCompatCommand(options) {
   const fs = await import('fs/promises');
 
   try {
@@ -915,7 +808,7 @@ async function handleSetCompatCommand(options) {
     // Check if template.json exists
     try {
       await fs.access(templateFile);
-    } catch (error) {
+    } catch (_error) {
       console.log(`❌ Template file not found: ${templateFile}`);
       console.log('   Run "make-template --init" first to create a template.');
       process.exit(1);
@@ -939,7 +832,7 @@ async function handleSetCompatCommand(options) {
 
     // Add the new gate with default structure
     template.gates[platform] = {
-      platform: platform,
+      platform,
       constraint: `Platform-specific constraints for ${platform}`,
       allowed: {},
       forbidden: {}
@@ -962,7 +855,7 @@ async function handleSetCompatCommand(options) {
 /**
  * Handle set-needs command for configuring feature requirements
  */
-async function handleSetNeedsCommand(options) {
+async function _handleSetNeedsCommand(options) {
   const fs = await import('fs/promises');
 
   try {
@@ -979,7 +872,7 @@ async function handleSetNeedsCommand(options) {
     // Check if template.json exists
     try {
       await fs.access(templateFile);
-    } catch (error) {
+    } catch (_error) {
       console.log(`❌ Template file not found: ${templateFile}`);
       console.log('   Run "make-template --init" first to create a template.');
       process.exit(1);
@@ -1032,7 +925,7 @@ async function handleSetNeedsCommand(options) {
 /**
  * Handle bulk-add-dimensions command for adding multiple dimensions to templates
  */
-async function handleBulkAddDimensionsCommand(options) {
+async function _handleBulkAddDimensionsCommand(options) {
   const fs = await import('fs/promises');
 
   try {
@@ -1059,7 +952,7 @@ async function handleBulkAddDimensionsCommand(options) {
     // Check if template.json exists
     try {
       await fs.access(templateFile);
-    } catch (error) {
+    } catch (_error) {
       console.log(`❌ Template file not found: ${templateFile}`);
       console.log('   Run "make-template --init" first to create a template.');
       process.exit(1);
@@ -1120,7 +1013,7 @@ async function handleBulkAddDimensionsCommand(options) {
 /**
  * Handle bulk-set-compat command for setting compatibility gates for multiple platforms
  */
-async function handleBulkSetCompatCommand(options) {
+async function _handleBulkSetCompatCommand(options) {
   const fs = await import('fs/promises');
 
   try {
@@ -1139,7 +1032,7 @@ async function handleBulkSetCompatCommand(options) {
     // Check if template.json exists
     try {
       await fs.access(templateFile);
-    } catch (error) {
+    } catch (_error) {
       console.log(`❌ Template file not found: ${templateFile}`);
       console.log('   Run "make-template --init" first to create a template.');
       process.exit(1);
@@ -1163,7 +1056,7 @@ async function handleBulkSetCompatCommand(options) {
         skipped.push(platform);
       } else {
         template.gates[platform] = {
-          platform: platform,
+          platform,
           constraint: `Platform-specific constraints for ${platform}`,
           allowed: {},
           forbidden: {}
@@ -1203,7 +1096,7 @@ async function handleBulkSetCompatCommand(options) {
 /**
  * Handle bulk-set-needs command for configuring requirements for multiple features
  */
-async function handleBulkSetNeedsCommand(options) {
+async function _handleBulkSetNeedsCommand(options) {
   const fs = await import('fs/promises');
 
   try {
@@ -1222,7 +1115,7 @@ async function handleBulkSetNeedsCommand(options) {
     // Check if template.json exists
     try {
       await fs.access(templateFile);
-    } catch (error) {
+    } catch (_error) {
       console.log(`❌ Template file not found: ${templateFile}`);
       console.log('   Run "make-template --init" first to create a template.');
       process.exit(1);
@@ -1295,7 +1188,7 @@ async function handleBulkSetNeedsCommand(options) {
 /**
  * Handle preview command for rendering UI preview based on hints
  */
-async function handlePreviewCommand(options) {
+async function _handlePreviewCommand(_options) {
   const fs = await import('fs/promises');
 
   try {
@@ -1304,7 +1197,7 @@ async function handlePreviewCommand(options) {
     // Check if template.json exists
     try {
       await fs.access(templateFile);
-    } catch (error) {
+    } catch (_error) {
       console.log(`❌ Template file not found: ${templateFile}`);
       console.log('   Run "make-template --init" first to create a template.');
       process.exit(1);
@@ -1371,7 +1264,7 @@ async function handlePreviewCommand(options) {
 /**
  * Handle migrate command for upgrading legacy templates to V1
  */
-async function handleMigrateCommand(options) {
+async function _handleMigrateCommand(options) {
   const fs = await import('fs/promises');
 
   try {
@@ -1380,7 +1273,7 @@ async function handleMigrateCommand(options) {
     // Check if template file exists
     try {
       await fs.access(templateFile);
-    } catch (error) {
+    } catch (_error) {
       console.log(`❌ Template file not found: ${templateFile}`);
       process.exit(1);
     }
@@ -1468,7 +1361,7 @@ function migrateToV1(legacyTemplate) {
  * Accepts an optional argv array (e.g. ['--dry-run']) for in-process testing.
  */
 export async function main(argv = null) {
-  let parsedArgs;
+  let _parsedArgs;
   if (Array.isArray(argv)) {
     // When called in-process with an argv array, tell parseArgs to parse
     // that array directly instead of manipulating process.argv which can
@@ -1494,10 +1387,17 @@ export async function main(argv = null) {
   }
 
   // Check if this is a command-based invocation BEFORE parsing arguments
-  const firstArg = Array.isArray(argv) ? argv[0] : process.argv[2]; // First argument after 'make-template'
+  const firstArg = Array.isArray(argv) ? argv[0] : process.argv[2]; // First arg after 'make-template'
 
   // List of valid commands
-  const validCommands = [TERMINOLOGY.COMMAND.CONVERT, TERMINOLOGY.COMMAND.RESTORE, TERMINOLOGY.COMMAND.INIT, TERMINOLOGY.COMMAND.VALIDATE, TERMINOLOGY.COMMAND.HINTS, TERMINOLOGY.COMMAND.TEST];
+  const validCommands = [
+    TERMINOLOGY.COMMAND.CONVERT,
+    TERMINOLOGY.COMMAND.RESTORE,
+    TERMINOLOGY.COMMAND.INIT,
+    TERMINOLOGY.COMMAND.VALIDATE,
+    TERMINOLOGY.COMMAND.HINTS,
+    TERMINOLOGY.COMMAND.TEST
+  ];
 
   if (firstArg && validCommands.includes(firstArg)) {
     // Use new command routing - dynamically import the command

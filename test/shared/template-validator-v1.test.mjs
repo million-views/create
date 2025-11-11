@@ -3,13 +3,13 @@
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { strict as assert } from 'node:assert';
-import { readFile } from 'node:fs/promises';
+import { _readFile } from 'node:fs/promises';
 import test from 'node:test';
 
 import { TemplateValidator } from '../../lib/validation/template-validator.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const repoRoot = path.resolve(__dirname, '../..');
+const _repoRoot = path.resolve(__dirname, '../..');
 
 // Test fixtures
 const validTemplate = {
