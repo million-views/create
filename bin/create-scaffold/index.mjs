@@ -4,7 +4,7 @@ import fs from 'fs/promises';
 import { realpathSync } from 'node:fs';
 import path from 'path';
 import { fileURLToPath } from 'node:url';
-import { parseArguments, validateArguments, generateHelpText, ArgumentError } from './argument-parser.mjs';
+import { parseArguments, validateArguments, ArgumentError } from './argument-parser.mjs';
 import {
   sanitizeErrorMessage,
   ValidationError
@@ -132,13 +132,33 @@ async function main() {
     if (firstArg && !firstArg.startsWith('-') && !validCommands.includes(firstArg)) {
       console.error(`❌ Unknown command: ${firstArg}`);
       console.error('');
-      console.log(generateHelpText());
+      // Import the help generator dynamically for error help
+      const { generateHelp } = await import('../../lib/cli/help-generator.mjs');
+      console.log(generateHelp({
+        toolName: '@m5nv/create-scaffold',
+        description: 'Project scaffolding CLI for Million Views templates',
+        commands: {
+          new: { description: 'Create a new project from a template', disclosureLevel: 'basic' },
+          list: { description: 'List available templates and registries', disclosureLevel: 'basic' },
+          info: { description: 'Show detailed information about a template', disclosureLevel: 'intermediate' },
+          validate: { description: 'Validate a template directory', disclosureLevel: 'intermediate' }
+        },
+        globalOptions: {
+          help: { type: 'boolean', short: 'h', description: 'Show help information', disclosureLevel: 'basic' }
+        },
+        examples: [
+          'new my-app --template react-app',
+          'list',
+          'info react-app',
+          'validate ./my-template'
+        ],
+        disclosureLevel: 'basic'
+      }));
       process.exit(1);
     }
 
     // Validate arguments before proceeding
     const validation = validateArguments(args);
-    console.error('DEBUG: validation result:', validation);
 
     // Show help if requested or if validation failed
     if (validation.showHelp || args[TERMINOLOGY.OPTION.HELP] || args['help-intermediate'] || args['help-advanced'] || args['help-interactive']) {
@@ -148,14 +168,29 @@ async function main() {
       let disclosureLevel = 'basic';
       let interactive = false;
 
-      if (args['help-advanced']) {
+      // Check raw argv to determine which help level was requested
+      const rawArgs = process.argv.slice(2);
+      if (rawArgs.includes('--help-interactive') || rawArgs.includes('help-interactive')) {
+        interactive = true;
+        disclosureLevel = 'advanced'; // Interactive shows all
+      } else if (rawArgs.includes('--help-advanced') || rawArgs.includes('advanced')) {
         disclosureLevel = 'advanced';
-      } else if (args['help-intermediate']) {
+      } else if (rawArgs.includes('--help-intermediate') || rawArgs.includes('intermediate')) {
         disclosureLevel = 'intermediate';
       }
 
-      if (args['help-interactive']) {
-        interactive = true;
+      // Handle --help <level> syntax (e.g., --help interactive)
+      const helpIndex = rawArgs.indexOf('--help');
+      if (helpIndex !== -1 && helpIndex + 1 < rawArgs.length) {
+        const levelArg = rawArgs[helpIndex + 1];
+        if (levelArg === 'interactive') {
+          interactive = true;
+          disclosureLevel = 'advanced';
+        } else if (levelArg === 'advanced') {
+          disclosureLevel = 'advanced';
+        } else if (levelArg === 'intermediate') {
+          disclosureLevel = 'intermediate';
+        }
       }
 
       // Use the enhanced help generator

@@ -14,9 +14,6 @@ package-lock.json
 coverage/
 .nyc_output/
 
-# Test projects and fixtures
-test-project/
-test-*/
 
 # IDE and editor files
 .vscode/
