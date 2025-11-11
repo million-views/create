@@ -5,6 +5,7 @@ import { executeNewCommand } from './commands/new.mjs';
 import { executeListCommand } from './commands/list.mjs';
 import { executeValidateCommand } from './commands/validate.mjs';
 import { sanitizeBranchName } from '../../../create/lib/shared/security.mjs';
+import { handleError, ErrorMessages } from '../../../create/lib/shared/utils/error-handler.mjs';
 
 /**
  * Command router for create-scaffold CLI
@@ -36,8 +37,8 @@ export class CommandRouter {
 
     // Check if it's a valid command
     if (!this.commands[command]) {
-      console.error(`❌ Unknown command: ${command}`);
-      console.error('');
+      const error = ErrorMessages.unknownCommand(command);
+      handleError(error, { exit: false });
       this.showHelp();
       return 1;
     }
@@ -48,7 +49,8 @@ export class CommandRouter {
     // Validate command-specific arguments
     const validation = this.validateCommandArgs(command, enrichedArgs);
     if (!validation.isValid) {
-      console.error(`❌ ${validation.error}`);
+      const error = ErrorMessages.commandValidationFailed(command, validation.error);
+      handleError(error, { exit: false });
       return 1;
     }
 

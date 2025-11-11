@@ -130,31 +130,8 @@ async function main() {
     // with an error. If the invocation starts with an option (e.g.
     // `--template`), fall through to argument validation logic below.
     if (firstArg && !firstArg.startsWith('-') && !validCommands.includes(firstArg)) {
-      console.error(`❌ Unknown command: ${firstArg}`);
-      console.error('');
-      // Import the help generator dynamically for error help
-      const { generateHelp } = await import('../../lib/cli/help-generator.mjs');
-      console.log(generateHelp({
-        toolName: '@m5nv/create-scaffold',
-        description: 'Project scaffolding CLI for Million Views templates',
-        commands: {
-          new: { description: 'Create a new project from a template', disclosureLevel: 'basic' },
-          list: { description: 'List available templates and registries', disclosureLevel: 'basic' },
-          info: { description: 'Show detailed information about a template', disclosureLevel: 'intermediate' },
-          validate: { description: 'Validate a template directory', disclosureLevel: 'intermediate' }
-        },
-        globalOptions: {
-          help: { type: 'boolean', short: 'h', description: 'Show help information', disclosureLevel: 'basic' }
-        },
-        examples: [
-          'new my-app --template react-app',
-          'list',
-          'info react-app',
-          'validate ./my-template'
-        ],
-        disclosureLevel: 'basic'
-      }));
-      process.exit(1);
+      const unknownCommandError = ErrorMessages.unknownCommand(firstArg);
+      handleError(unknownCommandError, { exit: true });
     }
 
     // Validate arguments before proceeding
@@ -368,8 +345,17 @@ async function main() {
     } catch (error) {
       // For early exit modes, configuration errors should cause failure
       if (args.listTemplates || args.validateTemplate) {
-        console.error(`❌ Configuration error: ${error.message}`);
-        process.exit(1);
+        const configError = ErrorMessages.configError(
+          'configuration loading',
+          error.message
+        );
+        configError.suggestions = [
+          'Check your configuration file syntax',
+          'Ensure configuration file is readable',
+          'Try running without configuration using --no-config',
+          'Use --help to see configuration options'
+        ];
+        handleError(configError, { exit: true });
       }
       // For other modes, just log and continue
       console.error(`Warning: Failed to load configuration: ${error.message}`);
@@ -925,7 +911,17 @@ async function executeListTemplates({ jsonOutput, registryName, config }) {
     return 0;
   } catch (error) {
     const message = sanitizeErrorMessage(error?.message ?? String(error));
-    console.error(`❌ Failed to list templates: ${message}`);
+    const listError = ErrorMessages.genericError(
+      `Failed to list templates: ${message}`,
+      ErrorContext.TEMPLATE
+    );
+    listError.suggestions = [
+      'Check your internet connection for remote registries',
+      'Verify registry URLs are accessible',
+      'Try with --no-cache to bypass cached data',
+      'Use --verbose for more detailed error information'
+    ];
+    handleError(listError, { exit: false });
     return 1;
   }
 }
