@@ -107,7 +107,7 @@ test('New schema validation system CLI integration', async (t) => {
 
     // Test CLI validation
     const result = execCLI([
-      'test-project',
+      'new', 'test-project',
       '--from-template', 'test-template',
       '--repo', repoDir,
       '--dry-run'
@@ -144,7 +144,7 @@ test('New schema validation system CLI integration', async (t) => {
 
     // Test CLI validation - should fail
     const result = execCLI([
-      'test-project',
+      'new', 'test-project',
       '--from-template', 'invalid-template',
       '--repo', repoDir,
       '--dry-run'
@@ -186,7 +186,7 @@ test('New schema validation system CLI integration', async (t) => {
 
     // Test with valid options
     const validResult = execCLI([
-      'test-project',
+      'new', 'test-project',
       '--from-template', 'selection-template',
       '--repo', repoDir,
       '--options', 'auth,database',
@@ -198,7 +198,7 @@ test('New schema validation system CLI integration', async (t) => {
 
     // Test with invalid options
     const invalidResult = execCLI([
-      'test-project',
+      'new', 'test-project',
       '--from-template', 'selection-template',
       '--repo', repoDir,
       '--options', 'invalid-feature',
@@ -240,7 +240,7 @@ test('New schema validation system CLI integration', async (t) => {
 
     // Test CLI with old schema - should still work
     const result = execCLI([
-      'test-project',
+      'new', 'test-project',
       '--from-template', 'old-template',
       '--repo', repoDir,
       '--options', 'auth',

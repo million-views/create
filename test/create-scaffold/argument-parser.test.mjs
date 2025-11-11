@@ -8,14 +8,15 @@ import {
   generateHelpText,
   ArgumentError
 } from '../../bin/create-scaffold/argument-parser.mjs';
+import { TERMINOLOGY } from '../../lib/shared/ontology.mjs';
 
 const BASE_ARGS = ['demo-app', '--template', 'registry/official/basic'];
 
 test('parseArguments leaves optional flags undefined when omitted', () => {
   const result = parseArguments(BASE_ARGS);
 
-  assert.equal(result.interactive, undefined);
-  assert.equal(result.noInteractive, false);
+  assert.equal(result[TERMINOLOGY.OPTION.INTERACTIVE], undefined);
+  assert.equal(result[TERMINOLOGY.OPTION.NON_INTERACTIVE], false);
 });
 
 test('parseArguments captures interactive flag when provided', () => {
@@ -24,8 +25,8 @@ test('parseArguments captures interactive flag when provided', () => {
     '--interactive'
   ]);
 
-  assert.equal(result.interactive, true);
-  assert.equal(result.noInteractive, false);
+  assert.equal(result[TERMINOLOGY.OPTION.INTERACTIVE], true);
+  assert.equal(result[TERMINOLOGY.OPTION.NON_INTERACTIVE], false);
 });
 
 test('parseArguments treats --interactive=false as opt-out', () => {
@@ -34,8 +35,8 @@ test('parseArguments treats --interactive=false as opt-out', () => {
     '--interactive=false'
   ]);
 
-  assert.equal(result.interactive, false);
-  assert.equal(result.noInteractive, true);
+  assert.equal(result[TERMINOLOGY.OPTION.INTERACTIVE], false);
+  assert.equal(result[TERMINOLOGY.OPTION.NON_INTERACTIVE], true);
 });
 
 test('parseArguments maps --no-interactive to interactive false', () => {
@@ -44,8 +45,8 @@ test('parseArguments maps --no-interactive to interactive false', () => {
     '--no-interactive'
   ]);
 
-  assert.equal(result.interactive, false);
-  assert.equal(result.noInteractive, true);
+  assert.equal(result[TERMINOLOGY.OPTION.INTERACTIVE], false);
+  assert.equal(result[TERMINOLOGY.OPTION.NON_INTERACTIVE], true);
 });
 
 test('parseArguments collects placeholder overrides', () => {
@@ -55,7 +56,7 @@ test('parseArguments collects placeholder overrides', () => {
     '--placeholder', 'VERSION=1.0.0'
   ]);
 
-  assert.deepEqual(result.placeholders, ['AUTHOR=Jane Doe', 'VERSION=1.0.0']);
+  assert.deepEqual(result[TERMINOLOGY.OPTION.PLACEHOLDER], ['AUTHOR=Jane Doe', 'VERSION=1.0.0']);
 });
 
 test('parseArguments recognizes no-input-prompts flag', () => {
@@ -64,7 +65,7 @@ test('parseArguments recognizes no-input-prompts flag', () => {
     '--no-input-prompts'
   ]);
 
-  assert.equal(result.noInputPrompts, true);
+  assert.equal(result[TERMINOLOGY.OPTION.NO_INPUT_PROMPTS], true);
 });
 
 test('parseArguments recognizes no-config flag', () => {
@@ -73,7 +74,7 @@ test('parseArguments recognizes no-config flag', () => {
     '--no-config'
   ]);
 
-  assert.equal(result.noConfig, true);
+  assert.equal(result[TERMINOLOGY.OPTION.NO_CONFIG], true);
 });
 
 test('parseArguments toggles verbose mode', () => {
@@ -82,7 +83,7 @@ test('parseArguments toggles verbose mode', () => {
     '--verbose'
   ]);
 
-  assert.equal(result.verbose, true);
+  assert.equal(result[TERMINOLOGY.OPTION.VERBOSE], true);
 });
 
 test('parseArguments enables experimental placeholder prompts flag', () => {
@@ -91,7 +92,7 @@ test('parseArguments enables experimental placeholder prompts flag', () => {
     '--experimental-placeholder-prompts'
   ]);
 
-  assert.equal(result.experimentalPlaceholderPrompts, true);
+  assert.equal(result[TERMINOLOGY.OPTION.EXPERIMENTAL_PLACEHOLDER_PROMPTS], true);
 });
 
 test('parseArguments rejects unknown option', () => {

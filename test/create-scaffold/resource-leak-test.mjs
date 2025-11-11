@@ -25,7 +25,7 @@ async function runLeakScenario({ name, args, expectedMessage }) {
 test('temp directory cleanup on invalid template', async () => {
   await runLeakScenario({
     name: 'invalid template test',
-    args: ['test-invalid-template', '--template', '../invalid-template'],
+    args: ['new', 'test-invalid-template', '--template', '../invalid-template'],
     expectedMessage: /Path traversal attempts are not allowed/i
   });
 });
@@ -33,7 +33,7 @@ test('temp directory cleanup on invalid template', async () => {
 test('temp directory cleanup on invalid repository', async () => {
   await runLeakScenario({
     name: 'invalid repository test',
-    args: ['test-invalid-repo', '--template', 'invalid-repo-format!'],
+    args: ['new', 'test-invalid-repo', '--template', 'invalid-repo-format!'],
     expectedMessage: /Template name contains invalid characters/i
   });
 });
@@ -41,7 +41,7 @@ test('temp directory cleanup on invalid repository', async () => {
 test('temp directory cleanup on nonexistent repository', async () => {
   await runLeakScenario({
     name: 'nonexistent repository test',
-    args: ['test-nonexistent-repo', '--template', './nonexistent-resource-repo'],
+    args: ['new', 'test-nonexistent-repo', '--template', './nonexistent-resource-repo'],
     expectedMessage: /Template not accessible/i
   });
 });
@@ -49,9 +49,9 @@ test('temp directory cleanup on nonexistent repository', async () => {
 test('resource cleanup across multiple failure scenarios', async () => {
   const before = await getResourceSnapshot();
   const scenarios = [
-    ['test-multi-1', '--from-template', '../invalid'],
-    ['test-multi-2', '--from-template', 'basic', '--repo', 'invalid!'],
-    ['test-multi-3', '--from-template', 'basic', '--branch', 'invalid; branch']
+    ['new', 'test-multi-1', '--from-template', '../invalid'],
+    ['new', 'test-multi-2', '--from-template', 'basic', '--repo', 'invalid!'],
+    ['new', 'test-multi-3', '--from-template', 'basic', '--branch', 'invalid; branch']
   ];
 
   for (const args of scenarios) {

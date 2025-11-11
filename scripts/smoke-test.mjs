@@ -208,13 +208,13 @@ async function runSmokeTests() {
   try {
     console.log('  ▶ Input validation and security');
     
-    const result = await SmokeTestUtils.execCLI(['../malicious-dir', '--template', '../../../etc/passwd']);
+    const result = await SmokeTestUtils.execCLI(['new', '../malicious-dir', '--template', '../../../etc/passwd']);
     
     if (result.exitCode !== 1) {
       throw new Error(`Expected validation failure, got exit code ${result.exitCode}`);
     }
     
-    if (!result.stderr.includes('Project directory name contains path separators or traversal attempts')) {
+    if (!result.stderr.includes('Path traversal attempts are not allowed')) {
       throw new Error('Security validation not working properly');
     }
     
@@ -239,7 +239,7 @@ async function runSmokeTests() {
     // Create project using the mock repository
     const projectName = 'smoke-test-project';
     const result = await SmokeTestUtils.execCLI([
-      projectName,
+      'new', projectName,
       '--template', path.join(mockRepoPath, 'basic')
     ]);
     
@@ -310,7 +310,7 @@ export default async function setup({ ctx, tools }) {
     
     const projectName = 'smoke-test-setup-project';
     const result = await SmokeTestUtils.execCLI([
-      projectName,
+      'new', projectName,
       '--template', path.join(mockRepoPath, 'with-setup')
     ]);
     
@@ -354,7 +354,7 @@ export default async function setup({ ctx, tools }) {
     
     // Test with nonexistent repository
     const result = await SmokeTestUtils.execCLI([
-      'smoke-test-error-project',
+      'new', 'smoke-test-error-project',
       '--template', '/definitely/does/not/exist/template'
     ]);
     

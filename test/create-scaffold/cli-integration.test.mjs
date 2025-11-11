@@ -57,7 +57,6 @@ class IntegrationTestUtils {
   static async execCLI(args, options = {}) {
     // Create a temporary working directory under tmp/ for test isolation
     const testCwd = await this.createTempDir('-test-cwd');
-    
     return new Promise((resolve) => {
       const child = spawn('node', [CLI_PATH, ...args], {
         stdio: ['pipe', 'pipe', 'pipe'],
@@ -132,6 +131,14 @@ class IntegrationTestUtils {
         await fs.writeFile(
           path.join(templatePath, 'README.md'),
           `# ${template} Template\n\nThis is a test template.`
+        );
+        await fs.writeFile(
+          path.join(templatePath, 'template.json'),
+          JSON.stringify({
+            name: template,
+            description: `Test ${template} template`,
+            version: '1.0.0'
+          }, null, 2)
         );
 
         if (template === 'react') {
@@ -327,7 +334,8 @@ async function runInteractiveFlow({ args, envOverrides = {}, cwd, promptPlan = I
       stderr: error.message
     };
   }
-}// Test 1: --list-templates flag integration
+}
+
 runner.test('--list-templates flag shows available templates', async () => {
   const mockRepoPath = await runner.addTempPath(await IntegrationTestUtils.createTempDir('-list-templates-repo'));
 
@@ -348,7 +356,7 @@ runner.test('--list-templates flag shows available templates', async () => {
   }), 'utf8');
 
   const result = await IntegrationTestUtils.execCLI([
-    '--list-templates',
+    'list',
     '--registry', 'test'
   ], {
     cwd: configDir
@@ -376,7 +384,7 @@ runner.test('--validate-template succeeds for healthy template', async () => {
   const templatePath = path.join(FIXTURE_ROOT, 'template-validation', 'valid-template');
 
   const result = await IntegrationTestUtils.execCLI([
-    '--validate-template', templatePath
+    'validate', templatePath
   ]);
 
   if (result.exitCode !== 0) {
@@ -392,7 +400,7 @@ runner.test('--validate-template reports failures for invalid template', async (
   const templatePath = path.join(FIXTURE_ROOT, 'template-validation', 'missing-readme-template');
 
   const result = await IntegrationTestUtils.execCLI([
-    '--validate-template', templatePath
+    'validate', templatePath
   ]);
 
   if (result.exitCode === 0) {
@@ -408,7 +416,7 @@ runner.test('--validate-template supports json output', async () => {
   const templatePath = path.join(FIXTURE_ROOT, 'template-validation', 'forbidden-setup-template');
 
   const result = await IntegrationTestUtils.execCLI([
-    '--validate-template', templatePath,
+    'validate', templatePath,
     '--json'
   ]);
 
@@ -448,7 +456,7 @@ runner.test('configuration defaults apply to list-templates', async () => {
   }), 'utf8');
 
   const result = await IntegrationTestUtils.execCLI([
-    '--list-templates'
+    'list'
   ], {
     cwd: configDir
   });
@@ -475,7 +483,7 @@ runner.test('--no-config skips invalid configuration files', async () => {
   );
 
   const failureResult = await IntegrationTestUtils.execCLI([
-    '--list-templates'
+    'list'
   ], {
     cwd: configDir
   });
@@ -489,8 +497,9 @@ runner.test('--no-config skips invalid configuration files', async () => {
   }
 
   const successResult = await IntegrationTestUtils.execCLI([
-    '--list-templates',
-    '--template', mockRepoPath,
+    'new',
+    'test-no-config-project',
+    '--template', path.join(mockRepoPath, 'basic'),
     '--no-config'
   ], {
     cwd: configDir
@@ -509,7 +518,7 @@ runner.test('--dry-run flag shows preview without execution', async (workDir) =>
   await IntegrationTestUtils.createMockRepo(mockRepoPath, ['basic']);
 
   const result = await IntegrationTestUtils.execCLI([
-    'test-dry-run-project',
+    'new', 'test-dry-run-project',
     '--template', path.join(mockRepoPath, 'basic'),
     '--dry-run'
   ]);
@@ -562,7 +571,7 @@ runner.test('--dry-run includes tree preview when tree command available', async
   await fs.chmod(treeStubPath, 0o755);
 
   const result = await IntegrationTestUtils.execCLI([
-    'test-dry-run-tree-project',
+    'new', 'test-dry-run-tree-project',
     '--template', path.join(mockRepoPath, 'basic'),
     '--dry-run'
   ], {
@@ -591,7 +600,7 @@ runner.test('--dry-run warns when tree command is unavailable', async (workDir) 
   await IntegrationTestUtils.createMockRepo(mockRepoPath, ['basic']);
 
   const result = await IntegrationTestUtils.execCLI([
-    'test-dry-run-no-tree-project',
+    'new', 'test-dry-run-no-tree-project',
     '--template', path.join(mockRepoPath, 'basic'),
     '--dry-run'
   ], {
@@ -618,7 +627,7 @@ runner.test('--dry-run warns when tree command is unavailable', async (workDir) 
 runner.test('--log-file flag enables detailed logging', async () => {
   const mockRepoPath = await runner.addTempPath(await IntegrationTestUtils.createTempDir('-log-file-repo'));
   const workDir = await runner.addTempPath(await IntegrationTestUtils.createTestWorkDir('-log-file'));
-  const logDir = path.join(process.cwd(), `.tmp-logs-${Date.now()}-${Math.random().toString(36).slice(2)}`);
+  const logDir = path.join(os.tmpdir(), `.tmp-logs-${Date.now()}-${Math.random().toString(36).slice(2)}`);
   await fs.mkdir(logDir, { recursive: true });
   await runner.addTempPath(logDir);
   const logFilePath = path.join(logDir, 'test-integration.log');
@@ -627,6 +636,7 @@ runner.test('--log-file flag enables detailed logging', async () => {
   await IntegrationTestUtils.createMockRepo(mockRepoPath, ['basic']);
 
   const result = await IntegrationTestUtils.execCLI([
+    'new',
     'test-log-project',
     '--template', path.join(mockRepoPath, 'basic'),
     '--log-file', logFilePath
@@ -676,6 +686,7 @@ runner.test('--no-cache flag bypasses cache system', async (workDir) => {
   await IntegrationTestUtils.createMockRepo(mockRepoPath, ['basic']);
 
   const result = await IntegrationTestUtils.execCLI([
+    'new',
     'test-no-cache-project',
     '--template', path.join(mockRepoPath, 'basic'),
     '--no-cache'
@@ -715,6 +726,7 @@ runner.test('--cache-ttl flag sets custom TTL', async () => {
   await IntegrationTestUtils.createMockRepo(mockRepoPath, ['basic']);
 
   const result = await IntegrationTestUtils.execCLI([
+    'new',
     'test-cache-ttl-project',
     '--template', path.join(mockRepoPath, 'basic'),
     '--cache-ttl', '48'
@@ -747,7 +759,7 @@ runner.test('--cache-ttl flag sets custom TTL', async () => {
 // Test 6: Combined flags integration
 runner.test('Combined flags work together correctly', async () => {
   const mockRepoPath = await runner.addTempPath(await IntegrationTestUtils.createTempDir('-combined-flags-repo'));
-  const logDir = path.join(process.cwd(), `.tmp-logs-${Date.now()}-${Math.random().toString(36).slice(2)}`);
+  const logDir = path.join(os.tmpdir(), `.tmp-logs-${Date.now()}-${Math.random().toString(36).slice(2)}`);
   await fs.mkdir(logDir, { recursive: true });
   await runner.addTempPath(logDir);
   const logFilePath = path.join(logDir, 'combined.log');
@@ -764,6 +776,7 @@ runner.test('Combined flags work together correctly', async () => {
 
   // Test dry run with logging
   const result = await IntegrationTestUtils.execCLI([
+    'new',
     'test-combined-project',
     '--template', path.join(mockRepoPath, 'basic'),
     '--dry-run',
@@ -803,7 +816,7 @@ runner.test('Combined flags work together correctly', async () => {
   try {
     const logContent = await fs.readFile(logFilePath, 'utf8');
 
-    if (!logContent.includes('"operation":"dry_run_preview"') && !logContent.includes('"operation":"template_metadata"')) {
+    if (!logContent.includes('"operation":"dry_run_preview"') && !logContent.includes('"operation":"template_metadata_loaded"')) {
       throw new Error('Log file should record dry run preview operations');
     }
     // Note: summary check removed as dry-run may not always include operations
@@ -825,6 +838,7 @@ runner.test('Cache integration works with existing scaffolding workflow', async 
 
   // First run should populate cache
   const firstResult = await IntegrationTestUtils.execCLI([
+    'new',
     'test-cache-first-project',
     '--template', path.join(mockRepoPath, 'basic')
   ]);
@@ -835,6 +849,7 @@ runner.test('Cache integration works with existing scaffolding workflow', async 
 
   // Second run should use cache (faster)
   const secondResult = await IntegrationTestUtils.execCLI([
+    'new',
     'test-cache-second-project',
     '--template', path.join(mockRepoPath, 'basic')
   ]);
@@ -868,8 +883,9 @@ runner.test('Error handling works correctly with new CLI flags', async () => {
   const mockRepoPath = await runner.addTempPath(await IntegrationTestUtils.createTempDir('-error-handling-repo'));
   await IntegrationTestUtils.createMockRepo(mockRepoPath, ['basic']);
 
-  // Test invalid cache TTL
+    // Test invalid cache TTL
   const invalidTtlResult = await IntegrationTestUtils.execCLI([
+    'new',
     'test-error-project',
     '--template', path.join(mockRepoPath, 'basic'),
     '--cache-ttl', 'invalid'
@@ -885,6 +901,7 @@ runner.test('Error handling works correctly with new CLI flags', async () => {
 
   // Test conflicting flags
   const conflictingResult = await IntegrationTestUtils.execCLI([
+    'new',
     'test-conflict-project',
     '--template', path.join(mockRepoPath, 'basic'),
     '--no-cache',
@@ -921,7 +938,7 @@ runner.test('Template discovery shows metadata when available', async () => {
   }), 'utf8');
 
   const result = await IntegrationTestUtils.execCLI([
-    '--list-templates',
+    'list',
     '--registry', 'test'
   ], {
     cwd: configDir
@@ -937,7 +954,7 @@ runner.test('Template discovery shows metadata when available', async () => {
   }
 
   // Should show registry context
-  if (!result.stdout.includes('test registry')) {
+  if (!result.stdout.includes('registry "test"')) {
     throw new Error('Should show registry context for templates');
   }
 });
@@ -945,7 +962,7 @@ runner.test('Template discovery shows metadata when available', async () => {
 // Test 10: Logging integration across all operations
 runner.test('Logging integration works across all CLI operations', async () => {
   const mockRepoPath = await runner.addTempPath(await IntegrationTestUtils.createTempDir('-logging-integration-repo'));
-  const logDir = path.join(process.cwd(), `.tmp-logs-${Date.now()}-${Math.random().toString(36).slice(2)}`);
+  const logDir = path.join(os.tmpdir(), `.tmp-logs-${Date.now()}-${Math.random().toString(36).slice(2)}`);
   await fs.mkdir(logDir, { recursive: true });
   await runner.addTempPath(logDir);
   const logFilePath = path.join(logDir, 'logging-integration.log');
@@ -967,6 +984,7 @@ export default function setup(env) {
   await IntegrationTestUtils.execCommand('git', ['commit', '-m', 'Add setup script'], { cwd: mockRepoPath });
 
   const result = await IntegrationTestUtils.execCLI([
+    'new',
     'test-logging-integration-project',
     '--template', path.join(mockRepoPath, 'with-setup'),
     '--log-file', logFilePath
@@ -1090,9 +1108,9 @@ runner.test('Early exit modes (--list-templates, --dry-run) work correctly', asy
     }
   }), 'utf8');
 
-  // Test --list-templates early exit
+  // Test list command early exit
   const listResult = await IntegrationTestUtils.execCLI([
-    '--list-templates',
+    'list',
     '--registry', 'test'
   ], {
     cwd: configDir
@@ -1106,8 +1124,9 @@ runner.test('Early exit modes (--list-templates, --dry-run) work correctly', asy
     throw new Error('Should list templates and exit early');
   }
 
-  // Test --dry-run early exit (doesn't create project)
+  // Test new command with --dry-run early exit (doesn't create project)
   const dryRunResult = await IntegrationTestUtils.execCLI([
+    'new',
     'test-early-exit-project',
     '--template', 'test/basic',
     '--dry-run'
@@ -1147,6 +1166,7 @@ runner.test('Feature modules are initialized conditionally based on flags', asyn
 
   // Test normal operation (should not show feature-specific output unless flags are used)
   const normalResult = await IntegrationTestUtils.execCLI([
+    'new',
     'test-conditional-project',
     '--template', path.join(mockRepoPath, 'basic')
   ]);

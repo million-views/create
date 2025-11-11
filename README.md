@@ -13,7 +13,7 @@ related_docs:
 last_updated: "2025-11-01"
 ---
 
-# @m5nv/create-scaffold & make-template
+# {{README_TITLE}}
 
 [![npm version](https://badge.fury.io/js/@m5nv%2Fcreate-scaffold.svg)](https://badge.fury.io/js/@m5nv/create-scaffold)
 [![npm downloads](https://img.shields.io/npm/dm/@m5nv/create-scaffold.svg)](https://www.npmjs.com/package/@m5nv/create-scaffold)

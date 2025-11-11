@@ -65,12 +65,28 @@ export class DryRunEngine {
   /**
    * Preview scaffolding operations from a local template path
    */
-  previewScaffoldingFromPath(templatePath, projectDir, metadata = null) {
+  async previewScaffoldingFromPath(templatePath, projectDir, metadata = null) {
     validateDirectoryExists(templatePath, 'Template directory');
+
+    if (this.logger) {
+      await this.logger.logOperation('dry_run_preview', {
+        templatePath,
+        projectDir
+      });
+    }
 
     // Load metadata if not provided
     if (!metadata) {
       metadata = loadTemplateMetadataFromPath(templatePath);
+    }
+
+    if (this.logger) {
+      await this.logger.logOperation('template_metadata_loaded', {
+        template: path.basename(templatePath),
+        name: metadata.name,
+        description: metadata.description,
+        version: metadata.version
+      });
     }
 
     // Create ignore set for template filtering
@@ -122,6 +138,16 @@ export class DryRunEngine {
         totalOperations: files.length + directories.length
       }
     };
+
+    if (this.logger) {
+      await this.logger.logOperation('dry_run_preview', {
+        summary: {
+          files: files.length,
+          directories: directories.length,
+          operations: files.length + directories.length
+        }
+      });
+    }
 
     return preview;
   }

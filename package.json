@@ -1,84 +1,84 @@
 {
-    "name": "@m5nv/create-scaffold",
-    "version": "0.5.0",
-    "private": false,
-    "type": "module",
-    "description": "Project scaffolding tools: create-scaffold for using templates, make-template for creating them",
-    "bin": {
-        "create-scaffold": "./bin/create-scaffold/index.mjs",
-        "make-template": "./bin/make-template/index.mjs"
-    },
-    "exports": {
-        ".": "./bin/create-scaffold/index.mjs",
-        "./make-template": "./bin/make-template/index.mjs",
-        "./schema/template.json": "./schema/template.json",
-        "./schema/template.v1.json": "./schema/template.v1.json",
-        "./types/template-schema": {
-            "types": "./types/template-schema.d.ts",
-            "default": "./types/template-schema.mjs"
-        }
-    },
-    "files": [
-        "bin",
-        "schema",
-        "types",
-        "scripts",
-        "docs",
-        "LICENSE",
-        "README.md"
-    ],
-    "engines": {
-        "node": ">=22.0.0"
-    },
-    "keywords": [
-        "scaffold",
-        "scaffolding",
-        "templates",
-        "cli",
-        "esm",
-        "million-views",
-        "project-generator"
-    ],
-    "license": "MIT",
-    "repository": {
-        "type": "git",
-        "url": "git+https://github.com/million-views/create.git"
-    },
-    "bugs": {
-        "url": "https://github.com/million-views/create/issues"
-    },
-    "homepage": "https://github.com/million-views/create#readme",
-    "devDependencies": {
-        "@types/eslint": "^9.6.1",
-        "eslint": "^9.38.0",
-        "eslint-plugin-import": "^2.31.0",
-        "eslint-plugin-n": "^17.23.1",
-        "eslint-plugin-promise": "^7.2.1",
-        "typescript": "^5.6.3"
-    },
-    "scripts": {
-        "lint": "eslint .",
-        "prepare": "npm run lint",
-        "schema:build": "node ./scripts/build-template-schema.mjs",
-        "schema:check": "node ./scripts/build-template-schema.mjs --check && tsc --noEmit --project tsconfig.json",
-        "test": "node ./scripts/test-runner.mjs",
-        "test:all": "node ./scripts/test-runner.mjs",
-        "test:quick": "node ./scripts/test-runner.mjs --quick",
-        "test:suite": "node ./scripts/test-runner.mjs --suite",
-        "test:smoke": "node ./scripts/test-runner.mjs --suite \"Smoke Tests\"",
-        "test:functional": "node ./scripts/test-runner.mjs --suite \"Functional Tests\"",
-        "test:integration": "node ./scripts/test-runner.mjs --suite \"CLI Integration Tests\"",
-        "test:spec": "node ./scripts/test-runner.mjs --suite \"Spec Compliance Tests\"",
-        "test:env": "node ./test/create-scaffold/environment-factory.test.mjs",
-        "test:arg-parser": "node ./test/create-scaffold/argument-parser.test.mjs",
-        "test:options": "node ./test/shared/options-processor.test.mjs",
-        "test:setup-runtime": "node ./test/create-scaffold/setup-runtime.test.mjs",
-        "test:functional:file": "node ./test/create-scaffold/cli.test.mjs",
-        "test:spec:file": "node ./test/create-scaffold/spec-compliance-verification.mjs",
-        "test:leaks": "node ./test/create-scaffold/resource-leak-test.mjs",
-        "test:smoke:file": "node ./scripts/smoke-test.mjs",
-        "validate": "npm run schema:check && node ./scripts/comprehensive-validation.mjs",
-        "validate:docs": "node ./scripts/validate-docs.mjs",
-        "validate:code": "node ./scripts/comprehensive-validation.mjs --code-only"
+  "name": "@m5nv/create-scaffold",
+  "version": "0.5.0",
+  "private": false,
+  "type": "module",
+  "description": "[![npm version](https://badge.fury.io/js/@m5nv%2Fcreate-scaffold.svg)](https://badge.fury.io/js/@m5nv/create-scaffold)",
+  "bin": {
+    "create-scaffold": "./bin/create-scaffold/index.mjs",
+    "make-template": "./bin/make-template/index.mjs"
+  },
+  "exports": {
+    ".": "./bin/create-scaffold/index.mjs",
+    "./make-template": "./bin/make-template/index.mjs",
+    "./schema/template.json": "./schema/template.json",
+    "./schema/template.v1.json": "./schema/template.v1.json",
+    "./types/template-schema": {
+      "types": "./types/template-schema.d.ts",
+      "default": "./types/template-schema.mjs"
     }
+  },
+  "files": [
+    "bin",
+    "schema",
+    "types",
+    "scripts",
+    "docs",
+    "LICENSE",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "keywords": [
+    "scaffold",
+    "scaffolding",
+    "templates",
+    "cli",
+    "esm",
+    "million-views",
+    "project-generator"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/million-views/create"
+  },
+  "bugs": {
+    "url": "https://github.com/million-views/create/issues"
+  },
+  "homepage": "https://github.com/million-views/create#readme",
+  "devDependencies": {
+    "@types/eslint": "^9.6.1",
+    "eslint": "^9.38.0",
+    "eslint-plugin-import": "^2.31.0",
+    "eslint-plugin-n": "^17.23.1",
+    "eslint-plugin-promise": "^7.2.1",
+    "typescript": "^5.6.3"
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "prepare": "npm run lint",
+    "schema:build": "node ./scripts/build-template-schema.mjs",
+    "schema:check": "node ./scripts/build-template-schema.mjs --check && tsc --noEmit --project tsconfig.json",
+    "test": "node ./scripts/test-runner.mjs",
+    "test:all": "node ./scripts/test-runner.mjs",
+    "test:quick": "node ./scripts/test-runner.mjs --quick",
+    "test:suite": "node ./scripts/test-runner.mjs --suite",
+    "test:smoke": "node ./scripts/test-runner.mjs --suite \"Smoke Tests\"",
+    "test:functional": "node ./scripts/test-runner.mjs --suite \"Functional Tests\"",
+    "test:integration": "node ./scripts/test-runner.mjs --suite \"CLI Integration Tests\"",
+    "test:spec": "node ./scripts/test-runner.mjs --suite \"Spec Compliance Tests\"",
+    "test:env": "node ./test/create-scaffold/environment-factory.test.mjs",
+    "test:arg-parser": "node ./test/create-scaffold/argument-parser.test.mjs",
+    "test:options": "node ./test/shared/options-processor.test.mjs",
+    "test:setup-runtime": "node ./test/create-scaffold/setup-runtime.test.mjs",
+    "test:functional:file": "node ./test/create-scaffold/cli.test.mjs",
+    "test:spec:file": "node ./test/create-scaffold/spec-compliance-verification.mjs",
+    "test:leaks": "node ./test/create-scaffold/resource-leak-test.mjs",
+    "test:smoke:file": "node ./scripts/smoke-test.mjs",
+    "validate": "npm run schema:check && node ./scripts/comprehensive-validation.mjs",
+    "validate:docs": "node ./scripts/validate-docs.mjs",
+    "validate:code": "node ./scripts/comprehensive-validation.mjs --code-only"
+  }
 }

@@ -86,7 +86,7 @@ const invalidTemplateDomain = {
   }
 };
 
-test('make-template CLI lint integration', async (t) => {
+test('make-template CLI validate integration', async (t) => {
   const tempDir = join(__dirname, '../fixtures/temp-make-template-test');
   await mkdir(tempDir, { recursive: true });
 
@@ -94,11 +94,11 @@ test('make-template CLI lint integration', async (t) => {
     await rm(tempDir, { recursive: true, force: true });
   });
 
-  await t.test('lint validates valid template.json successfully', async () => {
+  await t.test('validate validates valid template.json successfully', async () => {
     const templatePath = join(tempDir, 'template.json');
     await writeFile(templatePath, JSON.stringify(validTemplateV1, null, 2));
 
-    const result = execCLI(['--lint-file', templatePath]);
+    const result = execCLI(['validate', templatePath]);
 
     assert.equal(result.exitCode, 0, `Expected exit code 0, got ${result.exitCode}. Stderr: ${result.stderr}`);
     assert(result.stdout.includes('✅ Template validation passed!'));
@@ -106,22 +106,22 @@ test('make-template CLI lint integration', async (t) => {
     assert(result.stdout.includes('Domain validation: ✅ Passed'));
   });
 
-  await t.test('lint rejects invalid schema template.json', async () => {
+  await t.test('validate rejects invalid schema template.json', async () => {
     const templatePath = join(tempDir, 'invalid-schema.json');
     await writeFile(templatePath, JSON.stringify(invalidTemplateSchema, null, 2));
 
-    const result = execCLI(['--lint-file', templatePath]);
+    const result = execCLI(['validate', templatePath]);
 
     assert.equal(result.exitCode, 1, `Expected exit code 1, got ${result.exitCode}`);
     assert(result.stdout.includes('❌ Template validation failed!'));
     assert(result.stdout.includes('Missing required field: name'));
   });
 
-  await t.test('lint rejects invalid domain template.json', async () => {
+  await t.test('validate rejects invalid domain template.json', async () => {
     const templatePath = join(tempDir, 'invalid-domain.json');
     await writeFile(templatePath, JSON.stringify(invalidTemplateDomain, null, 2));
 
-    const result = execCLI(['--lint-file', templatePath]);
+    const result = execCLI(['validate', templatePath]);
 
     // Domain validation might not catch enum violations if schema allows them
     // Let's check if it at least runs validation
@@ -129,31 +129,31 @@ test('make-template CLI lint integration', async (t) => {
     assert(result.stdout.includes('Validation Summary:'));
   });
 
-  await t.test('lint handles missing template.json file', async () => {
+  await t.test('validate handles missing template.json file', async () => {
     const missingPath = join(tempDir, 'missing.json');
 
-    const result = execCLI(['--lint-file', missingPath]);
+    const result = execCLI(['validate', missingPath]);
 
     assert.equal(result.exitCode, 1, `Expected exit code 1, got ${result.exitCode}`);
     assert(result.stdout.includes('❌ Template validation failed!'));
     assert(result.stdout.includes('no such file or directory'));
   });
 
-  await t.test('lint defaults to template.json when no file specified', async () => {
+  await t.test('validate defaults to template.json when no file specified', async () => {
     const templatePath = join(tempDir, 'template.json');
     await writeFile(templatePath, JSON.stringify(validTemplateV1, null, 2));
 
-    const result = execCLI(['--lint'], { cwd: tempDir });
+    const result = execCLI(['validate'], { cwd: tempDir });
 
     assert.equal(result.exitCode, 0, `Expected exit code 0, got ${result.exitCode}`);
     assert(result.stdout.includes('✅ Template validation passed!'));
   });
 
-  await t.test('lint provides detailed error messages', async () => {
+  await t.test('validate provides detailed error messages', async () => {
     const templatePath = join(tempDir, 'detailed-error.json');
     await writeFile(templatePath, JSON.stringify(invalidTemplateSchema, null, 2));
 
-    const result = execCLI(['--lint-file', templatePath]);
+    const result = execCLI(['validate', templatePath]);
 
     assert.equal(result.exitCode, 1);
     assert(result.stdout.includes('📋 Validation Summary:'));
@@ -161,7 +161,7 @@ test('make-template CLI lint integration', async (t) => {
     assert(result.stdout.includes('Missing required field: name'));
   });
 
-  await t.test('lint shows warnings when present', async () => {
+  await t.test('validate shows warnings when present', async () => {
     // Create a template that passes validation but has warnings
     const templateWithWarnings = {
       ...validTemplateV1,
@@ -177,7 +177,7 @@ test('make-template CLI lint integration', async (t) => {
     const templatePath = join(tempDir, 'warnings.json');
     await writeFile(templatePath, JSON.stringify(templateWithWarnings, null, 2));
 
-    const result = execCLI(['--lint-file', templatePath]);
+    const result = execCLI(['validate', templatePath]);
 
     // This might pass or fail depending on schema strictness
     // The important thing is that warnings are displayed when present

@@ -10,6 +10,7 @@ import {
   validateCacheTtl
 } from '../../lib/shared/security.mjs';
 import { handleValidationError } from '../../lib/shared/utils/validation-utils.mjs';
+import { TERMINOLOGY, GLOBAL_OPTIONS } from '../../lib/shared/ontology.mjs';
 
 /**
  * Parse command line arguments using native Node.js util.parseArgs
@@ -41,85 +42,97 @@ export function parseArguments(argv = process.argv.slice(2)) {
       : [];
 
     const options = {
-      template: {
+      [TERMINOLOGY.OPTION.TEMPLATE]: {
         type: 'string',
         short: 'T',
         description: 'Template URL or shorthand (create-remix style)'
       },
-      branch: {
+      [TERMINOLOGY.OPTION.BRANCH]: {
         type: 'string',
         short: 'b',
         description: 'Git branch to use (default: main/master)'
       },
-      'log-file': {
+      [TERMINOLOGY.OPTION.LOG_FILE]: {
         type: 'string',
         description: 'Enable detailed logging to specified file'
       },
-      'list-templates': {
+      [TERMINOLOGY.OPTION.LIST_TEMPLATES]: {
         type: 'boolean',
         description: 'Display available registries or templates from a specific registry'
       },
-      registry: {
+      [TERMINOLOGY.OPTION.REGISTRY]: {
         type: 'string',
         description: 'Registry name to list templates from (used with --list-templates)'
       },
-      'dry-run': {
+      [TERMINOLOGY.OPTION.DRY_RUN]: {
         type: 'boolean',
         description: 'Preview operations without executing them'
       },
-      'no-cache': {
+      [TERMINOLOGY.OPTION.NO_CACHE]: {
         type: 'boolean',
         description: 'Bypass cache system and clone directly'
       },
-      'cache-ttl': {
+      [TERMINOLOGY.OPTION.CACHE_TTL]: {
         type: 'string',
         description: 'Override default cache TTL in hours'
       },
-      'validate-template': {
+      [TERMINOLOGY.OPTION.VALIDATE_TEMPLATE]: {
         type: 'string',
         description: 'Validate template at provided path and exit'
       },
-      json: {
+      [TERMINOLOGY.OPTION.JSON]: {
         type: 'boolean',
         description: 'Emit JSON output for supported commands (e.g., validation)'
       },
-      placeholder: {
+      [TERMINOLOGY.OPTION.PLACEHOLDER]: {
         type: 'string',
         multiple: true,
         description: 'Supply placeholder value in NAME=value form'
       },
-      'no-input-prompts': {
+      [TERMINOLOGY.OPTION.NO_INPUT_PROMPTS]: {
         type: 'boolean',
         description: 'Disable interactive placeholder prompting'
       },
-      'no-config': {
+      [TERMINOLOGY.OPTION.NO_CONFIG]: {
         type: 'boolean',
         description: 'Disable configuration file discovery'
       },
-      interactive: {
+      [TERMINOLOGY.OPTION.INTERACTIVE]: {
         type: 'boolean',
         description: 'Force interactive mode on or off explicitly'
       },
-      'no-interactive': {
+      [TERMINOLOGY.OPTION.NON_INTERACTIVE]: {
         type: 'boolean',
         description: 'Disable automatic interactive mode triggering'
       },
-      verbose: {
+      [TERMINOLOGY.OPTION.VERBOSE]: {
         type: 'boolean',
         description: 'Enable verbose logging during scaffolding'
       },
-      'experimental-placeholder-prompts': {
+      [TERMINOLOGY.OPTION.EXPERIMENTAL_PLACEHOLDER_PROMPTS]: {
         type: 'boolean',
         description: 'Enable placeholder prompt flow for experimental rollout'
       },
-      guided: {
+      [TERMINOLOGY.OPTION.GUIDED]: {
         type: 'boolean',
         description: 'Use guided setup workflow with progress indicators and error recovery'
       },
-      help: {
+      [TERMINOLOGY.OPTION.HELP]: {
         type: 'boolean',
         short: 'h',
         description: 'Show help information'
+      },
+      'help-intermediate': {
+        type: 'boolean',
+        description: 'Show intermediate help with additional options'
+      },
+      'help-advanced': {
+        type: 'boolean',
+        description: 'Show advanced help with all options and details'
+      },
+      'help-interactive': {
+        type: 'boolean',
+        description: 'Launch interactive help mode'
       }
     };
 
@@ -131,7 +144,21 @@ export function parseArguments(argv = process.argv.slice(2)) {
     });
 
     // Extract project directory from positional arguments
-    const projectDirectory = positionals[0];
+    // If CLI is invoked with a subcommand (e.g. `new <project-dir>`), the
+    // first positional will be the command name. In that case, the project
+    // directory (if present) will be the second positional.
+    const knownCommands = [
+      TERMINOLOGY.COMMAND.NEW,
+      TERMINOLOGY.COMMAND.LIST,
+      TERMINOLOGY.COMMAND.INFO,
+      TERMINOLOGY.COMMAND.VALIDATE
+    ];
+    let projectDirectory;
+    if (positionals.length > 0 && knownCommands.includes(positionals[0])) {
+      projectDirectory = positionals[1];
+    } else {
+      projectDirectory = positionals[0];
+    }
 
     const placeholderValues = values.placeholder ?? [];
     const placeholders = Array.isArray(placeholderValues)
@@ -161,25 +188,28 @@ export function parseArguments(argv = process.argv.slice(2)) {
     // Return parsed arguments in expected format
     return {
       projectDirectory,
-      template: values.template,
-      branch: values.branch,
-      logFile: values['log-file'],
-      listTemplates: values['list-templates'],
-      registry: values.registry,
-      dryRun: values['dry-run'],
-      noCache: values['no-cache'],
-      cacheTtl: values['cache-ttl'],
-  validateTemplate,
-  json,
-      placeholders,
-      noInputPrompts,
-      verbose,
-      experimentalPlaceholderPrompts,
-      guided: values.guided,
-      interactive,
-      noInteractive: explicitNoInteractive,
-      noConfig,
-      help: values.help,
+      [TERMINOLOGY.OPTION.TEMPLATE]: values[TERMINOLOGY.OPTION.TEMPLATE],
+      [TERMINOLOGY.OPTION.BRANCH]: values[TERMINOLOGY.OPTION.BRANCH],
+      [TERMINOLOGY.OPTION.LOG_FILE]: values[TERMINOLOGY.OPTION.LOG_FILE],
+      [TERMINOLOGY.OPTION.LIST_TEMPLATES]: values[TERMINOLOGY.OPTION.LIST_TEMPLATES],
+      [TERMINOLOGY.OPTION.REGISTRY]: values[TERMINOLOGY.OPTION.REGISTRY],
+      [TERMINOLOGY.OPTION.DRY_RUN]: values[TERMINOLOGY.OPTION.DRY_RUN],
+      [TERMINOLOGY.OPTION.NO_CACHE]: values[TERMINOLOGY.OPTION.NO_CACHE],
+      [TERMINOLOGY.OPTION.CACHE_TTL]: values[TERMINOLOGY.OPTION.CACHE_TTL],
+      [TERMINOLOGY.OPTION.VALIDATE_TEMPLATE]: validateTemplate,
+      [TERMINOLOGY.OPTION.JSON]: json,
+      [TERMINOLOGY.OPTION.PLACEHOLDER]: placeholders,
+      [TERMINOLOGY.OPTION.NO_INPUT_PROMPTS]: noInputPrompts,
+      [TERMINOLOGY.OPTION.VERBOSE]: verbose,
+      [TERMINOLOGY.OPTION.EXPERIMENTAL_PLACEHOLDER_PROMPTS]: experimentalPlaceholderPrompts,
+      [TERMINOLOGY.OPTION.GUIDED]: values[TERMINOLOGY.OPTION.GUIDED],
+      [TERMINOLOGY.OPTION.INTERACTIVE]: interactive,
+      [TERMINOLOGY.OPTION.NON_INTERACTIVE]: explicitNoInteractive,
+      [TERMINOLOGY.OPTION.NO_CONFIG]: noConfig,
+      [TERMINOLOGY.OPTION.HELP]: values[TERMINOLOGY.OPTION.HELP],
+      'help-intermediate': values['help-intermediate'],
+      'help-advanced': values['help-advanced'],
+      'help-interactive': values['help-interactive'],
       _: positionals // For backward compatibility
     };
 
@@ -213,12 +243,12 @@ export function validateArguments(args) {
   }
 
   // Show help if no arguments provided (standard CLI behavior)
-  const hasAnyArgs = args.projectDirectory || args.template || args.branch ||
-                     args.ide || args.options || args.logFile || args.listTemplates ||
-                     args.dryRun || args.noCache || args.cacheTtl || args.validateTemplate ||
-                     args.json || args.placeholders.length > 0 || args.noInputPrompts ||
-                     args.verbose || args.experimentalPlaceholderPrompts || args.interactive ||
-                     args.noInteractive || args.noConfig;
+  const hasAnyArgs = args.projectDirectory || args[TERMINOLOGY.OPTION.TEMPLATE] || args[TERMINOLOGY.OPTION.BRANCH] ||
+                     args.ide || args.options || args[TERMINOLOGY.OPTION.LOG_FILE] || args[TERMINOLOGY.OPTION.LIST_TEMPLATES] ||
+                     args[TERMINOLOGY.OPTION.DRY_RUN] || args[TERMINOLOGY.OPTION.NO_CACHE] || args[TERMINOLOGY.OPTION.CACHE_TTL] || args[TERMINOLOGY.OPTION.VALIDATE_TEMPLATE] ||
+                     args[TERMINOLOGY.OPTION.JSON] || (args[TERMINOLOGY.OPTION.PLACEHOLDER] && args[TERMINOLOGY.OPTION.PLACEHOLDER].length > 0) || args[TERMINOLOGY.OPTION.NO_INPUT_PROMPTS] ||
+                     args[TERMINOLOGY.OPTION.VERBOSE] || args[TERMINOLOGY.OPTION.EXPERIMENTAL_PLACEHOLDER_PROMPTS] || args[TERMINOLOGY.OPTION.INTERACTIVE] ||
+                     args[TERMINOLOGY.OPTION.NON_INTERACTIVE] || args[TERMINOLOGY.OPTION.NO_CONFIG];
   if (!hasAnyArgs) {
     return { isValid: true, showHelp: true };
   }
@@ -318,12 +348,12 @@ export function validateArguments(args) {
   }
 
   // Validate cache TTL if provided
-  if (args.cacheTtl !== undefined) {
-    handleValidationError(validateCacheTtl, args.cacheTtl, errors, 'Cache TTL validation failed');
+  if (args[TERMINOLOGY.OPTION.CACHE_TTL] !== undefined) {
+    handleValidationError(validateCacheTtl, args[TERMINOLOGY.OPTION.CACHE_TTL], errors, 'Cache TTL validation failed');
   }
 
   // Check for conflicting cache flags
-  if (args.noCache && args.cacheTtl) {
+  if (args[TERMINOLOGY.OPTION.NO_CACHE] && args[TERMINOLOGY.OPTION.CACHE_TTL]) {
     errors.push('cannot use both --no-cache and --cache-ttl flags together');
   }
 
@@ -342,11 +372,40 @@ export function generateHelpText() {
 @m5nv/create-scaffold - Project scaffolding CLI for Million Views templates
 
 USAGE:
-  npm create @m5nv/scaffold <project-directory> -- --template <url> [options]
-  npx @m5nv/create-scaffold@latest <project-directory> --template <url> [options]
+  create-scaffold <command> [options]
 
-ARGUMENTS:
-  <project-directory>    Name of the directory to create for your project
+COMMANDS:
+  new <project-directory>    Create a new project from a template
+  list                       List available templates and registries
+  info <template>            Show detailed information about a template
+  validate <template-path>   Validate a template directory
+
+GLOBAL OPTIONS:
+  --help, -h                 Show help information
+  --version                  Show version information
+  --verbose                  Enable verbose logging
+  --no-config                Disable configuration file discovery
+  --log-file <path>          Enable detailed logging to specified file
+
+EXAMPLES:
+  # Create a new project
+  create-scaffold new my-app --template react-app
+
+  # List available templates
+  create-scaffold list
+  create-scaffold list --registry official
+
+  # Get template information
+  create-scaffold info react-app
+
+  # Validate a template
+  create-scaffold validate ./my-template
+
+  # Legacy usage (deprecated)
+  create-scaffold my-app --template react-app
+
+For detailed help on a specific command, use:
+  create-scaffold <command> --help
 
 OPTIONS:
   -T, --template <url>   Template URL or shorthand (create-remix style)

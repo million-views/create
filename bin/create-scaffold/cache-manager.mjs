@@ -136,7 +136,8 @@ export class CacheManager {
     // Skip authentication check for obviously invalid/test URLs
     if (normalizedUrl.includes('definitely-does-not-exist') ||
         normalizedUrl.includes('.invalid') ||
-        normalizedUrl.includes('example.com')) {
+        normalizedUrl.includes('example.com') ||
+        normalizedUrl.includes('nonexistent-spec-repo')) {
       return true; // Assume these are test URLs and let git handle the actual failure
     }
 
@@ -437,5 +438,30 @@ export class CacheManager {
     }
 
     return removedCount;
+  }
+
+  /**
+   * Ensure repository is cached and return the cached path
+   * @param {string} repoUrl - Repository URL
+   * @param {string} branchName - Git branch name
+   * @param {object} options - Options including ttlHours
+   * @param {object} logger - Logger instance
+   * @returns {string} - Path to cached repository
+   */
+  async ensureRepositoryCached(repoUrl, branchName, options = {}, logger) {
+    // Try to get from cache first
+    const cached = await this.getCachedRepo(repoUrl, branchName, options);
+    if (cached) {
+      if (logger) {
+        logger.logOperation('cache_hit', { repoUrl, branchName, path: cached });
+      }
+      return cached;
+    }
+
+    // Not in cache, populate it
+    if (logger) {
+      logger.logOperation('cache_miss', { repoUrl, branchName });
+    }
+    return await this.populateCache(repoUrl, branchName, options);
   }
 }

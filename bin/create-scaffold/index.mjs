@@ -31,7 +31,7 @@ import { normalizeOptions } from './options-processor.mjs';
 import { resolvePlaceholders, PlaceholderResolutionError } from './placeholder-resolver.mjs';
 import { InteractiveSession } from './interactive-session.mjs';
 import { shouldEnterInteractive } from '../../lib/shared/utils/interactive-utils.mjs';
-import { loadConfig } from './config-loader.mjs';
+import { createConfigManager } from '../../lib/cli/config-manager.mjs';
 import {
   handleError,
   contextualizeError,
@@ -137,21 +137,247 @@ async function validateUserSelections({ templatePath, templateName, optionsByDim
   }
 }
 
+// Import command router
+import { routeCommand } from './command-router.mjs';
+
+// Import terminology
+import { TERMINOLOGY } from '../../lib/shared/ontology.mjs';
+
 /**
  * Main entry point for the create-scaffold CLI tool
- * This is a simplified version that only uses the guided workflow
+ * Now supports hierarchical commands with backward compatibility
  */
 async function main() {
   try {
     // Parse arguments using native Node.js parseArgs
     const args = parseArguments();
 
+    // Check if this is a command-based invocation
+    const firstArg = process.argv[2]; // First argument after 'create-scaffold'
+
+    // List of valid commands
+    const validCommands = [TERMINOLOGY.COMMAND.NEW, TERMINOLOGY.COMMAND.LIST, TERMINOLOGY.COMMAND.INFO, TERMINOLOGY.COMMAND.VALIDATE];
+
+    if (firstArg && validCommands.includes(firstArg)) {
+      // Use new command routing
+      const remainingArgs = process.argv.slice(3); // Arguments after command
+      
+      // Parse arguments for the command using a simple flag parser
+      const commandArgs = {};
+      for (let i = 0; i < remainingArgs.length; i++) {
+        const arg = remainingArgs[i];
+        if (arg.startsWith('--')) {
+          const flagName = arg.slice(2);
+          if (flagName === 'placeholder') {
+            // Handle multiple placeholder values
+            if (!commandArgs[flagName]) {
+              commandArgs[flagName] = [];
+            }
+            if (i + 1 < remainingArgs.length && !remainingArgs[i + 1].startsWith('-')) {
+              commandArgs[flagName].push(remainingArgs[i + 1]);
+              i++; // Skip the value
+            }
+          } else if (i + 1 < remainingArgs.length && !remainingArgs[i + 1].startsWith('-')) {
+            commandArgs[flagName] = remainingArgs[i + 1];
+            i++; // Skip the value
+          } else {
+            commandArgs[flagName] = true;
+          }
+        }
+      }
+      
+      // Extract positional arguments (non-flag arguments)
+      const positionalArgs = [];
+      let i = 0;
+      while (i < remainingArgs.length) {
+        const arg = remainingArgs[i];
+        if (arg.startsWith('-')) {
+          // Skip flags and their values
+          if (arg.includes('=')) {
+            // --flag=value format
+            i++;
+          } else {
+            // --flag value format
+            i++;
+            // Check if next arg exists and doesn't start with -
+            if (i < remainingArgs.length && !remainingArgs[i].startsWith('-')) {
+              i++; // Skip the value
+            }
+          }
+        } else {
+          // Positional argument
+          positionalArgs.push(arg);
+          i++;
+        }
+      }
+      
+      const exitCode = await routeCommand(firstArg, positionalArgs, commandArgs);
+      process.exit(exitCode);
+    }
+
+    // Backward compatibility: handle old-style invocations
+    // Show deprecation warning for old usage
+    // If the first argument is a non-option (doesn't start with '-') and
+    // is not a known command, treat it as an unknown command and exit
+    // with an error. If the invocation starts with an option (e.g.
+    // `--template`), fall through to argument validation logic below.
+    if (firstArg && !firstArg.startsWith('-') && !validCommands.includes(firstArg)) {
+      console.error(`❌ Unknown command: ${firstArg}`);
+      console.error('');
+      console.log(generateHelpText());
+      process.exit(1);
+    }
+
     // Validate arguments before proceeding
     const validation = validateArguments(args);
+    console.error('DEBUG: validation result:', validation);
 
     // Show help if requested or if validation failed
-    if (validation.showHelp || args.help) {
-      console.log(generateHelpText());
+    if (validation.showHelp || args[TERMINOLOGY.OPTION.HELP] || args['help-intermediate'] || args['help-advanced'] || args['help-interactive']) {
+      // Import the help generator dynamically
+      const { generateHelp } = await import('../../lib/cli/help-generator.mjs');
+
+      let disclosureLevel = 'basic';
+      let interactive = false;
+
+      if (args['help-advanced']) {
+        disclosureLevel = 'advanced';
+      } else if (args['help-intermediate']) {
+        disclosureLevel = 'intermediate';
+      }
+
+      if (args['help-interactive']) {
+        interactive = true;
+      }
+
+      // Use the enhanced help generator
+      const helpText = generateHelp({
+        toolName: '@m5nv/create-scaffold',
+        description: 'Project scaffolding CLI for Million Views templates',
+        commands: {
+          new: {
+            description: 'Create a new project from a template',
+            usage: '<project-directory>',
+            disclosureLevel: 'basic',
+            options: {
+              template: {
+                type: 'string',
+                short: 'T',
+                description: 'Template URL or shorthand',
+                required: true,
+                examples: ['favorites/react-spa', 'user/repo', './local/template']
+              },
+              branch: {
+                type: 'string',
+                short: 'b',
+                description: 'Git branch to use',
+                default: 'main'
+              },
+              ide: {
+                type: 'string',
+                description: 'Target IDE for customization',
+                examples: ['vscode', 'cursor', 'kiro']
+              },
+              options: {
+                type: 'string',
+                description: 'Contextual options for template customization',
+                examples: ['typescript', 'monorepo', 'testing-focused']
+              }
+            },
+            examples: [
+              'my-app --template favorites/react-spa',
+              'my-api --template favorites/express-api --options typescript,mvp',
+              'my-project --template ./local-templates/custom --ide vscode'
+            ],
+            related: ['info', 'validate']
+          },
+          list: {
+            description: 'List available templates and registries',
+            disclosureLevel: 'basic',
+            options: {
+              registry: {
+                type: 'string',
+                description: 'Registry name to list templates from'
+              }
+            },
+            examples: [
+              '',
+              '--registry favorites',
+              '--registry company'
+            ],
+            related: ['info']
+          },
+          info: {
+            description: 'Show detailed information about a template',
+            usage: '<template>',
+            disclosureLevel: 'intermediate',
+            options: {
+              registry: {
+                type: 'string',
+                description: 'Registry to search in'
+              }
+            },
+            examples: [
+              'favorites/react-spa',
+              'react-app --registry favorites'
+            ],
+            related: ['list', 'validate']
+          },
+          validate: {
+            description: 'Validate a template directory',
+            usage: '<template-path>',
+            disclosureLevel: 'intermediate',
+            options: {
+              json: {
+                type: 'boolean',
+                description: 'Output results in JSON format'
+              }
+            },
+            examples: [
+              './my-template',
+              './templates/custom --json'
+            ],
+            related: ['new']
+          }
+        },
+        globalOptions: {
+          help: { type: 'boolean', short: 'h', description: 'Show help information', disclosureLevel: 'basic' },
+          'help-intermediate': { type: 'boolean', description: 'Show intermediate help with additional options', disclosureLevel: 'basic' },
+          'help-advanced': { type: 'boolean', description: 'Show advanced help with all options and details', disclosureLevel: 'basic' },
+          'help-interactive': { type: 'boolean', description: 'Launch interactive help mode', disclosureLevel: 'basic' },
+          version: { type: 'boolean', short: 'v', description: 'Show version information', disclosureLevel: 'basic' },
+          verbose: { type: 'boolean', description: 'Enable verbose logging', disclosureLevel: 'basic' },
+          'no-config': { type: 'boolean', description: 'Disable configuration file discovery', disclosureLevel: 'intermediate' },
+          'log-file': { type: 'string', description: 'Log output to specified file', disclosureLevel: 'intermediate' }
+        },
+        examples: [
+          '# Create a new project',
+          'npm create @m5nv/scaffold my-app -- --template react-app',
+          'npx @m5nv/create-scaffold new my-app --template react-app',
+          '',
+          '# List available templates',
+          'create-scaffold list',
+          'create-scaffold list --registry official',
+          '',
+          '# Get template information',
+          'create-scaffold info react-app',
+          '',
+          '# Validate a template',
+          'create-scaffold validate ./my-template',
+          '',
+          '# Legacy usage (deprecated)',
+          'create-scaffold my-app --template react-app'
+        ],
+        disclosureLevel,
+        interactive,
+        command: args.command,
+        commandOptions: args.commandOptions,
+        context: {
+          currentDirectory: process.cwd()
+        }
+      });
+
+      console.log(helpText);
       process.exit(0);
     }
 
@@ -173,22 +399,27 @@ async function main() {
     // Load configuration early for early exit modes that might need it
     let configMetadata = null;
     try {
-      const configResult = await loadConfig({
-        cwd: process.cwd(),
-        env: process.env,
-        skip: Boolean(args.noConfig)
+      const configManager = createConfigManager({
+        toolName: 'create-scaffold',
+        toolConfigKey: 'create-scaffold',
+        envPrefix: 'CREATE_SCAFFOLD',
+        configFileName: '.m5nvrc',
+        migrationSupport: true,
+        defaults: {}
       });
 
-      if (configResult) {
+      const configDefaults = await configManager.load();
+
+      if (configDefaults && Object.keys(configDefaults).length > 0) {
         configMetadata = {
-          path: configResult.path,
-          providedKeys: [],
-          appliedKeys: [],
-          author: configResult.defaults?.author ?? null,
-          placeholders: Array.isArray(configResult.defaults?.placeholders)
-            ? configResult.defaults.placeholders
+          path: configManager.globalConfigDir, // Use global config dir as primary location
+          providedKeys: Object.keys(configDefaults),
+          appliedKeys: Object.keys(configDefaults),
+          author: configDefaults.author ?? null,
+          placeholders: Array.isArray(configDefaults.placeholders)
+            ? configDefaults.placeholders
             : [],
-          defaults: configResult.defaults
+          defaults: configDefaults
         };
       }
     } catch (error) {
@@ -220,7 +451,7 @@ async function main() {
 
     // Initialize cache manager and logger
     const cacheManager = new CacheManager();
-    const logger = args.logFile ? new Logger(args.logFile) : null;
+    const logger = args['log-file'] ? new Logger(args['log-file']) : null;
 
     // Configuration already loaded above for early exit modes
 
@@ -327,7 +558,7 @@ async function main() {
     // Handle dry-run mode
     if (args.dryRun) {
       if (!templatePath || !templateName) {
-        throw new Error('--dry-run requires a template to be specified');
+        throw ErrorMessages.validationFailed('--dry-run', 'requires a template to be specified');
       }
 
       const dryRunEngine = new DryRunEngine(cacheManager, logger);
@@ -474,6 +705,9 @@ async function main() {
           if (question.includes('Enter choice')) {
             return '1'; // Choose first option in menus
           }
+          if (question.includes('cleanup option')) {
+            return '1'; // Choose clean up option
+          }
           // For other questions, provide empty string or skip
           return '';
         }
@@ -534,7 +768,7 @@ async function main() {
       ]
     });
 
-    handleError(contextualError, { logger: null, operation: 'main_execution' });
+    handleError(contextualError, { logger: null, operation: 'main_execution', exit: true });
   }
 }
 
@@ -785,10 +1019,12 @@ async function verifyTemplate(templatePath, templateName) {
     await validateDirectoryExists(templatePath, `Template "${templateName}"`);
   } catch (error) {
     if (error.message.includes('not found')) {
-      throw new Error('Template directory not found');
+      throw ErrorMessages.templateNotFound(templateName);
     }
-    const sanitizedMessage = sanitizeErrorMessage(error.message);
-    throw new Error(sanitizedMessage);
+    throw contextualizeError(error, {
+      context: ErrorContext.TEMPLATE,
+      userFriendlyMessage: `Failed to verify template "${templateName}"`
+    });
   }
 }
 
@@ -1129,7 +1365,7 @@ async function executeListTemplates({ jsonOutput, registryName, config }) {
           version: 'N/A'
         }));
       } else {
-        throw new Error(`Registry '${registryName}' not found in configuration`);
+        throw ErrorMessages.configError(`Registry '${registryName}'`, 'Registry not found in configuration');
       }
     } else {
       // List all available registries
@@ -1214,6 +1450,9 @@ if (entryPoint) {
   }
 
   if (modulePath === resolvedEntry || modulePath === realEntry) {
-    main();
+    main().catch(async (error) => {
+      const { handleError } = await import('../../lib/shared/utils/error-handler.mjs');
+      handleError(error, { operation: 'main_execution' });
+    });
   }
 }

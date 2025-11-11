@@ -32,7 +32,7 @@ class SpecComplianceVerifier {
       const child = spawn('node', [CLI_PATH, ...args], {
         stdio: ['pipe', 'pipe', 'pipe'],
         cwd: options.cwd || testCwd,
-        env: { ...process.env, ...options.env }
+        env: { ...process.env, NODE_ENV: 'test', ...options.env }
       });
 
       let stdout = '';
@@ -200,7 +200,7 @@ class SpecComplianceVerifier {
     await this.test('R1.3: Supports all current flags with aliases', async () => {
       // Test that all flags are recognized (even if they fail validation)
       const result = await this.execCLI([
-        'test-project',
+        'new', 'test-project',
         '--template', 'basic',
         '--repo', './nonexistent-spec-arg-repo',
         '--branch', 'main'
@@ -218,7 +218,7 @@ class SpecComplianceVerifier {
     });
 
     await this.test('R1.4: Validates argument types and provides clear error messages', async () => {
-      const result = await this.execCLI(['test-project']);
+  const result = await this.execCLI(['new', 'test-project']);
 
       if (result.exitCode !== 1) {
         throw new Error('Missing template should cause validation error');
@@ -232,7 +232,7 @@ class SpecComplianceVerifier {
     await this.test('R1.5: Handles both positional and named arguments correctly', async () => {
       // Test positional argument (project directory)
       const result = await this.execCLI([
-        'my-project',
+        'new', 'my-project',
         '--template', 'basic',
         '--repo', './nonexistent-spec-positional'
       ]);
@@ -250,7 +250,7 @@ class SpecComplianceVerifier {
     await this.test('R1.6: Supports --options parameter with both short and long forms', async () => {
       // Test --options long form
       const longResult = await this.execCLI([
-        'test-project',
+        'new', 'test-project',
         '--template', 'basic',
         '--repo', './nonexistent-spec-options',
         '--options', 'typescript,react'
@@ -268,7 +268,7 @@ class SpecComplianceVerifier {
 
       // Test -o short form
       const shortResult = await this.execCLI([
-        'test-project',
+        'new', 'test-project',
         '--template', 'basic',
         '--repo', './nonexistent-spec-options-short',
         '-o', 'typescript,react'
@@ -288,7 +288,7 @@ class SpecComplianceVerifier {
     // Requirement 2: Comprehensive input validation and sanitization
 
     await this.test('R2.1: Validates file paths to prevent directory traversal attacks', async () => {
-      const result = await this.execCLI(['../malicious-dir', '--template', 'basic']);
+  const result = await this.execCLI(['new', '../malicious-dir', '--template', 'basic']);
 
       if (result.exitCode !== 1) {
         throw new Error('Path traversal should be blocked');
@@ -300,7 +300,7 @@ class SpecComplianceVerifier {
     });
 
     await this.test('R2.2: Sanitizes repository URLs to prevent malicious redirects', async () => {
-      const result = await this.execCLI(['test-project', '--template', 'invalid-repo-format!']);
+  const result = await this.execCLI(['new', 'test-project', '--template', 'invalid-repo-format!']);
 
       if (result.exitCode !== 1) {
         throw new Error('Invalid repository format should be rejected');
@@ -312,7 +312,7 @@ class SpecComplianceVerifier {
     });
 
     await this.test('R2.3: Validates branch names against injection attacks', async () => {
-      const result = await this.execCLI(['test-project', '--template', 'basic', '--branch', 'main; rm -rf /']);
+  const result = await this.execCLI(['new', 'test-project', '--template', 'basic', '--branch', 'main; rm -rf /']);
 
       if (result.exitCode !== 1) {
         throw new Error('Malicious branch name should be rejected');
@@ -325,7 +325,7 @@ class SpecComplianceVerifier {
 
     await this.test('R2.4: Restricts write operations to intended project directories only', async () => {
       // This is verified through the path traversal prevention and project directory validation
-      const result = await this.execCLI(['test/nested/path', '--template', 'basic']);
+  const result = await this.execCLI(['new', 'test/nested/path', '--template', 'basic']);
 
       if (result.exitCode !== 1) {
         throw new Error('Nested paths with separators should be rejected');
@@ -337,7 +337,7 @@ class SpecComplianceVerifier {
     });
 
     await this.test('R2.5: Validates template names to prevent path traversal', async () => {
-      const result = await this.execCLI(['test-project', '--template', '../../../etc/passwd']);
+  const result = await this.execCLI(['new', 'test-project', '--template', '../../../etc/passwd']);
 
       if (result.exitCode !== 1) {
         throw new Error('Template path traversal should be blocked');
@@ -385,7 +385,7 @@ class SpecComplianceVerifier {
 
     await this.test('R4.1: Verifies git installation and availability in PATH', async () => {
       // Test with a scenario that would reach git validation
-      const result = await this.execCLI(['test-project', '--template', 'test/repo']);
+  const result = await this.execCLI(['new', 'test-project', '--template', 'test/repo']);
 
       // Should not fail due to git not being found (git should be available)
       if (result.stderr.includes('Git is not installed') || result.stderr.includes('git not found')) {
@@ -394,7 +394,7 @@ class SpecComplianceVerifier {
     });
 
     await this.test('R4.2: Validates all required arguments are provided', async () => {
-      const result = await this.execCLI(['test-project']);
+  const result = await this.execCLI(['new', 'test-project']);
 
       if (result.exitCode !== 1) {
         throw new Error('Missing template should cause validation error');
@@ -411,7 +411,7 @@ class SpecComplianceVerifier {
       await fs.writeFile(path.join(existingDir, 'existing-file.txt'), 'content');
 
       const dirName = path.basename(existingDir);
-      const result = await this.execCLI([dirName, '--template', path.join(FIXTURE_ROOT, 'full-demo-template')], {
+      const result = await this.execCLI(['new', dirName, '--template', path.join(FIXTURE_ROOT, 'full-demo-template')], {
         cwd: path.dirname(existingDir)
       });
 
@@ -425,16 +425,15 @@ class SpecComplianceVerifier {
     });
 
     await this.test('R4.4: Validates repository URL format and accessibility', async () => {
-      // Note: Current implementation gracefully handles nonexistent repositories
-      // by falling back to basic templates, so this test expects success
-      const result = await this.execCLI(['test-project', '--template', 'nonexistent-spec-repo/basic']);
+      // Test that nonexistent repositories are properly rejected
+  const result = await this.execCLI(['new', 'test-project', '--template', 'nonexistent-spec-repo/basic']);
 
-      if (result.exitCode !== 0) {
-        throw new Error('Should succeed with fallback for nonexistent repository');
+      if (result.exitCode !== 1) {
+        throw new Error('Should fail for nonexistent repository');
       }
 
-      if (!result.stdout.includes('Project setup completed successfully') && !result.stderr.includes('Project setup completed successfully')) {
-        throw new Error('Should complete setup even for nonexistent repositories');
+      if (!result.stderr.includes('Template not accessible')) {
+        throw new Error('Should show repository access error');
       }
     });
   }
@@ -474,8 +473,8 @@ class SpecComplianceVerifier {
 
     await this.test('R5.3: Provides specific error messages for each type of failure', async () => {
       // Test different error types
-      const pathTraversalResult = await this.execCLI(['../invalid', '--template', 'basic']);
-      const missingTemplateResult = await this.execCLI(['test-project']);
+      const pathTraversalResult = await this.execCLI(['new', 'test-project', '--template', '../../../etc/passwd']);
+  const missingTemplateResult = await this.execCLI(['new', 'test-project']);
 
       if (!pathTraversalResult.stderr.includes('traversal') && !pathTraversalResult.stderr.includes('path')) {
         throw new Error('Path traversal error should be specific');
@@ -525,7 +524,7 @@ export default async function setup({ ctx, tools }) {
       await this.execCommand('git', ['commit', '-m', 'Add setup script'], { cwd: mockRepoPath });
 
       const projectName = 'spec-setup-test';
-      const result = await this.execCLI([projectName, '--template', mockRepoPath + '/with-setup']);
+      const result = await this.execCLI(['new', projectName, '--template', mockRepoPath + '/with-setup']);
 
       if (result.exitCode !== 0) {
         throw new Error(`Setup script test failed: ${result.stderr}`);
@@ -574,7 +573,7 @@ export default async function setup(ctx) {
       await this.execCommand('git', ['commit', '-m', 'Add failing setup script'], { cwd: mockRepoPath });
 
       const projectName = 'spec-failing-setup-test';
-      const result = await this.execCLI([projectName, '--template', mockRepoPath + '/failing-setup']);
+      const result = await this.execCLI(['new', projectName, '--template', mockRepoPath + '/failing-setup']);
 
       // Should succeed despite setup script failure
       if (result.exitCode !== 0) {
@@ -612,7 +611,7 @@ export default async function setup(ctx) {
     });
 
     await this.test('R7.2: Sanitizes error messages to prevent information disclosure', async () => {
-      const result = await this.execCLI(['test-sanitize', '--template', '/nonexistent/path/basic']);
+      const result = await this.execCLI(['new', 'test-project', '--template', '/nonexistent/path/basic']);
 
       if (result.exitCode !== 1) {
         throw new Error('Should fail on nonexistent path');
@@ -684,18 +683,16 @@ export default async function setup(ctx) {
     });
 
     await this.test('R8.5: Uses child_process for git command execution', async () => {
-      // This is verified by the git operations working correctly
-      // The implementation now gracefully handles nonexistent repositories with fallback
-      const result = await this.execCLI(['test-git', '--template', 'nonexistent-spec-git-repo/basic']);
+      // Test that git operations work correctly and nonexistent repositories fail appropriately
+      const result = await this.execCLI(['new', 'test-project', '--template', 'nonexistent-spec-git-repo/basic']);
 
-      // Should succeed with fallback for nonexistent repository
-      if (result.exitCode !== 0) {
-        throw new Error('Should succeed with fallback for nonexistent repository');
+      // Should fail for nonexistent repository (no fallback)
+      if (result.exitCode !== 1) {
+        throw new Error('Should fail for nonexistent repository');
       }
 
-      const output = result.stdout + result.stderr;
-      if (!output.includes('Project setup completed successfully')) {
-        throw new Error('Should complete setup with basic project structure');
+      if (!result.stderr.includes('Template not accessible')) {
+        throw new Error('Should show repository access error');
       }
     });
   }

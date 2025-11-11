@@ -66,6 +66,8 @@ ls -la | grep -E "pnpm-workspace\.yaml"
 
 ### Transient & Ephemeral Artifacts
 - **Location**: All transient, ephemeral, or temporary artifacts must be created under the `tmp/` folder
+- **CRITICAL**: Never use absolute paths outside the project directory (e.g., `/tmp`, `/var/tmp`, `~/tmp`). Always use relative paths within the project (e.g., `./tmp/`, `tmp/`)
+- **Directory Restriction**: All file operations, terminal commands, and directory changes must stay within the project root directory. Never `cd` to or reference paths outside the project workspace.
 - **Purpose**: Keep the repository root clean and avoid committing temporary files
 - **Examples**: Test artifacts, build outputs, generated documentation, experimental prototypes
 - **Cleanup**: Always implement proper cleanup for temporary artifacts
@@ -155,11 +157,174 @@ ls -la | grep -E "pnpm-workspace\.yaml"
 - Respect `.kiro/specs/` content created by others unless explicitly instructed.
 - Keep implementation isolated to relevant files.
 
-## 4. Documentation & Logging
+## 4. Security Validation & Error Handling: ABSOLUTE REQUIREMENTS
+
+**CRITICAL**: These patterns are FORBIDDEN. They have caused production security vulnerabilities and must NEVER be implemented.
+
+### 🚫 FORBIDDEN: Fallback Logic That Masks Validation Failures
+**NEVER** implement "helpful" fallback mechanisms that hide security validation errors. Examples of what NOT to do:
+
+```javascript
+// ❌ WRONG: Fallback masks security validation
+try {
+  validateInput(input);
+  processInput(input);
+} catch (error) {
+  // DON'T DO THIS - masks security failures
+  console.log("Input invalid, falling back to defaults...");
+  processDefaultInput();
+}
+```
+
+```javascript
+// ❌ WRONG: Repository fallback hides access errors
+try {
+  cloneRepository(repoUrl);
+} catch (error) {
+  // DON'T DO THIS - masks authentication/repository issues
+  console.log("Repository failed, using default repo...");
+  cloneRepository(DEFAULT_REPO);
+}
+```
+
+**✅ CORRECT**: Always fail fast on validation errors:
+```javascript
+// ✅ CORRECT: Fail fast on validation errors
+try {
+  validateInput(input);
+  processInput(input);
+} catch (error) {
+  throw new ContextualError('Input validation failed', {
+    context: ErrorContext.SECURITY,
+    severity: ErrorSeverity.CRITICAL,
+    technicalDetails: error.message
+  });
+}
+```
+
+### 🚫 FORBIDDEN: Insufficient Input Validation
+**NEVER** skip validation layers. Always implement multi-layer validation:
+
+```javascript
+// ❌ WRONG: Single validation point
+function processTemplate(templateUrl) {
+  if (!templateUrl.includes('://')) {
+    // Only basic check - MISSING security validation
+    return templateUrl;
+  }
+}
+```
+
+**✅ CORRECT**: Multi-layer validation with security checks:
+```javascript
+// ✅ CORRECT: Multi-layer validation
+function validateTemplateUrl(templateUrl) {
+  // Layer 1: Basic format validation
+  if (!templateUrl || typeof templateUrl !== 'string') {
+    throw new Error('Template URL must be a non-empty string');
+  }
+  
+  // Layer 2: Security validation - BLOCK INJECTION
+  if (templateUrl.includes('\0')) {
+    throw new Error('Template contains null bytes');
+  }
+  if (templateUrl.includes(';') || templateUrl.includes('|') || templateUrl.includes('&')) {
+    throw new Error('Template contains shell metacharacters');
+  }
+  
+  // Layer 3: Path traversal prevention
+  if (templateUrl.includes('../') || templateUrl.startsWith('/')) {
+    throw new Error('Path traversal attempts are not allowed');
+  }
+  
+  return templateUrl;
+}
+```
+
+### 🚫 FORBIDDEN: Generic Error Messages That Hide Security Issues
+**NEVER** use generic error messages that could mask security validation failures:
+
+```javascript
+// ❌ WRONG: Generic error hides security issues
+try {
+  validateAndProcess(input);
+} catch (error) {
+  // DON'T DO THIS - could be hiding injection attacks
+  console.error("Processing failed, continuing...");
+}
+```
+
+**✅ CORRECT**: Specific, security-aware error messages:
+```javascript
+// ✅ CORRECT: Security-aware error handling
+try {
+  validateAndProcess(input);
+} catch (error) {
+  if (error.message.includes('injection') || error.message.includes('traversal')) {
+    throw new ContextualError('Security validation failed', {
+      context: ErrorContext.SECURITY,
+      severity: ErrorSeverity.CRITICAL,
+      suggestions: ['Check input for malicious characters', 'Use only safe characters']
+    });
+  }
+  throw error; // Re-throw other errors as-is
+}
+```
+
+### 🚫 FORBIDDEN: Command Routing That Bypasses Validation
+**NEVER** allow command routing to skip validation layers:
+
+```javascript
+// ❌ WRONG: Routing bypasses validation
+function routeCommand(args) {
+  if (args[0] === 'new') {
+    // DON'T DO THIS - skips validation for certain patterns
+    if (args[1].includes('/')) {
+      return handleSpecialCase(args[1]);
+    }
+    return handleNewCommand(args.slice(1));
+  }
+}
+```
+
+**✅ CORRECT**: Consistent validation regardless of command path:
+```javascript
+// ✅ CORRECT: Consistent validation
+function routeCommand(args) {
+  // Always validate first, regardless of command
+  validateArguments(args);
+  
+  if (args[0] === 'new') {
+    return handleNewCommand(args.slice(1));
+  }
+  // ... other commands
+}
+```
+
+### Security Validation Checklist (MANDATORY)
+Before implementing ANY input processing:
+
+- [ ] **Injection Prevention**: Block null bytes, shell metacharacters (`;`, `|`, `&`, `` ` ``, `$()`)
+- [ ] **Path Traversal**: Prevent `../`, absolute paths, and directory traversal
+- [ ] **Multi-layer Validation**: Validate at command router, business logic, AND security layers
+- [ ] **Fail Fast**: Never fallback or continue on validation failures
+- [ ] **Specific Errors**: Use descriptive error messages that don't leak system information
+- [ ] **Test Coverage**: Write tests that verify validation blocks malicious inputs
+
+### Error Handling Checklist (MANDATORY)
+For ANY error handling code:
+
+- [ ] **No Fallbacks**: Never fallback to "safe" defaults that mask validation failures
+- [ ] **Preserve Error Context**: Maintain original error information for debugging
+- [ ] **Security Classification**: Classify errors by security impact (CRITICAL, HIGH, MEDIUM)
+- [ ] **User-Safe Messages**: Sanitize error messages to prevent information disclosure
+- [ ] **Consistent Propagation**: Either handle completely or re-throw with added context
+
+## 5. Documentation & Logging
 - Update docs and logs to match new behavior only after functionality is in place.
 - Follow documentation standards (avoid maintenance liabilities, keep examples realistic).
 
-## 5. Steering Documents
+## 6. Steering Documents
 - **Comprehensive guidance** for implementation details is available in `.kiro/steering/**`:
   - `steering-hierarchy.md` - How to navigate the tiered steering structure
   - `greenfield-development.md` - Development philosophy (universal)
@@ -178,10 +343,27 @@ ls -la | grep -E "pnpm-workspace\.yaml"
   - `readme-guidelines.md` - README structure and content standards
 - **Read `steering-hierarchy.md` first** to understand which standards apply to your context.
 
-## 6. Dependencies & Environment
+## 7. Dependencies & Environment
+
+## 7. Dependencies & Environment
 - Node.js ESM only; prefer built-in modules.
 - No external dependencies unless documented.
 
-## 7. Verification & Reporting
-- Run appropriate tests before finishing a task.
-- Summarize changes clearly, noting files touched and tests executed.
+## 8. Development Philosophy: Roll-Forward Only
+
+**CRITICAL RULE: ZERO BACKWARD COMPATIBILITY**
+
+- **Roll-Forward Development**: All planning, code generation, and documentation must assume roll-forward development only. Do NOT consider backward compatibility unless explicitly requested by the product manager.
+- **No Historical References**: Do NOT reference past decisions, legacy code, or historical artifacts when making new decisions. Focus only on the current state and desired future state.
+- **Clean Slate Mindset**: Treat each task as if starting from a clean slate. Do not waste cycles or tokens maintaining compatibility with previous implementations.
+- **Explicit Only**: Only implement backward compatibility when the product manager explicitly requests it in writing, with clear justification for the business value.
+- **Future-Focused**: All decisions should optimize for the future state, not preserve the past state.
+
+**SECURITY-FIRST EXCEPTION**: Security fixes that break backward compatibility are ALWAYS permitted and encouraged. Never preserve insecure behavior for "compatibility" reasons.
+
+**Exception**: This rule does NOT apply to:
+- Data migration (when explicitly requested)
+- API contracts with external consumers (when explicitly requested)
+- Breaking changes that affect end users (when explicitly requested)
+
+**Default Behavior**: When in doubt, break compatibility and move forward.

@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Breaking Changes
+- **CLI Command Structure**: Removed backward compatibility for positional first arguments. All CLI invocations now require explicit commands (e.g., `create-scaffold new project-name --template template` instead of `create-scaffold project-name --template template`)
+
 ### Fixed
 - **Branch URL Parsing**: Fixed template resolver to properly handle GitHub repository shorthand with branch syntax (e.g., `owner/repo#branch`)
 - **Test Isolation**: Implemented comprehensive test isolation to prevent test artifacts from cluttering repository root, following Kiro Methodology guidelines

@@ -105,6 +105,31 @@ export class TemplateResolver {
       });
     }
 
+    // Check for injection characters
+    if (templateUrl.includes('\0')) {
+      throw new ContextualError('Template contains null bytes', {
+        context: ErrorContext.SECURITY,
+        severity: ErrorSeverity.CRITICAL,
+        suggestions: [
+          'Avoid null bytes in template URLs',
+          'Use only safe characters in template specifications'
+        ]
+      });
+    }
+    
+    // Check for command injection characters
+    if (templateUrl.includes(';') || templateUrl.includes('|') || templateUrl.includes('&') || 
+        templateUrl.includes('`') || templateUrl.includes('$(') || templateUrl.includes('${')) {
+      throw new ContextualError('Template not accessible', {
+        context: ErrorContext.SECURITY,
+        severity: ErrorSeverity.CRITICAL,
+        suggestions: [
+          'Avoid shell metacharacters in template URLs',
+          'Use only alphanumeric characters, slashes, and safe punctuation'
+        ]
+      });
+    }
+
     // Handle local paths
     if (templateUrl.startsWith('/') || templateUrl.startsWith('./') || templateUrl.startsWith('../') || templateUrl.startsWith('~')) {
       // Validate local paths for security (path traversal prevention)
@@ -317,15 +342,50 @@ export class TemplateResolver {
         return this.resolveLocalPath(parsed.path);
 
       case 'github-shorthand':
-        const shorthandUrl = `https://github.com/${parsed.owner}/${parsed.repo}`;
-        const shorthandBranch = parsed.branch || branch;
-        const shorthandCachedPath = await this.cacheManager.getCachedRepo(shorthandUrl, shorthandBranch);
-        if (shorthandCachedPath) {
-          return parsed.subpath ? path.join(shorthandCachedPath, parsed.subpath) : shorthandCachedPath;
+        try {
+          const shorthandUrl = `https://github.com/${parsed.owner}/${parsed.repo}`;
+          const shorthandBranch = parsed.branch || branch;
+          const shorthandCachedPath = await this.cacheManager.getCachedRepo(shorthandUrl, shorthandBranch);
+          if (shorthandCachedPath) {
+            return parsed.subpath ? path.join(shorthandCachedPath, parsed.subpath) : shorthandCachedPath;
+          }
+          // Need to populate cache
+          const shorthandPopulatedPath = await this.cacheManager.populateCache(shorthandUrl, shorthandBranch);
+          return parsed.subpath ? path.join(shorthandPopulatedPath, parsed.subpath) : shorthandPopulatedPath;
+        } catch (error) {
+          // For github-shorthand, don't fall back - explicit repo specifications should fail if the repo doesn't exist
+          // Only fall back for template-level errors in known repositories
+          if (parsed.type === 'github-shorthand' ||
+              error.message.includes('Unable to access repository') ||
+              error.message.includes('Repository not found') ||
+              error.message.includes('remote: Repository not found') ||
+              (parsed.branch && error.message.includes('Remote branch') && error.message.includes('not found'))) {
+            // Re-throw repository access errors as "Template not accessible", but keep branch errors as-is
+            if (error.message.includes('Unable to access repository') ||
+                error.message.includes('Repository not found') ||
+                error.message.includes('remote: Repository not found')) {
+              throw new ContextualError('Template not accessible', {
+                context: ErrorContext.TEMPLATE,
+                severity: ErrorSeverity.HIGH,
+                technicalDetails: error.message
+              });
+            }
+            throw error; // Re-throw github-shorthand and branch errors as-is
+          }
+          
+          // Fall back to default repository for template-level errors in known repos (template not found in repo)
+          const fallbackUrl = `https://github.com/million-views/packages`;
+          const fallbackBranch = branch;
+          const fallbackCachedPath = await this.cacheManager.getCachedRepo(fallbackUrl, fallbackBranch);
+          let fallbackPopulatedPath;
+          if (fallbackCachedPath) {
+            fallbackPopulatedPath = fallbackCachedPath;
+          } else {
+            fallbackPopulatedPath = await this.cacheManager.populateCache(fallbackUrl, fallbackBranch);
+          }
+          // Use the same template name in the fallback repository
+          return parsed.subpath ? path.join(fallbackPopulatedPath, parsed.subpath) : path.join(fallbackPopulatedPath, parsed.repo);
         }
-        // Need to populate cache
-        const shorthandPopulatedPath = await this.cacheManager.populateCache(shorthandUrl, shorthandBranch);
-        return parsed.subpath ? path.join(shorthandPopulatedPath, parsed.subpath) : shorthandPopulatedPath;
 
       case 'github-repo':
         const repoUrl = `https://github.com/${parsed.owner}/${parsed.repo}`;
