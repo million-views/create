@@ -87,7 +87,7 @@ export async function executeNewCommand(args) {
 
     // Initialize cache manager and logger
     const cacheManager = new CacheManager();
-    const logger = args[TERMINOLOGY.OPTION.LOG_FILE] ? new Logger(args[TERMINOLOGY.OPTION.LOG_FILE]) : null;
+    const logger = args[TERMINOLOGY.OPTION.LOG_FILE] ? new Logger('file', 'info', args[TERMINOLOGY.OPTION.LOG_FILE]) : null;
 
     // Template resolution logic - handle different template input types
     let templatePath, templateName, repoUrl, branchName, metadata;

@@ -635,12 +635,22 @@ runner.test('--log-file flag enables detailed logging', async () => {
   // Create mock repository
   await IntegrationTestUtils.createMockRepo(mockRepoPath, ['basic']);
 
-  const result = await IntegrationTestUtils.execCLI([
+  const cliArgs = [
     'new',
     'test-log-project',
     '--template', path.join(mockRepoPath, 'basic'),
     '--log-file', logFilePath
-  ], { cwd: workDir });
+  ];
+  
+  console.log('DEBUG: About to call execCLI with args:', cliArgs);
+  console.log('DEBUG: logFilePath:', logFilePath);
+
+  const result = await IntegrationTestUtils.execCLI(cliArgs, { 
+    cwd: workDir
+  });
+
+  console.log('DEBUG: CLI result exit code:', result.exitCode);
+  console.log('DEBUG: CLI result stderr:', result.stderr.substring(0, 500));
 
   if (result.exitCode !== 0) {
     throw new Error(`Expected exit code 0, got ${result.exitCode}. Stderr: ${result.stderr}`);
