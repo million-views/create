@@ -13,6 +13,7 @@ export class CommandRouter {
       [TERMINOLOGY.COMMAND.RESTORE]: () => import('./commands/restore.mjs'),
       [TERMINOLOGY.COMMAND.INIT]: () => import('./commands/init.mjs'),
       [TERMINOLOGY.COMMAND.VALIDATE]: () => import('./commands/validate.mjs'),
+      [TERMINOLOGY.COMMAND.TEST]: () => import('./commands/test.mjs'),
       [TERMINOLOGY.COMMAND.HINTS]: () => import('./commands/hints.mjs')
     };
   }
@@ -61,6 +62,7 @@ export class CommandRouter {
     console.log(`  ${TERMINOLOGY.COMMAND.RESTORE}          Restore template to project`);
     console.log(`  ${TERMINOLOGY.COMMAND.INIT}             Generate skeleton template.json`);
     console.log(`  ${TERMINOLOGY.COMMAND.VALIDATE}         Validate template.json`);
+    console.log(`  ${TERMINOLOGY.COMMAND.TEST}             Test template functionality`);
     console.log(`  ${TERMINOLOGY.COMMAND.HINTS}            Show hints catalog`);
     console.log('');
     console.log('OPTIONS:');
@@ -79,6 +81,7 @@ export class CommandRouter {
     console.log('  make-template restore --yes');
     console.log('  make-template init');
     console.log('  make-template validate');
+    console.log('  make-template test <template>');
     console.log('  make-template hints');
     console.log('');
     console.log('For help with a specific command, use:');

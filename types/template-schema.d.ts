@@ -6,9 +6,9 @@ export const TEMPLATE_SCHEMA_PATH = 'schema/template.v1.json' as const;
 
 export type TemplateAuthoringMode = 'wysiwyg' | 'composable';
 export type TemplatePlaceholderType = 'string' | 'number' | 'boolean';
-export type TemplateDimensionType = 'single' | 'multi';
-export type TemplateDimensionPolicy = 'strict' | 'warn';
-export type TemplateCanonicalVariableName = 'author' | 'license';
+export type TemplateDimensionType = never;
+export type TemplateDimensionPolicy = never;
+export type TemplateCanonicalVariableName = never;
 
 export type TemplatePlaceholderPrimitive = string | number | boolean;
 export type TemplateDimensionValue = string;

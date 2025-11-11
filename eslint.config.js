@@ -78,5 +78,12 @@ export default [
       'no-script-url': 'error',
       'strict': ['error', 'global']
     }
+  },
+  {
+    files: ['bin/**/*.mjs', 'bin/**/*.js'],
+    rules: {
+      // Allow console.log in CLI tools as it's the standard output mechanism
+      'no-console-log': 'off'
+    }
   }
 ];

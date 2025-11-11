@@ -130,13 +130,9 @@ cases.
 - **Testing Strategy:** Unit, integration, and performance testing plans defined
 
 **Features Ready for Development:**
-- **Multi-Template Projects:** Add `--from-templates frontend,backend` to stage
-  multiple templates in one run with orchestrated setup sequencing. **Impact:**
+- **Template Dependencies**: Extend schema to support explicit template dependencies for composition. **Impact:**
   Low – niche but high-value for larger teams; high complexity.
-- **Workflow Automation Enhancements:** Expand canonical variables with richer
-  manifest hooks (e.g., templated README sections) and explore scripted
-  post-processing once validation lands. **Impact:** Medium – powers internal
-  enablement tooling.
+- **Multi-Template Setup Orchestration**: Enhance _setup.mjs capabilities to orchestrate multiple templates in a single project. **Impact:** Medium – powers internal enablement tooling.
 
 **Dependencies:** Phase 2 validation workflows; canonical variables (delivered).
 

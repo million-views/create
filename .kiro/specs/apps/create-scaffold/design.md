@@ -27,131 +27,129 @@ Phase 3 introduces advanced workflow capabilities through multi-template orchest
 
 ## Architectural Components
 
-### Core Orchestration Engine
-```
-lib/orchestration/
-├── composition-engine.mjs     # Multi-template coordination
-├── dependency-resolver.mjs    # Template dependency management
-├── conflict-resolver.mjs      # File and variable conflict handling
-├── state-manager.mjs         # Workflow state persistence
-├── hook-executor.mjs         # Manifest hook processing
-└── rollback-engine.mjs       # Failure recovery and cleanup
-```
-
-### Template Composition Schema
+### Enhanced Template Schema Extensions
 ```
 schema/
-├── composition.v1.json        # Template relationship schema
-├── hooks.v1.json             # Manifest hooks schema
-└── workflow.v1.json          # Workflow orchestration schema
+├── template.v2.json        # Extended schema with dependency support
+├── setup-hooks.v1.json     # Enhanced setup script capabilities
+└── composition.v1.json     # Template composition metadata
 ```
 
-### Enhanced CLI Commands
+### Template Dependency System
 ```
-bin/create-scaffold/commands/
-├── compose.mjs               # Multi-template orchestration
-├── workflow.mjs              # Workflow management
-└── hooks.mjs                 # Hook management utilities
+lib/template/
+├── dependency-resolver.mjs     # Template dependency management
+├── composition-engine.mjs      # Multi-template orchestration
+├── conflict-resolver.mjs       # File and variable conflict handling
+├── setup-orchestrator.mjs      # Enhanced _setup.mjs capabilities
+└── template-composer.mjs       # Template composition utilities
 ```
 
-## Multi-Template Orchestration Design
+### Enhanced Setup Runtime
+```
+lib/setup/
+├── multi-template-runner.mjs   # Orchestrate multiple template setups
+├── context-manager.mjs         # Shared context across templates
+├── rollback-engine.mjs         # Atomic operations with cleanup
+├── progress-tracker.mjs        # Setup progress reporting
+└── hook-executor.mjs           # Enhanced setup hooks
+```
 
-### Composition Engine Architecture
-```javascript
-class CompositionEngine {
-  constructor(options = {}) {
-    this.templates = [];
-    this.sharedContext = new SharedContext();
-    this.dependencyGraph = new DependencyGraph();
-    this.stateManager = new StateManager();
-  }
+## Template Dependency System Design
 
-  async orchestrate(templates, options = {}) {
-    // Phase 1: Template Resolution
-    const resolvedTemplates = await this.resolveTemplates(templates);
-
-    // Phase 2: Dependency Analysis
-    const executionOrder = await this.analyzeDependencies(resolvedTemplates);
-
-    // Phase 3: Conflict Detection
-    const conflicts = await this.detectConflicts(executionOrder);
-
-    // Phase 4: Orchestrated Execution
-    return await this.executeOrchestrated(executionOrder, conflicts, options);
+### Enhanced Template Schema
+```json
+{
+  "$schema": "https://schemas.million-views.dev/create/template.v2.json",
+  "schemaVersion": "2.0.0",
+  "id": "acme/fullstack-app",
+  "name": "Full Stack Application",
+  "description": "Complete full-stack application with frontend, backend, and database",
+  "dependencies": [
+    {
+      "template": "acme/react-frontend",
+      "version": ">=1.0.0",
+      "purpose": "Frontend application component",
+      "variables": {
+        "API_URL": "{{BACKEND_URL}}",
+        "DATABASE_URL": "{{DATABASE_URL}}"
+      }
+    },
+    {
+      "template": "acme/express-backend",
+      "version": ">=2.0.0",
+      "purpose": "Backend API component"
+    },
+    {
+      "template": "acme/postgres-database",
+      "version": ">=1.5.0",
+      "purpose": "Database setup and migrations"
+    }
+  ],
+  "composition": {
+    "orchestration": "parallel",
+    "failureMode": "rollback",
+    "sharedVariables": [
+      "PROJECT_NAME",
+      "DATABASE_URL",
+      "API_PORT",
+      "FRONTEND_PORT"
+    ]
   }
 }
 ```
 
-### Template Resolution Process
+### Setup Script Orchestration
 ```javascript
-class TemplateResolver {
-  async resolveTemplates(templateSpecs) {
-    const resolved = [];
+// _setup.mjs with multi-template capabilities
+export async function setup(ctx) {
+  const { tools, inputs } = ctx;
 
-    for (const spec of templateSpecs) {
-      const template = await this.resolveTemplate(spec);
+  // Check for template dependencies
+  const dependencies = await tools.templates.resolveDependencies(inputs.template);
 
-      // Validate composition compatibility
-      await this.validateCompositionCompatibility(template);
-
-      // Extract composition metadata
-      const composition = await this.extractCompositionMetadata(template);
-
-      resolved.push({ template, composition });
-    }
-
-    return resolved;
+  // Orchestrate setup of dependent templates
+  for (const dep of dependencies) {
+    await tools.templates.setup(dep.template, {
+      variables: dep.variables,
+      context: 'dependency'
+    });
   }
+
+  // Continue with main template setup
+  await tools.files.copy('src/', inputs.projectDirectory);
+  await tools.placeholders.apply(inputs.variables);
+
+  // Post-setup orchestration
+  await tools.templates.finalize(dependencies);
 }
 ```
 
 ### Dependency Resolution Algorithm
 ```javascript
 class DependencyResolver {
-  async resolveDependencies(templates) {
-    const graph = new DependencyGraph();
+  async resolveDependencies(templateId, registry) {
+    const template = await registry.get(templateId);
+    const resolved = new Set();
+    const visiting = new Set();
 
-    // Build dependency graph
-    for (const template of templates) {
-      graph.addNode(template.id, template);
+    const resolve = async (id) => {
+      if (resolved.has(id)) return;
+      if (visiting.has(id)) throw new Error(`Circular dependency: ${id}`);
 
-      for (const dependency of template.composition.dependencies) {
-        graph.addDependency(template.id, dependency.templateId);
+      visiting.add(id);
+      const tpl = await registry.get(id);
+
+      for (const dep of tpl.dependencies || []) {
+        await resolve(dep.template);
       }
-    }
 
-    // Detect cycles
-    if (graph.hasCycles()) {
-      throw new CompositionError('Circular dependencies detected');
-    }
-
-    // Topological sort for execution order
-    return graph.topologicalSort();
-  }
-}
-```
-
-### Conflict Resolution Strategy
-```javascript
-class ConflictResolver {
-  async resolveConflicts(templates, executionOrder) {
-    const conflicts = {
-      files: [],
-      variables: [],
-      hooks: []
+      visiting.delete(id);
+      resolved.add(id);
     };
 
-    // Analyze file conflicts
-    conflicts.files = await this.analyzeFileConflicts(templates);
-
-    // Analyze variable conflicts
-    conflicts.variables = await this.analyzeVariableConflicts(templates);
-
-    // Analyze hook conflicts
-    conflicts.hooks = await this.analyzeHookConflicts(templates);
-
-    // Apply resolution strategies
-    return await this.applyResolutionStrategies(conflicts, executionOrder);
+    await resolve(templateId);
+    return Array.from(resolved);
   }
 }
 ```
@@ -349,45 +347,54 @@ class RollbackEngine {
 
 ## CLI Integration
 
-### Enhanced Command Structure
+## CLI Integration
+
+### Enhanced New Command
+The existing `create-scaffold new` command is enhanced to support template dependencies and composition:
+
 ```bash
-# Multi-template orchestration
-create-scaffold compose --from-templates frontend,backend,database \
-  --project-name my-fullstack-app \
-  --variables DATABASE_URL=postgres://localhost:5432/myapp
+# Single template (existing functionality)
+create-scaffold new my-app --template acme/react-app
 
-# Workflow management
-create-scaffold workflow status <workflow-id>
-create-scaffold workflow resume <workflow-id>
-create-scaffold workflow rollback <workflow-id>
+# Template with dependencies (new capability)
+create-scaffold new my-fullstack-app --template acme/fullstack-app
+# Automatically resolves and sets up: react-frontend, express-backend, postgres-database
 
-# Hook management
-create-scaffold hooks list --template <template>
-create-scaffold hooks validate --template <template>
+# Explicit dependency override
+create-scaffold new my-app --template acme/fullstack-app \
+  --dependency acme/express-backend=2.1.0 \
+  --dependency acme/postgres-database=latest
 ```
 
-### Progressive Help System Extension
-```javascript
-class AdvancedHelpGenerator extends ProgressiveHelpGenerator {
-  generateCompositionHelp() {
-    return {
-      basic: this.generateBasicCompositionHelp(),
-      intermediate: this.generateIntermediateCompositionHelp(),
-      advanced: this.generateAdvancedCompositionHelp()
-    };
-  }
+### Template Validation Enhancements
+```bash
+# Validate template and its dependencies
+create-scaffold validate acme/fullstack-app --recursive
 
-  generateBasicCompositionHelp() {
-    return {
-      usage: 'create-scaffold compose --from-templates <templates>',
-      examples: [
-        'create-scaffold compose --from-templates frontend,backend',
-        'create-scaffold compose --from-templates react,express,postgres'
-      ],
-      description: 'Create projects from multiple templates'
-    };
-  }
-}
+# Check for conflicts before setup
+create-scaffold validate acme/fullstack-app --check-conflicts \
+  --project-name my-app
+```
+
+### Setup Runtime Extensions
+The setup runtime is enhanced to support multi-template orchestration:
+
+```javascript
+// Enhanced setup context
+const ctx = {
+  tools: {
+    templates: {
+      resolveDependencies: async (templateId) => { /* ... */ },
+      setup: async (templateId, options) => { /* ... */ },
+      finalize: async (dependencies) => { /* ... */ }
+    },
+    files: { /* existing file operations */ },
+    placeholders: { /* existing placeholder operations */ },
+    commands: { /* existing command execution */ }
+  },
+  inputs: { /* user inputs and resolved variables */ },
+  dependencies: [ /* resolved template dependencies */ ]
+};
 ```
 
 ## Error Handling and Recovery

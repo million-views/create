@@ -1370,15 +1370,32 @@ export async function main(argv = null) {
   const rawArgs = Array.isArray(argv) ? argv : process.argv.slice(2);
   const helpIndex = rawArgs.indexOf('--help');
   if (helpIndex !== -1) {
-    showHelp = true;
-    if (helpIndex + 1 < rawArgs.length) {
-      const levelArg = rawArgs[helpIndex + 1];
-      if (levelArg === 'interactive') {
-        disclosureLevel = 'advanced';
-      } else if (levelArg === 'advanced') {
-        disclosureLevel = 'advanced';
-      } else if (levelArg === 'intermediate') {
-        disclosureLevel = 'intermediate';
+    // Check if this is command-specific help (command followed by --help)
+    const potentialCommand = rawArgs[helpIndex - 1];
+    const validCommands = [
+      TERMINOLOGY.COMMAND.CONVERT,
+      TERMINOLOGY.COMMAND.RESTORE,
+      TERMINOLOGY.COMMAND.INIT,
+      TERMINOLOGY.COMMAND.VALIDATE,
+      TERMINOLOGY.COMMAND.HINTS,
+      TERMINOLOGY.COMMAND.TEST
+    ];
+
+    if (potentialCommand && validCommands.includes(potentialCommand)) {
+      // This is command-specific help, don't intercept it
+      showHelp = false;
+    } else {
+      // This is global help
+      showHelp = true;
+      if (helpIndex + 1 < rawArgs.length) {
+        const levelArg = rawArgs[helpIndex + 1];
+        if (levelArg === 'interactive') {
+          disclosureLevel = 'advanced';
+        } else if (levelArg === 'advanced') {
+          disclosureLevel = 'advanced';
+        } else if (levelArg === 'intermediate') {
+          disclosureLevel = 'intermediate';
+        }
       }
     }
   } else if (firstArg === '--help-interactive') {

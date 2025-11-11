@@ -5,10 +5,13 @@
  * Restores templatized projects back to working state
  */
 
-import { parseArgs } from 'util';
-import { access, constants, realpathSync } from 'fs/promises';
+import { validateMakeTemplateArguments } from '../../../lib/shared/validators/make-template-args.mjs';
 import { RestorationEngine } from '../../../lib/shared/make-template/restoration-engine.mjs';
 import { TERMINOLOGY } from '../../../lib/shared/ontology.mjs';
+import { parseArgs } from 'util';
+import { access, constants, rm, readdir } from 'fs/promises';
+import { realpathSync } from 'fs';
+import { handleArgumentParsingError, withErrorHandling } from '../../../lib/shared/error-handler.mjs';
 
 // Command-specific options schema
 const OPTIONS_SCHEMA = {
@@ -59,6 +62,9 @@ DESCRIPTION:
   Restore templatized projects back to their original working state for
   template development and testing workflows. Uses the .template-undo.json
   file created during templatization to restore project-specific values.
+
+  After successful restoration, automatically cleans up make-template artifacts
+  including the undo log, setup script, and backup files.
 
 Usage:
   make-template restore [options]
@@ -128,39 +134,6 @@ For more information, visit: https://github.com/m5nv/make-template
 /**
  * Validate CLI arguments
  */
-function validateArguments(options) {
-  const errors = [];
-
-  // Validate restoration option combinations
-  const restorationOptions = [
-    TERMINOLOGY.OPTION.RESTORE_FILES,
-    TERMINOLOGY.OPTION.RESTORE_PLACEHOLDERS,
-    TERMINOLOGY.OPTION.GENERATE_DEFAULTS
-  ];
-  const activeRestorationOptions = restorationOptions.filter(opt => options[opt]);
-
-  if (activeRestorationOptions.length > 1) {
-    if (options[TERMINOLOGY.OPTION.GENERATE_DEFAULTS] && activeRestorationOptions.length > 1) {
-      errors.push('--generate-defaults cannot be combined with other restoration options');
-    } else if (options[TERMINOLOGY.OPTION.RESTORE_FILES] && options[TERMINOLOGY.OPTION.RESTORE_PLACEHOLDERS]) {
-      errors.push('--restore-files and --restore-placeholders cannot be used together');
-    }
-  }
-
-  // Validate restore-files format if specified
-  if (options[TERMINOLOGY.OPTION.RESTORE_FILES]) {
-    const files = options[TERMINOLOGY.OPTION.RESTORE_FILES].split(',').map(f => f.trim());
-    if (files.some(f => f === '')) {
-      errors.push('--restore-files cannot contain empty file names');
-    }
-    if (files.some(f => f.includes('..'))) {
-      errors.push('--restore-files cannot contain path traversal sequences (..)');
-    }
-  }
-
-  return errors;
-}
-
 /**
  * Generate .restore-defaults.json configuration file
  */
@@ -193,16 +166,51 @@ async function generateDefaultsFile() {
       console.log('💡 Delete the existing file first or edit it directly');
       return;
     }
-    handleError(`Failed to create .restore-defaults.json: ${error.message}`);
+    handleCliError(`Failed to create .restore-defaults.json: ${error.message}`);
   }
 }
 
 /**
  * Handle CLI errors and exit appropriately
  */
-function handleError(message, exitCode = 1) {
+function handleCliError(message, exitCode = 1) {
   console.error(`Error: ${message}`);
   process.exit(exitCode);
+}
+
+/**
+ * Clean up make-template artifacts after successful restoration
+ */
+async function cleanupArtifacts() {
+  const artifacts = ['.template-undo.json', '_setup.mjs'];
+  let cleanedCount = 0;
+
+  // Clean up specific artifact files
+  for (const artifact of artifacts) {
+    try {
+      await rm(artifact, { force: true });
+      cleanedCount++;
+    } catch {
+      // File doesn't exist or can't be removed, continue
+    }
+  }
+
+  // Clean up backup files (*.backup-*)
+  try {
+    const files = await readdir('.');
+    const backupFiles = files.filter(file => file.startsWith('package.json.backup-') ||
+                                              file.startsWith('README.md.backup-'));
+    for (const backupFile of backupFiles) {
+      await rm(backupFile, { force: true });
+      cleanedCount++;
+    }
+  } catch {
+    // Can't read directory or remove files, continue
+  }
+
+  if (cleanedCount > 0) {
+    console.info(`🧹 Cleaned up ${cleanedCount} make-template artifact(s)`);
+  }
 }
 
 /**
@@ -220,23 +228,7 @@ export async function main(argv = null, _config = {}) {
     if (Array.isArray(argv)) parseOptions.args = argv;
     parsedArgs = parseArgs(parseOptions);
   } catch (error) {
-    if (error.code === 'ERR_PARSE_ARGS_UNKNOWN_OPTION') {
-      handleError(`Unknown option: ${error.message.split("'")[1]}`);
-    } else if (error.code === 'ERR_PARSE_ARGS_INVALID_OPTION_VALUE') {
-      if (error.message.includes('argument missing')) {
-        const optionMatch = error.message.match(/Option '([^']+)'/);
-        if (optionMatch) {
-          const option = optionMatch[1];
-          handleError(`Option ${option} requires a value`);
-        } else {
-          handleError(`Missing value for option`);
-        }
-      } else {
-        handleError(`Invalid argument: ${error.message}`);
-      }
-    } else {
-      handleError(`Argument parsing error: ${error.message}`);
-    }
+    handleArgumentParsingError(error, handleCliError);
     return;
   }
 
@@ -255,7 +247,7 @@ export async function main(argv = null, _config = {}) {
   }
 
   // Validate arguments
-  const argumentErrors = validateArguments(options);
+  const argumentErrors = validateMakeTemplateArguments(options, 'restore');
   if (argumentErrors.length > 0) {
     argumentErrors.forEach(error => console.error(`Error: ${error}`));
     console.error('Try --help for usage information');
@@ -269,21 +261,24 @@ export async function main(argv = null, _config = {}) {
   try {
     await access('.template-undo.json', constants.F_OK);
   } catch (_err) {
-    handleError('.template-undo.json not found. Cannot restore without an undo log.', 1);
+    handleCliError('.template-undo.json not found. Cannot restore without an undo log.', 1);
   }
 
   try {
     // Initialize and run restoration engine
     const restorationEngine = new RestorationEngine();
     await restorationEngine.restore(options);
+
+    // Clean up artifacts after successful restoration (unless dry-run)
+    if (!options.dryRun) {
+      await cleanupArtifacts();
+    }
   } catch (error) {
-    handleError(error.message);
+    handleCliError(error.message);
   }
 }
 
 // If this file is executed directly, run main()
 if (process.argv[1] && realpathSync(process.argv[1]) === import.meta.url.slice(7)) {
-  main().catch((error) => {
-    handleError(error.message);
-  });
+  withErrorHandling(main)();
 }

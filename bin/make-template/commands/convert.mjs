@@ -5,10 +5,13 @@
  * Converts existing Node.js projects into reusable templates
  */
 
-import { parseArgs } from 'util';
-import { readFile, access, constants, realpathSync } from 'fs/promises';
+import { validateMakeTemplateArguments } from '../../../lib/shared/validators/make-template-args.mjs';
 import { ConversionEngine } from '../../../lib/shared/make-template/engine.mjs';
 import { TERMINOLOGY } from '../../../lib/shared/ontology.mjs';
+import { parseArgs } from 'util';
+import { readFile, access, constants } from 'fs/promises';
+import { realpathSync } from 'fs';
+import { handleArgumentParsingError, withErrorHandling } from '../../../lib/shared/error-handler.mjs';
 
 // Command-specific options schema
 const OPTIONS_SCHEMA = {
@@ -55,13 +58,17 @@ DESCRIPTION:
   @m5nv/create-scaffold. Analyzes project structure, identifies project types,
   replaces project-specific values with placeholders, and generates template files.
 
+  ⚠️  SAFETY: This command includes built-in safeguards to prevent accidental
+  conversion of development repositories. It will detect and warn about directories
+  that appear to be tool source code or development environments.
+
 Usage:
   make-template convert [options]
 
 OPTIONS:
   -h, --help                    Show this help message
       --dry-run                 Preview changes without executing them
-  -y, --yes                     Skip confirmation prompts
+  -y, --yes                     Skip confirmation prompts (including safety warnings)
         --silent                 Suppress prompts and non-essential output (useful for tests)
       --type <type>             Force specific project type detection
       --placeholder-format <fmt> Specify placeholder format
@@ -91,43 +98,10 @@ EXAMPLES:
   make-template convert --sanitize-undo --dry-run
     Preview conversion with sanitized undo log
 
-For more information, visit: https://github.com/m5nv/make-template
+For more information, visit: https://github.com/million-views/create
 `;
 
   console.log(helpText.trim());
-}
-
-/**
- * Validate CLI arguments
- */
-function validateArguments(options) {
-  const errors = [];
-
-  // Validate project type if specified
-  if (options.type) {
-    const PROJECT_TYPES = {
-      'cf-d1': 'Cloudflare Worker with D1 database',
-      'cf-turso': 'Cloudflare Worker with Turso database',
-      'vite-react': 'Vite-based React project',
-      'generic': 'Generic Node.js project'
-    };
-
-    if (!Object.keys(PROJECT_TYPES).includes(options.type)) {
-      errors.push(`Invalid project type: ${options.type}. Supported types: ${Object.keys(PROJECT_TYPES).join(', ')}`);
-    }
-  }
-
-  // Validate placeholder format if specified
-  if (options['placeholder-format']) {
-    const format = options['placeholder-format'];
-    const supportedFormats = ['{{NAME}}', '__NAME__', '%NAME%'];
-
-    if (!supportedFormats.includes(format)) {
-      errors.push(`Invalid placeholder format: ${format}. Must contain NAME substitution mechanism. Supported formats: {{NAME}}, __NAME__, %NAME%`);
-    }
-  }
-
-  return errors;
 }
 
 /**
@@ -152,9 +126,70 @@ async function validateProjectDirectory() {
 }
 
 /**
+ * Check if current directory appears to be a development repository
+ * This helps prevent accidental conversion of tool source code
+ */
+async function detectDevelopmentRepository() {
+  const indicators = [];
+
+  try {
+    // Check for .git directory (strong indicator of development repo)
+    await access('.git', constants.F_OK);
+    indicators.push('.git directory found');
+  } catch {
+    // No .git, continue checking
+  }
+
+  try {
+    // Read package.json to check for development indicators
+    const packageContent = await readFile('package.json', 'utf8');
+    const packageJson = JSON.parse(packageContent);
+
+    // Check for bin field (indicates CLI tool)
+    if (packageJson.bin) {
+      indicators.push('package.json contains bin field (CLI tool)');
+    }
+
+    // Check for development-related scripts
+    if (packageJson.scripts) {
+      const devScripts = ['lint', 'test', 'build', 'dev', 'validate', 'schema:build'];
+      const foundScripts = devScripts.filter(script => packageJson.scripts[script]);
+      if (foundScripts.length > 0) {
+        indicators.push(`development scripts found: ${foundScripts.join(', ')}`);
+      }
+    }
+
+    // Check for specific tool names that indicate development repos
+    if (packageJson.name && (
+      packageJson.name.includes('create-scaffold') ||
+      packageJson.name.includes('make-template') ||
+      packageJson.name === 'create-scaffold' ||
+      packageJson.name === 'make-template'
+    )) {
+      indicators.push(`package name indicates tool repository: ${packageJson.name}`);
+    }
+  } catch {
+    // Can't read package.json, skip these checks
+  }
+
+  // Check for development directory structure
+  const devDirs = ['lib', 'src', 'test', 'scripts', 'docs', 'bin'];
+  for (const dir of devDirs) {
+    try {
+      await access(dir, constants.F_OK);
+      indicators.push(`development directory found: ${dir}/`);
+    } catch {
+      // Directory doesn't exist
+    }
+  }
+
+  return indicators;
+}
+
+/**
  * Handle CLI errors and exit appropriately
  */
-function handleError(message, exitCode = 1) {
+function handleCliError(message, exitCode = 1) {
   console.error(`Error: ${message}`);
   process.exit(exitCode);
 }
@@ -174,23 +209,7 @@ export async function main(argv = null, _config = {}) {
     if (Array.isArray(argv)) parseOptions.args = argv;
     parsedArgs = parseArgs(parseOptions);
   } catch (error) {
-    if (error.code === 'ERR_PARSE_ARGS_UNKNOWN_OPTION') {
-      handleError(`Unknown option: ${error.message.split("'")[1]}`);
-    } else if (error.code === 'ERR_PARSE_ARGS_INVALID_OPTION_VALUE') {
-      if (error.message.includes('argument missing')) {
-        const optionMatch = error.message.match(/Option '([^']+)'/);
-        if (optionMatch) {
-          const option = optionMatch[1];
-          handleError(`Option ${option} requires a value`);
-        } else {
-          handleError(`Missing value for option`);
-        }
-      } else {
-        handleError(`Invalid argument: ${error.message}`);
-      }
-    } else {
-      handleError(`Argument parsing error: ${error.message}`);
-    }
+    handleArgumentParsingError(error, handleCliError);
     return;
   }
 
@@ -206,7 +225,7 @@ export async function main(argv = null, _config = {}) {
   }
 
   // Validate arguments
-  const argumentErrors = validateArguments(options);
+  const argumentErrors = validateMakeTemplateArguments(options, 'convert');
   if (argumentErrors.length > 0) {
     argumentErrors.forEach(error => console.error(`Error: ${error}`));
     console.error('Try --help for usage information');
@@ -222,6 +241,28 @@ export async function main(argv = null, _config = {}) {
   }
 
   try {
+    // Check if we're running on a development repository
+    const devIndicators = await detectDevelopmentRepository();
+    if (devIndicators.length > 0) {
+      console.warn('⚠️  WARNING: This directory appears to be a development repository!');
+      console.warn('⚠️  Running make-template convert on development repositories can corrupt source code.');
+      console.warn('');
+      console.warn('Development indicators detected:');
+      devIndicators.forEach(indicator => console.warn(`   • ${indicator}`));
+      console.warn('');
+
+      if (!options.yes) {
+        console.warn('If you really want to proceed, use --yes to skip this warning.');
+        console.warn('Otherwise, consider using test fixtures or a separate project for testing.');
+        console.warn('');
+        process.exit(1);
+      } else {
+        console.warn('⚠️  Proceeding with --yes flag despite development repository warnings.');
+        console.warn('⚠️  Make sure you have backups and understand the risks.');
+        console.warn('');
+      }
+    }
+
     // Check if we're running on the make-template project itself
     try {
       const packageContent = await readFile('package.json', 'utf8');
@@ -253,13 +294,11 @@ export async function main(argv = null, _config = {}) {
     const engine = new ConversionEngine();
     await engine.convert(options);
   } catch (error) {
-    handleError(error.message);
+    handleCliError(error.message);
   }
 }
 
 // If this file is executed directly, run main()
 if (process.argv[1] && realpathSync(process.argv[1]) === import.meta.url.slice(7)) {
-  main().catch((error) => {
-    handleError(error.message);
-  });
+  withErrorHandling(main)();
 }

@@ -8,6 +8,7 @@
 import { parseArgs } from 'util';
 import { realpathSync } from 'fs';
 import { TERMINOLOGY } from '../../../lib/shared/ontology.mjs';
+import { handleArgumentParsingError, withErrorHandling } from '../../../lib/shared/error-handler.mjs';
 
 // Command-specific options schema
 const OPTIONS_SCHEMA = {
@@ -54,7 +55,7 @@ For more information, visit: https://github.com/m5nv/make-template
 /**
  * Handle CLI errors and exit appropriately
  */
-function handleError(message, exitCode = 1) {
+function handleCliError(message, exitCode = 1) {
   console.error(`Error: ${message}`);
   process.exit(exitCode);
 }
@@ -74,23 +75,7 @@ export async function main(argv = null, _config = {}) {
     if (Array.isArray(argv)) parseOptions.args = argv;
     parsedArgs = parseArgs(parseOptions);
   } catch (error) {
-    if (error.code === 'ERR_PARSE_ARGS_UNKNOWN_OPTION') {
-      handleError(`Unknown option: ${error.message.split("'")[1]}`);
-    } else if (error.code === 'ERR_PARSE_ARGS_INVALID_OPTION_VALUE') {
-      if (error.message.includes('argument missing')) {
-        const optionMatch = error.message.match(/Option '([^']+)'/);
-        if (optionMatch) {
-          const option = optionMatch[1];
-          handleError(`Option ${option} requires a value`);
-        } else {
-          handleError(`Missing value for option`);
-        }
-      } else {
-        handleError(`Invalid argument: ${error.message}`);
-      }
-    } else {
-      handleError(`Argument parsing error: ${error.message}`);
-    }
+    handleArgumentParsingError(error, handleCliError);
     return;
   }
 
@@ -149,7 +134,5 @@ export async function main(argv = null, _config = {}) {
 
 // If this file is executed directly, run main()
 if (process.argv[1] && realpathSync(process.argv[1]) === import.meta.url.slice(7)) {
-  main().catch((error) => {
-    handleError(error.message);
-  });
+  withErrorHandling(main)();
 }

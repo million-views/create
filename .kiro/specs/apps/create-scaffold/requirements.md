@@ -35,40 +35,41 @@ Following successful delivery of Phase 2 (Developer Experience), Phase 3 builds 
 
 ## Functional Requirements
 
-### FR-3.1: Multi-Template Orchestration
+### FR-3.1: Enhanced Template Dependencies
 **Priority**: High
-**Description**: Enable staging multiple templates in a single operation with orchestrated setup sequencing.
+**Description**: Extend template schema to support explicit dependencies between templates for composition.
 
 **Requirements**:
-- `--from-templates` flag accepts comma-separated template list
-- Templates processed in dependency order (configurable)
-- Shared context and variables across templates
-- Conflict resolution for overlapping files
-- Atomic operations with rollback on failure
-
-**Acceptance Criteria**:
-- `create-scaffold --from-templates frontend,backend,database` works
-- Templates execute in correct dependency order
-- Shared variables accessible across all templates
-- File conflicts detected and resolved appropriately
-- Failed operations roll back completely
-
-### FR-3.2: Template Composition Schema
-**Priority**: High
-**Description**: Define schema for declaring template relationships and orchestration rules.
-
-**Requirements**:
-- Template metadata includes composition directives
-- Dependency declarations between templates
-- Variable sharing and transformation rules
-- Setup sequencing and ordering constraints
-- Conflict resolution strategies
+- Template metadata includes dependency declarations
+- Dependency resolution during template validation
+- Support for optional and required dependencies
+- Version constraints for template dependencies
+- Circular dependency detection and prevention
 
 **Acceptance Criteria**:
 - Templates can declare dependencies on other templates
-- Composition schema validates template compatibility
-- Variable mapping between templates supported
-- Setup order automatically determined from dependencies
+- Dependency validation prevents incompatible combinations
+- Version constraints are enforced during resolution
+- Circular dependencies are detected and reported
+- Dependency resolution is transparent to end users
+
+### FR-3.2: Multi-Template Setup Orchestration
+**Priority**: High
+**Description**: Enhance _setup.mjs capabilities to orchestrate multiple templates in a single project.
+
+**Requirements**:
+- Setup scripts can reference and compose multiple templates
+- Shared context and variables across composed templates
+- Conflict resolution for overlapping files and configurations
+- Atomic setup operations with rollback capabilities
+- Progress tracking for complex multi-template setups
+
+**Acceptance Criteria**:
+- Single template can orchestrate multiple sub-templates
+- Variables are shared appropriately across templates
+- File conflicts are resolved intelligently
+- Failed setups roll back completely
+- Progress is reported for complex operations
 
 ### FR-3.3: Enhanced Manifest Hooks
 **Priority**: Medium
