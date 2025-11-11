@@ -14,6 +14,8 @@ import { realpathSync } from 'node:fs';
 import { PROJECT_TYPES } from '../../lib/shared/make-template/config.mjs';
 import { TERMINOLOGY } from '../../lib/shared/ontology.mjs';
 import { createConfigManager } from '../../lib/cli/config-manager.mjs';
+import { generateHelp } from '../../lib/cli/help-generator.mjs';
+import { handleError, ErrorMessages, ErrorContext } from '../../lib/shared/utils/error-handler.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -25,107 +27,73 @@ let IN_PROCESS = false;
 /**
  * Display help text and usage information
  */
-function displayHelp() {
-  const helpText = `
-make-template - Convert existing Node.js projects into reusable templates
+function displayHelp(disclosureLevel = 'basic') {
+  const helpText = generateHelp({
+    toolName: '@m5nv/make-template',
+    description: 'Convert existing Node.js projects into reusable templates compatible with @m5nv/create-scaffold',
+    commands: {
+      convert: {
+        description: 'Convert project to template',
+        disclosureLevel: 'basic',
+        options: {
+          'dry-run': { type: 'boolean', description: 'Preview changes without executing them', disclosureLevel: 'basic' },
+          'yes': { type: 'boolean', short: 'y', description: 'Skip confirmation prompts', disclosureLevel: 'basic' },
+          'silent': { type: 'boolean', description: 'Suppress prompts and non-essential output', disclosureLevel: 'intermediate' },
+          'type': { type: 'string', description: 'Force specific project type detection', disclosureLevel: 'intermediate' },
+          'placeholder-format': { type: 'string', description: 'Specify placeholder format', disclosureLevel: 'advanced' },
+          'sanitize-undo': { type: 'boolean', description: 'Remove sensitive data from undo log', disclosureLevel: 'advanced' }
+        }
+      },
+      restore: {
+        description: 'Restore template to project',
+        disclosureLevel: 'basic',
+        options: {
+          'restore-files': { type: 'string', description: 'Restore only specified files (comma-separated)', disclosureLevel: 'intermediate' },
+          'restore-placeholders': { type: 'boolean', description: 'Restore only placeholder values, keep files', disclosureLevel: 'intermediate' },
+          'generate-defaults': { type: 'boolean', description: 'Generate .restore-defaults.json configuration', disclosureLevel: 'advanced' }
+        }
+      },
+      init: {
+        description: 'Generate skeleton template.json',
+        disclosureLevel: 'basic',
+        options: {
+          'init-file': { type: 'string', description: 'Specify output file for skeleton', disclosureLevel: 'intermediate' }
+        }
+      },
+      validate: {
+        description: 'Validate template.json',
+        disclosureLevel: 'basic',
+        options: {
+          'lint-file': { type: 'string', description: 'Validate specific template.json file', disclosureLevel: 'intermediate' },
+          'suggest': { type: 'boolean', description: 'Show intelligent fix suggestions', disclosureLevel: 'intermediate' },
+          'fix': { type: 'boolean', description: 'Auto-apply safe fixes', disclosureLevel: 'advanced' }
+        }
+      },
+      hints: {
+        description: 'Show hints catalog',
+        disclosureLevel: 'intermediate'
+      },
+      test: {
+        description: 'Test template functionality',
+        disclosureLevel: 'intermediate'
+      }
+    },
+    globalOptions: {
+      help: { type: 'boolean', short: 'h', description: 'Show help information', disclosureLevel: 'basic' }
+    },
+    examples: [
+      'convert --dry-run    # Preview conversion without making changes',
+      'convert --type vite-react --yes    # Convert as Vite React project, skip confirmations',
+      'restore --dry-run    # Preview restoration without making changes',
+      'restore --yes    # Restore template to working state, skip confirmations',
+      'init    # Generate skeleton template.json',
+      'validate    # Validate template.json in current directory',
+      'hints    # Display hints catalog'
+    ],
+    disclosureLevel
+  });
 
-DESCRIPTION:
-  Convert existing Node.js projects into reusable templates compatible with
-  @m5nv/create-scaffold. Analyzes project structure, identifies project types,
-  replaces project-specific values with placeholders, and generates template files.
-
-  Also supports restoring templatized projects back to working state for
-  template development and testing workflows.
-
-USAGE:
-  make-template <command> [options]
-
-COMMANDS:
-  convert          Convert project to template
-  restore          Restore template to project
-  init             Generate skeleton template.json
-  validate         Validate template.json
-  hints            Show hints catalog
-  test             Test template functionality
-
-OPTIONS:
-  -h, --help       Show this help message
-
-LEGACY USAGE:
-  make-template [options]     Convert project (default command)
-  make-template --restore     Restore template
-  make-template --init        Generate skeleton
-  make-template --lint        Validate template
-  make-template --hints       Show hints
-
-CONVERSION OPTIONS:
-  -h, --help                    Show this help message
-      --dry-run                 Preview changes without executing them
-  -y, --yes                     Skip confirmation prompts
-        --silent                 Suppress prompts and non-essential output (useful for tests)
-      --type <type>             Force specific project type detection
-      --placeholder-format <fmt> Specify placeholder format
-      --sanitize-undo           Remove sensitive data from undo log
-
-RESTORATION OPTIONS:
-      --restore                 Restore template back to working project
-      --restore-files <files>   Restore only specified files (comma-separated)
-      --restore-placeholders    Restore only placeholder values, keep files
-      --generate-defaults       Generate .restore-defaults.json configuration
-
-INIT OPTIONS:
-      --init                    Generate skeleton template.json file
-      --init-file <file>        Specify output file for skeleton (default: template.json)
-
-VALIDATION OPTIONS:
-      --lint                    Validate template.json against schema
-      --lint-file <file>        Validate specific template.json file
-      --suggest                 Show intelligent fix suggestions for validation errors
-      --fix                     Auto-apply safe fixes for validation errors
-
-HINTS OPTIONS:
-      --hints                   Display available hints catalog for authoring assistance
-
-SUPPORTED PROJECT TYPES:
-  cf-d1        Cloudflare Worker with D1 database
-  cf-turso     Cloudflare Worker with Turso database
-  vite-react   Vite-based React project
-  generic      Generic Node.js project (default fallback)
-
-SUPPORTED PLACEHOLDER FORMATS:
-  {{NAME}}     Double-brace format (default)
-  __NAME__     Double-underscore format
-  %NAME%       Percent format
-
-EXAMPLES:
-  make-template convert --dry-run
-    Preview conversion without making changes
-
-  make-template convert --type vite-react --yes
-    Convert as Vite React project, skip confirmations
-
-  make-template restore --dry-run
-    Preview restoration without making changes
-
-  make-template restore --yes
-    Restore template to working state, skip confirmations
-
-  make-template init
-    Generate skeleton template.json
-
-  make-template validate
-    Validate template.json in current directory
-
-  make-template hints
-    Display hints catalog
-
-For help with a specific command, use:
-  make-template <command> --help
-
-For more information, visit: https://github.com/m5nv/make-template
-`;
-
-  console.log(helpText.trim());
+  console.log(helpText);
 }
 
 /**
@@ -263,7 +231,7 @@ async function _generateDefaultsFile() {
 /**
  * Handle CLI errors and exit appropriately
  */
-function handleError(message, exitCode = 1) {
+function handleCliError(message, exitCode = 1) {
   if (IN_PROCESS) {
     // Log the error to stderr so in-process test harnesses that capture
     // stderr receive the same messages as spawned CLI invocations.
@@ -273,8 +241,13 @@ function handleError(message, exitCode = 1) {
     err.code = exitCode;
     throw err;
   }
-  console.error(`Error: ${message}`);
-  process.exit(exitCode);
+
+  // Use shared error handler for consistent formatting and suggestions
+  const contextualError = ErrorMessages.genericError(
+    message,
+    ErrorContext.RUNTIME
+  );
+  handleError(contextualError, { exit: true });
 }
 
 /**
@@ -1389,6 +1362,37 @@ export async function main(argv = null) {
   // Check if this is a command-based invocation BEFORE parsing arguments
   const firstArg = Array.isArray(argv) ? argv[0] : process.argv[2]; // First arg after 'make-template'
 
+  // Check for help flags and determine disclosure level
+  let showHelp = false;
+  let disclosureLevel = 'basic';
+
+  // Check for --help <level> syntax first
+  const rawArgs = Array.isArray(argv) ? argv : process.argv.slice(2);
+  const helpIndex = rawArgs.indexOf('--help');
+  if (helpIndex !== -1) {
+    showHelp = true;
+    if (helpIndex + 1 < rawArgs.length) {
+      const levelArg = rawArgs[helpIndex + 1];
+      if (levelArg === 'interactive') {
+        disclosureLevel = 'advanced';
+      } else if (levelArg === 'advanced') {
+        disclosureLevel = 'advanced';
+      } else if (levelArg === 'intermediate') {
+        disclosureLevel = 'intermediate';
+      }
+    }
+  } else if (firstArg === '--help-interactive') {
+    showHelp = true;
+    disclosureLevel = 'advanced'; // Interactive shows all
+  } else if (firstArg === '--help' || firstArg === '-h') {
+    showHelp = true;
+  }
+
+  if (showHelp) {
+    displayHelp(disclosureLevel);
+    process.exit(0);
+  }
+
   // List of valid commands
   const validCommands = [
     TERMINOLOGY.COMMAND.CONVERT,
@@ -1434,22 +1438,28 @@ export async function main(argv = null) {
 }
 
 // Handle unhandled promise rejections
-process.on('unhandledRejection', (reason, promise) => {
-  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+process.on('unhandledRejection', (reason, _promise) => {
   // During tests we must not exit the process - allow test harness to
   // surface the rejection. When running normally, exit with failure.
   const runningUnderNodeTest = Array.isArray(process.execArgv) && process.execArgv.includes('--test');
   if (!runningUnderNodeTest && !IN_PROCESS) {
-    process.exit(1);
+    const contextualError = ErrorMessages.genericError(
+      `Unhandled promise rejection: ${reason}`,
+      ErrorContext.RUNTIME
+    );
+    handleError(contextualError, { exit: true });
   }
 });
 
 // Handle uncaught exceptions
 process.on('uncaughtException', (error) => {
-  console.error('Uncaught Exception:', error);
   const runningUnderNodeTest = Array.isArray(process.execArgv) && process.execArgv.includes('--test');
   if (!runningUnderNodeTest && !IN_PROCESS) {
-    process.exit(1);
+    const contextualError = ErrorMessages.genericError(
+      `Uncaught exception: ${error.message}`,
+      ErrorContext.RUNTIME
+    );
+    handleError(contextualError, { exit: true });
   }
 });
 
@@ -1458,6 +1468,6 @@ process.on('uncaughtException', (error) => {
 // with the actual file path, handling symlinks correctly.
 if (process.argv[1] && realpathSync(process.argv[1]) === __filename) {
   main().catch((error) => {
-    handleError(error.message);
+    handleCliError(error.message);
   });
 }
