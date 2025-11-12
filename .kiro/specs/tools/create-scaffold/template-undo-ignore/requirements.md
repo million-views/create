@@ -19,7 +19,7 @@
 ## Success Criteria
 - Generated projects never contain `.template-undo.json`, even when templates ship one at any depth.
 - Dry-run summaries, tree previews, and file-copy logs omit the undo file entirely.
-- `tools.files.copyTemplateDir` and any other runtime helpers used by `_setup.mjs` do not propagate the undo artifact.
+- `tools.files.copyFromTemplate` and any other runtime helpers used by `_setup.mjs` do not propagate the undo artifact.
 - Documentation explicitly lists `.template-undo.json` among the automatically ignored template files.
 
 ## Decisions

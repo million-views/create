@@ -35,7 +35,7 @@ function buildTools(projectDir, projectName, context, overrides = {}) {
     projectDirectory: projectDir,
     projectName,
     logger,
-    context,
+    templateContext: context,
     dimensions
   });
 }
@@ -151,18 +151,23 @@ test('files copy helpers skip undo artifacts', async (t) => {
   await fs.writeFile(path.join(templatePartsDir, 'keep.txt'), 'keep me');
   await fs.writeFile(path.join(templatePartsDir, '.template-undo.json'), JSON.stringify({ files: [] }));
 
+  const scaffoldDir = path.join(projectDir, '__scaffold__', 'feature');
+  await fs.mkdir(scaffoldDir, { recursive: true });
+  await fs.writeFile(path.join(scaffoldDir, 'keep.txt'), 'keep me');
+  await fs.writeFile(path.join(scaffoldDir, '.template-undo.json'), JSON.stringify({ files: [] }));
+
   await withProjectCwd(baseDir, async () => {
     const ctx = buildContext(baseDir, projectName, { authoringMode: 'wysiwyg' });
     const tools = await buildTools(projectDir, projectName, ctx);
     await tools.files.copy('template-parts/feature', 'copied-by-copy');
-    await tools.files.copyTemplateDir('template-parts/feature', 'copied-by-template-dir');
+    await tools.templates.copy('feature', 'copied-by-template-dir');
   });
 
   const copyKeep = await fs.readFile(path.join(projectDir, 'copied-by-copy', 'keep.txt'), 'utf8');
   assert.ok(copyKeep.includes('keep'), 'files.copy should copy regular files');
 
   const templateKeep = await fs.readFile(path.join(projectDir, 'copied-by-template-dir', 'keep.txt'), 'utf8');
-  assert.ok(templateKeep.includes('keep'), 'files.copyTemplateDir should copy regular files');
+  assert.ok(templateKeep.includes('keep'), 'templates.copy should copy regular files');
 
   for (const target of ['copied-by-copy', 'copied-by-template-dir']) {
     try {

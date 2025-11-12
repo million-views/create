@@ -7,7 +7,7 @@ prerequisites: []
 related_docs:
   - "../tutorial/getting-started.md"
   - "../how-to/creating-templates.md"
-last_updated: "2024-01-15"
+last_updated: "2025-11-12"
 ---
 
 # Reference Documentation
@@ -50,13 +50,12 @@ Complete reference for running and understanding the test suite, including all t
 | Parameter | Short | Required | Description |
 |-----------|-------|----------|-------------|
 | `<project-directory>` | - | Yes* | Directory name for new project |
-| `--from-template` | `-t` | Yes* | Template name to use |
-| `--repo` | `-r` | No | Repository URL (default: million-views/templates) |
-| `--ide` | `-i` | No | Target IDE (kiro, vscode, cursor, windsurf) |
-| `--options` | `-o` | No | Comma-separated contextual options |
+| `--template` | `-T` | Yes* | Template name or URL to use |
+| `--repo` | `-r` | No | Repository URL (default: configured registry) |
+| `--options` | `-o` | No | Comma-separated template options |
 | `--help` | `-h` | No | Show help information |
 
-*Not required for `--list-templates` or `--help`
+*Not required for `list`, `info`, `validate` commands or `--help`
 
 ### Most Common Exit Codes
 

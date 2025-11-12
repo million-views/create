@@ -23,7 +23,7 @@ We introduce `bin/setupRuntime.mjs` which exports factory functions used by `env
 
 ```javascript
 export function createSetupContext({ projectDirectory, projectName, cwd, ide, options }) { ... }
-export function createSetupTools({ projectDirectory, projectName, logger }) { ... }
+export function createSetupTools(options) { ... }
 export async function loadSetupScript(setupPath, ctx, tools) { ... }
 ```
 

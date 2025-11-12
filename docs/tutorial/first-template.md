@@ -5,14 +5,14 @@ audience: "beginner"
 estimated_time: "20 minutes"
 prerequisites:
   - "Completed Getting Started tutorial"
-  - "Node.js (latest LTS) installed"
+  - "Node.js v22+ installed"
   - "Git installed and configured"
 related_docs:
   - "getting-started.md"
   - "../how-to/creating-templates.md"
   - "../reference/environment.md"
   - "../how-to/setup-recipes.md"
-last_updated: "2024-11-07"
+last_updated: "2025-11-12"
 ---
 
 # Your First Template - Hands-On Examples
@@ -49,7 +49,7 @@ Let's begin with the absolute simplest example to understand the core workflow.
 
 1. **Create the most basic project possible:**
    ```bash
-   npm create @m5nv/scaffold minimal-demo -- --from-template react-vite
+   npm create @m5nv/scaffold minimal-demo -- --template react-vite
    ```
 
 2. **Navigate and explore:**
@@ -104,13 +104,13 @@ Now let's add IDE-specific optimizations to enhance your development experience.
 1. **Create an IDE-optimized project** (choose your IDE):
    ```bash
    # For Kiro users:
-   npm create @m5nv/scaffold kiro-demo -- --from-template react-vite --ide kiro
+   npm create @m5nv/scaffold kiro-demo -- --template react-vite
 
    # For VSCode users:
-   npm create @m5nv/scaffold vscode-demo -- --from-template react-vite --ide vscode
+   npm create @m5nv/scaffold vscode-demo -- --template react-vite
 
    # For Cursor users:
-   npm create @m5nv/scaffold cursor-demo -- --from-template react-vite --ide cursor
+   npm create @m5nv/scaffold cursor-demo -- --template react-vite
    ```
 
 2. **Navigate to your project:**
@@ -166,8 +166,7 @@ Let's add multiple features that work together to create a more complete applica
 1. **Create a project with integrated features:**
    ```bash
   npm create @m5nv/scaffold feature-demo -- \
-    --from-template react-vite \
-    --ide kiro \
+    --template react-vite \
     --options "capabilities=auth+database+testing+logging"
    ```
 
@@ -227,7 +226,12 @@ Result: The auth system integrates with the database, logging captures authentic
 
 Let’s pause and customize the `feature-demo` project you just generated. The
 setup script lives at `templates/react-vite/_setup.mjs` inside your template
-repository and receives the Environment object (`{ ctx, tools }`) from the sandbox.
+repository and runs in a secure Node.js VM sandbox. The script receives the Environment object (`{ ctx, tools }`) but has restricted capabilities - no direct access to Node built-ins like `fs`, `path`, `import`, or `require`.
+
+**Sandbox restrictions:**
+- ✅ Available: `console`, timers (`setTimeout`/`setInterval`), `process.env`
+- ❌ Blocked: `import` statements, `require()`, `eval()`, `fs`, `path`, and other Node built-ins
+- 🛠️ Required: Use `tools` object for all filesystem operations and modifications
 
 1. **Open the setup script** shipped with the template (inside your template
    repository). For example:
@@ -284,7 +288,7 @@ repository and receives the Environment object (`{ ctx, tools }`) from the sandb
 ### Inline vs composable updates
 
 - **Inline iteration** keeps authored files (README, package.json, etc.) in place with `{{TOKEN}}` markers recorded under `metadata.placeholders`. The setup script swaps those tokens using `tools.placeholders` and `tools.text.*`, which is ideal when you only need to personalize text inside an otherwise complete project.
-- **Composable assembly** moves reusable assets into `authorAssetsDir` (for example `__scaffold__/`) and conditionally copies or renders them with `tools.files.copyTemplateDir` or `tools.templates.renderFile`. Pair this with `setup.dimensions` + `tools.options` when features or infrastructure choices dictate which snippets belong in the final scaffold.
+- **Composable assembly** moves reusable assets into `authorAssetsDir` (for example `__scaffold__/`) and conditionally copies or renders them with `tools.files.copyFromTemplate` or `tools.templates.renderFile`. Pair this with `metadata.dimensions` + `tools.options` when features or infrastructure choices dictate which snippets belong in the final scaffold.
 - **Hybrid workflows** often start inline, then graduate specific files to composable assets once they need branching. Because `metadata.placeholders` still documents every token, you have a clear checklist of values that must be provided either via direct replacement or via rendered templates.
 
 ## Example 4: Team Project (Production-Ready Setup)
@@ -296,8 +300,7 @@ Now let's create a project ready for team development with full tooling.
 1. **Create a comprehensive team project:**
    ```bash
   npm create @m5nv/scaffold team-project -- \
-    --from-template react-vite \
-    --ide vscode \
+    --template react-vite \
     --options "capabilities=auth+database+api+testing+logging+config"
    ```
 
@@ -367,8 +370,7 @@ Finally, let's explore advanced usage patterns including dry runs, caching, and 
 1. **First, preview a complex project without creating it:**
    ```bash
   npm create @m5nv/scaffold preview-project -- \
-    --from-template react-vite \
-    --ide cursor \
+    --template react-vite \
     --options "capabilities=auth+database+api+testing+logging+config" \
     --dry-run
    ```
@@ -385,8 +387,7 @@ Finally, let's explore advanced usage patterns including dry runs, caching, and 
 3. **Create a project with custom caching:**
    ```bash
   npm create @m5nv/scaffold cached-project -- \
-    --from-template express \
-    --ide kiro \
+    --template express \
     --options "capabilities=api+logging" \
      --cache-ttl 48
    ```
@@ -394,8 +395,7 @@ Finally, let's explore advanced usage patterns including dry runs, caching, and 
 4. **Enable detailed logging for debugging:**
    ```bash
   npm create @m5nv/scaffold logged-project -- \
-    --from-template react-vite \
-    --ide vscode \
+    --template react-vite \
     --options "capabilities=testing" \
      --log-file ./scaffold-debug.log
    ```
@@ -532,5 +532,123 @@ Recommended next readings:
 - **--list-templates**: Discover available options
 - **--log-file**: Debug issues with detailed logging
 - **--cache-ttl**: Optimize performance for repeated operations
+
+## Example 6: Production Deployment Validation
+
+After developing your application, validate that it's ready for production deployment.
+
+### Instructions
+
+1. **Prepare for production deployment:**
+   ```bash
+   cd my-production-app
+
+   # Create production environment file
+   cp .env.example .env.production
+   # Edit .env.production with production values
+   ```
+
+2. **Build for production:**
+   ```bash
+   # Install all dependencies
+   npm install
+
+   # Run production build (if applicable)
+   npm run build
+
+   # Verify build output exists
+   ls -la dist/  # or build/ or out/
+   ```
+
+3. **Test production build locally:**
+   ```bash
+   # Start production server
+   npm run start  # or npm run serve
+
+   # Test the application
+   curl http://localhost:3000
+
+   # Stop the server (Ctrl+C)
+   ```
+
+4. **Validate deployment readiness:**
+   ```bash
+   # Check for security issues
+   npm audit
+
+   # Verify no development dependencies in production
+   npm ls --production
+
+   # Test with production environment
+   NODE_ENV=production npm run start &
+   sleep 5
+   curl http://localhost:3000/api/health  # if you have a health endpoint
+   kill %1  # Stop background process
+   ```
+
+### Cloudflare Workers Deployment (Example)
+
+If deploying to Cloudflare Workers:
+
+```bash
+# Install wrangler (if not already installed)
+npm install -g wrangler
+
+# Login to Cloudflare
+wrangler auth login
+
+# Deploy to production
+wrangler deploy
+
+# Test deployed application
+curl https://your-app.your-subdomain.workers.dev
+```
+
+### Linode VPS Deployment (Example)
+
+If deploying to Linode VPS:
+
+```bash
+# On your VPS (after uploading code)
+cd /path/to/app
+
+# Install dependencies
+npm ci --production
+
+# Start with PM2
+pm2 start ecosystem.config.js --env production
+
+# Configure nginx (if using reverse proxy)
+sudo systemctl reload nginx
+
+# Test deployed application
+curl https://your-domain.com
+```
+
+### Expected Result
+
+Your application should:
+- Build successfully for production
+- Start without errors in production mode
+- Respond to HTTP requests
+- Be accessible at your deployment URL
+
+**What validates deployment readiness:**
+- ✅ Production build completes without errors
+- ✅ Application starts in production mode
+- ✅ No sensitive data exposed in logs
+- ✅ Environment variables properly configured
+- ✅ HTTPS enabled (automatic on most platforms)
+
+## Summary
+
+You've now experienced the complete @m5nv/create ecosystem:
+
+1. **Minimal Project**: Basic scaffolding workflow
+2. **IDE-Optimized**: Environment-specific enhancements
+3. **Feature-Rich**: Complex application composition
+4. **Team Project**: Production-ready configurations
+5. **Custom Workflow**: Advanced usage patterns
+6. **Production Deployment**: Real-world deployment validation
 
 Remember: Start simple and add complexity as needed. The scaffolding tool grows with your project requirements!

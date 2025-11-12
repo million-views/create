@@ -10,7 +10,7 @@ related_docs:
   - "../tutorial/getting-started.md"
   - "../reference/cli-reference.md"
   - "../how-to/creating-templates.md"
-last_updated: "2024-10-26"
+last_updated: "2025-11-12"
 ---
 
 # Security Model Explained

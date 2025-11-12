@@ -195,11 +195,6 @@ async function main() {
                 description: 'Git branch to use',
                 default: 'main'
               },
-              ide: {
-                type: 'string',
-                description: 'Target IDE for customization',
-                examples: ['vscode', 'cursor', 'kiro']
-              },
               options: {
                 type: 'string',
                 description: 'Contextual options for template customization',
@@ -209,7 +204,7 @@ async function main() {
             examples: [
               'my-app --template favorites/react-spa',
               'my-api --template favorites/express-api --options typescript,mvp',
-              'my-project --template ./local-templates/custom --ide vscode'
+              'my-project --template ./local-templates/custom'
             ],
             related: ['info', 'validate']
           },

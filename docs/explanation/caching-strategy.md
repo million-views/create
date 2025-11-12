@@ -10,7 +10,7 @@ related_docs:
   - "../reference/cli-reference.md"
   - "../guides/troubleshooting.md"
   - "template-system.md"
-last_updated: "2024-10-26"
+last_updated: "2025-11-12"
 ---
 
 # Caching Strategy Explained
@@ -97,7 +97,7 @@ Each cached repository includes metadata for management:
 {
   "repoUrl": "https://github.com/user/repo.git",
   "branchName": "main",
-  "lastUpdated": "2024-10-26T10:30:00.000Z",
+  "lastUpdated": "2025-11-12T10:30:00.000Z",
   "ttlHours": 24,
   "cacheVersion": "1.0",
   "integrity": {
@@ -179,10 +179,10 @@ Users can control caching behavior through CLI options:
 
 ```bash
 # Bypass cache for fresh download
-create-scaffold my-project --from-template user/repo --no-cache
+create-scaffold new my-project user/repo --no-cache
 
 # Set custom TTL (in hours)
-create-scaffold my-project --from-template user/repo --cache-ttl 48
+create-scaffold new my-project user/repo --cache-ttl 48
 
 # Force cache refresh (future enhancement)
 create-scaffold --cache-refresh user/repo

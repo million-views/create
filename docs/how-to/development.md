@@ -12,7 +12,7 @@ related_docs:
   - "../../CONTRIBUTING.md"
   - "../guides/troubleshooting.md"
   - "../reference/cli-reference.md"
-last_updated: "2025-10-31"
+last_updated: "2025-11-12"
 ---
 
 # Development Guide
@@ -35,11 +35,11 @@ npm test
 # Test CLI locally (package is not published yet)
 node bin/index.mjs --help
 node bin/index.mjs --interactive
-npx . test-project -- --from-template react-vite
+npx . new test-project react-vite
 
 # Optional: expose the create-scaffold binary globally
 npm link
-create-scaffold scratch-app --from-template react-vite
+create-scaffold new scratch-app react-vite
 npm unlink -g @m5nv/create-scaffold
 ```
 
@@ -97,8 +97,8 @@ create/
 #### Argument Parser (`bin/argumentParser.mjs`)
 
 - Uses native `util.parseArgs` for robust CLI argument handling
-- Supports all CLI flags: `--help`, `--from-template`, `--repo`, `--branch`,
-  `--interactive`, `--no-interactive`, `--log-file`, `--dry-run`, `--no-cache`
+- Supports all CLI options: `--help`, `--log-file`, `--dry-run`, `--no-cache`,
+  `--interactive`, `--no-interactive`, `--cache-ttl`
 - Provides comprehensive help text and usage information
 
 #### Interactive Session (`bin/interactiveSession.mjs`)
@@ -227,12 +227,12 @@ Test changes immediately without installation:
 ```bash
 # Test CLI directly during development
 node bin/index.mjs --help
-node bin/index.mjs my-test-app --from-template react-vite
-node bin/index.mjs test-project --from-template custom --repo myorg/templates
+node bin/index.mjs new my-test-app react-vite
+node bin/index.mjs new test-project myorg/templates --template custom
 
 # Test specific scenarios
-node bin/index.mjs --list-templates --repo myorg/templates
-node bin/index.mjs test-app --dry-run --from-template express
+node bin/index.mjs list myorg/templates
+node bin/index.mjs new test-app express --dry-run
 ```
 
 ### 2. npm link (Global Binary)
@@ -246,12 +246,12 @@ Creates a global symlink for the `create-scaffold` binary. **Note:** `npm create
 npm link
 
 # Run the CLI via the linked binary
-create-scaffold my-test-app --from-template react-vite
-create-scaffold my-api --from-template express --repo myorg/templates
+create-scaffold new my-test-app react-vite
+create-scaffold new my-api myorg/templates --template express
 
 # Test new features
-create-scaffold test-project --from-template react --log-file ./build.log
-create-scaffold preview-app --dry-run --from-template vue
+create-scaffold new test-project react --log-file ./build.log
+create-scaffold new preview-app vue --dry-run
 
 # Cleanup when done
 npm unlink -g @m5nv/create-scaffold
@@ -266,7 +266,7 @@ Install your local version globally to simulate a published install. The entry p
 npm install -g .
 
 # Use normally
-create-scaffold my-app --from-template some-template
+create-scaffold new my-app some-template
 
 # Uninstall when done
 npm uninstall -g @m5nv/create-scaffold
@@ -368,9 +368,9 @@ npm run test:spec              # 100% spec compliance required
 
 # 4. Manual CLI validation (local execution)
 node bin/index.mjs --help
-npx . test-release -- --from-template react-vite
+npx . new test-release react-vite
 npm link
-create-scaffold test-release --from-template react-vite
+create-scaffold new test-release react-vite
 npm unlink -g @m5nv/create-scaffold
 ```
 
@@ -624,12 +624,12 @@ npm run test:spec    # Verify spec compliance
 
 ```bash
 # Test specific scenarios during development
-node bin/index.mjs test-debug --from-template nonexistent  # Error handling
-node bin/index.mjs ../test --from-template hack            # Security validation
-node bin/index.mjs valid-project --dry-run --from-template react  # Preview mode
+node bin/index.mjs new test-debug nonexistent  # Error handling
+node bin/index.mjs new ../test hack            # Security validation
+node bin/index.mjs new valid-project react --dry-run  # Preview mode
 
 # Test with logging enabled
-node bin/index.mjs my-app --from-template react --log-file debug.log
+node bin/index.mjs new my-app react --log-file debug.log
 cat debug.log  # Review detailed operation logs
 ```
 
@@ -686,11 +686,11 @@ node test/create-scaffold/cache-manager.test.mjs
 
 ```bash
 # Test performance with large repositories
-time node bin/index.mjs perf-test --from-template large-template
+time node bin/index.mjs new perf-test large-template
 
 # Test cache performance
-node bin/index.mjs test1 --from-template react  # First run (clone)
-time node bin/index.mjs test2 --from-template react  # Second run (cached)
+node bin/index.mjs new test1 react  # First run (clone)
+time node bin/index.mjs new test2 react  # Second run (cached)
 
 # Test with multiple templates
 npm run test:smoke  # Includes performance validation
@@ -744,7 +744,7 @@ node bin/index.mjs --help      # Should display help
 
 # Test contribution workflow
 npm link
-create-scaffold test-contrib --from-template react-vite
+create-scaffold new test-contrib react-vite
 npm unlink -g @m5nv/create-scaffold
 ```
 
@@ -774,7 +774,7 @@ npm list -g --depth=0          # Verify global installation
 
 # Alternative: direct installation
 npm install -g .
-create-scaffold my-app --from-template react
+create-scaffold new my-app react
 ```
 
 **Permission issues during development**:
@@ -817,7 +817,7 @@ npm run test:leaks              # Check for resource leaks
 
 ```bash
 # Profile memory usage
-node --inspect bin/index.mjs my-app --from-template react
+node --inspect bin/index.mjs new my-app react
 # Open chrome://inspect in Chrome
 
 # Check for memory leaks
@@ -831,9 +831,9 @@ time npm run test:smoke
 
 ```bash
 # Test security validations
-node bin/index.mjs "../evil" --from-template hack     # Should be blocked
-node bin/index.mjs "test; rm -rf /tmp" --from-template safe  # Should be blocked
-node bin/index.mjs test --from-template "hack; evil"  # Should be blocked
+node bin/index.mjs new "../evil" hack     # Should be blocked
+node bin/index.mjs new "test; rm -rf /tmp" safe  # Should be blocked
+node bin/index.mjs new test "hack; evil"  # Should be blocked
 ```
 
 **Cache Debugging**:
@@ -847,9 +847,9 @@ cat ~/.m5nv/cache/*/metadata.json
 rm -rf ~/.m5nv/cache/*
 
 # Test cache functionality
-node bin/index.mjs test1 --from-template react        # Should clone
-node bin/index.mjs test2 --from-template react        # Should use cache
-node bin/index.mjs test3 --from-template react --no-cache  # Should clone
+node bin/index.mjs new test1 react        # Should clone
+node bin/index.mjs new test2 react        # Should use cache
+node bin/index.mjs new test3 react --no-cache  # Should clone
 ```
 
 ## Additional Resources

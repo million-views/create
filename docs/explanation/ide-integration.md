@@ -11,7 +11,7 @@ related_docs:
   - "../reference/environment.md"
   - "template-system.md"
   - "../how-to/setup-recipes.md"
-last_updated: "2024-11-05"
+last_updated: "2025-11-12"
 ---
 
 # IDE Integration Philosophy Explained
@@ -44,19 +44,11 @@ We provide contextual information to templates without mandating specific IDE ch
 
 ## How It Works
 
-### IDE Detection and Context
+### Current State
 
-The system detects IDE context through explicit user specification:
+**IDE integration is not currently implemented.** The CLI does not support IDE-specific customization at this time. All templates work in an IDE-agnostic manner.
 
-```bash
-# Explicit IDE specification
-create-scaffold my-project --from-template user/repo --ide vscode
-create-scaffold my-project --from-template user/repo --ide kiro
-create-scaffold my-project --from-template user/repo --ide cursor
-
-# No IDE specification (IDE-agnostic setup)
-create-scaffold my-project --from-template user/repo
-```
+Future versions may add IDE detection and customization capabilities, but this is not available in the current implementation.
 
 ### Environment Object Integration
 

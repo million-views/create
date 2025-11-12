@@ -10,7 +10,7 @@ related_docs:
   - "creating-templates.md"
   - "../reference/environment.md"
   - "../how-to/setup-recipes.md"
-last_updated: "2025-11-01"
+last_updated: "2025-11-12"
 ---
 
 # Template Author Workflow
@@ -40,12 +40,12 @@ WYSIWYG templates mirror a working application. Iterate directly in the project,
 4. **Dry-run verification (optional)**
    Use create-scaffold to ensure metadata and handoff instructions render correctly:
    ```bash
-   create-scaffold demo-app --from-template my-template --repo path/to/templates --dry-run
+   create-scaffold demo-app --template my-template --repo path/to/templates --dry-run
    ```
 
 ### Checklist for WYSIWYG templates
 
-- `setup.authoringMode` is `"wysiwyg"` and `setup.dimensions` is `{}`.
+- `setup.authoringMode` is `"wysiwyg"` and `metadata.dimensions` is `{}`.
 - `_setup.mjs` limits itself to placeholder replacement and light adjustments.
 - `handoff` instructions cover install and startup steps.
 - `.template-undo.json` remains checked in to support future restores.
@@ -64,7 +64,7 @@ Composable templates assemble different variants from a single source. Use autho
    Store reusable assets under the directory defined by `setup.authorAssetsDir` (defaults to `__scaffold__/`). Treat it as read-only at runtime—`create-scaffold` stages it before `_setup.mjs` runs and removes it afterwards.
 
 3. **Update `template.json` dimensions**
-   - Add or refine values under `setup.dimensions`.
+   - Add or refine values under `metadata.dimensions`.
    - Capture dependencies with `requires` and mutual exclusions with `conflicts`.
    - Use `"policy": "warn"` sparingly; `"strict"` keeps feedback crisp.
    - Keep `metadata.placeholders` current when inline tokens are added or removed.
@@ -75,10 +75,10 @@ Composable templates assemble different variants from a single source. Use autho
 5. **Verify combinations**
    ```bash
    # Default selection
-   create-scaffold demo-default --from-template my-template --repo path/to/templates --dry-run
+   create-scaffold demo-default --template my-template --repo path/to/templates --dry-run
 
    # Specific capability mix
-   create-scaffold demo-auth --from-template my-template --repo path/to/templates \
+   create-scaffold demo-auth --template my-template --repo path/to/templates \
      --options "capabilities=auth+testing,infrastructure=cloudflare-d1" --dry-run
    ```
 
@@ -90,6 +90,154 @@ Composable templates assemble different variants from a single source. Use autho
 - Author assets live under `__scaffold__/` (or your configured alias) and are treated as immutable inputs.
 - Dry runs cover the default path plus each supported dimension combination.
 - `metadata.placeholders` documents any inline tokens that the setup script still replaces.
+
+## 2.5. Debugging setup scripts
+
+When `_setup.mjs` fails or behaves unexpectedly, systematic debugging is essential. Setup scripts run in a sandboxed environment with limited error visibility.
+
+### Common failure patterns
+
+**Setup script throws immediately:**
+```bash
+# Run with verbose logging to see the error
+create-scaffold new debug-test template-name --log-file debug.log --verbose
+cat debug.log | grep -A 10 -B 5 "setup_script"
+```
+
+**Files not copied from `__scaffold__`:**
+```bash
+# Check if __scaffold__ directory exists and has correct permissions
+ls -la __scaffold__/
+
+# Verify setup script is calling the right helper
+grep "copyFromTemplate" _setup.mjs
+```
+
+**Placeholder replacement fails silently:**
+```bash
+# Check if placeholders are defined in template.json
+grep "placeholders" template.json
+
+# Verify placeholder syntax in template files
+grep "{{.*}}" src/*.js
+```
+
+### Adding debug logging to setup scripts
+
+Temporarily add logging to understand execution flow:
+
+```javascript
+// _setup.mjs - Add debug logging
+export default async function setup({ ctx, tools }) {
+  tools.logger.info('🔍 Setup script starting...', { projectName: ctx.projectName, options: ctx.options });
+
+  try {
+    // Your setup logic here
+    await tools.templates.copy('auth', 'src/auth');
+    tools.logger.info('✅ Auth module copied');
+
+    await tools.placeholders.applyInputs(['README.md']);
+    tools.logger.info('✅ Placeholders applied');
+
+  } catch (error) {
+    tools.logger.warn('❌ Setup failed:', error.message);
+    tools.logger.warn('📍 Stack:', error.stack);
+    throw error; // Re-throw to fail the scaffold
+  }
+
+  tools.logger.info('🎉 Setup completed successfully');
+}
+```
+
+**Note:** Use `tools.logger` instead of `console.log` - it properly routes through the CLI output system and respects log file settings.
+
+### Testing setup scripts in isolation
+
+Create a minimal test scaffold to isolate setup script issues:
+
+```bash
+# Create a test directory
+mkdir test-scaffold
+cd test-scaffold
+
+# Copy only essential files
+cp ../template.json .
+cp ../_setup.mjs .
+cp -r ../__scaffold__ .
+
+# Create minimal package.json for testing
+echo '{"name": "test-scaffold", "version": "1.0.0"}' > package.json
+
+# ⚠️  IMPORTANT: Setup scripts run in a SANDBOX
+# They cannot use require(), import, fs, path, or other Node built-ins
+# All operations must use the provided tools object
+# The test below simulates the sandbox environment
+
+# Test setup script manually (advanced)
+node -e "
+import('./_setup.mjs').then(async (module) => {
+  const mockCtx = {
+    projectName: 'test-project',
+    options: { byDimension: {} },
+    inputs: {}
+  };
+  const mockTools = {
+    files: { copyFromTemplate: async (from, to) => console.log('Would copy', from, 'to', to) },
+    placeholders: { applyInputs: async (files) => console.log('Would apply to', files) }
+  };
+  await module.default({ ctx: mockCtx, tools: mockTools });
+}).catch(console.error);
+"
+```
+
+### Recovery strategies
+
+**Setup script corrupted the project:**
+```bash
+# Start over from a clean scaffold
+rm -rf my-project
+create-scaffold new my-project template-name
+
+# Or restore from template if using make-template
+npm run make-template:restore
+```
+
+**Need to modify scaffolded files manually:**
+```bash
+# After setup script runs, make manual adjustments
+cd my-project
+# Edit files as needed
+```
+
+**Setup script has race conditions:**
+```bash
+# Add await to all async operations
+# Ensure file operations complete before dependent operations
+await tools.templates.copy('auth', 'src/auth');
+await tools.json.set('package.json', 'dependencies.auth', '^1.0.0');
+```
+
+### Console vs tools.logger
+
+**Use `tools.logger` for production logging:**
+- Routes through CLI output system
+- Respects log file settings
+- Integrates with error reporting
+- Won't trigger validation warnings
+
+**Use `console.log` only for temporary debugging:**
+- Available in setup scripts
+- Will trigger validation warnings as "debugging code"
+- Remove before publishing templates
+
+```javascript
+// ✅ Production approach
+tools.logger.info('Processing complete', { count: items.length });
+tools.logger.warn('Validation failed', { field: 'email', reason: 'invalid format' });
+
+// ❌ Temporary debugging only (remove before publishing)
+console.log('Debug state:', state); // Will trigger validation warning
+```
 
 ## 3. Before publishing or sharing
 

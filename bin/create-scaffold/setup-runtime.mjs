@@ -450,9 +450,8 @@ async function updateJson(root, relativePath, updater) {
   return output;
 }
 
-async function renderFile(root, sourceRelative, targetRelative, data) {
-  const source = resolveProjectPath(root, sourceRelative, 'template source');
-  const template = await fs.readFile(source, UTF8);
+async function renderFile(root, sourcePath, targetRelative, data) {
+  const template = await fs.readFile(sourcePath, UTF8);
   const rendered = applyReplacements(template, data);
   const target = resolveProjectPath(root, targetRelative, 'template destination');
   await ensureParentDirectory(target);
@@ -949,17 +948,6 @@ function buildFileApi(root) {
 
       await ensureParentDirectory(absolute);
       await fs.writeFile(absolute, data, typeof data === 'string' ? UTF8 : undefined);
-    },
-    async copyTemplateDir(fromRelative, toRelative, options = {}) {
-      const source = resolveProjectPath(root, fromRelative, 'source path');
-      const destination = resolveProjectPath(root, toRelative, 'destination path');
-      await ensureParentDirectory(destination);
-      await fs.cp(source, destination, {
-        recursive: true,
-        force: options.overwrite === true,
-        errorOnExist: options.overwrite !== true,
-        filter: includeTemplateCopyEntry
-      });
     }
   });
 }
@@ -1002,7 +990,7 @@ function buildJsonApi(root) {
   });
 }
 
-function buildTemplateApi(root) {
+function buildTemplateApi(root, authorAssetsDir) {
   return Object.freeze({
     renderString(template, data) {
       if (typeof template !== 'string') {
@@ -1017,7 +1005,20 @@ function buildTemplateApi(root) {
       if (typeof data !== 'object' || data === null || Array.isArray(data)) {
         throw new SetupSandboxError('templates.renderFile requires a data object');
       }
-      await renderFile(root, sourceRelative, targetRelative, data);
+      const source = path.resolve(root, authorAssetsDir, sourceRelative);
+      const target = resolveProjectPath(root, targetRelative, 'target path');
+      await renderFile(root, source, target, data);
+    },
+    async copy(fromRelative, toRelative, options = {}) {
+      const source = path.resolve(root, authorAssetsDir, fromRelative);
+      const destination = resolveProjectPath(root, toRelative, 'destination path');
+      await ensureParentDirectory(destination);
+      await fs.cp(source, destination, {
+        recursive: true,
+        force: options.overwrite === true,
+        errorOnExist: options.overwrite !== true,
+        filter: includeTemplateCopyEntry
+      });
     }
   });
 }
@@ -1251,24 +1252,53 @@ export async function loadSetupScript(setupPath, ctx, tools, _logger = null) {
   return await entry(environment);
 }
 
-export async function createSetupTools({ projectDirectory, projectName, logger, context, dimensions = {} }) {
+export async function createSetupTools(options) {
+  const {
+    projectDirectory,
+    projectName,
+    logger,
+    templateContext,
+    dimensions = {},
+    supportedIdes = []
+  } = options;
   const root = path.resolve(projectDirectory);
-  const placeholderInputs = context?.inputs ?? Object.freeze({});
+  const placeholderInputs = templateContext?.inputs ?? Object.freeze({});
+  const authorAssetsDir = templateContext?.authorAssetsDir ?? '__scaffold__';
   const ctx = {
     projectName,
     projectDir: root,
     cwd: process.cwd(),
-    authoringMode: context?.authoringMode ?? 'wysiwyg',
+    authoringMode: templateContext?.authoringMode ?? 'wysiwyg',
     inputs: placeholderInputs,
-    constants: context?.constants ?? {}
+    constants: templateContext?.constants ?? {},
+    authorAssetsDir,
+    supportedIdes
   };
+
+  // Auto-apply IDE presets for supported IDEs
+  if (Array.isArray(supportedIdes) && supportedIdes.length > 0) {
+    const ideApi = createIdeApi(ctx, root);
+    for (const ideName of supportedIdes) {
+      try {
+        await ideApi.applyPreset(ideName);
+      } catch (error) {
+        // Log but don't fail - IDE preset application is best effort
+        if (logger) {
+          await logger.logOperation('ide_preset_application_failed', {
+            ide: ideName,
+            error: error.message
+          });
+        }
+      }
+    }
+  }
 
   return Object.freeze({
     placeholders: buildPlaceholderApi(root, { projectName: ctx.projectName, inputs: placeholderInputs }),
     inputs: buildInputsApi(placeholderInputs),
     files: buildFileApi(root),
     json: buildJsonApi(root),
-    templates: buildTemplateApi(root),
+    templates: buildTemplateApi(root, authorAssetsDir),
     text: buildTextApi(root),
     logger: createLoggerApi(logger),
     ide: createIdeApi(ctx, root),

@@ -72,7 +72,8 @@ export async function loadTemplateMetadataFromPath(templatePath) {
         schemaVersion: data.schemaVersion,
         gates: data.gates || {},
         featureSpecs: data.featureSpecs || {},
-        hints: data.hints || {}
+        hints: data.hints || {},
+        setup: data.setup || {}
       };
     } else {
       // Old schema format
@@ -100,7 +101,8 @@ export async function loadTemplateMetadataFromPath(templatePath) {
         supportedOptions,
         placeholders: validated.placeholders,
         canonicalVariables: validated.canonicalVariables,
-        constants: validated.constants || {}
+        constants: validated.constants || {},
+        setup: data.setup || {}
       };
     }
   } catch (error) {
@@ -114,7 +116,8 @@ export async function loadTemplateMetadataFromPath(templatePath) {
         supportedOptions: [],
         placeholders: [],
         canonicalVariables: [],
-        constants: {}
+        constants: {},
+        setup: {}
       };
     }
 

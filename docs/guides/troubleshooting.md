@@ -10,7 +10,7 @@ related_docs:
   - "../reference/error-codes.md"
   - "../reference/cli-reference.md"
   - "../tutorial/getting-started.md"
-last_updated: "2024-01-15"
+last_updated: "2025-11-12"
 ---
 
 # Troubleshooting Guide
@@ -105,7 +105,7 @@ Valid formats:
 
 **Step 3: Test with a known working repository**
 ```bash
-npm create @m5nv/scaffold test-project -- --from-template basic --from-repo microsoft/vscode-extension-samples
+create-scaffold new test-project microsoft/vscode-extension-samples --template basic
 ```
 
 **If this works:** Your original repository URL has an issue
@@ -120,7 +120,7 @@ npm create @m5nv/scaffold test-project -- --from-template basic --from-repo micr
 **For public repositories:**
 ```bash
 # This should work without authentication
-npm create @m5nv/scaffold test-project -- --from-template basic --from-repo microsoft/vscode-extension-samples
+create-scaffold new test-project microsoft/vscode-extension-samples --template basic
 ```
 
 **For private repositories, set up authentication:**
@@ -168,12 +168,12 @@ Template names are case-sensitive and must match directory names exactly.
 **Step 3: Verify branch contains template**
 ```bash
 # Check if template exists in specific branch
-npm create @m5nv/scaffold -- --list-templates --from-repo user/repo --from-branch feature-branch
+create-scaffold list user/repo --branch feature-branch
 ```
 
 **Step 4: Use dry run to debug**
 ```bash
-npm create @m5nv/scaffold test-project -- --from-template your-template --from-repo user/repo --dry-run
+create-scaffold new test-project user/repo --template your-template --dry-run
 ```
 
 **See also:** 📖 [CLI Reference](../reference/cli-reference.md)
@@ -184,20 +184,20 @@ npm create @m5nv/scaffold test-project -- --from-template your-template --from-r
 
 **Option 1: Choose different name**
 ```bash
-npm create @m5nv/scaffold my-project-v2 -- --from-template react
+create-scaffold new my-project-v2 react
 ```
 
 **Option 2: Remove existing directory**
 ```bash
 # ⚠️ This permanently deletes the directory
 rm -rf my-project
-npm create @m5nv/scaffold my-project -- --from-template react
+create-scaffold new my-project react
 ```
 
 **Option 3: Backup existing directory**
 ```bash
 mv my-project my-project-backup
-npm create @m5nv/scaffold my-project -- --from-template react
+create-scaffold new my-project react
 ```
 
 ---
@@ -222,22 +222,22 @@ ls -la ~/.m5nv/cache/
 chmod -R 755 ~/.m5nv/cache/
 
 # Or bypass cache temporarily
-npm create @m5nv/scaffold my-project -- --from-template react --no-cache
+create-scaffold new my-project react --no-cache
 ```
 
 **Problem: Stale cached templates**
 ```bash
 # Force fresh clone
-npm create @m5nv/scaffold my-project -- --from-template react --no-cache
+create-scaffold new my-project react --no-cache
 
 # Or set shorter cache TTL
-npm create @m5nv/scaffold my-project -- --from-template react --cache-ttl 1
+create-scaffold new my-project react --cache-ttl 1
 ```
 
 **Problem: Corrupted cache**
 The tool automatically handles corrupted cache entries, but you can force a refresh:
 ```bash
-npm create @m5nv/scaffold my-project -- --from-template react --no-cache
+create-scaffold new my-project react --no-cache
 ```
 
 **See also:** 💡 [Caching Strategy](../explanation/caching-strategy.md)
@@ -249,7 +249,7 @@ npm create @m5nv/scaffold my-project -- --from-template react --no-cache
 **Problem: Log file permission denied**
 ```bash
 # Use absolute path in your home directory
-npm create @m5nv/scaffold my-project -- --from-template react --log-file ~/debug.log
+create-scaffold new my-project react --log-file ~/debug.log
 
 # Check the log was created
 ls -la ~/debug.log
@@ -259,7 +259,7 @@ ls -la ~/debug.log
 ```bash
 # Create directory first
 mkdir -p ~/logs
-npm create @m5nv/scaffold my-project -- --from-template react --log-file ~/logs/scaffold.log
+create-scaffold new my-project react --log-file ~/logs/scaffold.log
 ```
 
 **Problem: Invalid log path**
@@ -290,7 +290,7 @@ git ls-remote https://github.com/microsoft/vscode-extension-samples.git
 **Step 3: Use dry run to isolate the issue**
 ```bash
 # This tests repository access without full clone
-npm create @m5nv/scaffold test-project -- --from-template basic --from-repo microsoft/vscode-extension-samples --dry-run
+create-scaffold new test-project microsoft/vscode-extension-samples --template basic --dry-run
 ```
 
 **Step 4: Check for proxy/firewall issues**
@@ -315,7 +315,7 @@ git config --global http.proxy http://proxy.company.com:8080
 
 **Step 1: Enable detailed logging**
 ```bash
-npm create @m5nv/scaffold my-project -- --from-template react --log-file ~/setup-debug.log
+create-scaffold new my-project react --log-file ~/setup-debug.log
 ```
 
 **Step 2: Check the log for details**
@@ -349,8 +349,15 @@ export default function setup(env) {
 # Navigate to created project
 cd my-project
 
-# Check if _setup.mjs exists and is valid
-node -e "import('./template/_setup.mjs').then(m => console.log('Setup script is valid'))"
+# ⚠️  IMPORTANT: Setup scripts run in a SANDBOX
+# They cannot be tested directly with Node.js due to sandbox restrictions
+# The test below only checks syntax, not sandbox compatibility
+
+# Check if _setup.mjs exists and has valid syntax (limited test)
+node -e "import('./template/_setup.mjs').then(m => console.log('Setup script syntax is valid'))"
+
+# For full testing, use create-scaffold dry-run instead:
+create-scaffold new test-project user/repo --template your-template --dry-run
 ```
 
 **See also:** 🎯 [Creating Templates Guide](../how-to/creating-templates.md)
@@ -362,10 +369,10 @@ node -e "import('./template/_setup.mjs').then(m => console.log('Setup script is 
 **Step 1: Examine template structure**
 ```bash
 # List templates in repository
-npm create @m5nv/scaffold -- --list-templates --from-repo user/repo
+create-scaffold list user/repo
 
 # Use dry run to see what would be copied
-npm create @m5nv/scaffold test-project -- --from-template your-template --from-repo user/repo --dry-run
+create-scaffold new test-project user/repo --template your-template --dry-run
 ```
 
 **Step 2: Check template directory structure**
@@ -410,7 +417,7 @@ npm list @m5nv/create-scaffold
 ls -la ~/.m5nv/cache/
 
 # Test basic functionality
-npm create @m5nv/scaffold test-diagnostic -- --from-template basic --from-repo microsoft/vscode-extension-samples --dry-run
+create-scaffold new test-diagnostic microsoft/vscode-extension-samples --template basic --dry-run
 ```
 
 ### Community Resources
@@ -432,10 +439,10 @@ If you need to work around persistent issues:
 
 ```bash
 # Bypass all caching
-npm create @m5nv/scaffold my-project -- --from-template react --no-cache
+create-scaffold new my-project react --no-cache
 
 # Use alternative repository format
-npm create @m5nv/scaffold my-project -- --from-template react --from-repo https://github.com/user/repo.git
+create-scaffold new my-project https://github.com/user/repo.git --template react
 
 # Clone and copy manually as last resort
 git clone https://github.com/user/repo.git temp-manual

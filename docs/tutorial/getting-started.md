@@ -1,40 +1,40 @@
 ---
-title: "Getting Started with @m5nv/create-scaffold"
+title: "Getting Started with @m5nv/create"
 type: "tutorial"
 audience: "beginner"
 estimated_time: "15 minutes"
 prerequisites:
-  - "Node.js (latest LTS) installed"
+  - "Node.js v22+ installed"
   - "Git installed and configured"
   - "Basic command line familiarity"
 related_docs:
-   - "../how-to/creating-templates.md"
-   - "../reference/cli-reference.md"
-   - "../guides/troubleshooting.md"
-   - "first-template.md"
-   - "../how-to/setup-recipes.md"
-last_updated: "2024-11-07"
+  - "../how-to/creating-templates.md"
+  - "../reference/cli-reference.md"
+  - "../how-to/author-workflow.md"
+  - "first-template.md"
+  - "../how-to/setup-recipes.md"
+last_updated: "2025-11-12"
 ---
 
-# Getting Started with @m5nv/create-scaffold
+# Getting Started with @m5nv/create
 
 ## What you'll learn
 
-In this tutorial, you'll learn how to use @m5nv/create-scaffold to create new projects from templates. By the end, you'll understand how to scaffold projects, customize them for your IDE, and use optional features to tailor projects to your needs.
+In this tutorial, you'll learn how to use the complete @m5nv/create ecosystem to create projects from templates and convert your projects into reusable templates. By the end, you'll understand the round-trip workflow between scaffolding and authoring.
 
 ## What you'll build
 
-You'll create three different projects:
-1. A basic React project (simplest example)
-2. An IDE-optimized project with features
-3. A project from a custom template repository
+You'll create and convert projects:
+1. A project from a template using `create-scaffold`
+2. Convert that project into a template using `make-template`
+3. Restore the template back to a working project
 
 ## Prerequisites
 
 Before starting this tutorial, make sure you have:
 
-- **Node.js (latest LTS)** installed ([Download here](https://nodejs.org/))
-  - Verify: `node --version` should show a supported version
+- **Node.js v22+** installed ([Download here](https://nodejs.org/))
+  - Verify: `node --version` should show v22 or higher
 - **Git** installed and configured ([Setup guide](https://git-scm.com/book/en/v2/Getting-Started-First-Time-Git-Setup))
   - Verify: `git --version` should show git version info
 - **15 minutes** available
@@ -85,7 +85,7 @@ Let's start with the simplest possible example - creating a React project.
 
 1. **Create a basic React project:**
    ```bash
-   npm create @m5nv/scaffold my-first-app -- --from-template react-vite
+   npm create @m5nv/scaffold my-first-app -- --template react-vite
    ```
 
 2. **Wait for the process to complete** (this may take a moment for the first run as it downloads the template)
@@ -138,27 +138,19 @@ Now let's explore how to customize projects with IDE settings and optional featu
    npm create @m5nv/scaffold -- --list-templates
    ```
 
-2. **Create a project optimized for your IDE** (choose your IDE):
+2. **Create a customized project with template options:**
    ```bash
-   # For Kiro IDE users:
-   npm create @m5nv/scaffold my-kiro-app -- --from-template react-vite --ide kiro
-
-   # For VSCode users:
-   npm create @m5nv/scaffold my-vscode-app -- --from-template react-vite --ide vscode
-
-   # For Cursor users:
-   npm create @m5nv/scaffold my-cursor-app -- --from-template react-vite --ide cursor
+   npm create @m5nv/scaffold my-custom-app -- --template react-vite --options "typescript,testing-focused"
    ```
 
-3. **Navigate to your IDE-optimized project:**
+3. **Navigate to your customized project:**
    ```bash
-   cd my-kiro-app  # or my-vscode-app, my-cursor-app
+   cd my-custom-app
    ```
 
-4. **Look for IDE-specific configuration:**
+4. **Check what was created:**
    ```bash
    ls -la
-   # Look for .kiro/, .vscode/, or .cursor/ directories
    ```
 
 ### Expected Result
@@ -179,7 +171,7 @@ Available Templates:
 └─────────────────┴──────────────────────────────────────────────┘
 ```
 
-Your IDE-optimized project will include configuration specific to your chosen IDE, making development smoother.
+Your customized project will include the selected options and configurations.
 
 ## Step 4: Combine Capabilities and Infrastructure
 
@@ -187,12 +179,11 @@ Templates declare structured dimensions in `template.json`. You can select value
 
 ### Instructions
 
-1. **Create a feature-rich project with explicit dimensions:**
+1. **Create a feature-rich project with explicit options:**
    ```bash
    npm create @m5nv/scaffold my-feature-app -- \
-     --from-template react-vite \
-     --ide kiro \
-     --options "capabilities=auth+testing,infrastructure=cloudflare-d1"
+     --template react-vite \
+     --options "typescript,testing-focused"
    ```
 
 2. **Navigate to the project:**
@@ -231,7 +222,7 @@ create-scaffold validates your selections against `template.json` and applies de
 
 Your project now includes authentication scaffolding, test utilities, and Cloudflare D1 infrastructure assets. If you select an unsupported value, the CLI fails fast with a clear validation error.
 
-> **How it maps:** Template authors describe these choices in `template.json` under `setup.dimensions`. The CLI normalizes your command-line flags into `ctx.options.byDimension` so setup scripts know exactly which features to enable, while `metadata.placeholders` tracks any remaining `{{TOKEN}}` values that still need to be replaced during setup.
+> **How it maps:** Template authors describe these choices in `template.json` under `metadata.dimensions`. The CLI normalizes your command-line flags into `ctx.options.byDimension` so setup scripts know exactly which features to enable, while `metadata.placeholders` tracks any remaining `{{TOKEN}}` values that still need to be replaced during setup.
 
 ## Step 5: Preview Mode (Dry Run)
 
@@ -242,9 +233,8 @@ Before creating projects, you can preview what will happen using dry run mode.
 1. **Preview a project creation without actually creating it:**
    ```bash
    npm create @m5nv/scaffold preview-app -- \
-     --from-template express \
-     --ide vscode \
-     --options "capabilities=api+logging" \
+     --template express \
+     --options "typescript" \
      --dry-run
    ```
 
@@ -288,14 +278,6 @@ preview-app
 ✅ Dry run completed - no actual changes were made
 ```
 
-If the `tree` command is not available, you'll see a message explaining that the tree preview was skipped instead of the directory listing.
-
-**What's useful about dry run?**
-- See exactly what files will be created
-- Understand what the setup script will do
-- Verify your command is correct before running it
-- Useful for automation and scripting
-
 ## Step 6: Working with Custom Repositories
 
 You can use templates from any Git repository, not just the default one.
@@ -306,7 +288,9 @@ You can use templates from any Git repository, not just the default one.
    ```bash
    # Example with a custom repository
    npm create @m5nv/scaffold custom-project -- \
-     --from-template my-template \
+     --template my-template \
+     --branch main
+   ```
      --repo mycompany/templates \
      --branch develop
    ```
@@ -315,10 +299,8 @@ You can use templates from any Git repository, not just the default one.
 
 2. **List templates from a specific repository:**
    ```bash
-   # This will also fail, but shows the pattern
-   npm create @m5nv/scaffold -- \
-     --list-templates \
-     --repo mycompany/templates
+   # List templates from a specific registry
+   npm create @m5nv/scaffold -- --list-templates --registry mycompany
    ```
 
 ### Expected Result
@@ -335,16 +317,84 @@ Summary:
 
 - Created a project using @m5nv/create-scaffold
 - Explored template discovery with `--list-templates`
-- Customized IDE-specific configuration
-- Applied optional features during setup
+- Applied template options during setup
 - Ran dry run mode to inspect operations
 - Practiced using custom repositories
 
 Core workflow:
 1. Discover templates with `--list-templates`
 2. Preview with `--dry-run`
-3. Create with your chosen template, IDE, and options
+3. Create with your chosen template and options
 4. Customize further as needed
+
+## Step 4: Production Readiness
+
+Before deploying to production, ensure your scaffolded project is production-ready.
+
+### Instructions
+
+1. **Configure production environment:**
+   ```bash
+   cd my-feature-app
+
+   # Create production environment file
+   cp .env.example .env.production 2>/dev/null || echo "# Production environment variables" > .env.production
+
+   # Edit with production values (database URLs, API keys, etc.)
+   nano .env.production
+   ```
+
+2. **Build for production:**
+   ```bash
+   # Install all dependencies
+   npm install
+
+   # Build the application (if it has a build step)
+   npm run build 2>/dev/null || echo "No build step needed"
+
+   # Check for production artifacts
+   ls -la dist/ build/ out/ 2>/dev/null || echo "No build output directory found"
+   ```
+
+3. **Test production startup:**
+   ```bash
+   # Start in production mode
+   NODE_ENV=production npm start &
+   SERVER_PID=$!
+
+   # Wait a moment for startup
+   sleep 3
+
+   # Test the application
+   curl http://localhost:3000 2>/dev/null || echo "Application may not be running on port 3000"
+
+   # Stop the test server
+   kill $SERVER_PID 2>/dev/null || true
+   ```
+
+4. **Security audit:**
+   ```bash
+   # Check for security vulnerabilities
+   npm audit --audit-level moderate
+
+   # Verify no sensitive data in source
+   grep -r "password\|secret\|key" . --exclude-dir=node_modules --exclude-dir=.git | head -5 || echo "No obvious secrets found"
+   ```
+
+### Expected Result
+
+Your project should:
+- ✅ Have production environment variables configured
+- ✅ Build successfully (if applicable)
+- ✅ Start in production mode without errors
+- ✅ Pass basic security checks
+
+**Production deployment options:**
+- **Cloudflare Workers**: Use `wrangler deploy` for edge deployment
+- **Linode VPS**: Use PM2 and nginx for traditional server deployment
+- **Other platforms**: Follow platform-specific deployment guides
+
+See [Production Deployment](../how-to/production-deployment.md) for detailed deployment instructions.
 
 ## Next steps
 
@@ -394,5 +444,5 @@ Next steps:
 
 **Problem:** Getting old template versions or cache errors
 **Solution:**
-1. Use `--no-cache` to bypass cache: `npm create @m5nv/scaffold my-app -- --from-template react-vite --no-cache`
+1. Use `--no-cache` to bypass cache: `npm create @m5nv/scaffold my-app -- --template react-vite --no-cache`
 2. Cache is stored in `~/.m5nv/cache/` - you can delete this directory if needed

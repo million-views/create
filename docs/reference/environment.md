@@ -10,14 +10,14 @@ related_docs:
   - "../how-to/creating-templates.md"
   - "../how-to/setup-recipes.md"
   - "cli-reference.md"
-last_updated: "2025-10-30"
+last_updated: "2025-11-12"
 ---
 
 # Environment Reference
 
 ## Setup Contract
 
-Template setup scripts (`_setup.mjs`) run inside a secure sandbox. Every script must export a default `async` function that receives a single **Environment** object containing `{ ctx, tools }`.
+Template setup scripts (`_setup.mjs`) run inside a secure sandbox using Node.js VM. Every script must export a default `async` function that receives a single **Environment** object containing `{ ctx, tools }`.
 
 ```javascript
 export default async function setup({ ctx, tools }) {
@@ -29,7 +29,43 @@ export default async function setup({ ctx, tools }) {
 - **`tools`** – curated helper library for manipulating the scaffold without importing Node built-ins.
 - You can destructure the Environment object (recommended) or access it as a single parameter (e.g. `export default async function setup(environment)`).
 
-Direct access to `fs`, `path`, `import`, `eval`, or `require` is blocked. All filesystem and transformation work must go through `tools` so that the runtime can remain sandbox-friendly.
+### Sandbox Restrictions
+
+Setup scripts execute in a restricted Node.js VM context with the following limitations:
+
+#### 🚫 **Forbidden Operations**
+- **`import`** statements – blocked at the source level
+- **`require()`** – disabled in sandbox context
+- **`eval()`** – disabled in sandbox context
+- **`Function()`** constructor – disabled in sandbox context
+- **Node built-ins** like `fs`, `path`, `os`, `crypto`, etc. – not available
+- **Global access** to `process` (except `process.env`) – restricted
+
+#### ✅ **Available Operations**
+- **`console`** – available for logging (but flagged by validation rules)
+- **`setTimeout`/`clearTimeout`** – available for timing
+- **`setInterval`/`clearInterval`** – available for intervals
+- **`process.env`** – read-only access to environment variables
+- **`structuredClone`** – available if supported by Node.js version
+- **Basic JavaScript** – all standard language features work
+
+#### 🛠️ **Required: Use Tools for Everything Else**
+All filesystem operations, JSON manipulation, text processing, and project modifications must use the provided `tools` object. This ensures security, consistency, and proper error handling.
+
+```javascript
+// ✅ CORRECT: Use tools for all operations
+export default async function setup({ ctx, tools }) {
+  await tools.templates.copy('auth', 'src/auth');
+  await tools.json.set('package.json', 'name', ctx.projectName);
+  tools.logger.info('Setup complete');
+}
+
+// ❌ WRONG: Direct filesystem access (blocked)
+export default async function setup({ ctx, tools }) {
+  const fs = require('fs'); // Throws SetupSandboxError
+  fs.copyFileSync('source', 'dest'); // Not available
+}
+```
 
 ## Context (`ctx`)
 
@@ -38,23 +74,25 @@ Direct access to `fs`, `path`, `import`, `eval`, or `require` is blocked. All fi
 | `projectDir` | `string` | Absolute path to the project directory. All helper methods already scope operations to this root, so you rarely need it directly. |
 | `projectName` | `string` | Sanitized name chosen by the user (letters, numbers, hyphen, underscore). Use it when updating metadata such as `package.json` or README content. |
 | `cwd` | `string` | Directory where the CLI command was executed. Helpful when you need to compute workspace-relative paths. |
-| `ide` | `"kiro" \| "vscode" \| "cursor" \| "windsurf" \| null` | Target IDE provided via `--ide`. `null` when no IDE preference was expressed. |
 | `authoringMode` | `"wysiwyg" \| "composable"` | Mode declared in `template.json`. WYSIWYG templates mirror a working project; composable templates assemble features via `_setup.mjs`. |
+| `authorAssetsDir` | `string` | Directory name for template assets (configured via `setup.authorAssetsDir`, defaults to `"__scaffold__"`). |
 | `options` | `object` | Normalized user selections with defaults already applied. See breakdown below. |
 | `inputs` | `Record<string, string \| number \| boolean>` | Placeholder answers collected during template instantiation. Keys omit braces (`PROJECT_NAME`). Values are immutable and type-coerced based on `metadata.placeholders` and any canonical `metadata.variables` entries. |
+| `constants` | `Record<string, any>` | Template-defined constants from `template.json` that are always available regardless of user selections. |
+| `ide` | `string \| null` | IDE preset selected by the user (e.g., `"vscode"`, `"cursor"`). `null` if no IDE integration was requested. |
 
 `ctx.options` contains two readonly views:
 
 | Field | Type | Description |
 |-------|------|-------------|
 | `raw` | `string[]` | Ordered list of tokens supplied on the command line. |
-| `byDimension` | `Record<string, string \| string[]>` | Canonical selections drawn from the template’s `setup.dimensions` metadata. Multi-select dimensions return arrays; single-select dimensions return a string or `null`. |
+| `byDimension` | `Record<string, string \| string[]>` | Canonical selections drawn from the template's `metadata.dimensions` metadata. Multi-select dimensions return arrays; single-select dimensions return a string or `null`. |
 
 The context object is frozen; attempting to mutate it throws.
 
 ## How template metadata populates the environment
 
-1. **`template.json` declares intent** – Dimensions under `setup.dimensions` define the option vocabulary, `metadata.placeholders` inventories template-defined `{{TOKEN}}` values, and `metadata.variables` opts into canonical placeholders supplied by the CLI.
+1. **`template.json` declares intent** – Dimensions under `metadata.dimensions` define the option vocabulary, `metadata.placeholders` inventories template-defined `{{TOKEN}}` values, and `metadata.variables` opts into canonical placeholders supplied by the CLI.
 2. **The CLI normalizes user input** – Flags such as `--options "capabilities=auth+logging"` are validated against the declared dimensions and cached in `ctx.options.byDimension` (with defaults pre-applied). Placeholder values are gathered via `--placeholder`, environment variables, defaults, or interactive prompts so `ctx.inputs` is fully populated before `_setup.mjs` executes.
 3. **`ctx` and `tools` expose the results** – Setup scripts read `ctx.options` or helper wrappers (`tools.options.*`) to branch on selected features, and they access placeholder answers via `ctx.inputs` or `tools.inputs`. Helper APIs such as `tools.placeholders.applyInputs()` consume these values directly, keeping setup code deterministic.
 
@@ -90,7 +128,7 @@ With `--options "capabilities=auth+docs"` and a placeholder answer `AUTHOR="Jane
 ctx.options.byDimension.capabilities; // ['auth', 'docs']
 ctx.inputs.AUTHOR; // 'Jane'
 await tools.placeholders.applyInputs(['README.md']);
-await tools.templates.renderFile('__scaffold__/README.tpl.mjs', 'README.md', {
+await tools.templates.renderFile('README.tpl.mjs', 'README.md', {
   author: ctx.inputs.AUTHOR,
   projectName: ctx.projectName
 });
@@ -116,11 +154,19 @@ const author = tools.inputs.get('AUTHOR', 'Unknown');
 
 ### `tools.placeholders`
 
-| Method | Description |
-|--------|-------------|
-| `applyInputs(selector, extra?)` | Apply values from `ctx.inputs`, `ctx.projectName`, and optional `extra` map to files matched by `selector`. Internally delegates to `replaceAll`. |
-| `replaceAll(replacements, selector)` | Replace `{{TOKEN}}` placeholders in every file matched by the selector (string or array of glob patterns). |
-| `replaceInFile(file, replacements)` | Replace placeholders in a single file. |
+Placeholder replacement operations.
+
+**applyInputs(selector, extra?)**  
+Apply values from `ctx.inputs`, `ctx.projectName`, and optional `extra` map to files matching the selector.  
+*Parameters:* `selector?: string | string[], extra?: Record<string, any>`
+
+**replaceAll(replacements, selector)**  
+Replace `{{TOKEN}}` placeholders in files matching the selector with custom values.  
+*Parameters:* `replacements: Record<string, string>, selector?: string | string[]`
+
+**replaceInFile(file, replacements)**  
+Replace placeholders in a single file with custom values.  
+*Parameters:* `file: string, replacements: Record<string, string>`
 
 **Usage guidance**
 - Use `applyInputs` when you simply need the answers collected from the instantiator.
@@ -136,73 +182,171 @@ await tools.placeholders.replaceAll({ SUPPORT_EMAIL: ctx.inputs.SUPPORT_EMAIL },
 
 ### `tools.text`
 
-| Method | Description |
-|--------|-------------|
-| `insertAfter({ file, marker, block })` | Insert a block immediately after a marker if it is not already present. |
-| `ensureBlock({ file, marker, block })` | Guarantee a block exists after the marker (idempotent). |
-| `replaceBetween({ file, start, end, block })` | Replace the content bounded by two markers while preserving the markers themselves. |
-| `appendLines({ file, lines })` | Append lines (string or array) with automatic newline handling. |
-| `replace({ file, search, replace, ensureMatch })` | String/regex replacement with optional guard to ensure a match. |
+Text manipulation operations.
+
+**insertAfter({ file, marker, block })**  
+Insert a block of text immediately after a marker line, if not already present.  
+*Parameters:* `file: string, marker: string, block: string | string[]`
+
+**ensureBlock({ file, marker, block })**  
+Guarantee a block exists after the marker (idempotent operation).  
+*Parameters:* `file: string, marker: string, block: string | string[]`
+
+**replaceBetween({ file, start, end, block })**  
+Replace content bounded by start and end markers, preserving the markers themselves.  
+*Parameters:* `file: string, start: string, end: string, block: string | string[]`
+
+**appendLines({ file, lines })**  
+Append lines to a file with automatic newline handling.  
+*Parameters:* `file: string, lines: string | string[]`
+
+**replace({ file, search, replace, ensureMatch })**  
+String or regex replacement with optional guard to ensure a match exists.  
+*Parameters:* `file: string, search: string | RegExp, replace: string, ensureMatch?: boolean`
 
 ### `tools.files`
 
-| Method | Description |
-|--------|-------------|
-| `ensureDirs(paths)` | Ensure one or more directories exist inside the project (accepts string or array). |
-| `copy(from, to, { overwrite })` | Copy files or directories within the project. |
-| `move(from, to, { overwrite })` | Move files or directories. Cross-device moves fall back to copy + remove. |
-| `remove(path)` | Remove a file or directory (recursive). |
-| `write(file, content, { overwrite })` | Write text content (string/array/Buffer) to a file, optionally refusing to overwrite existing files. |
-| `copyTemplateDir(from, to, { overwrite })` | Copy a project-local directory tree to a new location inside the project. |
+File system operations scoped to the project directory.
+
+**ensureDirs(paths)**  
+Create directories. Accepts a single path or array of paths.  
+*Parameters:* `paths: string | string[]`
+
+**copy(from, to, options?)**  
+Copy files or directories within the project.  
+*Parameters:* `from: string, to: string, options?: { overwrite?: boolean }`
+
+**move(from, to, options?)**  
+Move files or directories within the project. Falls back to copy+remove for cross-device moves.  
+*Parameters:* `from: string, to: string, options?: { overwrite?: boolean }`
+
+**remove(path)**  
+Remove a file or directory (recursive).  
+*Parameters:* `path: string`
+
+**write(file, content, options?)**  
+Write text content to a file. Content can be string, array of strings, or Buffer.  
+*Parameters:* `file: string, content: string | string[] | Buffer, options?: { overwrite?: boolean }`
 
 > Note: File helpers skip `.template-undo.json` and other internal artifacts automatically. The CLI stages the `__scaffold__/` directory (or your configured `authorAssetsDir`) before `_setup.mjs` runs and removes it afterwards, so treat that directory as read-only runtime input.
 
 ### `tools.json`
 
-| Method | Description |
-|--------|-------------|
-| `read(path)` | Read and parse a JSON file. Throws if it does not exist. |
-| `merge(path, patch)` | Deep-merge a JSON object into an existing file. Creates the file when missing. Arrays are replaced whole. |
-| `update(path, updater)` | Provide a function that receives a mutable clone of the JSON data. Return a new object or mutate the draft. |
-| `set(path, value)` | Assign a value at a dot-path (e.g. `scripts.dev`). Intermediate objects/arrays are created automatically. |
-| `remove(path)` | Remove a property or array entry addressed by the dot-path. |
-| `addToArray(path, value, { unique })` | Push a value into an array addressed by the dot-path, optionally enforcing uniqueness. |
-| `mergeArray(path, items, { unique })` | Merge multiple values into an array, optionally enforcing uniqueness. |
+JSON file manipulation operations.
+
+**read(path)**  
+Read and parse a JSON file. Throws if file doesn't exist.  
+*Parameters:* `path: string`  
+*Returns:* `any`
+
+**merge(path, patch)**  
+Deep-merge an object into an existing JSON file. Creates file if missing. Arrays are replaced wholesale.  
+*Parameters:* `path: string, patch: object`
+
+**update(path, updater)**  
+Provide a function that receives a mutable clone of the JSON data. Return new object or mutate the draft.  
+*Parameters:* `path: string, updater: (data: any) => any`
+
+**set(path, value)**  
+Assign a value at a dot-path (e.g. `scripts.dev`). Intermediate objects/arrays created automatically.  
+*Parameters:* `path: string, value: any`
+
+**remove(path)**  
+Remove a property or array entry at the dot-path.  
+*Parameters:* `path: string`
+
+**addToArray(path, value, options?)**  
+Push a value into an array at the dot-path, optionally enforcing uniqueness.  
+*Parameters:* `path: string, value: any, options?: { unique?: boolean }`
+
+**mergeArray(path, items, options?)**  
+Merge multiple values into an array at the dot-path, optionally enforcing uniqueness.  
+*Parameters:* `path: string, items: any[], options?: { unique?: boolean }`
 
 ### `tools.templates`
 
-| Method | Description |
-|--------|-------------|
-| `renderString(template, data)` | Render a string containing `{{TOKEN}}` placeholders. |
-| `renderFile(source, target, data)` | Read a project-local template file, render it with placeholders, and write to the target location (creating directories as needed). |
+Template asset operations. All paths are resolved relative to the template assets directory (configured via `setup.authorAssetsDir`, defaults to `__scaffold__`).
+
+**renderString(template, data)**  
+Render a string containing `{{TOKEN}}` placeholders.  
+*Parameters:* `template: string, data: Record<string, any>`  
+*Returns:* `string`
+
+**renderFile(source, target, data)**  
+Read a template asset file, render it with placeholders, and write to target location in the project (creating directories as needed).  
+*Parameters:* `source: string, target: string, data: Record<string, any>`
+
+**copy(from, to, options?)**  
+Copy a directory tree from template assets to the project, respecting template ignore rules.  
+*Parameters:* `from: string, to: string, options?: { overwrite?: boolean }`
 
 ### `tools.logger`
 
-Simple logger routed through the CLI output and optional log file:
+Simple logger routed through the CLI output and optional log file.
 
-- `logger.info(message, data?)`
-- `logger.warn(message, data?)`
-- `logger.table(rows)`
+**info(message, data?)**  
+Log an info message with optional structured data.  
+*Parameters:* `message: string, data?: any`
+
+**warn(message, data?)**  
+Log a warning message with optional structured data.  
+*Parameters:* `message: string, data?: any`
+
+**table(rows)**  
+Log tabular data as formatted output.  
+*Parameters:* `rows: any[]`
 
 ### `tools.ide`
 
-| Method | Description |
-|--------|-------------|
-| `applyPreset(name)` | Apply one of the built-in IDE presets (`kiro`, `vscode`, `cursor`, `windsurf`). Each preset creates or merges configuration files idempotently. |
-| `presets` | Array of preset names for feature detection or UI. |
+IDE integration operations.
+
+**applyPreset(name)**  
+Apply one of the built-in IDE presets (`kiro`, `vscode`, `cursor`, `windsurf`). Each preset creates or merges configuration files idempotently.  
+*Parameters:* `name: string`
+
+**presets**  
+Array of available preset names for feature detection or UI.  
+*Returns:* `string[]`
 
 ### `tools.options`
 
-| Method | Description |
-|--------|-------------|
-| `list(dimension?)` | Without arguments returns `ctx.options.raw`. Provide a dimension name to receive the normalized selection for that dimension (string or array). |
-| `raw()` | Shortcut for `ctx.options.raw`. |
-| `dimensions()` | Shallow clone of `ctx.options.byDimension`. |
-| `has(name)` | Checks whether the default multi-select dimension (usually `capabilities`) includes `name`. |
-| `in(dimension, value)` | Returns `true` when the selected value(s) for `dimension` include `value`. |
-| `require(value)` | Ensures the default multi-select dimension includes `value`; throws otherwise. |
-| `require(dimension, value)` | Ensures `value` is selected for `dimension`; throws otherwise. |
-| `when(value, fn)` | Runs `fn` when the default multi-select dimension includes `value`. Supports async callbacks. |
+Dimension-based option checking and conditional logic.
+
+**list(dimension?)**  
+Without arguments returns `ctx.options.raw`. With dimension name returns the normalized selection for that dimension.  
+*Parameters:* `dimension?: string`  
+*Returns:* `string[] | string | null`
+
+**raw()**  
+Shortcut for `ctx.options.raw`.  
+*Returns:* `string[]`
+
+**dimensions()**  
+Shallow clone of `ctx.options.byDimension`.  
+*Returns:* `Record<string, string | string[]>`
+
+**has(name)**  
+Checks whether the default multi-select dimension includes the name.  
+*Parameters:* `name: string`  
+*Returns:* `boolean`
+
+**in(dimension, value)**  
+Returns true when the selected value(s) for dimension include value.  
+*Parameters:* `dimension: string, value: string`  
+*Returns:* `boolean`
+
+**require(value)**  
+Ensures the default multi-select dimension includes value; throws otherwise.  
+*Parameters:* `value: string`
+
+**require(dimension, value)**  
+Ensures value is selected for dimension; throws otherwise.  
+*Parameters:* `dimension: string, value: string`
+
+**when(value, fn)**  
+Runs fn when the default multi-select dimension includes value. Supports async callbacks.  
+*Parameters:* `value: string, fn: () => void | Promise<void>`  
+*Returns:* `Promise<void> | undefined`
 
 > The “default dimension” is the first multi-select dimension defined in `template.json`. By convention we reserve `capabilities` for feature toggles, which becomes the default unless a template specifies otherwise.
 
@@ -215,7 +359,7 @@ await tools.options.when('logging', async () => {
 });
 
 if (tools.options.in('infrastructure', 'cloudflare-d1')) {
-  await tools.files.copyTemplateDir('__scaffold__/infra/cloudflare-d1', 'infra');
+  await tools.templates.copy('infra/cloudflare-d1', 'infra');
 }
 ```
 
@@ -238,7 +382,7 @@ export default async function setup({ ctx, tools }) {
 
   // Render a file from author assets, injecting placeholder values
   await tools.templates.renderFile(
-    '__scaffold__/README.tpl',
+    'README.tpl',
     'docs/README.md',
     {
       projectName: ctx.projectName,
@@ -257,7 +401,7 @@ export default async function setup({ ctx, tools }) {
   });
 
   if (tools.options.in('infrastructure', 'cloudflare-d1')) {
-    await tools.files.copyTemplateDir('__scaffold__/infra/cloudflare-d1', 'infra/cloudflare');
+    await tools.templates.copy('infra/cloudflare-d1', 'infra/cloudflare');
   }
 
   if (ctx.ide) {
@@ -309,7 +453,7 @@ export default async function setup({ ctx, tools }) {
   - `policy`: `"strict"` (reject unknown values) or `"warn"` (allow but warn). Defaults to `"strict"`.
   - `builtIn`: `true` for global dimensions such as `ide` when provided by create-scaffold.
 
-Legacy `setup.supportedOptions` entries are automatically upgraded into a `capabilities` dimension at runtime, but new templates should rely on `setup.dimensions` exclusively.
+Legacy `setup.supportedOptions` entries are automatically upgraded into a `capabilities` dimension at runtime, but new templates should rely on `metadata.dimensions` exclusively.
 
 ## Additional Reading
 
@@ -317,4 +461,4 @@ Legacy `setup.supportedOptions` entries are automatically upgraded into a `capab
 - [Author Workflow](../how-to/author-workflow.md) – recommended iteration loops for WYSIWYG and composable templates.
 - [Setup Script Recipes](../how-to/setup-recipes.md) – copy-ready snippets for frequent helper tasks.
 - [Dimensions Glossary](../reference/dimensions-glossary.md) – reserved names and usage guidelines.
-- [CLI Reference](cli-reference.md) – command-line switches such as `--ide`, `--options`, and logging.
+- [CLI Reference](cli-reference.md) – command-line options such as `--help`, `--dry-run`, `--log-file`, and `--no-cache`.

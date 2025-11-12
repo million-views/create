@@ -14,7 +14,7 @@ related_docs:
   - "setup-recipes.md"
   - "author-workflow.md"
   - "../reference/dimensions-glossary.md"
-last_updated: "2025-11-01"
+last_updated: "2025-11-12"
 ---
 
 # How to Create Templates
@@ -82,7 +82,7 @@ If you are authoring composable templates with snippets, add an author-assets di
 
 | Mode | When to choose it | Expectations |
 |------|-------------------|--------------|
-| **WYSIWYG** (`authoringMode: "wysiwyg"`) | You iterate directly in a working app and only need light placeholder replacement. | No runtime option parsing. `setup.dimensions` can stay empty. `_setup.mjs` should focus on tokens and minor tweaks. |
+| **WYSIWYG** (`authoringMode: "wysiwyg"`) | You iterate directly in a working app and only need light placeholder replacement. | No runtime option parsing. `metadata.dimensions` can stay empty. `_setup.mjs` should focus on tokens and minor tweaks. |
 | **Composable** (`authoringMode: "composable"`) | You need a single template to produce several variants (stacks, infra, capabilities). | Define option dimensions in `template.json`, store reusable assets in `__scaffold__/`, and keep `_setup.mjs` small but declarative. |
 | **Hybrid** | You start from a WYSIWYG base but require a few reusable snippets. | Keep placeholder replacement for inline updates, but move any repeated assets into `__scaffold__/` so they can be copied conditionally via helpers. |
 
@@ -152,7 +152,7 @@ Legacy `setup.supportedOptions` arrays still work; the CLI upgrades them to a `c
 
 ### Step 4: Write `_setup.mjs`
 
-The setup script receives a sandboxed environment. WYSIWYG templates typically only replace placeholders, while composable templates also branch on dimensions.
+The setup script receives a sandboxed environment with restricted capabilities. Setup scripts run in a Node.js VM with access to only `console`, timers, and `process.env` - all other Node built-ins are blocked. Use the provided `tools` object for all filesystem operations, JSON manipulation, and project modifications.
 
 **WYSIWYG example**
 ```javascript
@@ -174,11 +174,11 @@ export default async function setup({ ctx, tools }) {
   await tools.json.set('package.json', 'name', ctx.projectName);
 
   if (tools.options.in('capabilities', 'auth')) {
-    await tools.files.copyTemplateDir('__scaffold__/auth', 'src/auth');
+    await tools.templates.copy('auth', 'src/auth');
   }
 
   if (tools.options.in('infrastructure', 'cloudflare-d1')) {
-    await tools.files.copyTemplateDir('__scaffold__/infra/cloudflare-d1', 'infra');
+    await tools.templates.copy('infra/cloudflare-d1', 'infra');
   }
 
   await tools.text.ensureBlock({
@@ -190,7 +190,7 @@ export default async function setup({ ctx, tools }) {
 ```
 
 Remember:
-- Never import Node built-ins; use the helper APIs in the [Environment Reference](../reference/environment.md).
+- **Sandbox restrictions**: No `import`, `require`, `fs`, `path`, `eval`, or other Node built-ins. All operations must use `tools`.
 - Helpers are idempotent—rerunning `_setup.mjs` should not duplicate work.
 - `ctx.options.byDimension` already includes defaults, so treat it as authoritative.
 - `tools.placeholders.applyInputs()` saves you from rebuilding replacement maps—pair it with `tools.templates.renderFile()` when you need to inject placeholder values into generated assets.
@@ -202,9 +202,9 @@ Remember:
 | You need to… | Preferred approach | Helper(s) |
 |--------------|-------------------|-----------|
 | Update text inside existing files (README, package.json) | Leave the placeholder in the file and replace it inline | `tools.placeholders.applyInputs` for collected answers, `tools.placeholders.replaceAll`/`tools.text.ensureBlock` when you need custom values |
-| Generate variations of an entire file or directory | Store the source material in `authorAssetsDir` and copy it on demand | `tools.files.copyTemplateDir`, `tools.templates.renderFile` |
+| Generate variations of an entire file or directory | Store the source material in `authorAssetsDir` and copy it on demand | `tools.files.copyFromTemplate`, `tools.templates.renderFile` |
 | Produce derived JSON or config values | Mutate structured data during setup | `tools.json.set`, `tools.json.merge`
-| Toggle optional capabilities | Express the vocabulary under `setup.dimensions` and branch on `tools.options.in/when` | `tools.options.*`
+| Toggle optional capabilities | Express the vocabulary under `metadata.dimensions` and branch on `tools.options.in/when` | `tools.options.*`
 
 When `metadata.placeholders` lists a value that shouldn't be replaced inline, move the corresponding file into `__scaffold__/` (or your custom assets dir) and render it with helper data instead of leaving dangling tokens for end users.
 
@@ -235,7 +235,7 @@ create-scaffold copies this directory into the project before `_setup.mjs` runs 
 1. **Use make-template restore for fast loops.** After editing placeholders, run the generated restore command (based on `.template-undo.json`) to rehydrate the working app and verify changes inline.
 2. **Run create-scaffold dry runs when you touch metadata or `_setup.mjs`.**
    ```bash
-   create-scaffold demo-app --from-template react-vite --repo path/to/my-templates --dry-run
+   create-scaffold demo-app --template react-vite --repo path/to/my-templates --dry-run
    ```
    Dry runs show directory/file counts, setup script detection, and skip author assets so the preview matches the final scaffold.
 3. **Execute a full scaffold periodically** to ensure the handoff instructions make sense and the generated project boots as expected.
@@ -263,8 +263,9 @@ Help users get productive immediately by adding a `handoff` array to `template.j
   "description": "React starter with Vite",
   "handoff": [
     "npm install",
-    "npm run dev",
-    "Open README.md for IDE-specific tips"
+    "npm run dev  # Development server",
+    "npm run build && npm run start  # Production build test",
+    "See README.md for deployment options (Cloudflare Workers/Linode VPS)"
   ],
   "setup": {
     "dimensions": {
@@ -279,7 +280,7 @@ Help users get productive immediately by adding a `handoff` array to `template.j
 }
 ```
 
-Keep each instruction short and actionable (commands, follow-up docs, etc.). When `handoff` is omitted, the CLI falls back to `cd <project>` and a reminder to review the README.
+Keep each instruction short and actionable (commands, follow-up docs, etc.). Include both development and production testing steps. When `handoff` is omitted, the CLI falls back to `cd <project>` and a reminder to review the README.
 
 ### Step 7: Test your template
 
@@ -290,7 +291,7 @@ Before publishing, test your template locally:
 cd ..
 
 # Test the template (replace 'yourusername' with your GitHub username)
-npm create @m5nv/scaffold test-project -- --from-template react-vite --repo yourusername/my-templates
+npm create @m5nv/scaffold test-project -- --template react-vite --repo yourusername/my-templates
 ```
 
 Verify the template works correctly:

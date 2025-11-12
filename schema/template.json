@@ -86,6 +86,20 @@
           "items": {
             "$ref": "#/$defs/dimensionValue"
           }
+        },
+        "supportedIdes": {
+          "type": "array",
+          "description": "List of IDEs this template provides configuration for. Setup scripts can apply presets automatically.",
+          "items": {
+            "type": "string",
+            "enum": [
+              "vscode",
+              "cursor",
+              "windsurf",
+              "kiro"
+            ]
+          },
+          "uniqueItems": true
         }
       }
     }

@@ -9,7 +9,7 @@ related_docs:
   - "security-model.md"
   - "../guides/troubleshooting.md"
   - "../tutorial/getting-started.md"
-last_updated: "2024-10-26"
+last_updated: "2025-11-12"
 ---
 
 # Security

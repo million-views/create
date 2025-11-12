@@ -10,7 +10,7 @@ related_docs:
   - "security-model.md"
   - "template-system.md"
   - "../reference/cli-reference.md"
-last_updated: "2024-10-26"
+last_updated: "2025-11-12"
 ---
 
 # Design Philosophy and Decisions Explained
@@ -56,7 +56,7 @@ The options system represents our approach to template customization:
 
 ```bash
 # Simple, discoverable syntax
-create-scaffold my-project --from-template user/repo --options typescript,testing,docker
+create-scaffold new my-project user/repo --options typescript,testing,docker
 ```
 
 **Design Principles:**

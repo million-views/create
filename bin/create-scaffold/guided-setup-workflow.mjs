@@ -29,7 +29,6 @@ export class GuidedSetupWorkflow {
     repoUrl,
     branchName,
     options,
-    ide,
     placeholders,
     metadata
   }) {
@@ -55,7 +54,6 @@ export class GuidedSetupWorkflow {
     this.repoUrl = repoUrl;
     this.branchName = branchName;
     this.options = options || {};
-    this.ide = ide;
     this.placeholders = placeholders || [];
     this.metadata = metadata || {};
 
@@ -72,7 +70,6 @@ export class GuidedSetupWorkflow {
       repoUrl: this.repoUrl,
       branchName: this.branchName,
       options: this.options,
-      ide: this.ide,
       placeholders: this.placeholders,
       progress: {
         totalSteps: 12,
@@ -973,23 +970,29 @@ export class GuidedSetupWorkflow {
         projectDirectory: this.resolvedProjectDirectory,
         projectName: this.projectDirectory,
         logger: this.logger,
-        context: {
+        templateContext: {
           inputs: this.placeholders,
           authoringMode: this.metadata?.authoringMode || 'wysiwyg',
-          constants: this.metadata?.constants || {}
+          constants: this.metadata?.constants || {},
+          authorAssetsDir: this.metadata?.setup?.authorAssetsDir || '__scaffold__'
         },
-        dimensions: this.metadata?.dimensions || {}
+        dimensions: this.metadata?.dimensions || {},
+        supportedIdes: this.metadata?.setup?.supportedIdes || []
       });
 
-      // Execute the setup script
-      console.error('DEBUG: About to call loadSetupScript');
       await loadSetupScript(setupScriptPath, {
         projectName: this.projectDirectory,
         projectDir: this.resolvedProjectDirectory,
         cwd: process.cwd(),
         authoringMode: this.metadata?.authoringMode || 'wysiwyg',
         inputs: this.placeholders,
-        constants: this.metadata?.constants || {}
+        constants: this.metadata?.constants || {},
+        authorAssetsDir: this.metadata?.setup?.authorAssetsDir || '__scaffold__',
+        options: {
+          raw: this.options?.raw || [],
+          byDimension: this.options?.byDimension || {}
+        },
+        supportedIdes: this.metadata?.setup?.supportedIdes || []
       }, tools, this.logger);
 
       console.error('DEBUG: Setup script execution completed successfully');

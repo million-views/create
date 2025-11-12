@@ -352,7 +352,6 @@ export async function executeNewCommand(args) {
       repoUrl,
       branchName,
       options,
-      ide: args.ide,
       placeholders,
       metadata
     });

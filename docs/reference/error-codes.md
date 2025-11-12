@@ -7,7 +7,7 @@ prerequisites: []
 related_docs:
   - "cli-reference.md"
   - "../guides/troubleshooting.md"
-last_updated: "2025-11-01"
+last_updated: "2025-11-12"
 ---
 
 # Error Codes Reference
@@ -66,7 +66,7 @@ Use --help for usage information.
 
 | Error Message | Cause | Resolution |
 |---------------|-------|------------|
-| `--from-template flag is required` | Missing required template flag | Add `--from-template <template-name>` |
+| `--template flag is required` | Missing required template flag | Add `--template <template-name>` |
 | `Template name contains path traversal attempts` | Template name contains `..` or `/` | Use simple template name |
 | `Template name contains invalid characters` | Name contains special characters | Use only letters, numbers, hyphens, underscores |
 | `Template name is too long (maximum 255 characters)` | Name exceeds length limit | Choose shorter template name |

@@ -4,299 +4,777 @@ type: "how-to"
 audience: "template-authors"
 estimated_time: "10 minutes"
 prerequisites:
-  - "Read reference/environment.md"
-  - "Basic understanding of JavaScript modules"
+  - "Read environment.md reference"
+  - "Basic JavaScript module understanding"
 related_docs:
   - "creating-templates.md"
   - "../reference/environment.md"
-  - "../tutorial/first-template.md"
-last_updated: "2025-10-30"
+  - "author-workflow.md"
+last_updated: "2025-11-12"
 ---
 
 # Setup Script Recipes
 
-Use these copy-ready snippets to solve common setup tasks without reaching for third-party tooling. Each recipe now distinguishes between:
+Copy-ready snippets for common setup script tasks using the Schema V1.0 helper toolkit.
 
-- **Template artifact** – the file as it exists in your template repository (often containing `{{TOKEN}}` markers documented in `metadata.placeholders`).
-- **Sample runtime input** – values supplied by the user when they instantiate the template (surface through `ctx` and `ctx.options`).
-- **Setup fragment** – the `_setup.mjs` code you can paste directly into your script.
-- **Result** – the generated file after the fragment runs (assumes you also run your standard placeholder replacement if tokens remain).
+## Overview
 
-> **Tip:** The helpers read data that your template declares in `template.json`. Placeholders documented under `metadata.placeholders` stay available for `tools.placeholders.*`, and any `setup.dimensions` entries are exposed as normalized selections in `ctx.options.byDimension` for the option-related recipes.
+Setup scripts (`_setup.mjs`) run in a secure Node.js VM sandbox with restricted capabilities. Scripts receive an environment object with context and tools, but cannot access Node built-ins like `fs`, `path`, `import`, or `require`. All operations must use the provided `tools` object for security and consistency.
 
-## Apply collected placeholder inputs
+**Available in sandbox:**
+- `console` (for logging, but flagged by validation)
+- `setTimeout`/`clearTimeout`, `setInterval`/`clearInterval`
+- `process.env` (read-only)
+- `structuredClone` (if available)
 
-**Template artifact (`README.md`, `package.json`)**
-```markdown
-# {{PROJECT_NAME}}
-```
-```json
-{
-  "name": "{{PROJECT_NAME}}",
-  "description": "Created by {{AUTHOR}}"
-}
-```
+**Blocked in sandbox:**
+- `import` statements
+- `require()`, `eval()`, `Function()` constructor
+- Node built-ins (`fs`, `path`, `os`, `crypto`, etc.)
+- Direct filesystem access
 
-**Sample runtime input**
+---
 
-- `ctx.projectName`: `acme-demo`
-- `ctx.inputs.AUTHOR`: `Jane Doe`
+## Basic Placeholder Replacement
 
-**Setup fragment**
+## Basic Placeholder Replacement
+
+Replace placeholders in template files with user-provided values.
+
+### Recipe
+
 ```javascript
-await tools.placeholders.applyInputs(['README.md', 'package.json']);
-```
-
-**Result**
-```markdown
-# acme-demo
-```
-```json
-{
-  "name": "acme-demo",
-  "description": "Created by Jane Doe"
-}
-```
-
-> `applyInputs` automatically merges `ctx.inputs` (values collected from the instantiator) with `ctx.projectName`. Reach for `replaceAll` only when you need custom or computed replacements beyond the captured answers.
-
-## Render author templates with placeholder data
-
-**Template artifact (author assets)**
-```
-__scaffold__/
-└── docs/
-    └── README.tpl
-```
-`README.tpl`
-```markdown
-# {{projectName}}
-Authored by {{author}}
-```
-
-**Sample runtime input**
-
-- `ctx.projectName`: `acme-demo`
-- `ctx.inputs.AUTHOR`: `Jane Doe`
-
-**Setup fragment**
-```javascript
-await tools.templates.renderFile(
-  '__scaffold__/docs/README.tpl',
-  'docs/README.md',
-  {
-    projectName: ctx.projectName,
-    author: tools.inputs.get('AUTHOR', 'Unknown')
-  }
-);
-```
-
-**Result (`docs/README.md`)**
-```markdown
-# acme-demo
-Authored by Jane Doe
-```
-
-## Add lint and test scripts
-
-**Template artifact (`package.json`)**
-```json
-{
-  "name": "{{PROJECT_NAME}}",
-  "type": "module",
-  "scripts": {}
-}
-```
-
-**Sample runtime input**
-
-- `ctx.projectName`: `acme-demo`
-
-**Setup fragment**
-```javascript
+// _setup.mjs
 export default async function setup({ ctx, tools }) {
-  await tools.json.set('package.json', 'scripts.lint', 'npm run format && npm run typecheck');
-  await tools.json.set('package.json', 'scripts.test', 'node --test');
-  await tools.json.addToArray('package.json', 'keywords', ctx.projectName, { unique: true });
+  // Replace project name in multiple files
+  await tools.placeholders.replaceAll(
+    { PROJECT_NAME: ctx.projectName },
+    ['README.md', 'package.json', 'index.html']
+  );
 }
 ```
 
-**Result (`package.json`)** *(after this fragment and placeholder replacement)*
-```json
-{
-  "name": "acme-demo",
-  "type": "module",
-  "scripts": {
-    "lint": "npm run format && npm run typecheck",
-    "test": "node --test"
-  },
-  "keywords": ["acme-demo"]
-}
-```
+### Template Files
 
-## Insert a block after a marker
-
-**Template artifact (`README.md`)**
+**Before (README.md):**
 ```markdown
 # {{PROJECT_NAME}}
+
+Welcome to {{PROJECT_NAME}}!
 ```
 
-**Sample runtime input**
+**After scaffolding (with projectName = "my-app"):**
+```markdown
+# my-app
 
-- `ctx.projectName`: `acme-demo`
+Welcome to my-app!
+```
 
-**Setup fragment**
+---
+
+## Apply Collected Inputs
+
+Use values collected from the user during scaffolding.
+
+### Recipe
+
 ```javascript
-await tools.text.ensureBlock({
-  file: 'README.md',
-  marker: `# ${ctx.projectName}`,
-  block: [
-    '## Getting Started',
-    '- npm install',
-    '- npm run dev'
-  ]
-});
+// _setup.mjs
+export default async function setup({ ctx, tools }) {
+  // Apply all collected placeholder inputs
+  await tools.placeholders.applyInputs(['README.md', 'package.json']);
+}
 ```
 
-**Result (`README.md`)** *(after placeholder replacement turns the heading into `# acme-demo`)*
+### Template Files
+
+**Template (README.md):**
 ```markdown
-# acme-demo
-## Getting Started
-- npm install
-- npm run dev
+# {{PROJECT_NAME}}
+Created by {{AUTHOR}}
+License: {{LICENSE}}
 ```
 
-## Replace content between markers
-
-**Template artifact (`docs/extras.md`)**
+**Result (after scaffolding):**
 ```markdown
-<!-- integrations:start -->
-Old content
-<!-- integrations:end -->
+# my-app
+Created by Jane Doe
+License: MIT
 ```
 
-**Sample runtime input**
+**Note**: `applyInputs()` automatically uses values from `ctx.inputs` collected during scaffolding.
 
-- `ctx.projectName`: `acme-demo`
-- `new Date().toISOString()`: `2024-11-07T00:00:00.000Z`
+---
 
-**Setup fragment**
+## Set JSON Values
+
+Update JSON files programmatically.
+
+### Recipe
+
 ```javascript
-await tools.text.replaceBetween({
-  file: 'docs/extras.md',
-  start: '<!-- integrations:start -->',
-  end: '<!-- integrations:end -->',
-  block: [
-    `Project: ${ctx.projectName}`,
-    `Generated: ${new Date().toISOString()}`
-  ]
-});
+// _setup.mjs
+export default async function setup({ ctx, tools }) {
+  // Set simple values
+  await tools.json.set('package.json', 'name', ctx.projectName);
+  await tools.json.set('package.json', 'version', '1.0.0');
+  
+  // Set nested values
+  await tools.json.set('package.json', 'author.name', 'Jane Doe');
+  await tools.json.set('package.json', 'author.email', 'jane@example.com');
+  
+  // Set scripts
+  await tools.json.set('package.json', 'scripts.dev', 'vite');
+  await tools.json.set('package.json', 'scripts.build', 'vite build');
+}
 ```
 
-**Result (`docs/extras.md`)**
-```markdown
-<!-- integrations:start -->
-Project: acme-demo
-Generated: 2024-11-07T00:00:00.000Z
-<!-- integrations:end -->
-```
-> Timestamp shown for illustration; actual output reflects the current date.
-
-## Append scaffold-specific notes
-
-**Template artifact (`NOTES.md`)**
-```markdown
-# Internal Notes
-```
-
-**Sample runtime input**
-
-- `ctx.projectName`: `acme-demo`
-
-**Setup fragment**
-```javascript
-await tools.text.appendLines({
-  file: 'NOTES.md',
-  lines: [
-    '## Scaffold Notes',
-    `Created by @m5nv/create-scaffold for ${ctx.projectName}`
-  ]
-});
-```
-
-**Result (`NOTES.md`)**
-```markdown
-# Internal Notes
-## Scaffold Notes
-Created by @m5nv/create-scaffold for acme-demo
-```
-
-## Copy author assets into the project
-
-**Template artifact (staged during scaffold)**
-```
-__scaffold__/
-└── infra/
-  └── docker-compose.yml
-```
-
-**Sample runtime input**
-
-- `ctx.authoringMode`: `composable`
-- `ctx.options.byDimension.capabilities`: `['api']`
-
-**Setup fragment**
-```javascript
-await tools.files.copyTemplateDir('__scaffold__/infra', 'infra', { overwrite: false });
-```
-
-**Result (project directory)**
-```
-infra/
-└── docker-compose.yml
-```
-> The `__scaffold__/` directory itself is removed after setup completes, so only the copied files remain in the generated project.
-
-## Summarize selected capabilities
-
-**Template artifact (`template.json` excerpt)**
+**Result (package.json):**
 ```json
 {
-  "setup": {
-    "dimensions": {
-      "capabilities": {
-        "type": "multi",
-        "values": ["auth", "api", "logging"]
-      }
-    }
+  "name": "my-app",
+  "version": "1.0.0",
+  "author": {
+    "name": "Jane Doe",
+    "email": "jane@example.com"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build"
   }
 }
 ```
 
-**Sample runtime input**
+---
 
-- `ctx.options.byDimension.capabilities`: `['auth', 'logging']`
+## Merge JSON Objects
 
-**Setup fragment**
+Merge objects into existing JSON files.
+
+### Recipe
+
 ```javascript
-const enabled = [];
-if (tools.options.in('capabilities', 'auth')) enabled.push('Authentication');
-if (tools.options.in('capabilities', 'api')) enabled.push('API');
-if (tools.options.in('capabilities', 'logging')) enabled.push('Structured logging');
-
-if (enabled.length > 0) {
-  await tools.text.appendLines({
-    file: 'README.md',
-    lines: ['## Enabled Features', ...enabled.map(item => `- ${item}`)]
+// _setup.mjs
+export default async function setup({ ctx, tools }) {
+  // Merge dependencies
+  await tools.json.merge('package.json', {
+    dependencies: {
+      'react': '^18.2.0',
+      'react-dom': '^18.2.0'
+    },
+    devDependencies: {
+      'vite': '^5.0.0',
+      '@vitejs/plugin-react': '^4.2.0'
+    }
   });
 }
 ```
 
-**Result (`README.md`)**
-```markdown
-## Enabled Features
-- Authentication
-- Structured logging
+**Before (package.json):**
+```json
+{
+  "name": "my-app",
+  "dependencies": {}
+}
 ```
 
-Use these recipes as building blocks—compose them to create richer scaffolding behavior tailored to your team.
+**After:**
+```json
+{
+  "name": "my-app",
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "vite": "^5.0.0",
+    "@vitejs/plugin-react": "^4.2.0"
+  }
+}
+```
+
+---
+
+## Insert Text Block After Marker
+
+Add content after a specific marker in a file.
+
+### Recipe
+
+```javascript
+// _setup.mjs
+export default async function setup({ ctx, tools }) {
+  await tools.text.ensureBlock({
+    file: 'README.md',
+    marker: `# ${ctx.projectName}`,
+    block: [
+      '',
+      '## Getting Started',
+      '',
+      '```bash',
+      'npm install',
+      'npm run dev',
+      '```'
+    ]
+  });
+}
+```
+
+**Before (README.md):**
+```markdown
+# my-app
+```
+
+**After:**
+```markdown
+# my-app
+
+## Getting Started
+
+```bash
+npm install
+npm run dev
+```
+```
+
+---
+
+## Replace Content Between Markers
+
+Replace content between two markers.
+
+### Recipe
+
+```javascript
+// _setup.mjs
+export default async function setup({ ctx, tools }) {
+  await tools.text.replaceBetween({
+    file: 'docs/config.md',
+    start: '<!-- features:start -->',
+    end: '<!-- features:end -->',
+    block: [
+      '## Enabled Features',
+      '',
+      '- Authentication',
+      '- Testing',
+      '- Internationalization'
+    ]
+  });
+}
+```
+
+**Before (docs/config.md):**
+```markdown
+<!-- features:start -->
+Old content here
+<!-- features:end -->
+```
+
+**After:**
+```markdown
+<!-- features:start -->
+## Enabled Features
+
+- Authentication
+- Testing
+- Internationalization
+<!-- features:end -->
+```
+
+---
+
+## Append Lines to File
+
+Add lines to the end of a file.
+
+### Recipe
+
+```javascript
+// _setup.mjs
+export default async function setup({ ctx, tools }) {
+  await tools.text.appendLines({
+    file: 'NOTES.md',
+    lines: [
+      '',
+      '## Scaffold Information',
+      '',
+      `Project: ${ctx.projectName}`,
+      `Created: ${new Date().toISOString()}`,
+      `Template: ${ctx.templateName || 'custom'}`
+    ]
+  });
+}
+```
+
+**Result (NOTES.md):**
+```markdown
+# Project Notes
+
+## Scaffold Information
+
+Project: my-app
+Created: 2025-11-12T10:30:00.000Z
+Template: react-vite
+```
+
+---
+
+## Copy Author Assets
+
+Copy template-specific files into the project.
+
+### Recipe
+
+```javascript
+// _setup.mjs
+export default async function setup({ ctx, tools }) {
+  // Copy entire directory
+  await tools.files.copyFromTemplate(
+    '__scaffold__/auth',
+    'src/auth',
+    { overwrite: false }
+  );
+  
+  // Copy single file
+  await tools.templates.copy(
+    'tailwind.config.js',
+    'tailwind.config.js'
+  );
+}
+```
+
+**Template Structure:**
+```
+template/
+├── __scaffold__/
+│   ├── auth/
+│   │   ├── AuthProvider.tsx
+│   │   └── useAuth.ts
+│   └── tailwind.config.js
+└── src/
+```
+
+**Result (scaffolded project):**
+```
+my-app/
+├── src/
+│   └── auth/
+│       ├── AuthProvider.tsx
+│       └── useAuth.ts
+└── tailwind.config.js
+```
+
+**Note**: `__scaffold__/` directory is automatically removed after setup completes.
+
+---
+
+## Conditional Features with Dimensions
+
+Use template dimensions to conditionally add features.
+
+### Recipe
+
+```javascript
+// _setup.mjs
+export default async function setup({ ctx, tools }) {
+  const features = ctx.options.byDimension.features || [];
+
+  // Check if feature is enabled
+  if (tools.options.in('features', 'auth')) {
+    await tools.templates.copy('auth', 'src/auth');
+    await tools.json.merge('package.json', {
+      dependencies: {
+        'jsonwebtoken': '^9.0.0'
+      }
+    });
+    tools.logger.info('Added authentication');
+  }
+
+  if (tools.options.in('features', 'testing')) {
+    await tools.templates.copy('testing', 'test');
+    await tools.json.merge('package.json', {
+      devDependencies: {
+        'vitest': '^1.0.0'
+      }
+    });
+    tools.logger.info('Added testing setup');
+  }
+
+  if (tools.options.in('features', 'i18n')) {
+    await tools.templates.copy('i18n', 'src/i18n');
+    await tools.json.merge('package.json', {
+      dependencies: {
+        'i18next': '^23.0.0',
+        'react-i18next': '^14.0.0'
+      }
+    });
+    tools.logger.info('Added internationalization');
+  }
+}
+```
+
+**Template Structure:**
+```
+template/
+├── __scaffold__/
+│   ├── auth/
+│   ├── testing/
+│   └── i18n/
+└── template.json
+```
+
+**Usage:**
+```bash
+npm create @m5nv/scaffold my-app -- --template react-vite --options "features=auth+testing"
+```
+
+---
+
+## Single-Select Dimensions
+
+Handle single-select options.
+
+### Recipe
+
+```javascript
+// _setup.mjs
+export default async function setup({ ctx, tools }) {
+  const styling = ctx.options.byDimension.styling || 'css-modules';
+
+  switch (styling) {
+    case 'tailwind':
+      await tools.templates.copy('tailwind.config.js', 'tailwind.config.js');
+      await tools.templates.copy('postcss.config.js', 'postcss.config.js');
+      await tools.json.merge('package.json', {
+        devDependencies: {
+          'tailwindcss': '^3.3.0',
+          'postcss': '^8.4.0',
+          'autoprefixer': '^10.4.0'
+        }
+      });
+      tools.logger.info('Configured Tailwind CSS');
+      break;
+
+    case 'styled-components':
+      await tools.json.merge('package.json', {
+        dependencies: {
+          'styled-components': '^6.0.0'
+        },
+        devDependencies: {
+          '@types/styled-components': '^5.1.26'
+        }
+      });
+      tools.logger.info('Configured Styled Components');
+      break;
+
+    case 'css-modules':
+      // Default, no additional setup
+      tools.logger.info('Using CSS Modules');
+      break;
+  }
+}
+```
+
+**Usage:**
+```bash
+npm create @m5nv/scaffold my-app -- --template react-vite --options "styling=tailwind"
+```
+
+---
+
+## Generate Environment Files
+
+Create `.env` files with configuration.
+
+### Recipe
+
+```javascript
+// _setup.mjs
+export default async function setup({ ctx, tools }) {
+  const envContent = [
+    '# Environment Variables',
+    '',
+    `# Project: ${ctx.projectName}`,
+    `PORT=${ctx.constants.DEFAULT_PORT || 3000}`,
+    `NODE_ENV=development`,
+    '',
+    '# API Configuration',
+    'API_URL=http://localhost:3000/api',
+    `API_TIMEOUT=${ctx.constants.API_TIMEOUT || 5000}`,
+    '',
+    '# Feature Flags',
+    'ENABLE_AUTH=true',
+    'ENABLE_ANALYTICS=false'
+  ].join('\n');
+
+  await tools.files.write('.env.example', envContent);
+  tools.logger.info('Created .env.example');
+}
+```
+
+**Result (.env.example):**
+```bash
+# Environment Variables
+
+# Project: my-app
+PORT=3000
+NODE_ENV=development
+
+# API Configuration
+API_URL=http://localhost:3000/api
+API_TIMEOUT=5000
+
+# Feature Flags
+ENABLE_AUTH=true
+ENABLE_ANALYTICS=false
+```
+
+---
+
+## Add Dependencies Based on Options
+
+Conditionally install dependencies.
+
+### Recipe
+
+```javascript
+// _setup.mjs
+export default async function setup({ ctx, tools }) {
+  const features = ctx.options.byDimension.features || [];
+  const deps = {};
+  const devDeps = {};
+
+  // Build dependency object based on features
+  if (features.includes('auth')) {
+    deps['jsonwebtoken'] = '^9.0.0';
+    deps['bcrypt'] = '^5.1.0';
+  }
+
+  if (features.includes('testing')) {
+    devDeps['vitest'] = '^1.0.0';
+    devDeps['@testing-library/react'] = '^14.0.0';
+  }
+
+  if (features.includes('i18n')) {
+    deps['i18next'] = '^23.0.0';
+    deps['react-i18next'] = '^14.0.0';
+  }
+
+  // Merge all at once
+  if (Object.keys(deps).length > 0 || Object.keys(devDeps).length > 0) {
+    await tools.json.merge('package.json', {
+      ...(Object.keys(deps).length > 0 && { dependencies: deps }),
+      ...(Object.keys(devDeps).length > 0 && { devDependencies: devDeps })
+    });
+  }
+}
+```
+
+---
+
+## Render Templates with Data
+
+Use template files with placeholder substitution.
+
+### Recipe
+
+```javascript
+// _setup.mjs
+export default async function setup({ ctx, tools }) {
+  // Render template file with data
+  await tools.templates.renderFile(
+    'README.template.md',
+    'README.md',
+    {
+      projectName: ctx.projectName,
+      author: ctx.author?.name || 'Unknown',
+      description: 'My awesome project',
+      features: ctx.options.byDimension.features || []
+    }
+  );
+}
+```
+
+**Template (README.template.md):**
+```markdown
+# {{projectName}}
+
+Created by {{author}}
+
+## Description
+
+{{description}}
+
+## Features
+
+{{#each features}}
+- {{this}}
+{{/each}}
+```
+
+**Result (README.md):**
+```markdown
+# my-app
+
+Created by Jane Doe
+
+## Description
+
+My awesome project
+
+## Features
+
+- auth
+- testing
+- i18n
+```
+
+---
+
+## Logging
+
+Add informative logging to setup scripts.
+
+### Recipe
+
+```javascript
+// _setup.mjs
+export default async function setup({ ctx, tools }) {
+  tools.logger.info('Starting setup...');
+  
+  await tools.json.set('package.json', 'name', ctx.projectName);
+  tools.logger.info(`Set project name to: ${ctx.projectName}`);
+  
+  const features = ctx.options.byDimension.features || [];
+  
+  if (features.length > 0) {
+    tools.logger.info(`Enabling features: ${features.join(', ')}`);
+  } else {
+    tools.logger.info('No additional features enabled');
+  }
+  
+  tools.logger.info('Setup complete!');
+}
+```
+
+**Console Output:**
+```
+ℹ Starting setup...
+ℹ Set project name to: my-app
+ℹ Enabling features: auth, testing
+ℹ Setup complete!
+```
+
+---
+
+## Complete Example
+
+Comprehensive setup script combining multiple patterns.
+
+### Recipe
+
+```javascript
+// _setup.mjs
+export default async function setup({ ctx, tools }) {
+  tools.logger.info('Configuring project...');
+
+  // 1. Basic project setup
+  await tools.json.set('package.json', 'name', ctx.projectName);
+  await tools.json.set('package.json', 'version', '1.0.0');
+
+  // 2. Apply placeholder inputs
+  await tools.placeholders.applyInputs(['README.md', 'package.json']);
+
+  // 3. Handle styling dimension
+  const styling = ctx.options.byDimension.styling || 'css-modules';
+  
+  if (styling === 'tailwind') {
+    await tools.templates.copy('tailwind.config.js', 'tailwind.config.js');
+    await tools.json.merge('package.json', {
+      devDependencies: {
+        'tailwindcss': '^3.3.0'
+      }
+    });
+    tools.logger.info('Configured Tailwind CSS');
+  }
+
+  // 4. Handle features dimension
+  const features = ctx.options.byDimension.features || [];
+
+  if (features.includes('auth')) {
+    await tools.templates.copy('auth', 'src/auth');
+    await tools.json.merge('package.json', {
+      dependencies: {
+        'jsonwebtoken': '^9.0.0'
+      }
+    });
+    tools.logger.info('Added authentication');
+  }
+
+  if (features.includes('testing')) {
+    await tools.templates.copy('testing', 'test');
+    await tools.json.merge('package.json', {
+      devDependencies: {
+        'vitest': '^1.0.0'
+      }
+    });
+    tools.logger.info('Added testing');
+  }
+
+  // 5. Generate environment file
+  const envContent = [
+    '# Environment Variables',
+    `PORT=${ctx.constants.DEFAULT_PORT || 3000}`,
+    'NODE_ENV=development'
+  ].join('\n');
+  
+  await tools.files.write('.env.example', envContent);
+
+  // 6. Update README with next steps
+  await tools.text.ensureBlock({
+    file: 'README.md',
+    marker: `# ${ctx.projectName}`,
+    block: [
+      '',
+      '## Quick Start',
+      '',
+      '```bash',
+      'npm install',
+      'npm run dev',
+      '```'
+    ]
+  });
+
+  tools.logger.info('Setup complete!');
+}
+```
+
+---
+
+## Best Practices
+
+1. **Use Idempotent Operations**: All helper functions are idempotent - running them multiple times produces the same result
+2. **Check Options First**: Always check if dimensions are set before using them
+3. **Provide Defaults**: Use `||` operator to provide sensible defaults
+4. **Log Important Actions**: Help users understand what's being configured
+5. **Group Related Operations**: Organize code by concern (styling, features, config, etc.)
+6. **Error Handling**: Let errors propagate - the CLI handles them appropriately
+7. **Test Thoroughly**: Test all dimension combinations
+8. **Keep It Simple**: Don't over-engineer - start simple and add complexity as needed
+
+---
+
+## Next Steps
+
+- **[Environment Reference](../reference/environment.md)** - Complete API documentation
+- **[Creating Templates](creating-templates.md)** - Template authoring guide
+- **[Author Workflow](author-workflow.md)** - Round-trip development process
+- **[CLI Reference](../reference/cli-reference.md)** - Command-line interface
+
+---
+
+## Related Documentation
+
+- [Getting Started Tutorial](../tutorial/getting-started.md) - First project walkthrough
+- [First Template Tutorial](../tutorial/first-template.md) - Hands-on examples
+- [Troubleshooting Guide](../guides/troubleshooting.md) - Common issues

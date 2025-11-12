@@ -9,7 +9,7 @@ prerequisites:
 related_docs:
   - "../how-to/development.md"
   - "../guides/troubleshooting.md"
-last_updated: "2025-10-30"
+last_updated: "2025-11-12"
 ---
 
 # Rewriting Git History to Remove Accidentally Committed Files
