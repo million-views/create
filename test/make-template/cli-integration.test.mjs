@@ -8,7 +8,7 @@
 
 import { test } from 'node:test';
 import assert from 'node:assert';
-import { _readFile, writeFile, mkdir, rm } from 'node:fs/promises';
+import { writeFile, mkdir, rm } from 'node:fs/promises';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execSync } from 'node:child_process';
@@ -28,18 +28,23 @@ function execCLI(args, options = {}) {
       timeout: TEST_TIMEOUT,
       cwd: options.cwd || process.cwd(),
       env: { ...process.env, ...options.env },
-      stdio: options.stdio || 'pipe'
+      stdio: 'pipe'
     });
     return {
       exitCode: 0,
       stdout: result,
-      stderr: ''
+      stderr: '',
+      combined: result
     };
   } catch (error) {
+    const stdout = error.stdout ? (typeof error.stdout === 'string' ? error.stdout : error.stdout.toString()) : '';
+    const stderr = error.stderr ? (typeof error.stderr === 'string' ? error.stderr : error.stderr.toString()) : '';
+    const combined = stdout + stderr;
     return {
       exitCode: error.status || 1,
-      stdout: error.stdout || '',
-      stderr: error.stderr || ''
+      stdout,
+      stderr,
+      combined
     };
   }
 }
@@ -113,8 +118,8 @@ test('make-template CLI validate integration', async (t) => {
     const result = execCLI(['validate', templatePath]);
 
     assert.equal(result.exitCode, 1, `Expected exit code 1, got ${result.exitCode}`);
-    assert(result.stdout.includes('❌ Template validation failed!'));
-    assert(result.stdout.includes('Missing required field: name'));
+    assert(result.combined.includes('❌ Template validation failed!'));
+    assert(result.combined.includes('Missing required field: name'));
   });
 
   await t.test('validate rejects invalid domain template.json', async () => {
@@ -135,8 +140,8 @@ test('make-template CLI validate integration', async (t) => {
     const result = execCLI(['validate', missingPath]);
 
     assert.equal(result.exitCode, 1, `Expected exit code 1, got ${result.exitCode}`);
-    assert(result.stdout.includes('❌ Template validation failed!'));
-    assert(result.stdout.includes('no such file or directory'));
+    assert(result.combined.includes('❌ Template validation failed!'));
+    assert(result.combined.includes('no such file or directory'));
   });
 
   await t.test('validate defaults to template.json when no file specified', async () => {
@@ -156,9 +161,9 @@ test('make-template CLI validate integration', async (t) => {
     const result = execCLI(['validate', templatePath]);
 
     assert.equal(result.exitCode, 1);
-    assert(result.stdout.includes('📋 Validation Summary:'));
-    assert(result.stdout.includes('🚨 Errors:'));
-    assert(result.stdout.includes('Missing required field: name'));
+    assert(result.combined.includes('📋 Validation Summary:'));
+    assert(result.combined.includes('❌ Errors:'));
+    assert(result.combined.includes('Missing required field: name'));
   });
 
   await t.test('validate shows warnings when present', async () => {

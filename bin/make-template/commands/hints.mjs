@@ -134,6 +134,8 @@ export async function main(argv = null, _config = {}) {
   logger.info('   }');
   logger.info('');
   logger.info('💡 Tip: Use these hints to provide clear, actionable guidance for template users!');
+
+  return 0;
 }
 
 // If this file is executed directly, run main()

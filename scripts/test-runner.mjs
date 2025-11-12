@@ -224,6 +224,42 @@ class TestRunner {
         homeSuffix: 'resource'
       },
       {
+        name: 'Make-Template Init Tests',
+        command: ['--test', './test/make-template/init.test.mjs'],
+        description: 'Template initialization and skeleton generation',
+        homeSuffix: 'make-template-init'
+      },
+      {
+        name: 'Make-Template Hints Tests',
+        command: ['--test', './test/make-template/hints.test.mjs'],
+        description: 'Template authoring guidance and hints display',
+        homeSuffix: 'make-template-hints'
+      },
+      {
+        name: 'Make-Template Convert Tests',
+        command: ['--test', './test/make-template/convert.test.mjs'],
+        description: 'Project to template conversion functionality',
+        homeSuffix: 'make-template-convert'
+      },
+      {
+        name: 'Make-Template Restore Tests',
+        command: ['--test', './test/make-template/restore.test.mjs'],
+        description: 'Template to project restoration functionality',
+        homeSuffix: 'make-template-restore'
+      },
+      {
+        name: 'Make-Template Test Command Tests',
+        command: ['--test', './test/make-template/test-command.test.mjs'],
+        description: 'Template testing with create-scaffold integration',
+        homeSuffix: 'make-template-test'
+      },
+      {
+        name: 'Make-Template Validate Tests',
+        command: ['--test', './test/make-template/cli-integration.test.mjs'],
+        description: 'Template validation and schema compliance',
+        homeSuffix: 'make-template-validate'
+      },
+      {
         name: 'Smoke Tests',
         command: ['./scripts/smoke-test.mjs'],
         description: 'Production readiness and integration validation',

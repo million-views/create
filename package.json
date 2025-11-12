@@ -77,6 +77,13 @@
     "test:spec:file": "node ./test/create-scaffold/spec-compliance-verification.mjs",
     "test:leaks": "node ./test/create-scaffold/resource-leak-test.mjs",
     "test:smoke:file": "node ./scripts/smoke-test.mjs",
+    "test:make-template": "node scripts/test-runner.mjs --suite \"Make-Template Init Tests\" && node scripts/test-runner.mjs --suite \"Make-Template Hints Tests\" && node scripts/test-runner.mjs --suite \"Make-Template Convert Tests\" && node scripts/test-runner.mjs --suite \"Make-Template Restore Tests\" && node scripts/test-runner.mjs --suite \"Make-Template Test Command Tests\" && node scripts/test-runner.mjs --suite \"Make-Template Validate Tests\"",
+    "test:make-template:init": "node scripts/test-runner.mjs --suite \"Make-Template Init Tests\"",
+    "test:make-template:hints": "node scripts/test-runner.mjs --suite \"Make-Template Hints Tests\"",
+    "test:make-template:convert": "node scripts/test-runner.mjs --suite \"Make-Template Convert Tests\"",
+    "test:make-template:restore": "node scripts/test-runner.mjs --suite \"Make-Template Restore Tests\"",
+    "test:make-template:test": "node scripts/test-runner.mjs --suite \"Make-Template Test Command Tests\"",
+    "test:make-template:validate": "node scripts/test-runner.mjs --suite \"Make-Template Validate Tests\"",
     "validate": "npm run schema:check && node ./scripts/comprehensive-validation.mjs",
     "validate:docs": "node ./scripts/validate-docs.mjs",
     "validate:code": "node ./scripts/comprehensive-validation.mjs --code-only"
