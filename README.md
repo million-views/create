@@ -35,7 +35,7 @@ npx @m5nv/create-scaffold new my-app --template react-vite
 cd my-awesome-project
 
 # Convert to template
-npx @m5nv/make-template convert
+npx make-template convert
 
 # Template is ready - share it or publish it!
 ```
@@ -44,7 +44,7 @@ npx @m5nv/make-template convert
 
 ```bash
 # When developing/testing templates
-npx @m5nv/make-template restore
+npx make-template restore
 ```
 
 ## Why Use This Ecosystem?
@@ -165,7 +165,7 @@ npm install -g @m5nv/create-scaffold @m5nv/make-template
 npm create @m5nv/scaffold my-app -- --template react-vite
 
 # make-template  
-npx @m5nv/make-template convert
+npx make-template convert
 ```
 
 ## Documentation

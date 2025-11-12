@@ -117,7 +117,7 @@ The generated _setup.mjs must be compatible with the create-scaffold tools API:
 **Interface:**
 ```javascript
 // Command-line interface
-npx @m5nv/make-template [options]
+npx make-template [options]
 
 // Options schema (aligned with create-scaffold expectations)
 {

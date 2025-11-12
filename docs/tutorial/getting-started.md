@@ -99,7 +99,7 @@ Let's also verify that make-template is available.
 
 1. **Check if make-template is available:**
    ```bash
-   npx @m5nv/make-template --help
+   npx make-template --help
    ```
 
 ### Expected Result

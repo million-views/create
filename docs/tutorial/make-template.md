@@ -136,7 +136,7 @@ Let's start by creating a simple React application template that demonstrates ba
 
 6. **Convert to template:**
    ```bash
-   npx @m5nv/make-template convert --yes
+   npx make-template convert --yes
    ```
 
 ### Expected Result
@@ -273,7 +273,7 @@ Now let's create an API server template that demonstrates backend development pa
 
 6. **Convert to template:**
    ```bash
-   npx @m5nv/make-template convert --yes
+   npx make-template convert --yes
    ```
 
 ### Expected Result
@@ -474,7 +474,7 @@ Finally, let's create a full-stack application template that combines frontend a
 
 7. **Convert to template:**
    ```bash
-   npx @m5nv/make-template convert --yes
+   npx make-template convert --yes
    ```
 
 ### Expected Result
