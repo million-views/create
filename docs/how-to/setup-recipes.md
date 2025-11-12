@@ -776,5 +776,5 @@ export default async function setup({ ctx, tools }) {
 ## Related Documentation
 
 - [Getting Started Tutorial](../tutorial/getting-started.md) - First project walkthrough
-- [create-scaffold Examples](../tutorial/create-scaffold-examples.md) - Hands-on examples
+- [create-scaffold Tutorial](../tutorial/create-scaffold.md) - Hands-on examples
 - [Troubleshooting Guide](../guides/troubleshooting.md) - Common issues

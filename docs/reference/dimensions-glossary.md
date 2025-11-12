@@ -618,5 +618,5 @@ If you have templates using older patterns, here's how to migrate:
 ## Related Documentation
 
 - [Getting Started Tutorial](../tutorial/getting-started.md) - First project walkthrough
-- [create-scaffold Examples](../tutorial/create-scaffold-examples.md) - Hands-on examples
+- [create-scaffold Tutorial](../tutorial/create-scaffold.md) - Hands-on examples
 - [Author Workflow](../how-to/author-workflow.md) - Template development

@@ -7,7 +7,7 @@ prerequisites:
   - "Understanding of git repositories and file systems"
   - "Basic knowledge of Node.js and CLI tools"
 related_docs:
-  - "../tutorial/create-scaffold-examples.md"
+  - "../tutorial/create-scaffold.md"
   - "../how-to/creating-templates.md"
   - "../reference/environment.md"
   - "../how-to/setup-recipes.md"
@@ -282,6 +282,6 @@ Current architectural limitations that users should understand:
 
 ## Further Reading
 
-- 📚 [create-scaffold Examples](../tutorial/create-scaffold-examples.md) - Create your first project
+- 📚 [create-scaffold Tutorial](../tutorial/create-scaffold.md) - Create your first project
 - 🛠️ [Creating Templates Guide](../how-to/creating-templates.md) - Comprehensive template creation guide
 - 📖 [Environment Reference](../reference/environment.md) - Complete `ctx` and `tools` documentation

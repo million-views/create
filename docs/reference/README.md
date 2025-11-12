@@ -108,7 +108,7 @@ Complete reference for running and understanding the test suite, including all t
 
 ### Learning-Oriented
 - [Getting Started Tutorial](../tutorial/getting-started.md) - Step-by-step beginner guide
-- [create-scaffold Examples](../tutorial/create-scaffold-examples.md) - Create your first project
+- [create-scaffold Tutorial](../tutorial/create-scaffold.md) - Create your first project
 
 ### Task-Oriented
 - [Creating Templates Guide](../how-to/creating-templates.md) - How to create templates
