@@ -1,5 +1,5 @@
 ---
-title: "Getting Started with @m5nv/create"
+title: "Getting Started with create-scaffold"
 type: "tutorial"
 audience: "beginner"
 estimated_time: "15 minutes"
@@ -11,23 +11,23 @@ related_docs:
   - "../how-to/creating-templates.md"
   - "../reference/cli-reference.md"
   - "../how-to/author-workflow.md"
-  - "first-template.md"
+  - "create-scaffold-examples.md"
   - "../how-to/setup-recipes.md"
 last_updated: "2025-11-12"
 ---
 
-# Getting Started with @m5nv/create
+# Getting Started with create-scaffold
 
 ## What you'll learn
 
-In this tutorial, you'll learn how to use the complete @m5nv/create ecosystem to create projects from templates and convert your projects into reusable templates. By the end, you'll understand the round-trip workflow between scaffolding and authoring.
+In this tutorial, you'll learn how to create projects from templates using the `create-scaffold` command. You'll explore template discovery, customization options, and best practices for getting started with the @m5nv/create ecosystem.
 
 ## What you'll build
 
-You'll create and convert projects:
-1. A project from a template using `create-scaffold`
-2. Convert that project into a template using `make-template`
-3. Restore the template back to a working project
+You'll create projects from templates:
+1. A basic project from a template using `create-scaffold`
+2. A customized project with template options
+3. Projects from custom repositories
 
 ## Prerequisites
 
@@ -315,7 +315,7 @@ For custom repositories, you'd see similar output but pulling from your specifie
 
 Summary:
 
-- Created a project using @m5nv/create-scaffold
+- Created projects using create-scaffold
 - Explored template discovery with `--list-templates`
 - Applied template options during setup
 - Ran dry run mode to inspect operations
@@ -327,7 +327,7 @@ Core workflow:
 3. Create with your chosen template and options
 4. Customize further as needed
 
-## Step 4: Production Readiness
+## Step 7: Production Readiness
 
 Before deploying to production, ensure your scaffolded project is production-ready.
 
@@ -402,9 +402,9 @@ Next steps:
 
 - [Create Your Own Templates](../how-to/creating-templates.md) — Build reusable project templates for your team
 - [Complete CLI Reference](../reference/cli-reference.md) — Explore available commands and options
+- [create-scaffold Examples](create-scaffold-examples.md) — Hands-on examples with increasing complexity
+- [make-template Tutorial](make-template-getting-started.md) — Learn to convert projects into templates
 - [Troubleshooting Guide](../guides/troubleshooting.md) — Address common issues
-- [Security Model](../explanation/security-model.md) — Review the protection mechanisms
-- [Template System](../explanation/template-system.md) — Understand repository structure
 
 ## Troubleshooting
 

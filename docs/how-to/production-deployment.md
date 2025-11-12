@@ -8,7 +8,7 @@ prerequisites:
   - "Basic familiarity with your chosen platform"
 related_docs:
   - "../tutorial/getting-started.md"
-  - "../tutorial/first-template.md"
+  - "../tutorial/create-scaffold-examples.md"
   - "../reference/cli-reference.md"
   - "../guides/troubleshooting.md"
 last_updated: "2025-11-12"

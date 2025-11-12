@@ -7,7 +7,7 @@ prerequisites: []
 related_docs:
   - "../how-to/creating-templates.md"
   - "../tutorial/getting-started.md"
-  - "../tutorial/first-template.md"
+  - "../tutorial/create-scaffold-examples.md"
   - "../how-to/setup-recipes.md"
   - "environment.md"
   - "error-codes.md"

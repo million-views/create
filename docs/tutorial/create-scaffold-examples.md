@@ -1,5 +1,5 @@
 ---
-title: "Your First Template - Hands-On Examples"
+title: "create-scaffold Examples - Hands-On Practice"
 type: "tutorial"
 audience: "beginner"
 estimated_time: "20 minutes"
@@ -15,13 +15,13 @@ related_docs:
 last_updated: "2025-11-12"
 ---
 
-# Your First Template - Hands-On Examples
+# create-scaffold Examples - Hands-On Practice
 
 ## What you'll learn
 
-In this hands-on tutorial, you'll build progressively complex projects using @m5nv/create-scaffold, starting with the simplest possible example and gradually adding complexity. By the end, you'll understand how templates adapt to different scenarios and how to leverage advanced features.
+In this hands-on tutorial, you'll build progressively complex projects using `create-scaffold`, starting with the simplest possible example and gradually adding complexity. By the end, you'll understand how templates adapt to different scenarios and how to leverage advanced features.
 
-> This tutorial focuses on template consumers operating create-scaffold. If you want to build or maintain templates, jump to [How to Create Templates](../how-to/creating-templates.md) after completing this walkthrough.
+> This tutorial focuses on template consumers using create-scaffold. If you want to build or maintain templates, jump to [How to Create Templates](../how-to/creating-templates.md) after completing this walkthrough.
 
 ## What you'll build
 
@@ -493,6 +493,7 @@ These examples show how templates scale from simple prototypes to complex applic
 
 Recommended next readings:
 
+- [make-template Tutorial](make-template-getting-started.md) — Learn to convert projects into templates
 - [Creating Your Own Templates](../how-to/creating-templates.md) — Build custom templates for specific needs
 - [Environment Reference](../reference/environment.md) — Understand how setup scripts receive context
 - [CLI Reference](../reference/cli-reference.md) — Review available options and parameters
