@@ -11,7 +11,7 @@ related_docs:
   - "docs/how-to/development.md"
   - "docs/spec-driven-development.md"
   - "docs/guides/troubleshooting.md"
-last_updated: "2024-10-26"
+last_updated: "2025-11-12"
 ---
 
 # Contributing to @m5nv/create-scaffold
@@ -42,8 +42,8 @@ npm test
 
 # Test the CLI locally
 npm link
-npm create @m5nv/scaffold my-test-app -- --from-template react-vite
-npm unlink -g @m5nv/create-scaffold
+npm create @m5nv/scaffold my-test-app -- --template react-vite
+npm unlink
 ```
 
 ## Development Standards
@@ -58,7 +58,7 @@ All features follow a three-phase development process:
 2. **Design Phase**: Create comprehensive technical design documents
 3. **Implementation Phase**: Break design into actionable coding tasks
 
-See [docs/spec-driven-development.md](docs/spec-driven-development.md) for complete details.
+See [docs/how-to/development.md](docs/how-to/development.md) for complete details.
 
 ### Code Requirements
 
@@ -117,8 +117,8 @@ All contributions must maintain these security requirements:
 5. **Test locally**:
    ```bash
    npm link
-   npm create @m5nv/scaffold test-project -- --from-template some-template
-   npm unlink -g @m5nv/create-scaffold
+   npm create @m5nv/scaffold test-project -- --template some-template
+   npm unlink
    ```
 6. **Update documentation** if needed
 7. **Submit pull request** with clear description
@@ -177,14 +177,14 @@ npm test                # Full validation before PR (complete test suite)
 
 # Local CLI testing
 npm link                 # Install locally for testing
-npm create @m5nv/scaffold my-test -- --from-template react-vite
-npm create @m5nv/scaffold test-app -- --dry-run --from-template express
-npm unlink -g @m5nv/create-scaffold  # Cleanup when done
+npm create @m5nv/scaffold my-test -- --template react-vite
+npm create @m5nv/scaffold test-app -- --dry-run --template express
+npm unlink  # Cleanup when done
 
 # Test specific scenarios
-node bin/index.mjs --help                    # Help output
-node bin/index.mjs test --from-template nonexistent  # Error handling
-node bin/index.mjs ../evil --from-template hack      # Security validation
+node bin/create-scaffold/index.mjs --help                    # Help output
+node bin/create-scaffold/index.mjs new test --template nonexistent  # Error handling
+node bin/create-scaffold/index.mjs new ../evil --template hack      # Security validation
 ```
 
 ### Codebase Architecture
@@ -192,14 +192,18 @@ node bin/index.mjs ../evil --from-template hack      # Security validation
 ```
 create/
 ├── bin/                           # Core CLI modules
-│   ├── index.mjs                 # Main entry point and orchestration
-│   ├── argumentParser.mjs        # Native argument parsing
-│   ├── security.mjs              # Input validation and security
-│   ├── cacheManager.mjs          # Template repository caching
-│   ├── logger.mjs                # Structured logging system
-│   ├── templateDiscovery.mjs     # Template listing and metadata
-│   ├── dryRunEngine.mjs          # Preview mode functionality
-│   └── utils/                    # Shared utility modules
+│   ├── create-scaffold/          # Main scaffold creation tool
+│   │   ├── index.mjs             # CLI entry point and orchestration
+│   │   ├── argument-parser.mjs   # Native argument parsing
+│   │   ├── command-router.mjs    # Command routing logic
+│   │   ├── commands/             # Individual command implementations
+│   │   ├── template-discovery.mjs # Template listing and metadata
+│   │   ├── template-resolver.mjs # Template resolution and validation
+│   │   ├── setup-runtime.mjs     # Setup script execution environment
+│   │   ├── guided-setup-workflow.mjs # Interactive setup workflow
+│   │   └── ...                   # Additional CLI modules
+│   ├── make-template/            # Template creation tool
+│   └── shared/                   # Shared utilities across tools
 ├── docs/                         # User and developer documentation
 ├── test/                         # Comprehensive test suites
 ├── scripts/                      # Development and testing utilities
@@ -274,13 +278,13 @@ Test your changes with real scenarios:
 
 ```bash
 # Test with public repository
-npm create @m5nv/scaffold test-app -- --from-template react-vite
+npm create @m5nv/scaffold test-app -- --template react-vite
 
 # Test with custom repository
-npm create @m5nv/scaffold test-app -- --from-template custom --repo your-org/templates
+npm create @m5nv/scaffold test-app -- --template custom --repo your-org/templates
 
 # Test error scenarios
-npm create @m5nv/scaffold ../evil -- --from-template hack  # Should be blocked
+npm create @m5nv/scaffold ../evil -- --template hack  # Should be blocked
 ```
 
 ## Release Process
