@@ -78,7 +78,8 @@ For more information, visit: https://github.com/m5nv/make-template
  * Handle CLI errors and exit appropriately
  */
 function handleCliError(message, exitCode = 1) {
-  console.error(`Error: ${message}`);
+  const logger = Logger.getInstance();
+  logger.error(message);
   process.exit(exitCode);
 }
 

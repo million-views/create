@@ -161,7 +161,8 @@ async function applyIntelligentFixes(templateFile, errors, logger) {
  * Handle CLI errors and exit appropriately
  */
 function handleCliError(message, exitCode = 1) {
-  console.error(`Error: ${message}`);
+  const logger = Logger.getInstance();
+  logger.error(message);
   process.exit(exitCode);
 }
 

@@ -6,6 +6,7 @@
  */
 
 import { parseArgs } from 'util';
+import { validateFileDoesNotExist } from '../../../lib/shared/utils/fs-utils.mjs';
 import { realpathSync } from 'fs';
 import { TERMINOLOGY } from '../../../lib/shared/ontology.mjs';
 import { handleArgumentParsingError, withErrorHandling } from '../../../lib/shared/error-handler.mjs';
@@ -241,7 +242,8 @@ function generateSkeletonTemplate() {
  * Handle CLI errors and exit appropriately
  */
 function handleCliError(message, exitCode = 1) {
-  console.error(`Error: ${message}`);
+  const logger = Logger.getInstance();
+  logger.error(message);
   process.exit(exitCode);
 }
 
@@ -284,13 +286,11 @@ export async function main(argv = null, _config = {}) {
     const outputPath = path.resolve(outputFile);
 
     // Check if file already exists
-    try {
-      await fs.access(outputPath);
-      logger.warn(`File ${outputFile} already exists.`);
+    const fileErrors = await validateFileDoesNotExist(outputPath, 'template initialization');
+    if (fileErrors.length > 0) {
+      fileErrors.forEach(error => logger.warn(error));
       logger.warn(`Use --init-file <different-name> to specify a different output file.`);
       process.exit(1);
-    } catch (_error) {
-      // File doesn't exist, which is what we want
     }
 
     logger.info(`📝 Generating skeleton template.json at ${outputFile}...`);

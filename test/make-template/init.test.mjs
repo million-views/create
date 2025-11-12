@@ -126,7 +126,7 @@ test('make-template init command', async (t) => {
     const result = execCLI(['init'], { cwd: testDir });
 
     assert.strictEqual(result.exitCode, 1, 'Command should fail');
-    assert(result.stderr.includes('File template.json already exists'), 'Should show file exists error');
+    assert(result.stderr.includes('already exists. Cannot proceed with template initialization.'), 'Should show file exists error');
 
     // Verify existing file wasn't overwritten
     const content = await readFile(templatePath, 'utf8');

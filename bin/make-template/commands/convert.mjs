@@ -10,6 +10,7 @@ import { ConversionEngine } from '../../../lib/shared/make-template/engine.mjs';
 import { TERMINOLOGY } from '../../../lib/shared/ontology.mjs';
 import { parseArgs } from 'util';
 import { readFile, access, constants } from 'fs/promises';
+import { validateNodeJsProject } from '../../../lib/shared/utils/fs-utils.mjs';
 import { realpathSync } from 'fs';
 import { handleArgumentParsingError, withErrorHandling } from '../../../lib/shared/error-handler.mjs';
 import { Logger } from '../../../lib/shared/utils/logger.mjs';
@@ -108,24 +109,6 @@ For more information, visit: https://github.com/million-views/create
 /**
  * Validate project directory and required files
  */
-async function validateProjectDirectory() {
-  const errors = [];
-
-  try {
-    // Check if package.json exists
-    await access('package.json', constants.F_OK);
-  } catch (_error) {
-    // Detect running in system root (dangerous) and provide a clearer message
-    if (process.cwd && process.cwd() === '/') {
-      errors.push('Running in the system root directory is not recommended and may be dangerous. Please run this command in a project directory.');
-    }
-    // Make this message explicit about being unable to proceed without package.json
-    errors.push('package.json not found. Cannot proceed without package.json. This command must be run in a valid Node.js project directory.');
-  }
-
-  return errors;
-}
-
 /**
  * Check if current directory appears to be a development repository
  * This helps prevent accidental conversion of tool source code
@@ -238,7 +221,7 @@ export async function main(argv = null, _config = {}) {
   }
 
   // Validate project directory
-  const projectErrors = await validateProjectDirectory();
+  const projectErrors = await validateNodeJsProject();
   if (projectErrors.length > 0) {
     projectErrors.forEach(error => logger.error(error));
     logger.error('No changes were made - validation failed before execution');

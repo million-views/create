@@ -9,8 +9,9 @@ import { validateMakeTemplateArguments } from '../../../lib/shared/validators/ma
 import { RestorationEngine } from '../../../lib/shared/make-template/restoration-engine.mjs';
 import { TERMINOLOGY } from '../../../lib/shared/ontology.mjs';
 import { parseArgs } from 'util';
-import { access, constants, rm, readdir } from 'fs/promises';
+import { rm, readdir } from 'fs/promises';
 import { realpathSync } from 'fs';
+import { validateTemplateRestorable } from '../../../lib/shared/utils/fs-utils.mjs';
 import { handleArgumentParsingError, withErrorHandling } from '../../../lib/shared/error-handler.mjs';
 import { Logger } from '../../../lib/shared/utils/logger.mjs';
 
@@ -259,8 +260,8 @@ export async function main(argv = null, _config = {}) {
   // Validate arguments
   const argumentErrors = validateMakeTemplateArguments(options, 'restore');
   if (argumentErrors.length > 0) {
-    argumentErrors.forEach(error => console.error(`Error: ${error}`));
-    console.error('Try --help for usage information');
+    argumentErrors.forEach(error => logger.error(error));
+    logger.error('Try --help for usage information');
     process.exit(1);
   }
 
@@ -268,10 +269,10 @@ export async function main(argv = null, _config = {}) {
   // (templates may be restored in minimal directories). Instead, ensure
   // the undo log (.template-undo.json) exists and is readable so the
   // restoration engine can proceed.
-  try {
-    await access('.template-undo.json', constants.F_OK);
-  } catch (_err) {
-    handleCliError('.template-undo.json not found. Cannot restore without an undo log.', 1);
+  const restoreErrors = await validateTemplateRestorable();
+  if (restoreErrors.length > 0) {
+    restoreErrors.forEach(error => logger.error(error));
+    process.exit(1);
   }
 
   try {
