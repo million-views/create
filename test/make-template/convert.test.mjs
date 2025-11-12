@@ -104,11 +104,11 @@ The server will start on port 3000.
   writeFileSync(join(projectDir, 'README.md'), readme);
 }
 
-test('make-template convert command', async (t) => {
-  const baseTestDir = join(process.cwd(), 'tmp', `make-template-convert-test-${Date.now()}`);
+test('convert --dry-run shows preview without changes', async () => {
+  const baseTestDir = join(process.cwd(), 'tmp', `make-template-convert-dry-run-${Date.now()}`);
   await mkdir(baseTestDir, { recursive: true });
 
-  await t.test('convert --dry-run shows preview without changes', async () => {
+  try {
     const testDir = join(baseTestDir, 'dry-run');
     await createTestProject(testDir);
 
@@ -125,11 +125,16 @@ test('make-template convert command', async (t) => {
     } catch {
       // Expected - file should not exist
     }
+  } finally {
+    await rm(baseTestDir, { recursive: true, force: true });
+  }
+});
 
-    await rm(testDir, { recursive: true, force: true });
-  });
+test('convert requires package.json', async () => {
+  const baseTestDir = join(process.cwd(), 'tmp', `make-template-convert-no-package-${Date.now()}`);
+  await mkdir(baseTestDir, { recursive: true });
 
-  await t.test('convert requires package.json', async () => {
+  try {
     const emptyDir = join(baseTestDir, 'empty-dir');
     await mkdir(emptyDir, { recursive: true });
 
@@ -138,10 +143,16 @@ test('make-template convert command', async (t) => {
     assert.strictEqual(result.exitCode, 1, 'Should fail without package.json');
     // The error message is displayed, just check that we got an error
     assert(result.stdout.length > 0 || result.stderr.length > 0, 'Should display error message');
-    await rm(emptyDir, { recursive: true, force: true });
-  });
+  } finally {
+    await rm(baseTestDir, { recursive: true, force: true });
+  }
+});
 
-  await t.test('convert detects development repository', async () => {
+test('convert detects development repository', async () => {
+  const baseTestDir = join(process.cwd(), 'tmp', `make-template-convert-dev-repo-${Date.now()}`);
+  await mkdir(baseTestDir, { recursive: true });
+
+  try {
     const testDir = join(baseTestDir, 'dev-repo');
     await createTestProject(testDir);
 
@@ -155,11 +166,16 @@ test('make-template convert command', async (t) => {
     assert.strictEqual(result.exitCode, 1, 'Should fail on development repo');
     assert(result.stderr.includes('development repository') || result.stdout.includes('development repository'),
       'Should warn about development repository');
+  } finally {
+    await rm(baseTestDir, { recursive: true, force: true });
+  }
+});
 
-    await rm(testDir, { recursive: true, force: true });
-  });
+test('convert succeeds with --yes flag on development repo', async () => {
+  const baseTestDir = join(process.cwd(), 'tmp', `make-template-convert-dev-yes-${Date.now()}`);
+  await mkdir(baseTestDir, { recursive: true });
 
-  await t.test('convert succeeds with --yes flag on development repo', async () => {
+  try {
     const testDir = join(baseTestDir, 'dev-repo-yes');
     await createTestProject(testDir);
 
@@ -170,11 +186,16 @@ test('make-template convert command', async (t) => {
 
     assert.strictEqual(result.exitCode, 0, 'Should succeed with --yes flag');
     assert(result.stdout.includes('Proceeding automatically'), 'Should acknowledge --yes flag');
+  } finally {
+    await rm(baseTestDir, { recursive: true, force: true });
+  }
+});
 
-    await rm(testDir, { recursive: true, force: true });
-  });
+test('convert --help shows help text', async () => {
+  const baseTestDir = join(process.cwd(), 'tmp', `make-template-convert-help-${Date.now()}`);
+  await mkdir(baseTestDir, { recursive: true });
 
-  await t.test('convert --help shows help text', async () => {
+  try {
     const testDir = join(baseTestDir, 'help');
     await mkdir(testDir, { recursive: true });
 
@@ -184,11 +205,16 @@ test('make-template convert command', async (t) => {
     assert(result.stdout.includes('make-template convert - Convert existing Node.js projects'), 'Should show command description');
     assert(result.stdout.includes('--dry-run'), 'Should show dry-run option');
     assert(result.stdout.includes('--yes'), 'Should show yes option');
+  } finally {
+    await rm(baseTestDir, { recursive: true, force: true });
+  }
+});
 
-    await rm(testDir, { recursive: true, force: true });
-  });
+test('convert creates template.json', async () => {
+  const baseTestDir = join(process.cwd(), 'tmp', `make-template-convert-create-${Date.now()}`);
+  await mkdir(baseTestDir, { recursive: true });
 
-  await t.test('convert creates template.json', async () => {
+  try {
     const testDir = join(baseTestDir, 'create-template');
     await createTestProject(testDir);
 
@@ -207,11 +233,16 @@ test('make-template convert command', async (t) => {
     assert(template.metadata, 'Should have metadata');
     assert(template.metadata.version, 'Should have version in metadata');
     assert(template.name, 'Should have template name');
+  } finally {
+    await rm(baseTestDir, { recursive: true, force: true });
+  }
+});
 
-    await rm(testDir, { recursive: true, force: true });
-  });
+test('convert creates undo log', async () => {
+  const baseTestDir = join(process.cwd(), 'tmp', `make-template-convert-undo-${Date.now()}`);
+  await mkdir(baseTestDir, { recursive: true });
 
-  await t.test('convert creates undo log', async () => {
+  try {
     const testDir = join(baseTestDir, 'create-undo');
     await createTestProject(testDir);
 
@@ -230,12 +261,16 @@ test('make-template convert command', async (t) => {
     assert(undoLog.metadata, 'Should have metadata');
     assert(undoLog.metadata.timestamp, 'Should have timestamp in metadata');
     assert(Array.isArray(undoLog.fileOperations), 'Should have fileOperations array');
+  } finally {
+    await rm(baseTestDir, { recursive: true, force: true });
+  }
+});
 
-    await rm(undoPath);
-    await rm(testDir, { recursive: true, force: true });
-  });
+test('convert handles existing undo log', async () => {
+  const baseTestDir = join(process.cwd(), 'tmp', `make-template-convert-existing-undo-${Date.now()}`);
+  await mkdir(baseTestDir, { recursive: true });
 
-  await t.test('convert handles existing undo log', async () => {
+  try {
     const testDir = join(baseTestDir, 'existing-undo');
     await createTestProject(testDir);
 
@@ -250,10 +285,7 @@ test('make-template convert command', async (t) => {
 
     assert.strictEqual(result.exitCode, 0, 'Conversion should succeed');
     assert(result.stdout.includes('existing undo log will be updated'), 'Should warn about existing undo log');
-
-    await rm(testDir, { recursive: true, force: true });
-  });
-
-    // Cleanup base directory
-  await rm(baseTestDir, { recursive: true, force: true });
+  } finally {
+    await rm(baseTestDir, { recursive: true, force: true });
+  }
 });
