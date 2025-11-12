@@ -16,7 +16,7 @@ import { TERMINOLOGY } from '../../lib/shared/ontology.mjs';
 import { createConfigManager } from '../../lib/cli/config-manager.mjs';
 import { generateHelp } from '../../lib/cli/help-generator.mjs';
 import { handleError, ErrorMessages, ErrorContext } from '../../lib/shared/utils/error-handler.mjs';
-import { Logger } from '../../lib/shared/utils/Logger.getInstance().mjs';
+import { Logger } from '../../lib/shared/utils/logger.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
