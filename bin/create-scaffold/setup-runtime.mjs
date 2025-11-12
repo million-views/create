@@ -627,26 +627,25 @@ async function editJsonFile(root, relativePath, mutator, { allowCreate = true } 
   return draft;
 }
 
-function createLoggerApi(_logger) {
+function createLoggerApi(logger) {
   return Object.freeze({
     info(message, data) {
       if (data !== undefined) {
-        // ast-grep-ignore: no-console-log
-        console.log(message, data);
+        logger.info(`${message} ${JSON.stringify(data)}`);
       } else {
-        // ast-grep-ignore: no-console-log
-        console.log(message);
+        logger.info(message);
       }
     },
     warn(message, data) {
       if (data !== undefined) {
-        console.warn(message, data);
+        logger.warn(`${message} ${JSON.stringify(data)}`);
       } else {
-        console.warn(message);
+        logger.warn(message);
       }
     },
     table(rows) {
-      console.table(rows);
+      logger.info('Table data:');
+      logger.info(JSON.stringify(rows, null, 2));
     }
   });
 }

@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import { TERMINOLOGY } from '../../../lib/shared/ontology.mjs';
+import { Logger } from '../../../lib/shared/utils/logger.mjs';
 
 /**
  * Command router for make-template CLI
@@ -8,6 +9,7 @@ import { TERMINOLOGY } from '../../../lib/shared/ontology.mjs';
  */
 export class CommandRouter {
   constructor() {
+    this.logger = Logger.getInstance();
     this.commands = {
       [TERMINOLOGY.COMMAND.CONVERT]: () => import('./commands/convert.mjs'),
       [TERMINOLOGY.COMMAND.RESTORE]: () => import('./commands/restore.mjs'),
@@ -52,40 +54,40 @@ export class CommandRouter {
    * Show help information
    */
   showHelp() {
-    console.log('🔧 make-template - Convert projects to reusable templates');
-    console.log('');
-    console.log('USAGE:');
-    console.log('  make-template <command> [options]');
-    console.log('');
-    console.log('COMMANDS:');
-    console.log(`  ${TERMINOLOGY.COMMAND.CONVERT}          Convert project to template`);
-    console.log(`  ${TERMINOLOGY.COMMAND.RESTORE}          Restore template to project`);
-    console.log(`  ${TERMINOLOGY.COMMAND.INIT}             Generate skeleton template.json`);
-    console.log(`  ${TERMINOLOGY.COMMAND.VALIDATE}         Validate template.json`);
-    console.log(`  ${TERMINOLOGY.COMMAND.TEST}             Test template functionality`);
-    console.log(`  ${TERMINOLOGY.COMMAND.HINTS}            Show hints catalog`);
-    console.log('');
-    console.log('OPTIONS:');
-    console.log('  --help, -h              Show help information');
-    console.log('  --version               Show version information');
-    console.log('');
-    console.log('LEGACY USAGE:');
-    console.log('  make-template [options]  Convert project (default command)');
-    console.log('  make-template --restore  Restore template');
-    console.log('  make-template --init     Generate skeleton');
-    console.log('  make-template --lint     Validate template');
-    console.log('  make-template --hints    Show hints');
-    console.log('');
-    console.log('EXAMPLES:');
-    console.log('  make-template convert --dry-run');
-    console.log('  make-template restore --yes');
-    console.log('  make-template init');
-    console.log('  make-template validate');
-    console.log('  make-template test <template>');
-    console.log('  make-template hints');
-    console.log('');
-    console.log('For help with a specific command, use:');
-    console.log('  make-template <command> --help');
+    this.logger.info('🔧 make-template - Convert projects to reusable templates');
+    this.logger.info('');
+    this.logger.info('USAGE:');
+    this.logger.info('  make-template <command> [options]');
+    this.logger.info('');
+    this.logger.info('COMMANDS:');
+    this.logger.info(`  ${TERMINOLOGY.COMMAND.CONVERT}          Convert project to template`);
+    this.logger.info(`  ${TERMINOLOGY.COMMAND.RESTORE}          Restore template to project`);
+    this.logger.info(`  ${TERMINOLOGY.COMMAND.INIT}             Generate skeleton template.json`);
+    this.logger.info(`  ${TERMINOLOGY.COMMAND.VALIDATE}         Validate template.json`);
+    this.logger.info(`  ${TERMINOLOGY.COMMAND.TEST}             Test template functionality`);
+    this.logger.info(`  ${TERMINOLOGY.COMMAND.HINTS}            Show hints catalog`);
+    this.logger.info('');
+    this.logger.info('OPTIONS:');
+    this.logger.info('  --help, -h              Show help information');
+    this.logger.info('  --version               Show version information');
+    this.logger.info('');
+    this.logger.info('LEGACY USAGE:');
+    this.logger.info('  make-template [options]  Convert project (default command)');
+    this.logger.info('  make-template --restore  Restore template');
+    this.logger.info('  make-template --init     Generate skeleton');
+    this.logger.info('  make-template --lint     Validate template');
+    this.logger.info('  make-template --hints    Show hints');
+    this.logger.info('');
+    this.logger.info('EXAMPLES:');
+    this.logger.info('  make-template convert --dry-run');
+    this.logger.info('  make-template restore --yes');
+    this.logger.info('  make-template init');
+    this.logger.info('  make-template validate');
+    this.logger.info('  make-template test <template>');
+    this.logger.info('  make-template hints');
+    this.logger.info('');
+    this.logger.info('For help with a specific command, use:');
+    this.logger.info('  make-template <command> --help');
   }
 
   /**

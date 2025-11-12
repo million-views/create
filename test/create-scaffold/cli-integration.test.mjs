@@ -11,6 +11,7 @@ import path from 'node:path';
 import os from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { spawn } from 'node:child_process';
+import { Logger } from '../../lib/shared/utils/logger.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -295,7 +296,7 @@ async function runInteractiveFlow({ args, _envOverrides = {}, cwd, promptPlan = 
   // Create interactive session with mock prompt
   const session = new InteractiveSession({
     cacheManager,
-    logger: null,
+    logger: Logger.getInstance(),
     promptAdapter: mockPrompt,
     templateDiscovery
   });

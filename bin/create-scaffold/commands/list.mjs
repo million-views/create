@@ -5,11 +5,14 @@ import { TERMINOLOGY } from '../../../../create/lib/shared/ontology.mjs';
 import {
   handleError
 } from '../../../../create/lib/shared/utils/error-handler.mjs';
+import { Logger } from '../../../../create/lib/shared/utils/logger.mjs';
 
 /**
  * Execute the 'list' command - list available templates
  */
 export async function executeListCommand(args) {
+  const logger = Logger.getInstance();
+
   try {
     // Load configuration
     let configMetadata = null;
@@ -68,18 +71,18 @@ export async function executeListCommand(args) {
       }));
 
       if (jsonOutput) {
-        console.log(JSON.stringify(templates, null, 2));
+        logger.info(JSON.stringify(templates, null, 2));
       } else {
-        console.log(`📋 Templates in registry "${registryName}":`);
-        console.log('');
+        logger.info(`📋 Templates in registry "${registryName}":`);
+        logger.info('');
 
         if (templates.length === 0) {
-          console.log('No templates found in this registry.');
+          logger.info('No templates found in this registry.');
         } else {
           for (const template of templates) {
-            console.log(`• ${template.name}`);
-            console.log(`  URL: ${template.url}`);
-            console.log('');
+            logger.info(`• ${template.name}`);
+            logger.info(`  URL: ${template.url}`);
+            logger.info('');
           }
         }
       }
@@ -93,32 +96,32 @@ export async function executeListCommand(args) {
           description: `User-defined registry: ${name}`,
           templates: Object.keys(registries[name]).length
         }));
-        console.log(JSON.stringify(registryList, null, 2));
+        logger.info(JSON.stringify(registryList, null, 2));
       } else {
-        console.log('📋 Available template registries:');
-        console.log('');
+        logger.info('📋 Available template registries:');
+        logger.info('');
 
         if (registryNames.length === 0) {
-          console.log('No registries configured.');
-          console.log('');
-          console.log('To add templates to a registry, add them to your .m5nvrc file:');
-          console.log('');
-          console.log('```json');
-          console.log('{');
-          console.log('  "registries": {');
-          console.log('    "myregistry": {');
-          console.log('      "template1": "https://github.com/user/repo/template1",');
-          console.log('      "template2": "https://github.com/user/repo/template2"');
-          console.log('    }');
-          console.log('  }');
-          console.log('}');
-          console.log('```');
+          logger.info('No registries configured.');
+          logger.info('');
+          logger.info('To add templates to a registry, add them to your .m5nvrc file:');
+          logger.info('');
+          logger.info('```json');
+          logger.info('{');
+          logger.info('  "registries": {');
+          logger.info('    "myregistry": {');
+          logger.info('      "template1": "https://github.com/user/repo/template1",');
+          logger.info('      "template2": "https://github.com/user/repo/template2"');
+          logger.info('    }');
+          logger.info('  }');
+          logger.info('}');
+          logger.info('```');
         } else {
           for (const name of registryNames) {
             const templateCount = Object.keys(registries[name]).length;
-            console.log(`• ${name}`);
-            console.log(`  User-defined registry (${templateCount} templates)`);
-            console.log('');
+            logger.info(`• ${name}`);
+            logger.info(`  User-defined registry (${templateCount} templates)`);
+            logger.info('');
           }
         }
       }

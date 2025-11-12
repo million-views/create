@@ -16,6 +16,7 @@ import { TERMINOLOGY } from '../../lib/shared/ontology.mjs';
 import { createConfigManager } from '../../lib/cli/config-manager.mjs';
 import { generateHelp } from '../../lib/cli/help-generator.mjs';
 import { handleError, ErrorMessages, ErrorContext } from '../../lib/shared/utils/error-handler.mjs';
+import { Logger } from '../../lib/shared/utils/Logger.getInstance().mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -93,7 +94,7 @@ function displayHelp(disclosureLevel = 'basic') {
     disclosureLevel
   });
 
-  console.log(helpText);
+  Logger.getInstance().info(helpText);
 }
 
 /**
@@ -210,18 +211,18 @@ async function _generateDefaultsFile() {
 
     await defaultsManager.generateDefaultsFile(commonPlaceholders);
 
-    console.log('✅ Generated .restore-defaults.json configuration file');
-    console.log('');
-    console.log('📝 Edit this file to customize default values for restoration:');
-    console.log('   • Use ${VARIABLE} for environment variable substitution');
-    console.log('   • Set promptForMissing: false to use defaults without prompting');
-    console.log('   • Add your project-specific placeholders and default values');
-    console.log('');
-    console.log('💡 Use this file with: make-template --restore');
+    Logger.getInstance().info('✅ Generated .restore-defaults.json configuration file');
+    Logger.getInstance().info('');
+    Logger.getInstance().info('📝 Edit this file to customize default values for restoration:');
+    Logger.getInstance().info('   • Use ${VARIABLE} for environment variable substitution');
+    Logger.getInstance().info('   • Set promptForMissing: false to use defaults without prompting');
+    Logger.getInstance().info('   • Add your project-specific placeholders and default values');
+    Logger.getInstance().info('');
+    Logger.getInstance().info('💡 Use this file with: make-template --restore');
   } catch (error) {
     if (error.message.includes('already exists')) {
-      console.log('⚠️  .restore-defaults.json already exists');
-      console.log('💡 Delete the existing file first or edit it directly');
+      Logger.getInstance().info('⚠️  .restore-defaults.json already exists');
+      Logger.getInstance().info('💡 Delete the existing file first or edit it directly');
       return;
     }
     handleError(`Failed to create .restore-defaults.json: ${error.message}`);
@@ -235,7 +236,7 @@ function handleCliError(message, exitCode = 1) {
   if (IN_PROCESS) {
     // Log the error to stderr so in-process test harnesses that capture
     // stderr receive the same messages as spawned CLI invocations.
-    console.error(`Error: ${message}`);
+    Logger.getInstance().error(`Error: ${message}`);
     // Throw an error that tests can catch; include exit code for assertions
     const err = new Error(message);
     err.code = exitCode;
@@ -264,14 +265,14 @@ async function _handleInitCommand(options) {
     // Check if file already exists
     try {
       await fs.access(outputPath);
-      console.log(`⚠️  File ${outputFile} already exists.`);
-      console.log(`   Use --init-file <different-name> to specify a different output file.`);
+      Logger.getInstance().info(`⚠️  File ${outputFile} already exists.`);
+      Logger.getInstance().info(`   Use --init-file <different-name> to specify a different output file.`);
       process.exit(1);
     } catch (_error) {
       // File doesn't exist, which is what we want
     }
 
-    console.log(`📝 Generating skeleton template.json at ${outputFile}...`);
+    Logger.getInstance().info(`📝 Generating skeleton template.json at ${outputFile}...`);
 
     // Generate skeleton template.json
     const skeletonTemplate = generateSkeletonTemplate();
@@ -279,12 +280,12 @@ async function _handleInitCommand(options) {
     // Write to file
     await fs.writeFile(outputPath, JSON.stringify(skeletonTemplate, null, 2));
 
-    console.log('✅ Skeleton template.json generated successfully!');
-    console.log('');
-    console.log('📋 Next steps:');
-    console.log(`   1. Edit ${outputFile} to customize your template`);
-    console.log('   2. Run "make-template --lint" to validate your template');
-    console.log('   3. Test with create-scaffold to ensure it works');
+    Logger.getInstance().info('✅ Skeleton template.json generated successfully!');
+    Logger.getInstance().info('');
+    Logger.getInstance().info('📋 Next steps:');
+    Logger.getInstance().info(`   1. Edit ${outputFile} to customize your template`);
+    Logger.getInstance().info('   2. Run "make-template --lint" to validate your template');
+    Logger.getInstance().info('   3. Test with create-scaffold to ensure it works');
 
   } catch (error) {
     handleError(`Init failed: ${error.message}`);
@@ -471,15 +472,15 @@ function generateSkeletonTemplate() {
  * Handle hints command for displaying hints catalog
  */
 async function _handleHintsCommand(_options) {
-  console.log('💡 Available Hints Catalog for Template Authoring');
-  console.log('================================================');
-  console.log('');
+  Logger.getInstance().info('💡 Available Hints Catalog for Template Authoring');
+  Logger.getInstance().info('================================================');
+  Logger.getInstance().info('');
 
-  console.log('📋 Feature Hints:');
-  console.log('   These hints provide guidance for template authors when defining features.');
-  console.log('   Use them in your template.json under hints.features to help users understand');
-  console.log('   what each feature provides.');
-  console.log('');
+  Logger.getInstance().info('📋 Feature Hints:');
+  Logger.getInstance().info('   These hints provide guidance for template authors when defining features.');
+  Logger.getInstance().info('   Use them in your template.json under hints.features to help users understand');
+  Logger.getInstance().info('   what each feature provides.');
+  Logger.getInstance().info('');
 
   const featureHints = {
     'auth': 'Add secure user authentication with login/signup flows, session management, and user profiles',
@@ -500,20 +501,20 @@ async function _handleHintsCommand(_options) {
   };
 
   for (const [feature, hint] of Object.entries(featureHints)) {
-    console.log(`   • ${feature}: ${hint}`);
+    Logger.getInstance().info(`   • ${feature}: ${hint}`);
   }
 
-  console.log('');
-  console.log('📖 Usage in template.json:');
-  console.log('   {');
-  console.log('     "hints": {');
-  console.log('       "features": {');
-  console.log('         "auth": "Add secure user authentication..."');
-  console.log('       }');
-  console.log('     }');
-  console.log('   }');
-  console.log('');
-  console.log('💡 Tip: Use these hints to provide clear, actionable guidance for template users!');
+  Logger.getInstance().info('');
+  Logger.getInstance().info('📖 Usage in template.json:');
+  Logger.getInstance().info('   {');
+  Logger.getInstance().info('     "hints": {');
+  Logger.getInstance().info('       "features": {');
+  Logger.getInstance().info('         "auth": "Add secure user authentication..."');
+  Logger.getInstance().info('       }');
+  Logger.getInstance().info('     }');
+  Logger.getInstance().info('   }');
+  Logger.getInstance().info('');
+  Logger.getInstance().info('💡 Tip: Use these hints to provide clear, actionable guidance for template users!');
 }
 
 /**
@@ -528,83 +529,83 @@ async function _handleLintCommand(options) {
     const templateFile = options[TERMINOLOGY.OPTION.LINT_FILE] || 'template.json';
     const enableSuggestions = options[TERMINOLOGY.OPTION.SUGGEST] || options[TERMINOLOGY.OPTION.FIX];
 
-    console.log(`🔍 Validating ${templateFile}...`);
+    Logger.getInstance().info(`🔍 Validating ${templateFile}...`);
 
     const result = await validator.validate(templateFile, 'strict');
 
     if (result.valid) {
-      console.log('✅ Template validation passed!');
-      console.log('');
-      console.log('📋 Validation Summary:');
-      console.log(`   • Schema validation: ✅ Passed`);
-      console.log(`   • Domain validation: ✅ Passed`);
-      console.log(`   • Warnings: ${result.warnings.length}`);
+      Logger.getInstance().info('✅ Template validation passed!');
+      Logger.getInstance().info('');
+      Logger.getInstance().info('📋 Validation Summary:');
+      Logger.getInstance().info(`   • Schema validation: ✅ Passed`);
+      Logger.getInstance().info(`   • Domain validation: ✅ Passed`);
+      Logger.getInstance().info(`   • Warnings: ${result.warnings.length}`);
 
       if (result.warnings.length > 0) {
-        console.log('');
-        console.log('⚠️  Warnings:');
+        Logger.getInstance().info('');
+        Logger.getInstance().info('⚠️  Warnings:');
         result.warnings.forEach((warning, i) => {
-          console.log(`   ${i + 1}. ${warning.message}`);
+          Logger.getInstance().info(`   ${i + 1}. ${warning.message}`);
           if (warning.path && warning.path.length > 0) {
-            console.log(`      Path: ${warning.path.join('.')}`);
+            Logger.getInstance().info(`      Path: ${warning.path.join('.')}`);
           }
           if (enableSuggestions && warning.suggestion) {
-            console.log(`      💡 Suggestion: ${warning.suggestion}`);
+            Logger.getInstance().info(`      💡 Suggestion: ${warning.suggestion}`);
           }
         });
       }
     } else {
-      console.log('❌ Template validation failed!');
-      console.log('');
-      console.log('📋 Validation Summary:');
-      console.log(`   • Errors: ${result.errors.length}`);
-      console.log(`   • Warnings: ${result.warnings.length}`);
-      console.log('');
+      Logger.getInstance().info('❌ Template validation failed!');
+      Logger.getInstance().info('');
+      Logger.getInstance().info('📋 Validation Summary:');
+      Logger.getInstance().info(`   • Errors: ${result.errors.length}`);
+      Logger.getInstance().info(`   • Warnings: ${result.warnings.length}`);
+      Logger.getInstance().info('');
 
       // Handle auto-fix if requested
       if (options.fix) {
         const fixesApplied = await applyIntelligentFixes(templateFile, result.errors);
         if (fixesApplied > 0) {
-          console.log(`🔧 Applied ${fixesApplied} automatic fix(es)`);
-          console.log('');
+          Logger.getInstance().info(`🔧 Applied ${fixesApplied} automatic fix(es)`);
+          Logger.getInstance().info('');
           // Re-validate after fixes
-          console.log('� Re-validating after fixes...');
+          Logger.getInstance().info('� Re-validating after fixes...');
           const revalidateResult = await validator.validate(templateFile, 'strict');
           if (revalidateResult.valid) {
-            console.log('✅ Template validation passed after fixes!');
+            Logger.getInstance().info('✅ Template validation passed after fixes!');
             return;
           } else {
-            console.log('⚠️  Some issues remain after auto-fixes');
+            Logger.getInstance().info('⚠️  Some issues remain after auto-fixes');
             result.errors = revalidateResult.errors;
             result.warnings = revalidateResult.warnings;
           }
         }
       }
 
-      console.log('�🚨 Errors:');
+      Logger.getInstance().info('�🚨 Errors:');
       result.errors.forEach((error, i) => {
-        console.log(`   ${i + 1}. ${error.message}`);
+        Logger.getInstance().info(`   ${i + 1}. ${error.message}`);
         if (error.path && error.path.length > 0) {
-          console.log(`      Path: ${error.path.join('.')}`);
+          Logger.getInstance().info(`      Path: ${error.path.join('.')}`);
         }
         if (enableSuggestions && error.suggestion) {
-          console.log(`      💡 Suggestion: ${error.suggestion}`);
+          Logger.getInstance().info(`      💡 Suggestion: ${error.suggestion}`);
         }
         if (enableSuggestions && error.command) {
-          console.log(`      🛠️  Command: ${error.command}`);
+          Logger.getInstance().info(`      🛠️  Command: ${error.command}`);
         }
       });
 
       if (result.warnings.length > 0) {
-        console.log('');
-        console.log('⚠️  Warnings:');
+        Logger.getInstance().info('');
+        Logger.getInstance().info('⚠️  Warnings:');
         result.warnings.forEach((warning, i) => {
-          console.log(`   ${i + 1}. ${warning.message}`);
+          Logger.getInstance().info(`   ${i + 1}. ${warning.message}`);
           if (warning.path && warning.path.length > 0) {
-            console.log(`      Path: ${warning.path.join('.')}`);
+            Logger.getInstance().info(`      Path: ${warning.path.join('.')}`);
           }
           if (enableSuggestions && warning.suggestion) {
-            console.log(`      💡 Suggestion: ${warning.suggestion}`);
+            Logger.getInstance().info(`      💡 Suggestion: ${warning.suggestion}`);
           }
         });
       }
@@ -650,7 +651,7 @@ async function applyIntelligentFixes(templateFile, errors) {
                 needs: {}
               };
               fixesApplied++;
-              console.log(`   ✓ Added missing feature spec for '${error.autoFix.feature}'`);
+              Logger.getInstance().info(`   ✓ Added missing feature spec for '${error.autoFix.feature}'`);
               break;
 
             case 'add-missing-dimension':
@@ -661,13 +662,13 @@ async function applyIntelligentFixes(templateFile, errors) {
                 values: []
               };
               fixesApplied++;
-              console.log(`   ✓ Added missing dimension '${error.autoFix.dimension}'`);
+              Logger.getInstance().info(`   ✓ Added missing dimension '${error.autoFix.dimension}'`);
               break;
 
             case 'fix-schema-version':
               template.schemaVersion = '1.0.0';
               fixesApplied++;
-              console.log(`   ✓ Updated schema version to '1.0.0'`);
+              Logger.getInstance().info(`   ✓ Updated schema version to '1.0.0'`);
               break;
 
             case 'fix-id-format':
@@ -679,12 +680,12 @@ async function applyIntelligentFixes(templateFile, errors) {
               if (fixedId.includes('/')) {
                 template.id = fixedId;
                 fixesApplied++;
-                console.log(`   ✓ Fixed ID format to '${fixedId}'`);
+                Logger.getInstance().info(`   ✓ Fixed ID format to '${fixedId}'`);
               }
               break;
           }
         } catch (_fixError) {
-          console.log(`   ⚠️  Failed to apply fix for: ${error.message}`);
+          Logger.getInstance().info(`   ⚠️  Failed to apply fix for: ${error.message}`);
         }
       }
     }
@@ -696,7 +697,7 @@ async function applyIntelligentFixes(templateFile, errors) {
 
     return fixesApplied;
   } catch (error) {
-    console.log(`   ⚠️  Error during auto-fix: ${error.message}`);
+    Logger.getInstance().info(`   ⚠️  Error during auto-fix: ${error.message}`);
     return fixesApplied;
   }
 }
@@ -713,8 +714,8 @@ async function _handleAddDimensionCommand(options) {
 
     // Validate dimension name
     if (!/^[a-z][a-z0-9_-]*$/.test(dimensionName)) {
-      console.log(`❌ Invalid dimension name: ${dimensionName}`);
-      console.log('   Dimension names must match pattern: ^[a-z][a-z0-9_-]*$');
+      Logger.getInstance().info(`❌ Invalid dimension name: ${dimensionName}`);
+      Logger.getInstance().info('   Dimension names must match pattern: ^[a-z][a-z0-9_-]*$');
       process.exit(1);
     }
 
@@ -722,8 +723,8 @@ async function _handleAddDimensionCommand(options) {
     try {
       await fs.access(templateFile);
     } catch (_error) {
-      console.log(`❌ Template file not found: ${templateFile}`);
-      console.log('   Run "make-template --init" first to create a template.');
+      Logger.getInstance().info(`❌ Template file not found: ${templateFile}`);
+      Logger.getInstance().info('   Run "make-template --init" first to create a template.');
       process.exit(1);
     }
 
@@ -733,7 +734,7 @@ async function _handleAddDimensionCommand(options) {
 
     // Check if dimension already exists
     if (template.dimensions && template.dimensions[dimensionName]) {
-      console.log(`❌ Dimension '${dimensionName}' already exists in template.`);
+      Logger.getInstance().info(`❌ Dimension '${dimensionName}' already exists in template.`);
       process.exit(1);
     }
 
@@ -750,11 +751,11 @@ async function _handleAddDimensionCommand(options) {
     // Write back to file
     await fs.writeFile(templateFile, JSON.stringify(template, null, 2));
 
-    console.log(`✅ Added dimension '${dimensionName}' to ${templateFile}`);
-    console.log('');
-    console.log('📋 Next steps:');
-    console.log(`   1. Edit ${templateFile} to add values to the '${dimensionName}' dimension`);
-    console.log('   2. Run "make-template --lint" to validate your changes');
+    Logger.getInstance().info(`✅ Added dimension '${dimensionName}' to ${templateFile}`);
+    Logger.getInstance().info('');
+    Logger.getInstance().info('📋 Next steps:');
+    Logger.getInstance().info(`   1. Edit ${templateFile} to add values to the '${dimensionName}' dimension`);
+    Logger.getInstance().info('   2. Run "make-template --lint" to validate your changes');
 
   } catch (error) {
     handleError(`Add dimension failed: ${error.message}`);
@@ -773,8 +774,8 @@ async function _handleSetCompatCommand(options) {
 
     // Validate platform name
     if (!platform || platform.trim() === '') {
-      console.log('❌ Platform name is required for --set-compat');
-      console.log('   Usage: make-template --set-compat <platform>');
+      Logger.getInstance().info('❌ Platform name is required for --set-compat');
+      Logger.getInstance().info('   Usage: make-template --set-compat <platform>');
       process.exit(1);
     }
 
@@ -782,8 +783,8 @@ async function _handleSetCompatCommand(options) {
     try {
       await fs.access(templateFile);
     } catch (_error) {
-      console.log(`❌ Template file not found: ${templateFile}`);
-      console.log('   Run "make-template --init" first to create a template.');
+      Logger.getInstance().info(`❌ Template file not found: ${templateFile}`);
+      Logger.getInstance().info('   Run "make-template --init" first to create a template.');
       process.exit(1);
     }
 
@@ -798,8 +799,8 @@ async function _handleSetCompatCommand(options) {
 
     // Check if gate already exists
     if (template.gates[platform]) {
-      console.log(`⚠️  Gate for platform '${platform}' already exists.`);
-      console.log('   Edit template.json directly to modify existing gates.');
+      Logger.getInstance().info(`⚠️  Gate for platform '${platform}' already exists.`);
+      Logger.getInstance().info('   Edit template.json directly to modify existing gates.');
       process.exit(1);
     }
 
@@ -814,11 +815,11 @@ async function _handleSetCompatCommand(options) {
     // Write back to file
     await fs.writeFile(templateFile, JSON.stringify(template, null, 2));
 
-    console.log(`✅ Added compatibility gate for platform '${platform}' to ${templateFile}`);
-    console.log('');
-    console.log('📋 Next steps:');
-    console.log(`   1. Edit ${templateFile} to configure allowed/forbidden values for dimensions`);
-    console.log('   2. Run "make-template --lint" to validate your changes');
+    Logger.getInstance().info(`✅ Added compatibility gate for platform '${platform}' to ${templateFile}`);
+    Logger.getInstance().info('');
+    Logger.getInstance().info('📋 Next steps:');
+    Logger.getInstance().info(`   1. Edit ${templateFile} to configure allowed/forbidden values for dimensions`);
+    Logger.getInstance().info('   2. Run "make-template --lint" to validate your changes');
 
   } catch (error) {
     handleError(`Set compatibility failed: ${error.message}`);
@@ -837,8 +838,8 @@ async function _handleSetNeedsCommand(options) {
 
     // Validate feature name
     if (!feature || feature.trim() === '') {
-      console.log('❌ Feature name is required for --set-needs');
-      console.log('   Usage: make-template --set-needs <feature>');
+      Logger.getInstance().info('❌ Feature name is required for --set-needs');
+      Logger.getInstance().info('   Usage: make-template --set-needs <feature>');
       process.exit(1);
     }
 
@@ -846,8 +847,8 @@ async function _handleSetNeedsCommand(options) {
     try {
       await fs.access(templateFile);
     } catch (_error) {
-      console.log(`❌ Template file not found: ${templateFile}`);
-      console.log('   Run "make-template --init" first to create a template.');
+      Logger.getInstance().info(`❌ Template file not found: ${templateFile}`);
+      Logger.getInstance().info('   Run "make-template --init" first to create a template.');
       process.exit(1);
     }
 
@@ -857,8 +858,8 @@ async function _handleSetNeedsCommand(options) {
 
     // Check if feature exists in dimensions
     if (!template.dimensions?.features?.values?.includes(feature)) {
-      console.log(`❌ Feature '${feature}' not found in template dimensions.`);
-      console.log('   Add the feature to dimensions.features.values first.');
+      Logger.getInstance().info(`❌ Feature '${feature}' not found in template dimensions.`);
+      Logger.getInstance().info('   Add the feature to dimensions.features.values first.');
       process.exit(1);
     }
 
@@ -869,8 +870,8 @@ async function _handleSetNeedsCommand(options) {
 
     // Check if feature spec already exists
     if (template.featureSpecs[feature]) {
-      console.log(`⚠️  Feature spec for '${feature}' already exists.`);
-      console.log('   Edit template.json directly to modify existing feature specs.');
+      Logger.getInstance().info(`⚠️  Feature spec for '${feature}' already exists.`);
+      Logger.getInstance().info('   Edit template.json directly to modify existing feature specs.');
       process.exit(1);
     }
 
@@ -884,11 +885,11 @@ async function _handleSetNeedsCommand(options) {
     // Write back to file
     await fs.writeFile(templateFile, JSON.stringify(template, null, 2));
 
-    console.log(`✅ Added feature spec for '${feature}' to ${templateFile}`);
-    console.log('');
-    console.log('📋 Next steps:');
-    console.log(`   1. Edit ${templateFile} to configure needs requirements for the feature`);
-    console.log('   2. Run "make-template --lint" to validate your changes');
+    Logger.getInstance().info(`✅ Added feature spec for '${feature}' to ${templateFile}`);
+    Logger.getInstance().info('');
+    Logger.getInstance().info('📋 Next steps:');
+    Logger.getInstance().info(`   1. Edit ${templateFile} to configure needs requirements for the feature`);
+    Logger.getInstance().info('   2. Run "make-template --lint" to validate your changes');
 
   } catch (error) {
     handleError(`Set needs failed: ${error.message}`);
@@ -909,16 +910,16 @@ async function _handleBulkAddDimensionsCommand(options) {
     const dimensionNames = dimensionNamesStr.split(',').map(name => name.trim()).filter(name => name.length > 0);
 
     if (dimensionNames.length === 0) {
-      console.log('❌ No dimension names provided');
-      console.log('   Usage: make-template --bulk-add-dimensions <name1,name2,name3>');
+      Logger.getInstance().info('❌ No dimension names provided');
+      Logger.getInstance().info('   Usage: make-template --bulk-add-dimensions <name1,name2,name3>');
       process.exit(1);
     }
 
     // Validate all dimension names
     const invalidNames = dimensionNames.filter(name => !/^[a-z][a-z0-9_-]*$/.test(name));
     if (invalidNames.length > 0) {
-      console.log(`❌ Invalid dimension names: ${invalidNames.join(', ')}`);
-      console.log('   Dimension names must match pattern: ^[a-z][a-z0-9_-]*$');
+      Logger.getInstance().info(`❌ Invalid dimension names: ${invalidNames.join(', ')}`);
+      Logger.getInstance().info('   Dimension names must match pattern: ^[a-z][a-z0-9_-]*$');
       process.exit(1);
     }
 
@@ -926,8 +927,8 @@ async function _handleBulkAddDimensionsCommand(options) {
     try {
       await fs.access(templateFile);
     } catch (_error) {
-      console.log(`❌ Template file not found: ${templateFile}`);
-      console.log('   Run "make-template --init" first to create a template.');
+      Logger.getInstance().info(`❌ Template file not found: ${templateFile}`);
+      Logger.getInstance().info('   Run "make-template --init" first to create a template.');
       process.exit(1);
     }
 
@@ -962,20 +963,20 @@ async function _handleBulkAddDimensionsCommand(options) {
 
     // Report results
     if (added.length > 0) {
-      console.log(`✅ Added ${added.length} dimension(s) to ${templateFile}:`);
-      added.forEach(name => console.log(`   + ${name}`));
+      Logger.getInstance().info(`✅ Added ${added.length} dimension(s) to ${templateFile}:`);
+      added.forEach(name => Logger.getInstance().info(`   + ${name}`));
     }
 
     if (skipped.length > 0) {
-      console.log(`⚠️  Skipped ${skipped.length} existing dimension(s):`);
-      skipped.forEach(name => console.log(`   - ${name} (already exists)`));
+      Logger.getInstance().info(`⚠️  Skipped ${skipped.length} existing dimension(s):`);
+      skipped.forEach(name => Logger.getInstance().info(`   - ${name} (already exists)`));
     }
 
     if (added.length > 0) {
-      console.log('');
-      console.log('📋 Next steps:');
-      console.log(`   1. Edit ${templateFile} to add values to the new dimensions`);
-      console.log('   2. Run "make-template --lint" to validate your changes');
+      Logger.getInstance().info('');
+      Logger.getInstance().info('📋 Next steps:');
+      Logger.getInstance().info(`   1. Edit ${templateFile} to add values to the new dimensions`);
+      Logger.getInstance().info('   2. Run "make-template --lint" to validate your changes');
     }
 
   } catch (error) {
@@ -997,8 +998,8 @@ async function _handleBulkSetCompatCommand(options) {
     const platforms = platformsStr.split(',').map(name => name.trim()).filter(name => name.length > 0);
 
     if (platforms.length === 0) {
-      console.log('❌ No platform names provided');
-      console.log('   Usage: make-template --bulk-set-compat <platform1,platform2,platform3>');
+      Logger.getInstance().info('❌ No platform names provided');
+      Logger.getInstance().info('   Usage: make-template --bulk-set-compat <platform1,platform2,platform3>');
       process.exit(1);
     }
 
@@ -1006,8 +1007,8 @@ async function _handleBulkSetCompatCommand(options) {
     try {
       await fs.access(templateFile);
     } catch (_error) {
-      console.log(`❌ Template file not found: ${templateFile}`);
-      console.log('   Run "make-template --init" first to create a template.');
+      Logger.getInstance().info(`❌ Template file not found: ${templateFile}`);
+      Logger.getInstance().info('   Run "make-template --init" first to create a template.');
       process.exit(1);
     }
 
@@ -1045,20 +1046,20 @@ async function _handleBulkSetCompatCommand(options) {
 
     // Report results
     if (added.length > 0) {
-      console.log(`✅ Added compatibility gates for ${added.length} platform(s) to ${templateFile}:`);
-      added.forEach(name => console.log(`   + ${name}`));
+      Logger.getInstance().info(`✅ Added compatibility gates for ${added.length} platform(s) to ${templateFile}:`);
+      added.forEach(name => Logger.getInstance().info(`   + ${name}`));
     }
 
     if (skipped.length > 0) {
-      console.log(`⚠️  Skipped ${skipped.length} existing platform(s):`);
-      skipped.forEach(name => console.log(`   - ${name} (already exists)`));
+      Logger.getInstance().info(`⚠️  Skipped ${skipped.length} existing platform(s):`);
+      skipped.forEach(name => Logger.getInstance().info(`   - ${name} (already exists)`));
     }
 
     if (added.length > 0) {
-      console.log('');
-      console.log('📋 Next steps:');
-      console.log(`   1. Edit ${templateFile} to configure allowed/forbidden values for the new gates`);
-      console.log('   2. Run "make-template --lint" to validate your changes');
+      Logger.getInstance().info('');
+      Logger.getInstance().info('📋 Next steps:');
+      Logger.getInstance().info(`   1. Edit ${templateFile} to configure allowed/forbidden values for the new gates`);
+      Logger.getInstance().info('   2. Run "make-template --lint" to validate your changes');
     }
 
   } catch (error) {
@@ -1080,8 +1081,8 @@ async function _handleBulkSetNeedsCommand(options) {
     const features = featuresStr.split(',').map(name => name.trim()).filter(name => name.length > 0);
 
     if (features.length === 0) {
-      console.log('❌ No feature names provided');
-      console.log('   Usage: make-template --bulk-set-needs <feature1,feature2,feature3>');
+      Logger.getInstance().info('❌ No feature names provided');
+      Logger.getInstance().info('   Usage: make-template --bulk-set-needs <feature1,feature2,feature3>');
       process.exit(1);
     }
 
@@ -1089,8 +1090,8 @@ async function _handleBulkSetNeedsCommand(options) {
     try {
       await fs.access(templateFile);
     } catch (_error) {
-      console.log(`❌ Template file not found: ${templateFile}`);
-      console.log('   Run "make-template --init" first to create a template.');
+      Logger.getInstance().info(`❌ Template file not found: ${templateFile}`);
+      Logger.getInstance().info('   Run "make-template --init" first to create a template.');
       process.exit(1);
     }
 
@@ -1103,8 +1104,8 @@ async function _handleBulkSetNeedsCommand(options) {
     const missingFeatures = features.filter(feature => !availableFeatures.includes(feature));
 
     if (missingFeatures.length > 0) {
-      console.log(`❌ Features not found in template dimensions: ${missingFeatures.join(', ')}`);
-      console.log('   Add these features to dimensions.features.values first.');
+      Logger.getInstance().info(`❌ Features not found in template dimensions: ${missingFeatures.join(', ')}`);
+      Logger.getInstance().info('   Add these features to dimensions.features.values first.');
       process.exit(1);
     }
 
@@ -1137,20 +1138,20 @@ async function _handleBulkSetNeedsCommand(options) {
 
     // Report results
     if (added.length > 0) {
-      console.log(`✅ Added feature specs for ${added.length} feature(s) to ${templateFile}:`);
-      added.forEach(name => console.log(`   + ${name}`));
+      Logger.getInstance().info(`✅ Added feature specs for ${added.length} feature(s) to ${templateFile}:`);
+      added.forEach(name => Logger.getInstance().info(`   + ${name}`));
     }
 
     if (skipped.length > 0) {
-      console.log(`⚠️  Skipped ${skipped.length} existing feature(s):`);
-      skipped.forEach(name => console.log(`   - ${name} (already exists)`));
+      Logger.getInstance().info(`⚠️  Skipped ${skipped.length} existing feature(s):`);
+      skipped.forEach(name => Logger.getInstance().info(`   - ${name} (already exists)`));
     }
 
     if (added.length > 0) {
-      console.log('');
-      console.log('📋 Next steps:');
-      console.log(`   1. Edit ${templateFile} to configure needs requirements for the new features`);
-      console.log('   2. Run "make-template --lint" to validate your changes');
+      Logger.getInstance().info('');
+      Logger.getInstance().info('📋 Next steps:');
+      Logger.getInstance().info(`   1. Edit ${templateFile} to configure needs requirements for the new features`);
+      Logger.getInstance().info('   2. Run "make-template --lint" to validate your changes');
     }
 
   } catch (error) {
@@ -1171,8 +1172,8 @@ async function _handlePreviewCommand(_options) {
     try {
       await fs.access(templateFile);
     } catch (_error) {
-      console.log(`❌ Template file not found: ${templateFile}`);
-      console.log('   Run "make-template --init" first to create a template.');
+      Logger.getInstance().info(`❌ Template file not found: ${templateFile}`);
+      Logger.getInstance().info('   Run "make-template --init" first to create a template.');
       process.exit(1);
     }
 
@@ -1180,53 +1181,53 @@ async function _handlePreviewCommand(_options) {
     const templateContent = await fs.readFile(templateFile, 'utf8');
     const template = JSON.parse(templateContent);
 
-    console.log('🎨 Template Preview');
-    console.log('==================');
+    Logger.getInstance().info('🎨 Template Preview');
+    Logger.getInstance().info('==================');
 
     // Display basic template info
-    console.log(`Name: ${template.name || 'Unnamed Template'}`);
-    console.log(`ID: ${template.id || 'No ID'}`);
-    console.log(`Description: ${template.description || 'No description'}`);
-    console.log('');
+    Logger.getInstance().info(`Name: ${template.name || 'Unnamed Template'}`);
+    Logger.getInstance().info(`ID: ${template.id || 'No ID'}`);
+    Logger.getInstance().info(`Description: ${template.description || 'No description'}`);
+    Logger.getInstance().info('');
 
     // Display constants
     if (template.constants) {
-      console.log('📋 Constants:');
+      Logger.getInstance().info('📋 Constants:');
       Object.entries(template.constants).forEach(([key, value]) => {
-        console.log(`   ${key}: ${value}`);
+        Logger.getInstance().info(`   ${key}: ${value}`);
       });
-      console.log('');
+      Logger.getInstance().info('');
     }
 
     // Display dimensions
     if (template.dimensions) {
-      console.log('🔧 Dimensions:');
+      Logger.getInstance().info('🔧 Dimensions:');
       Object.entries(template.dimensions).forEach(([dimName, dimConfig]) => {
-        console.log(`   ${dimName}: [${dimConfig.values?.join(', ') || 'none'}]`);
+        Logger.getInstance().info(`   ${dimName}: [${dimConfig.values?.join(', ') || 'none'}]`);
       });
-      console.log('');
+      Logger.getInstance().info('');
     }
 
     // Display features from hints catalog
     if (template.hints?.features) {
-      console.log('✨ Available Features:');
+      Logger.getInstance().info('✨ Available Features:');
       Object.entries(template.hints.features).forEach(([featureName, featureInfo]) => {
-        console.log(`   ${featureInfo.label || featureName}`);
-        console.log(`     ${featureInfo.description || 'No description'}`);
+        Logger.getInstance().info(`   ${featureInfo.label || featureName}`);
+        Logger.getInstance().info(`     ${featureInfo.description || 'No description'}`);
         if (featureInfo.category) {
-          console.log(`     Category: ${featureInfo.category}`);
+          Logger.getInstance().info(`     Category: ${featureInfo.category}`);
         }
-        console.log('');
+        Logger.getInstance().info('');
       });
     }
 
     // Display gates
     if (template.gates) {
-      console.log('🚧 Platform Gates:');
+      Logger.getInstance().info('🚧 Platform Gates:');
       Object.entries(template.gates).forEach(([platform, gateConfig]) => {
-        console.log(`   ${platform}: ${gateConfig.constraint || 'No constraint specified'}`);
+        Logger.getInstance().info(`   ${platform}: ${gateConfig.constraint || 'No constraint specified'}`);
       });
-      console.log('');
+      Logger.getInstance().info('');
     }
 
   } catch (error) {
@@ -1247,7 +1248,7 @@ async function _handleMigrateCommand(options) {
     try {
       await fs.access(templateFile);
     } catch (_error) {
-      console.log(`❌ Template file not found: ${templateFile}`);
+      Logger.getInstance().info(`❌ Template file not found: ${templateFile}`);
       process.exit(1);
     }
 
@@ -1255,11 +1256,11 @@ async function _handleMigrateCommand(options) {
     const templateContent = await fs.readFile(templateFile, 'utf8');
     const template = JSON.parse(templateContent);
 
-    console.log(`🔄 Migrating ${templateFile} to V1 format...`);
+    Logger.getInstance().info(`🔄 Migrating ${templateFile} to V1 format...`);
 
     // Check if already V1
     if (template.schemaVersion === '1.0.0') {
-      console.log('✅ Template is already in V1 format.');
+      Logger.getInstance().info('✅ Template is already in V1 format.');
       return;
     }
 
@@ -1269,16 +1270,16 @@ async function _handleMigrateCommand(options) {
     // Create backup
     const backupFile = `${templateFile}.backup`;
     await fs.writeFile(backupFile, templateContent);
-    console.log(`📋 Created backup: ${backupFile}`);
+    Logger.getInstance().info(`📋 Created backup: ${backupFile}`);
 
     // Write migrated template
     await fs.writeFile(templateFile, JSON.stringify(migratedTemplate, null, 2));
 
-    console.log(`✅ Successfully migrated ${templateFile} to V1 format!`);
-    console.log('');
-    console.log('📋 Next steps:');
-    console.log('   1. Run "make-template --lint" to validate the migrated template');
-    console.log('   2. Review and customize the new V1 features (gates, hints, etc.)');
+    Logger.getInstance().info(`✅ Successfully migrated ${templateFile} to V1 format!`);
+    Logger.getInstance().info('');
+    Logger.getInstance().info('📋 Next steps:');
+    Logger.getInstance().info('   1. Run "make-template --lint" to validate the migrated template');
+    Logger.getInstance().info('   2. Review and customize the new V1 features (gates, hints, etc.)');
 
   } catch (error) {
     handleError(`Migration failed: ${error.message}`);
@@ -1334,6 +1335,9 @@ function migrateToV1(legacyTemplate) {
  * Accepts an optional argv array (e.g. ['--dry-run']) for in-process testing.
  */
 export async function main(argv = null) {
+  // Create logger for CLI output
+  // const logger = new Logger('console', 'info'); // Not needed - use Logger.getInstance() directly
+
   let _parsedArgs;
   if (Array.isArray(argv)) {
     // When called in-process with an argv array, tell parseArgs to parse
@@ -1356,7 +1360,7 @@ export async function main(argv = null) {
     config = await configManager.load();
   } catch (error) {
     // Log config errors but don't fail - tools should be usable without config
-    console.warn(`Warning: Failed to load configuration: ${error.message}`);
+    Logger.getInstance().warn(`Warning: Failed to load configuration: ${error.message}`);
   }
 
   // Check if this is a command-based invocation BEFORE parsing arguments

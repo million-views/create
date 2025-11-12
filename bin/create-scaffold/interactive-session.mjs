@@ -56,11 +56,11 @@ export class InteractiveSession {
 
     try {
       const defaults = await this.#resolveDefaults(initialArgs);
-      console.log('DEBUG: initialArgs:', initialArgs);
-      console.log('DEBUG: defaults:', defaults);
-      console.log('DEBUG: this.defaults:', this.defaults);
+      this.logger.debug('initialArgs:', initialArgs);
+      this.logger.debug('defaults:', defaults);
+      this.logger.debug('this.defaults:', this.defaults);
       const repo = defaults.repoUrl ?? this.defaults.repo;
-      console.log('DEBUG: repo:', repo);
+      this.logger.debug('repo:', repo);
       const branch = defaults.branchName ?? this.defaults.branch ?? null;
 
       if (!repo) {

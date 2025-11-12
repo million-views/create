@@ -9,6 +9,7 @@ import { parseArgs } from 'util';
 import { realpathSync } from 'fs';
 import { TERMINOLOGY } from '../../../lib/shared/ontology.mjs';
 import { handleArgumentParsingError, withErrorHandling } from '../../../lib/shared/error-handler.mjs';
+import { Logger } from '../../../lib/shared/utils/logger.mjs';
 
 // Command-specific options schema
 const OPTIONS_SCHEMA = {
@@ -23,7 +24,7 @@ const OPTIONS_SCHEMA = {
 /**
  * Display help text for hints command
  */
-function displayHelp() {
+function displayHelp(logger) {
   const helpText = `
 make-template hints - Display available hints catalog for authoring assistance
 
@@ -49,7 +50,7 @@ TEMPLATE AUTHORING:
 For more information, visit: https://github.com/m5nv/make-template
 `;
 
-  console.log(helpText.trim());
+  logger.info(helpText.trim());
 }
 
 /**
@@ -64,6 +65,9 @@ function handleCliError(message, exitCode = 1) {
  * Main hints command function
  */
 export async function main(argv = null, _config = {}) {
+  // Create logger for CLI output
+  const logger = Logger.getInstance();
+
   let parsedArgs;
 
   try {
@@ -83,19 +87,19 @@ export async function main(argv = null, _config = {}) {
 
   // Show help if requested
   if (options.help) {
-    displayHelp();
+    displayHelp(logger);
     process.exit(0);
   }
 
-  console.log('💡 Available Hints Catalog for Template Authoring');
-  console.log('================================================');
-  console.log('');
+  logger.info('💡 Available Hints Catalog for Template Authoring');
+  logger.info('================================================');
+  logger.info('');
 
-  console.log('📋 Feature Hints:');
-  console.log('   These hints provide guidance for template authors when defining features.');
-  console.log('   Use them in your template.json under hints.features to help users understand');
-  console.log('   what each feature provides.');
-  console.log('');
+  logger.info('📋 Feature Hints:');
+  logger.info('   These hints provide guidance for template authors when defining features.');
+  logger.info('   Use them in your template.json under hints.features to help users understand');
+  logger.info('   what each feature provides.');
+  logger.info('');
 
   const featureHints = {
     'auth': 'Add secure user authentication with login/signup flows, session management, and user profiles',
@@ -116,20 +120,20 @@ export async function main(argv = null, _config = {}) {
   };
 
   for (const [feature, hint] of Object.entries(featureHints)) {
-    console.log(`   • ${feature}: ${hint}`);
+    logger.info(`   • ${feature}: ${hint}`);
   }
 
-  console.log('');
-  console.log('📖 Usage in template.json:');
-  console.log('   {');
-  console.log('     "hints": {');
-  console.log('       "features": {');
-  console.log('         "auth": "Add secure user authentication..."');
-  console.log('       }');
-  console.log('     }');
-  console.log('   }');
-  console.log('');
-  console.log('💡 Tip: Use these hints to provide clear, actionable guidance for template users!');
+  logger.info('');
+  logger.info('📖 Usage in template.json:');
+  logger.info('   {');
+  logger.info('     "hints": {');
+  logger.info('       "features": {');
+  logger.info('         "auth": "Add secure user authentication..."');
+  logger.info('       }');
+  logger.info('     }');
+  logger.info('   }');
+  logger.info('');
+  logger.info('💡 Tip: Use these hints to provide clear, actionable guidance for template users!');
 }
 
 // If this file is executed directly, run main()

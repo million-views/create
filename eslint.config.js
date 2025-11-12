@@ -85,5 +85,12 @@ export default [
       // Allow console.log in CLI tools as it's the standard output mechanism
       'no-console-log': 'off'
     }
+  },
+  {
+    files: ['lib/shared/utils/logger.mjs'],
+    rules: {
+      // Allow console.log in the Logger class as it's the centralized output mechanism
+      'no-console-log': 'off'
+    }
   }
 ];

@@ -7,11 +7,14 @@ import {
   contextualizeError,
   ErrorContext
 } from '../../../lib/shared/utils/error-handler.mjs';
+import { Logger } from '../../../../create/lib/shared/utils/logger.mjs';
 
 /**
  * Execute the 'validate' command - validate a template
  */
 export async function executeValidateCommand(args) {
+  const logger = Logger.getInstance();
+
   try {
     // Get target path from arguments
     const targetPath = args.template || args.path;
@@ -29,7 +32,7 @@ export async function executeValidateCommand(args) {
       console.log(formatValidationResultsAsJson(validationResult));
     } else {
       const formatted = formatValidationResults(validationResult);
-      console.log(formatted);
+      logger.info(formatted);
     }
 
     // Return appropriate exit code

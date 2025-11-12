@@ -33,9 +33,9 @@ export class GuidedSetupWorkflow {
     placeholders,
     metadata
   }) {
-    // Debug logging for test environment
-    if (process.env.NODE_ENV === 'test') {
-      console.log('DEBUG: GuidedSetupWorkflow constructor called with:', {
+        // Debug logging for test environment
+    if (process.env.NODE_ENV === 'test' && logger) {
+      logger.debug('GuidedSetupWorkflow constructor called with:', {
         projectDirectory: !!projectDirectory,
         templatePath: !!templatePath,
         templateName: !!templateName,
@@ -884,7 +884,7 @@ export class GuidedSetupWorkflow {
     if (process.env.NODE_ENV === 'test') {
       console.error('DEBUG: executeTemplateCopy called');
     }
-    console.log('DEBUG: Starting template copy');
+    this.logger.debug('Starting template copy');
     if (process.env.NODE_ENV !== 'test') {
       await this.prompt.write('   Copying template files...\n');
     }
@@ -900,7 +900,7 @@ export class GuidedSetupWorkflow {
     const gitDir = path.join(this.resolvedProjectDirectory, '.git');
     await safeCleanup(gitDir);
 
-    console.log('DEBUG: Template copy completed');
+    this.logger.debug('Template copy completed');
     return { success: true, message: 'Template files copied successfully' };
   }
 
@@ -936,9 +936,9 @@ export class GuidedSetupWorkflow {
    * Execute placeholder resolution step
    */
   async #executePlaceholderResolution() {
-    console.log('DEBUG: Starting placeholder resolution');
+    this.logger.debug('Starting placeholder resolution');
     if (!this.placeholders || Object.keys(this.placeholders).length === 0) {
-      console.log('DEBUG: No placeholders to resolve');
+      this.logger.debug('No placeholders to resolve');
       return { success: true, message: 'No placeholders to resolve' };
     }
 
@@ -951,7 +951,7 @@ export class GuidedSetupWorkflow {
       await new Promise(resolve => setTimeout(resolve, 300));
     }
 
-    console.log('DEBUG: Placeholder resolution completed');
+    this.logger.debug('Placeholder resolution completed');
     return { success: true, message: 'Placeholders resolved successfully' };
   }
 
@@ -1039,7 +1039,7 @@ export class GuidedSetupWorkflow {
    * Execute finalization step
    */
   async #executeFinalization() {
-    console.log('DEBUG: Starting finalization');
+    this.logger.debug('Starting finalization');
     // Clean up workflow state file
     try {
       await fs.unlink(this.stateFile);
@@ -1051,7 +1051,7 @@ export class GuidedSetupWorkflow {
     const packageJsonPath = path.join(this.resolvedProjectDirectory, 'package.json');
     await fs.access(packageJsonPath);
 
-    console.log('DEBUG: Finalization completed');
+    this.logger.debug('Finalization completed');
     return { success: true, message: 'Project setup finalized' };
   }
 

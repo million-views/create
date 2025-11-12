@@ -5,6 +5,12 @@ import path from 'path';
 import { sanitizeErrorMessage, getPackageName, validatePackageIdentity } from '../../lib/shared/security.mjs';
 import { execCommand } from '../../lib/shared/utils/command-utils.mjs';
 import { validateDirectoryExists } from '../../lib/shared/utils/fs-utils.mjs';
+import { Logger } from '../../lib/shared/utils/logger.mjs';
+
+/**
+ * Logger instance for user interactions
+ */
+const logger = Logger.getInstance();
 
 /**
  * Comprehensive preflight checks module
@@ -38,7 +44,7 @@ export async function checkGitInstallation() {
       const minorVersion = parseInt(versionMatch[2]);
 
       if (majorVersion < 2) {
-        console.warn(`⚠️  Warning: Git version ${majorVersion}.${minorVersion} detected. Version 2.0+ is recommended for best compatibility.`);
+        logger.warn(`⚠️  Warning: Git version ${majorVersion}.${minorVersion} detected. Version 2.0+ is recommended for best compatibility.`);
       }
     }
 
@@ -47,9 +53,9 @@ export async function checkGitInstallation() {
       await execCommand('git', ['config', 'user.name'], { timeout: 3000 });
       await execCommand('git', ['config', 'user.email'], { timeout: 3000 });
     } catch {
-      console.warn('⚠️  Warning: Git user configuration not found. Some template setup scripts may require git user.name and user.email to be configured.');
-      console.warn('   Configure with: git config --global user.name "Your Name"');
-      console.warn('   Configure with: git config --global user.email "your.email@example.com"');
+      logger.warn('⚠️  Warning: Git user configuration not found. Some template setup scripts may require git user.name and user.email to be configured.');
+      logger.warn('   Configure with: git config --global user.name "Your Name"');
+      logger.warn('   Configure with: git config --global user.email "your.email@example.com"');
     }
 
   } catch (error) {
@@ -167,7 +173,7 @@ export async function checkProjectDirectoryConflicts(projectDirectory) {
             'DIRECTORY_NOT_EMPTY'
           );
         } else {
-          console.warn(`⚠️  Warning: Directory "${projectDirectory}" exists but is empty. Proceeding with template creation.`);
+          logger.warn(`⚠️  Warning: Directory "${projectDirectory}" exists but is empty. Proceeding with template creation.`);
         }
       } catch (readdirError) {
         if (readdirError.code === 'EACCES' || readdirError.code === 'EPERM') {
@@ -294,8 +300,7 @@ export async function validateRepositoryAccessibility(repoUrl, branchName = null
 
   // Test repository accessibility with git ls-remote
   try {
-    // ast-grep-ignore: no-console-log
-    console.log('🔍 Validating repository accessibility...');
+    logger.info('🔍 Validating repository accessibility...');
 
     const lsRemoteArgs = ['ls-remote', '--heads'];
     if (branchName) {
@@ -400,12 +405,10 @@ export async function validateRepositoryAccessibility(repoUrl, branchName = null
  * @throws {PreflightError} - If any preflight check fails
  */
 export async function runAllPreflightChecks(args, repoUrl) {
-  // ast-grep-ignore: no-console-log
-  console.log('🔍 Running preflight checks...\n');
+  logger.info('🔍 Running preflight checks...\n');
 
   // 1. Validate package identity
-  // ast-grep-ignore: no-console-log
-  console.log('  ✓ Validating package identity...');
+  logger.info('  ✓ Validating package identity...');
   try {
     validatePackageIdentity();
   } catch (error) {
@@ -417,25 +420,20 @@ export async function runAllPreflightChecks(args, repoUrl) {
   }
 
   // 2. Check git installation
-  // ast-grep-ignore: no-console-log
-  console.log('  ✓ Checking git installation...');
+  logger.info('  ✓ Checking git installation...');
   await checkGitInstallation();
 
   // 3. Validate all arguments
-  // ast-grep-ignore: no-console-log
-  console.log('  ✓ Validating arguments...');
+  logger.info('  ✓ Validating arguments...');
   await validateAllArguments(args);
 
   // 4. Check project directory conflicts
-  // ast-grep-ignore: no-console-log
-  console.log('  ✓ Checking project directory...');
+  logger.info('  ✓ Checking project directory...');
   await checkProjectDirectoryConflicts(args.projectDirectory);
 
   // 5. Validate repository accessibility
-  // ast-grep-ignore: no-console-log
-  console.log('  ✓ Validating repository access...');
+  logger.info('  ✓ Validating repository access...');
   await validateRepositoryAccessibility(repoUrl, args.branch);
 
-  // ast-grep-ignore: no-console-log
-  console.log('✅ All preflight checks passed!\n');
+  logger.success('✅ All preflight checks passed!\n');
 }

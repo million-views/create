@@ -34,6 +34,8 @@ const DEFAULT_REPO = 'million-views/packages';
  * Execute the 'new' command - create a new project from a template
  */
 export async function executeNewCommand(args) {
+  // const logger = Logger.getInstance(); // Not needed - use Logger.getInstance() directly
+
   try {
     // Load configuration early for early exit modes that might need it
     let configMetadata = null;
@@ -63,7 +65,7 @@ export async function executeNewCommand(args) {
 
     // Initialize cache manager and logger
     const cacheManager = new CacheManager();
-    const logger = args[TERMINOLOGY.OPTION.LOG_FILE] ? new Logger('file', 'info', args[TERMINOLOGY.OPTION.LOG_FILE]) : null;
+    const logger = args[TERMINOLOGY.OPTION.LOG_FILE] ? new Logger('file', 'info', args[TERMINOLOGY.OPTION.LOG_FILE]) : Logger.getInstance();
 
     // Template resolution logic - handle different template input types
     let templatePath, templateName, repoUrl, branchName, metadata;
@@ -201,37 +203,37 @@ export async function executeNewCommand(args) {
       }
 
       // Display preview output
-      console.log('🔍 DRY RUN - Preview Mode');
-      console.log('================================');
-      console.log(`Template: ${templateName}`);
-      console.log(`Source: ${repoUrl}${branchName ? ` (${branchName})` : ''}`);
-      console.log(`Target: ${args.projectDirectory}`);
-      console.log('');
+      logger.info('🔍 DRY RUN - Preview Mode');
+      logger.info('================================');
+      logger.info(`Template: ${templateName}`);
+      logger.info(`Source: ${repoUrl}${branchName ? ` (${branchName})` : ''}`);
+      logger.info(`Target: ${args.projectDirectory}`);
+      logger.info('');
 
-      console.log('📋 Operations Preview:');
-      console.log(`• Files: ${preview.summary.fileCount}`);
-      console.log(`• Directories: ${preview.summary.directoryCount}`);
-      console.log(`• Total operations: ${preview.operations.length}`);
-      console.log('');
+      logger.info('📋 Operations Preview:');
+      logger.info(`• Files: ${preview.summary.fileCount}`);
+      logger.info(`• Directories: ${preview.summary.directoryCount}`);
+      logger.info(`• Total operations: ${preview.operations.length}`);
+      logger.info('');
 
       if (preview.operations.length > 0) {
-        console.log('File Operations:');
+        logger.info('File Operations:');
         // Group operations by type
         const fileOps = preview.operations.filter(op => op.type === 'file_copy');
         const dirOps = preview.operations.filter(op => op.type === 'directory_create');
 
         if (dirOps.length > 0) {
-          console.log('• Directory Creation:');
+          logger.info('• Directory Creation:');
           for (const op of dirOps.slice(0, 5)) { // Show first 5
-            console.log(`  • ${op.relativePath}`);
+            logger.info(`  • ${op.relativePath}`);
           }
           if (dirOps.length > 5) {
-            console.log(`  ... and ${dirOps.length - 5} more directories`);
+            logger.info(`  ... and ${dirOps.length - 5} more directories`);
           }
         }
 
         if (fileOps.length > 0) {
-          console.log('• File Copy:');
+          logger.info('• File Copy:');
           // Group by directory for readability
           const byDir = {};
           for (const op of fileOps) {
@@ -241,7 +243,7 @@ export async function executeNewCommand(args) {
           }
 
           for (const [dir, files] of Object.entries(byDir)) {
-            console.log(`  • ./${dir}/ (${files.length} files)`);
+            logger.info(`  • ./${dir}/ (${files.length} files)`);
           }
         }
       }
@@ -259,9 +261,9 @@ export async function executeNewCommand(args) {
           await execCommand('which', [treeCommand], { stdio: 'pipe' });
         }
         // Tree command available, show tree preview
-        console.log('');
-        console.log('Directory Structure Preview:');
-        console.log('-----------------------------');
+        logger.info('');
+        logger.info('Directory Structure Preview:');
+        logger.info('-----------------------------');
         let treeCmd, treeArgs;
         if (treeCommand === 'tree') {
           treeCmd = treeCommand;
@@ -278,14 +280,14 @@ export async function executeNewCommand(args) {
         const treeResult = await execCommand(treeCmd, treeArgs, { stdio: 'pipe' });
         const ignoreSet = createTemplateIgnoreSet();
         const filteredTreeResult = stripIgnoredFromTree(treeResult, ignoreSet);
-        console.log(filteredTreeResult);
+        logger.info(filteredTreeResult);
       } catch {
-        console.log('');
-        console.log(`Note: Tree command (${treeCommand}) is unavailable for directory structure preview`);
+        logger.info('');
+        logger.info(`Note: Tree command (${treeCommand}) is unavailable for directory structure preview`);
       }
 
-      console.log('');
-      console.log('✅ Dry run completed - no files were created or modified');
+      logger.info('');
+      logger.info('✅ Dry run completed - no files were created or modified');
 
       // Wait for any pending log writes to complete
       if (logger) {
@@ -302,7 +304,7 @@ export async function executeNewCommand(args) {
     console.error('DEBUG: Project directory:', args.projectDirectory);
     console.error('DEBUG: NODE_ENV:', process.env.NODE_ENV);
     if (process.env.NODE_ENV === 'test') {
-      console.log('DEBUG: About to create GuidedSetupWorkflow with:', {
+      logger.info('DEBUG: About to create GuidedSetupWorkflow with:', {
         projectDirectory: args.projectDirectory,
         templatePath,
         templateName,

@@ -9,6 +9,7 @@ import { parseArgs } from 'util';
 import { realpathSync } from 'fs';
 import { TERMINOLOGY } from '../../../lib/shared/ontology.mjs';
 import { handleArgumentParsingError, withErrorHandling } from '../../../lib/shared/error-handler.mjs';
+import { Logger } from '../../../lib/shared/utils/logger.mjs';
 
 // Command-specific options schema
 const OPTIONS_SCHEMA = {
@@ -26,7 +27,7 @@ const OPTIONS_SCHEMA = {
 /**
  * Display help text for init command
  */
-function displayHelp() {
+function displayHelp(logger) {
   const helpText = `
 make-template init - Generate skeleton template.json file
 
@@ -57,7 +58,7 @@ TEMPLATE AUTHOR WORKFLOW:
 For more information, visit: https://github.com/m5nv/make-template
 `;
 
-  console.log(helpText.trim());
+  logger.info(helpText.trim());
 }
 
 /**
@@ -248,6 +249,9 @@ function handleCliError(message, exitCode = 1) {
  * Main init command function
  */
 export async function main(argv = null, _config = {}) {
+  // Create logger for CLI output
+  const logger = Logger.getInstance();
+
   let parsedArgs;
 
   try {
@@ -268,7 +272,7 @@ export async function main(argv = null, _config = {}) {
 
   // Show help if requested
   if (options.help) {
-    displayHelp();
+    displayHelp(logger);
     process.exit(0);
   }
 
@@ -282,14 +286,14 @@ export async function main(argv = null, _config = {}) {
     // Check if file already exists
     try {
       await fs.access(outputPath);
-      console.log(`⚠️  File ${outputFile} already exists.`);
-      console.log(`   Use --init-file <different-name> to specify a different output file.`);
+      logger.warn(`File ${outputFile} already exists.`);
+      logger.warn(`Use --init-file <different-name> to specify a different output file.`);
       process.exit(1);
     } catch (_error) {
       // File doesn't exist, which is what we want
     }
 
-    console.log(`📝 Generating skeleton template.json at ${outputFile}...`);
+    logger.info(`📝 Generating skeleton template.json at ${outputFile}...`);
 
     // Generate skeleton template.json
     const skeletonTemplate = generateSkeletonTemplate();
@@ -297,12 +301,12 @@ export async function main(argv = null, _config = {}) {
     // Write to file
     await fs.writeFile(outputPath, JSON.stringify(skeletonTemplate, null, 2));
 
-    console.log('✅ Skeleton template.json generated successfully!');
-    console.log('');
-    console.log('📋 Next steps:');
-    console.log(`   1. Edit ${outputFile} to customize your template`);
-    console.log('   2. Run "make-template validate" to validate your template');
-    console.log('   3. Test with create-scaffold to ensure it works');
+    logger.success('Skeleton template.json generated successfully!');
+    logger.info('');
+    logger.info('📋 Next steps:');
+    logger.info(`   1. Edit ${outputFile} to customize your template`);
+    logger.info('   2. Run "make-template validate" to validate your template');
+    logger.info('   3. Test with create-scaffold to ensure it works');
 
   } catch (error) {
     handleCliError(`Init failed: ${error.message}`);

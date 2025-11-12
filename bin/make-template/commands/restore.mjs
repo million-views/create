@@ -12,6 +12,7 @@ import { parseArgs } from 'util';
 import { access, constants, rm, readdir } from 'fs/promises';
 import { realpathSync } from 'fs';
 import { handleArgumentParsingError, withErrorHandling } from '../../../lib/shared/error-handler.mjs';
+import { Logger } from '../../../lib/shared/utils/logger.mjs';
 
 // Command-specific options schema
 const OPTIONS_SCHEMA = {
@@ -52,9 +53,14 @@ const OPTIONS_SCHEMA = {
 };
 
 /**
+ * Logger instance for user interactions
+ */
+const logger = Logger.getInstance();
+
+/**
  * Display help text for restore command
  */
-function displayHelp() {
+function displayHelp(logger) {
   const helpText = `
 make-template restore - Restore template back to working project
 
@@ -128,7 +134,7 @@ TROUBLESHOOTING:
 For more information, visit: https://github.com/m5nv/make-template
 `;
 
-  console.log(helpText.trim());
+  logger.info(helpText.trim());
 }
 
 /**
@@ -152,18 +158,18 @@ async function generateDefaultsFile() {
 
     await defaultsManager.generateDefaultsFile(commonPlaceholders);
 
-    console.log('✅ Generated .restore-defaults.json configuration file');
-    console.log('');
-    console.log('📝 Edit this file to customize default values for restoration:');
-    console.log('   • Use ${VARIABLE} for environment variable substitution');
-    console.log('   • Set promptForMissing: false to use defaults without prompting');
-    console.log('   • Add your project-specific placeholders and default values');
-    console.log('');
-    console.log('💡 Use this file with: make-template restore');
+    logger.success('Generated .restore-defaults.json configuration file');
+    logger.info('');
+    logger.info('📝 Edit this file to customize default values for restoration:');
+    logger.info('   • Use ${VARIABLE} for environment variable substitution');
+    logger.info('   • Set promptForMissing: false to use defaults without prompting');
+    logger.info('   • Add your project-specific placeholders and default values');
+    logger.info('');
+    logger.info('💡 Use this file with: make-template restore');
   } catch (error) {
     if (error.message.includes('already exists')) {
-      console.log('⚠️  .restore-defaults.json already exists');
-      console.log('💡 Delete the existing file first or edit it directly');
+      logger.warn('.restore-defaults.json already exists');
+      logger.info('💡 Delete the existing file first or edit it directly');
       return;
     }
     handleCliError(`Failed to create .restore-defaults.json: ${error.message}`);
@@ -174,14 +180,15 @@ async function generateDefaultsFile() {
  * Handle CLI errors and exit appropriately
  */
 function handleCliError(message, exitCode = 1) {
-  console.error(`Error: ${message}`);
+  const logger = Logger.getInstance();
+  logger.error(message);
   process.exit(exitCode);
 }
 
 /**
  * Clean up make-template artifacts after successful restoration
  */
-async function cleanupArtifacts() {
+async function cleanupArtifacts(logger) {
   const artifacts = ['.template-undo.json', '_setup.mjs'];
   let cleanedCount = 0;
 
@@ -209,7 +216,7 @@ async function cleanupArtifacts() {
   }
 
   if (cleanedCount > 0) {
-    console.info(`🧹 Cleaned up ${cleanedCount} make-template artifact(s)`);
+    logger.info(`🧹 Cleaned up ${cleanedCount} make-template artifact(s)`);
   }
 }
 
@@ -217,6 +224,9 @@ async function cleanupArtifacts() {
  * Main restore command function
  */
 export async function main(argv = null, _config = {}) {
+  // Create logger for CLI output
+  const logger = Logger.getInstance();
+
   let parsedArgs;
 
   try {
@@ -236,7 +246,7 @@ export async function main(argv = null, _config = {}) {
 
   // Show help if requested
   if (options.help) {
-    displayHelp();
+    displayHelp(logger);
     process.exit(0);
   }
 
@@ -271,7 +281,7 @@ export async function main(argv = null, _config = {}) {
 
     // Clean up artifacts after successful restoration (unless dry-run)
     if (!options.dryRun) {
-      await cleanupArtifacts();
+      await cleanupArtifacts(logger);
     }
   } catch (error) {
     handleCliError(error.message);

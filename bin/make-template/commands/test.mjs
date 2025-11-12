@@ -10,6 +10,7 @@ import { realpathSync } from 'fs';
 import { TemplateTestingService } from '../../../lib/shared/template-testing-service.mjs';
 import { TERMINOLOGY } from '../../../lib/shared/ontology.mjs';
 import { handleArgumentParsingError, withErrorHandling } from '../../../lib/shared/error-handler.mjs';
+import { Logger } from '../../../lib/shared/utils/logger.mjs';
 
 // Command-specific options schema
 const OPTIONS_SCHEMA = {
@@ -33,7 +34,7 @@ const OPTIONS_SCHEMA = {
 /**
  * Display help text for test command
  */
-function displayHelp() {
+function displayHelp(logger) {
   const helpText = `
 make-template test - Test templates by creating and validating projects
 
@@ -70,7 +71,7 @@ TEST EXAMPLES:
 For more information, visit: https://github.com/m5nv/make-template
 `;
 
-  console.log(helpText.trim());
+  logger.info(helpText.trim());
 }
 
 /**
@@ -85,6 +86,9 @@ function handleCliError(message, exitCode = 1) {
  * Main test command function
  */
 export async function main(argv = null, _config = {}) {
+  // Create logger for CLI output
+  const logger = Logger.getInstance();
+
   let parsedArgs;
 
   try {
@@ -105,7 +109,7 @@ export async function main(argv = null, _config = {}) {
 
   // Show help if requested
   if (options.help) {
-    displayHelp();
+    displayHelp(logger);
     process.exit(0);
   }
 
@@ -122,62 +126,62 @@ export async function main(argv = null, _config = {}) {
       keepTemp: options['keep-temp']
     });
 
-    console.log(`🧪 Testing template: ${templatePath}`);
-    console.log('');
+    logger.info(`🧪 Testing template: ${templatePath}`);
+    logger.info('');
 
     const result = await testingService.testTemplate(templatePath, {
       cleanup: !options['keep-temp']
     });
 
     if (result.success) {
-      console.log('✅ Template test passed!');
-      console.log('');
-      console.log('📋 Test Summary:');
-      console.log(`   • Project creation: ✅ Successful`);
-      console.log(`   • Dependency installation: ✅ Successful`);
-      console.log(`   • Basic functionality: ✅ Verified`);
-      console.log(`   • Cleanup: ${options['keep-temp'] ? '⏸️  Skipped (temp dirs kept)' : '✅ Completed'}`);
+      logger.success('Template test passed!');
+      logger.info('');
+      logger.info('📋 Test Summary:');
+      logger.info(`   • Project creation: ✅ Successful`);
+      logger.info(`   • Dependency installation: ✅ Successful`);
+      logger.info(`   • Basic functionality: ✅ Verified`);
+      logger.info(`   • Cleanup: ${options['keep-temp'] ? '⏸️  Skipped (temp dirs kept)' : '✅ Completed'}`);
 
       if (result.details && options.verbose) {
-        console.log('');
-        console.log('📝 Test Details:');
+        logger.info('');
+        logger.info('📝 Test Details:');
         if (result.details.projectPath) {
-          console.log(`   • Test project: ${result.details.projectPath}`);
+          logger.info(`   • Test project: ${result.details.projectPath}`);
         }
         if (result.details.executionTime) {
-          console.log(`   • Execution time: ${result.details.executionTime}ms`);
+          logger.info(`   • Execution time: ${result.details.executionTime}ms`);
         }
       }
     } else {
-      console.log('❌ Template test failed!');
-      console.log('');
-      console.log('📋 Test Summary:');
-      console.log(`   • Project creation: ${result.details?.projectCreated ? '✅ Successful' : '❌ Failed'}`);
-      console.log(`   • Dependency installation: ${result.details?.depsInstalled ? '✅ Successful' : '❌ Failed'}`);
-      console.log(`   • Basic functionality: ❌ Failed`);
+      logger.error('Template test failed!');
+      logger.info('');
+      logger.info('📋 Test Summary:');
+      logger.info(`   • Project creation: ${result.details?.projectCreated ? '✅ Successful' : '❌ Failed'}`);
+      logger.info(`   • Dependency installation: ${result.details?.depsInstalled ? '✅ Successful' : '❌ Failed'}`);
+      logger.info(`   • Basic functionality: ❌ Failed`);
 
       if (result.error) {
-        console.log('');
-        console.log('🚨 Error Details:');
-        console.log(`   ${result.error.message}`);
+        logger.info('');
+        logger.info('🚨 Error Details:');
+        logger.error(`   ${result.error.message}`);
 
         if (result.error.suggestion) {
-          console.log('');
-          console.log('💡 Suggestion:');
-          console.log(`   ${result.error.suggestion}`);
+          logger.info('');
+          logger.info('💡 Suggestion:');
+          logger.info(`   ${result.error.suggestion}`);
         }
       }
 
       if (result.details && options.verbose) {
-        console.log('');
-        console.log('📝 Additional Details:');
+        logger.info('');
+        logger.info('📝 Additional Details:');
         if (result.details.projectPath) {
-          console.log(`   • Test project: ${result.details.projectPath}`);
+          logger.info(`   • Test project: ${result.details.projectPath}`);
         }
         if (result.details.errorLogs && result.details.errorLogs.length > 0) {
-          console.log('   • Error logs:');
+          logger.info('   • Error logs:');
           result.details.errorLogs.forEach((log, i) => {
-            console.log(`     ${i + 1}. ${log}`);
+            logger.error(`     ${i + 1}. ${log}`);
           });
         }
       }
@@ -190,23 +194,23 @@ export async function main(argv = null, _config = {}) {
     } else {
       // Handle ContextualError specially
       if (error.context) {
-        console.log('❌ Template test failed!');
-        console.log('');
-        console.log('🚨 Error Details:');
-        console.log(`   ${error.message}`);
+        logger.error('Template test failed!');
+        logger.info('');
+        logger.info('🚨 Error Details:');
+        logger.error(`   ${error.message}`);
 
         if (error.suggestions && error.suggestions.length > 0) {
-          console.log('');
-          console.log('💡 Suggestions:');
+          logger.info('');
+          logger.info('💡 Suggestions:');
           error.suggestions.forEach((suggestion, i) => {
-            console.log(`   ${i + 1}. ${suggestion}`);
+            logger.info(`   ${i + 1}. ${suggestion}`);
           });
         }
 
         if (options.verbose && error.technicalDetails) {
-          console.log('');
-          console.log('🔧 Technical Details:');
-          console.log(`${error.technicalDetails}`);
+          logger.info('');
+          logger.info('🔧 Technical Details:');
+          logger.info(`${error.technicalDetails}`);
         }
       } else {
         handleCliError(`Test failed: ${error.message}`);

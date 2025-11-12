@@ -6,6 +6,7 @@ import { executeListCommand } from './commands/list.mjs';
 import { executeValidateCommand } from './commands/validate.mjs';
 import { sanitizeBranchName } from '../../../create/lib/shared/security.mjs';
 import { handleError, ErrorMessages } from '../../../create/lib/shared/utils/error-handler.mjs';
+import { Logger } from '../../../create/lib/shared/utils/logger.mjs';
 
 /**
  * Command router for create-scaffold CLI
@@ -13,6 +14,7 @@ import { handleError, ErrorMessages } from '../../../create/lib/shared/utils/err
  */
 export class CommandRouter {
   constructor() {
+    this.logger = Logger.getInstance();
     this.commands = {
       [TERMINOLOGY.COMMAND.NEW]: executeNewCommand,
       [TERMINOLOGY.COMMAND.LIST]: executeListCommand,
@@ -159,27 +161,27 @@ export class CommandRouter {
    * Show help information
    */
   showHelp() {
-    console.log('🔧 create-scaffold - Project scaffolding tool');
-    console.log('');
-    console.log('USAGE:');
-    console.log('  create-scaffold <command> [options]');
-    console.log('');
-    console.log('COMMANDS:');
-    console.log(`  ${TERMINOLOGY.COMMAND.NEW} <project-dir>    Create a new project from a template`);
-    console.log(`  ${TERMINOLOGY.COMMAND.LIST}                 List available templates and registries`);
-    console.log(`  ${TERMINOLOGY.COMMAND.VALIDATE} <path>      Validate a template directory`);
-    console.log('');
-    console.log('OPTIONS:');
-    console.log('  --help, -h              Show help information');
-    console.log('  --version               Show version information');
-    console.log('');
-    console.log('EXAMPLES:');
-    console.log('  create-scaffold new my-project --template react-app');
-    console.log('  create-scaffold list --registry official');
-    console.log('  create-scaffold validate ./my-template');
-    console.log('');
-    console.log('For help with a specific command, use:');
-    console.log('  create-scaffold <command> --help');
+    this.logger.info('🔧 create-scaffold - Project scaffolding tool');
+    this.logger.info('');
+    this.logger.info('USAGE:');
+    this.logger.info('  create-scaffold <command> [options]');
+    this.logger.info('');
+    this.logger.info('COMMANDS:');
+    this.logger.info(`  ${TERMINOLOGY.COMMAND.NEW} <project-dir>    Create a new project from a template`);
+    this.logger.info(`  ${TERMINOLOGY.COMMAND.LIST}                 List available templates and registries`);
+    this.logger.info(`  ${TERMINOLOGY.COMMAND.VALIDATE} <path>      Validate a template directory`);
+    this.logger.info('');
+    this.logger.info('OPTIONS:');
+    this.logger.info('  --help, -h              Show help information');
+    this.logger.info('  --version               Show version information');
+    this.logger.info('');
+    this.logger.info('EXAMPLES:');
+    this.logger.info('  create-scaffold new my-project --template react-app');
+    this.logger.info('  create-scaffold list --registry official');
+    this.logger.info('  create-scaffold validate ./my-template');
+    this.logger.info('');
+    this.logger.info('For help with a specific command, use:');
+    this.logger.info('  create-scaffold <command> --help');
   }
 
   /**

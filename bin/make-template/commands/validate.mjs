@@ -10,6 +10,7 @@ import { realpathSync } from 'fs';
 import { TemplateValidator } from '../../../lib/validation/template-validator.mjs';
 import { TERMINOLOGY } from '../../../lib/shared/ontology.mjs';
 import { handleArgumentParsingError, withErrorHandling } from '../../../lib/shared/error-handler.mjs';
+import { Logger } from '../../../lib/shared/utils/logger.mjs';
 
 // Command-specific options schema
 const OPTIONS_SCHEMA = {
@@ -35,7 +36,7 @@ const OPTIONS_SCHEMA = {
 /**
  * Display help text for validate command
  */
-function displayHelp() {
+function displayHelp(logger) {
   const helpText = `
 make-template validate - Validate template.json against schema
 
@@ -71,16 +72,17 @@ VALIDATION EXAMPLES:
 For more information, visit: https://github.com/m5nv/make-template
 `;
 
-  console.log(helpText.trim());
+  logger.info(helpText.trim());
 }
 
 /**
  * Apply intelligent fixes for safe validation errors
  * @param {string} templateFile - Path to template file
  * @param {Array} errors - Validation errors
+ * @param {Logger} logger - Logger instance
  * @returns {Promise<number>} Number of fixes applied
  */
-async function applyIntelligentFixes(templateFile, errors) {
+async function applyIntelligentFixes(templateFile, errors, logger) {
   const fs = await import('fs/promises');
   let fixesApplied = 0;
 
@@ -104,7 +106,7 @@ async function applyIntelligentFixes(templateFile, errors) {
                 needs: {}
               };
               fixesApplied++;
-              console.log(`   ✓ Added missing feature spec for '${error.autoFix.feature}'`);
+              logger.info(`   ✓ Added missing feature spec for '${error.autoFix.feature}'`);
               break;
 
             case 'add-missing-dimension':
@@ -115,13 +117,13 @@ async function applyIntelligentFixes(templateFile, errors) {
                 values: []
               };
               fixesApplied++;
-              console.log(`   ✓ Added missing dimension '${error.autoFix.dimension}'`);
+              logger.info(`   ✓ Added missing dimension '${error.autoFix.dimension}'`);
               break;
 
             case 'fix-schema-version':
               template.schemaVersion = '1.0.0';
               fixesApplied++;
-              console.log(`   ✓ Updated schema version to '1.0.0'`);
+              logger.info(`   ✓ Updated schema version to '1.0.0'`);
               break;
 
             case 'fix-id-format':
@@ -133,12 +135,12 @@ async function applyIntelligentFixes(templateFile, errors) {
               if (fixedId.includes('/')) {
                 template.id = fixedId;
                 fixesApplied++;
-                console.log(`   ✓ Fixed ID format to '${fixedId}'`);
+                logger.info(`   ✓ Fixed ID format to '${fixedId}'`);
               }
               break;
           }
         } catch (_fixError) {
-          console.log(`   ⚠️  Failed to apply fix for: ${error.message}`);
+          logger.warn(`   Failed to apply fix for: ${error.message}`);
         }
       }
     }
@@ -150,7 +152,7 @@ async function applyIntelligentFixes(templateFile, errors) {
 
     return fixesApplied;
   } catch (error) {
-    console.log(`   ⚠️  Error during auto-fix: ${error.message}`);
+    logger.warn(`   Error during auto-fix: ${error.message}`);
     return fixesApplied;
   }
 }
@@ -167,6 +169,9 @@ function handleCliError(message, exitCode = 1) {
  * Main validate command function
  */
 export async function main(argv = null, _config = {}) {
+  // Create logger for CLI output
+  const logger = Logger.getInstance();
+
   let parsedArgs;
 
   try {
@@ -187,7 +192,7 @@ export async function main(argv = null, _config = {}) {
 
   // Show help if requested
   if (options.help) {
-    displayHelp();
+    displayHelp(logger);
     process.exit(0);
   }
 
@@ -196,83 +201,83 @@ export async function main(argv = null, _config = {}) {
     const templateFile = options[TERMINOLOGY.OPTION.LINT_FILE] || positionals[0] || 'template.json';
     const enableSuggestions = options[TERMINOLOGY.OPTION.SUGGEST] || options[TERMINOLOGY.OPTION.FIX];
 
-    console.log(`🔍 Validating ${templateFile}...`);
+    logger.info(`🔍 Validating ${templateFile}...`);
 
     const result = await validator.validate(templateFile, 'strict');
 
     if (result.valid) {
-      console.log('✅ Template validation passed!');
-      console.log('');
-      console.log('📋 Validation Summary:');
-      console.log(`   • Schema validation: ✅ Passed`);
-      console.log(`   • Domain validation: ✅ Passed`);
-      console.log(`   • Warnings: ${result.warnings.length}`);
+      logger.success('Template validation passed!');
+      logger.info('');
+      logger.info('📋 Validation Summary:');
+      logger.info(`   • Schema validation: ✅ Passed`);
+      logger.info(`   • Domain validation: ✅ Passed`);
+      logger.info(`   • Warnings: ${result.warnings.length}`);
 
       if (result.warnings.length > 0) {
-        console.log('');
-        console.log('⚠️  Warnings:');
+        logger.info('');
+        logger.warn('Warnings:');
         result.warnings.forEach((warning, i) => {
-          console.log(`   ${i + 1}. ${warning.message}`);
+          logger.warn(`   ${i + 1}. ${warning.message}`);
           if (warning.path && warning.path.length > 0) {
-            console.log(`      Path: ${warning.path.join('.')}`);
+            logger.warn(`      Path: ${warning.path.join('.')}`);
           }
           if (enableSuggestions && warning.suggestion) {
-            console.log(`      💡 Suggestion: ${warning.suggestion}`);
+            logger.info(`      💡 Suggestion: ${warning.suggestion}`);
           }
         });
       }
     } else {
-      console.log('❌ Template validation failed!');
-      console.log('');
-      console.log('📋 Validation Summary:');
-      console.log(`   • Errors: ${result.errors.length}`);
-      console.log(`   • Warnings: ${result.warnings.length}`);
-      console.log('');
+      logger.error('Template validation failed!');
+      logger.info('');
+      logger.info('📋 Validation Summary:');
+      logger.info(`   • Errors: ${result.errors.length}`);
+      logger.info(`   • Warnings: ${result.warnings.length}`);
+      logger.info('');
 
       // Handle auto-fix if requested
       if (options.fix) {
-        const fixesApplied = await applyIntelligentFixes(templateFile, result.errors);
+        const fixesApplied = await applyIntelligentFixes(templateFile, result.errors, logger);
         if (fixesApplied > 0) {
-          console.log(`🔧 Applied ${fixesApplied} automatic fix(es)`);
-          console.log('');
+          logger.info(`🔧 Applied ${fixesApplied} automatic fix(es)`);
+          logger.info('');
           // Re-validate after fixes
-          console.log('🔄 Re-validating after fixes...');
+          logger.info('🔄 Re-validating after fixes...');
           const revalidateResult = await validator.validate(templateFile, 'strict');
           if (revalidateResult.valid) {
-            console.log('✅ Template validation passed after fixes!');
+            logger.success('Template validation passed after fixes!');
             return;
           } else {
-            console.log('⚠️  Some issues remain after auto-fixes');
+            logger.warn('Some issues remain after auto-fixes');
             result.errors = revalidateResult.errors;
             result.warnings = revalidateResult.warnings;
           }
         }
       }
 
-      console.log('🚨 Errors:');
+      logger.error('Errors:');
       result.errors.forEach((error, i) => {
-        console.log(`   ${i + 1}. ${error.message}`);
+        logger.error(`   ${i + 1}. ${error.message}`);
         if (error.path && error.path.length > 0) {
-          console.log(`      Path: ${error.path.join('.')}`);
+          logger.error(`      Path: ${error.path.join('.')}`);
         }
         if (enableSuggestions && error.suggestion) {
-          console.log(`      💡 Suggestion: ${error.suggestion}`);
+          logger.info(`      💡 Suggestion: ${error.suggestion}`);
         }
         if (enableSuggestions && error.command) {
-          console.log(`      🛠️  Command: ${error.command}`);
+          logger.info(`      🛠️  Command: ${error.command}`);
         }
       });
 
       if (result.warnings.length > 0) {
-        console.log('');
-        console.log('⚠️  Warnings:');
+        logger.info('');
+        logger.warn('Warnings:');
         result.warnings.forEach((warning, i) => {
-          console.log(`   ${i + 1}. ${warning.message}`);
+          logger.warn(`   ${i + 1}. ${warning.message}`);
           if (warning.path && warning.path.length > 0) {
-            console.log(`      Path: ${warning.path.join('.')}`);
+            logger.warn(`      Path: ${warning.path.join('.')}`);
           }
           if (enableSuggestions && warning.suggestion) {
-            console.log(`      💡 Suggestion: ${warning.suggestion}`);
+            logger.info(`      💡 Suggestion: ${warning.suggestion}`);
           }
         });
       }

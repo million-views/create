@@ -51,6 +51,8 @@ import { TERMINOLOGY } from '../../lib/shared/ontology.mjs';
  * Now supports hierarchical commands with backward compatibility
  */
 async function main() {
+  // const logger = Logger.getInstance(); // Not needed - use Logger.getInstance() directly
+
   try {
     // Parse arguments using native Node.js parseArgs
     const args = parseArguments();
@@ -297,7 +299,7 @@ async function main() {
         }
       });
 
-      console.log(helpText);
+      Logger.getInstance().info(helpText);
       process.exit(0);
     }
 
@@ -380,7 +382,7 @@ async function main() {
 
     // Initialize cache manager and logger
     const cacheManager = new CacheManager();
-    const logger = args['log-file'] ? new Logger('file', 'info', args['log-file']) : null;
+    const logger = args['log-file'] ? new Logger('file', 'info', args['log-file']) : Logger.getInstance();
 
     // Configuration already loaded above for early exit modes
 
@@ -500,37 +502,37 @@ async function main() {
         const repoPath = path.dirname(templatePath);
         preview = await dryRunEngine.previewScaffoldingFromPath(repoPath, templateName, args.projectDirectory);
       }      // Display preview output
-      console.log('🔍 DRY RUN - Preview Mode');
-      console.log('================================');
-      console.log(`Template: ${templateName}`);
-      console.log(`Source: ${repoUrl}${branchName ? ` (${branchName})` : ''}`);
-      console.log(`Target: ${args.projectDirectory}`);
-      console.log('');
+      logger.info('🔍 DRY RUN - Preview Mode');
+      logger.info('================================');
+      logger.info(`Template: ${templateName}`);
+      logger.info(`Source: ${repoUrl}${branchName ? ` (${branchName})` : ''}`);
+      logger.info(`Target: ${args.projectDirectory}`);
+      logger.info('');
 
-      console.log('📋 Operations Preview:');
-      console.log(`• Files: ${preview.summary.fileCount}`);
-      console.log(`• Directories: ${preview.summary.directoryCount}`);
-      console.log(`• Total operations: ${preview.operations.length}`);
-      console.log('');
+      logger.info('📋 Operations Preview:');
+      logger.info(`• Files: ${preview.summary.fileCount}`);
+      logger.info(`• Directories: ${preview.summary.directoryCount}`);
+      logger.info(`• Total operations: ${preview.operations.length}`);
+      logger.info('');
 
       if (preview.operations.length > 0) {
-        console.log('File Operations:');
+        logger.info('File Operations:');
         // Group operations by type
         const fileOps = preview.operations.filter(op => op.type === 'file_copy');
         const dirOps = preview.operations.filter(op => op.type === 'directory_create');
 
         if (dirOps.length > 0) {
-          console.log('• Directory Creation:');
+          logger.info('• Directory Creation:');
           for (const op of dirOps.slice(0, 5)) { // Show first 5
-            console.log(`  • ${op.relativePath}`);
+            logger.info(`  • ${op.relativePath}`);
           }
           if (dirOps.length > 5) {
-            console.log(`  ... and ${dirOps.length - 5} more directories`);
+            logger.info(`  ... and ${dirOps.length - 5} more directories`);
           }
         }
 
         if (fileOps.length > 0) {
-          console.log('• File Copy:');
+          logger.info('• File Copy:');
           // Group by directory for readability
           const byDir = {};
           for (const op of fileOps) {
@@ -540,7 +542,7 @@ async function main() {
           }
 
           for (const [dir, files] of Object.entries(byDir)) {
-            console.log(`  • ./${dir}/ (${files.length} files)`);
+            logger.info(`  • ./${dir}/ (${files.length} files)`);
           }
         }
       }
@@ -558,9 +560,9 @@ async function main() {
           await execCommand('which', [treeCommand], { stdio: 'pipe' });
         }
         // Tree command available, show tree preview
-        console.log('');
-        console.log('Directory Structure Preview:');
-        console.log('-----------------------------');
+        logger.info('');
+        logger.info('Directory Structure Preview:');
+        logger.info('-----------------------------');
         let treeCmd, treeArgs;
         if (treeCommand === 'tree') {
           treeCmd = treeCommand;
@@ -577,14 +579,14 @@ async function main() {
         const treeResult = await execCommand(treeCmd, treeArgs, { stdio: 'pipe' });
         const ignoreSet = createTemplateIgnoreSet();
         const filteredTreeResult = stripIgnoredFromTree(treeResult, ignoreSet);
-        console.log(filteredTreeResult);
+        logger.info(filteredTreeResult);
       } catch {
-        console.log('');
-        console.log(`Note: Tree command (${treeCommand}) is unavailable for directory structure preview`);
+        logger.info('');
+        logger.info(`Note: Tree command (${treeCommand}) is unavailable for directory structure preview`);
       }
 
-      console.log('');
-      console.log('✅ Dry run completed - no files were created or modified');
+      logger.info('');
+      logger.info('✅ Dry run completed - no files were created or modified');
 
       // Wait for any pending log writes to complete
       if (logger) {
@@ -596,12 +598,12 @@ async function main() {
 
     // Execute the guided workflow with all resolved parameters
     // Always use guided workflow as the default
-    console.error('DEBUG: About to call workflow for project:', args.projectDirectory, 'template:', templatePath);
-    console.error('DEBUG: Template path exists:', !!templatePath);
-    console.error('DEBUG: Project directory:', args.projectDirectory);
-    console.error('DEBUG: NODE_ENV:', process.env.NODE_ENV);
+    logger.debug('About to call workflow for project:', args.projectDirectory, 'template:', templatePath);
+    logger.debug('Template path exists:', !!templatePath);
+    logger.debug('Project directory:', args.projectDirectory);
+    logger.debug('NODE_ENV:', process.env.NODE_ENV);
     if (process.env.NODE_ENV === 'test') {
-      console.log('DEBUG: About to create GuidedSetupWorkflow with:', {
+      logger.debug('About to create GuidedSetupWorkflow with:', {
         projectDirectory: args.projectDirectory,
         templatePath,
         templateName,
@@ -869,9 +871,8 @@ async function executeListTemplates({ jsonOutput, registryName, config }) {
     }
 
     if (jsonOutput) {
-      // ast-grep-ignore: no-console-log
       const source = registryName ? `registry: ${registryName}` : 'all registries';
-      console.log(JSON.stringify({
+      Logger.getInstance().info(JSON.stringify({
         source,
         templates: templates.map(t => ({
           name: t.name,

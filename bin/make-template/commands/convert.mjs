@@ -12,6 +12,7 @@ import { parseArgs } from 'util';
 import { readFile, access, constants } from 'fs/promises';
 import { realpathSync } from 'fs';
 import { handleArgumentParsingError, withErrorHandling } from '../../../lib/shared/error-handler.mjs';
+import { Logger } from '../../../lib/shared/utils/logger.mjs';
 
 // Command-specific options schema
 const OPTIONS_SCHEMA = {
@@ -49,7 +50,7 @@ const OPTIONS_SCHEMA = {
 /**
  * Display help text for convert command
  */
-function displayHelp() {
+function displayHelp(logger) {
   const helpText = `
 make-template convert - Convert existing Node.js projects into reusable templates
 
@@ -101,7 +102,7 @@ EXAMPLES:
 For more information, visit: https://github.com/million-views/create
 `;
 
-  console.log(helpText.trim());
+  logger.info(helpText.trim());
 }
 
 /**
@@ -190,7 +191,8 @@ async function detectDevelopmentRepository() {
  * Handle CLI errors and exit appropriately
  */
 function handleCliError(message, exitCode = 1) {
-  console.error(`Error: ${message}`);
+  const logger = Logger.getInstance();
+  logger.error(message);
   process.exit(exitCode);
 }
 
@@ -198,6 +200,9 @@ function handleCliError(message, exitCode = 1) {
  * Main convert command function
  */
 export async function main(argv = null, _config = {}) {
+  // Create logger for CLI output
+  const logger = Logger.getInstance();
+
   let parsedArgs;
 
   try {
@@ -220,23 +225,23 @@ export async function main(argv = null, _config = {}) {
 
   // Show help if requested
   if (options.help) {
-    displayHelp();
+    displayHelp(logger);
     process.exit(0);
   }
 
   // Validate arguments
   const argumentErrors = validateMakeTemplateArguments(options, 'convert');
   if (argumentErrors.length > 0) {
-    argumentErrors.forEach(error => console.error(`Error: ${error}`));
-    console.error('Try --help for usage information');
+    argumentErrors.forEach(error => logger.error(error));
+    logger.error('Try --help for usage information');
     process.exit(1);
   }
 
   // Validate project directory
   const projectErrors = await validateProjectDirectory();
   if (projectErrors.length > 0) {
-    projectErrors.forEach(error => console.error(`Error: ${error}`));
-    console.error('No changes were made - validation failed before execution');
+    projectErrors.forEach(error => logger.error(error));
+    logger.error('No changes were made - validation failed before execution');
     process.exit(1);
   }
 
@@ -244,22 +249,22 @@ export async function main(argv = null, _config = {}) {
     // Check if we're running on a development repository
     const devIndicators = await detectDevelopmentRepository();
     if (devIndicators.length > 0) {
-      console.warn('⚠️  WARNING: This directory appears to be a development repository!');
-      console.warn('⚠️  Running make-template convert on development repositories can corrupt source code.');
-      console.warn('');
-      console.warn('Development indicators detected:');
-      devIndicators.forEach(indicator => console.warn(`   • ${indicator}`));
-      console.warn('');
+      logger.warn('WARNING: This directory appears to be a development repository!');
+      logger.warn('Running make-template convert on development repositories can corrupt source code.');
+      logger.warn('');
+      logger.warn('Development indicators detected:');
+      devIndicators.forEach(indicator => logger.warn(`   • ${indicator}`));
+      logger.warn('');
 
       if (!options.yes) {
-        console.warn('If you really want to proceed, use --yes to skip this warning.');
-        console.warn('Otherwise, consider using test fixtures or a separate project for testing.');
-        console.warn('');
+        logger.warn('If you really want to proceed, use --yes to skip this warning.');
+        logger.warn('Otherwise, consider using test fixtures or a separate project for testing.');
+        logger.warn('');
         process.exit(1);
       } else {
-        console.warn('⚠️  Proceeding with --yes flag despite development repository warnings.');
-        console.warn('⚠️  Make sure you have backups and understand the risks.');
-        console.warn('');
+        logger.warn('Proceeding with --yes flag despite development repository warnings.');
+        logger.warn('Make sure you have backups and understand the risks.');
+        logger.warn('');
       }
     }
 
@@ -269,10 +274,10 @@ export async function main(argv = null, _config = {}) {
       const packageJson = JSON.parse(packageContent);
 
       if (packageJson.name === 'make-template' && packageJson.bin && packageJson.bin['make-template']) {
-        console.error('Error: Cannot run make-template on the make-template project itself.');
-        console.error('This would corrupt the tool\'s own source code.');
-        console.error('If you need to test templatization, use the test fixtures or a separate project.');
-        console.error('');
+        logger.error('Cannot run make-template on the make-template project itself.');
+        logger.error('This would corrupt the tool\'s own source code.');
+        logger.error('If you need to test templatization, use the test fixtures or a separate project.');
+        logger.error('');
         process.exit(1);
       }
     } catch (_error) {
@@ -282,10 +287,10 @@ export async function main(argv = null, _config = {}) {
     // Check if project appears to already be templated
     try {
       await access('.template-undo.json', constants.F_OK);
-      console.info('ℹ️  Note: .template-undo.json found. This project has been templated before.');
-      console.info('ℹ️  The existing undo log will be updated with the new templatization.');
-      console.info('ℹ️  If you need to restore to the previous state, backup .template-undo.json first.');
-      console.info('');
+      logger.info('Note: .template-undo.json found. This project has been templated before.');
+      logger.info('The existing undo log will be updated with the new templatization.');
+      logger.info('If you need to restore to the previous state, backup .template-undo.json first.');
+      logger.info('');
     } catch {
       // .template-undo.json doesn't exist, proceed normally
     }
