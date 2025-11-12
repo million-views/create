@@ -144,7 +144,7 @@ Setup scripts run in a resource-restricted sandbox and rely exclusively on the c
 **Alternatives considered:**
 - **npm packages** (rejected - adds packaging complexity and npm-specific dependencies)
 - **Custom archive format** (rejected - requires special tooling and distribution)
-- **Registry system** (rejected - adds infrastructure complexity)
+- **Centralized registry system** (rejected - adds infrastructure complexity and gatekeeper control)
 
 ### Decision 2: Optional Setup Scripts
 

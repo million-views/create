@@ -228,6 +228,69 @@ make-template test [options] <template-path>
 - `--verbose, -v`: Enable verbose test output
 - `--keep-temp`: Preserve temporary test directories
 
+## Registry System
+
+The CLI supports a decentralized registry system for template discovery and organization. Unlike centralized registries that act as gatekeepers, this system allows users to define their own registries locally.
+
+### How Registries Work
+
+Registries are collections of templates organized by name. Each registry can contain multiple templates, and users can define multiple registries in their configuration.
+
+**Registry Types:**
+- **Local registries**: Templates stored on the local filesystem
+- **Git registries**: Templates hosted in Git repositories  
+- **HTTP registries**: Templates served via HTTP endpoints
+
+### Registry Configuration
+
+Registries are configured in `.m5nvrc` configuration files:
+
+```json
+{
+  "registries": {
+    "company": {
+      "type": "git",
+      "url": "https://github.com/company/templates.git"
+    },
+    "personal": {
+      "type": "local", 
+      "path": "~/my-templates"
+    }
+  }
+}
+```
+
+### Using Registries
+
+Once configured, registries enable shorthand template references:
+
+```bash
+# List all templates in a registry
+create-scaffold list --registry company
+
+# Use a template from a registry
+create-scaffold new my-app --template react-app --registry company
+
+# Get info about a template in a registry
+create-scaffold info react-app --registry company
+```
+
+### Built-in Registries
+
+The CLI includes built-in registry support that doesn't require configuration:
+
+- **Git URLs**: Direct Git repository references work automatically
+- **Local paths**: File system paths work automatically
+- **HTTP URLs**: Web-hosted templates work automatically
+
+### Registry Discovery Order
+
+When resolving templates, the CLI searches in this order:
+
+1. Explicit `--registry` option
+2. Default registry from configuration
+3. Built-in registries (git URLs, local paths, HTTP URLs)
+
 ## Template manifest schema
 
 @m5nv/create-scaffold publishes its canonical `template.json` contract so automation and editors stay aligned with the CLI:

@@ -205,8 +205,8 @@ We deliberately chose not to support certain features:
 - **Impact**: Template authors must use JavaScript for setup scripts
 
 **No Central Template Registry:**
-- **Why**: Avoids infrastructure burden and control concerns
-- **Impact**: Template discovery happens through existing developer networks
+- **Why**: Avoids infrastructure burden and control concerns with gatekeeper-style registries
+- **Impact**: Template discovery happens through existing developer networks and decentralized registries
 
 **No Real-time Template Updates:**
 - **Why**: Caching and security require deliberate update cycles
