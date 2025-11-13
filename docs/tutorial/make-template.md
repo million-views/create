@@ -896,6 +896,17 @@ Each template demonstrates:
 - Cloudflare deployment patterns and configurations
 - Template features like placeholders, setup scripts, and assetsDir
 
+## Future Features: Template Variants with selection.json
+
+**Note for Template Authors:** In a future version of the template system (V1 schema), you'll be able to create preconfigured variants of your templates using `selection.json` files. This will allow you to offer different feature combinations without creating separate templates.
+
+For example, you could provide:
+- A "basic" variant with minimal features
+- A "full" variant with all features enabled
+- A "enterprise" variant with advanced configurations
+
+Users would then be able to scaffold projects with pre-selected feature combinations, making template customization more user-friendly and reducing decision fatigue during project setup.
+
 ## Next steps
 
 Now that you've created these templates, learn how to use them:

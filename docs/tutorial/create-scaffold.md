@@ -20,7 +20,7 @@ last_updated: "2025-11-12"
 
 ## What you'll learn
 
-In this tutorial, you'll learn how to scaffold new projects using the three templates you created in the [make-template tutorial](make-template.md). You'll explore different project types, master registry management for template organization, and discover powerful customization features like `selection.json` and `.m5nvrc` configuration files.
+In this tutorial, you'll learn how to scaffold new projects using the three templates you created in the [make-template tutorial](make-template.md). You'll explore different project types, master registry management for template organization, and discover powerful customization features with `.m5nvrc` configuration files.
 
 > This tutorial assumes you've completed both the [Getting Started tutorial](getting-started.md) and the [make-template tutorial](make-template.md) where you created the templates used here.
 
@@ -486,7 +486,7 @@ You successfully scaffolded three different types of projects using templates fr
 Along the way, you learned:
 - **Registry Management**: How to create and manage template registries for organized template storage
 - **Template Registration**: Registering templates for easy reference without file paths
-- **Custom Scaffolding**: Using `selection.json` for project-specific customization
+- **CLI Customization**: Used `--placeholder` flags for project-specific customization
 - **Global Configuration**: Setting up `.m5nvrc` for common values across all projects
 
 Each project demonstrates how templates and registries enable rapid development by providing:
