@@ -148,18 +148,69 @@ Let's start by creating a modern React SPA template using Vite - the foundation 
    # Replace the repository URL with "{{REPOSITORY_URL}}"
    ```
 
-5. **Check your manual placeholders:**
+5. **Create template.json with placeholder definitions:**
 
-   Let's see what placeholders you created by examining the template.json file that make-template will generate:
+   Now you need to create a `template.json` file that defines your placeholders. This tells make-template what placeholders exist and what their default values should be (the original values you just replaced):
 
-   ```bash
-   # First, let's create the template to see the structure
-   npx make-template convert --dry-run --yes
+   **template.json:**
+   ```json
+   {
+     "name": "Basic React SPA Template",
+     "description": "A modern React SPA built with Vite",
+     "placeholders": {
+       "PROJECT_NAME": {
+         "default": "my-awesome-project",
+         "description": "The name of your project"
+       },
+       "PROJECT_DESCRIPTION": {
+         "default": "A portfolio website built with React",
+         "description": "Brief description of your project"
+       },
+       "AUTHOR": {
+         "default": "John Doe <john@example.com>",
+         "description": "Project author information"
+       },
+       "REPOSITORY_URL": {
+         "default": "https://github.com/johndoe/my-awesome-project.git",
+         "description": "Git repository URL"
+       },
+       "WELCOME_MESSAGE": {
+         "default": "Welcome to your modern React SPA!",
+         "description": "Welcome message displayed on the homepage"
+       },
+       "TECH_STACK": {
+         "default": "Built with Vite + React",
+         "description": "Technology stack description"
+       },
+       "LOGO_URL": {
+         "default": "/logo.png",
+         "description": "Path to logo image"
+       },
+       "COMPANY_NAME": {
+         "default": "My Company Logo",
+         "description": "Alt text for logo"
+       },
+       "GITHUB_URL": {
+         "default": "https://github.com/johndoe",
+         "description": "GitHub profile URL"
+       }
+     }
+   }
    ```
 
-   This dry-run will show you what the template.json would look like with your manual placeholders. Check the generated template.json to see your placeholders listed.
+   **Why this matters:** The `template.json` file defines your placeholders and their default values. During scaffolding, users can override these defaults. The `.template-undo.json` (created during conversion) uses these defaults for the restore functionality.
 
-6. **Now let's see Auto-Templatization:**
+6. **Convert to template:**
+
+   Now convert your manually templatized project:
+
+   ```bash
+   npx make-template convert --yes
+   ```
+
+   This creates the `.template-undo.json` file with the reverse mappings for restoration.
+
+7. **Now let's see Auto-Templatization:**
 
    Instead of manually replacing all strings, let's start fresh and let make-template automatically detect placeholders:
 
@@ -177,7 +228,7 @@ Let's start by creating a modern React SPA template using Vite - the foundation 
    cat .template-undo.json | head -20
    ```
 
-7. **Compare Manual vs Auto Results:**
+8. **Compare Manual vs Auto Results:**
 
    The auto-templatization should have detected placeholders like:
    - `{{PROJECT_NAME}}` for "my-awesome-project"
@@ -191,7 +242,7 @@ Let's start by creating a modern React SPA template using Vite - the foundation 
    - `{{ALT_TEXT_0}}` for "My Company Logo"
    - `{{LINK_URL_0}}` for "https://github.com/johndoe"
 
-8. **Test the Template:**
+9. **Test the Template:**
 
    Let's test that the template works by scaffolding a new project:
 
@@ -205,7 +256,7 @@ Let's start by creating a modern React SPA template using Vite - the foundation 
 
    You should see the template working with placeholder values.
 
-9. **Undo Feature - Restore the original project:**
+10. **Undo Feature - Restore the original project:**
 
    Now let's demonstrate the undo feature to restore the original project:
 
@@ -216,7 +267,7 @@ Let's start by creating a modern React SPA template using Vite - the foundation 
 
    This restores all the original values from the `.template-undo.json` file.
 
-10. **Verify Restoration:**
+11. **Verify Restoration:**
 
    Check that your original values are back:
 
@@ -225,7 +276,7 @@ Let's start by creating a modern React SPA template using Vite - the foundation 
    grep "John Doe" package.json
    ```
 
-11. **Advanced Auto-Templatization:**
+12. **Advanced Auto-Templatization:**
 
    Let's try a different project type to see more auto-detection features. Create a Cloudflare Worker project:
 
@@ -267,7 +318,7 @@ Let's start by creating a modern React SPA template using Vite - the foundation 
    - `{{D1_DATABASE_BINDING_0}}` for "MY_DATABASE"
    - `{{D1_DATABASE_ID_0}}` for the database ID
 
-12. **Clean up and continue:**
+13. **Clean up and continue:**
 
     ```bash
     cd ..
@@ -402,12 +453,12 @@ Now let's create a React Router v7 SSR application that directly accesses D1 dat
 
 ### Instructions
 
-1. **Navigate back to the workshop directory:**
+14. **Navigate back to the workshop directory:**
    ```bash
    cd ..
    ```
 
-2. **Create the React Router v7 SSR project:**
+15. **Create the React Router v7 SSR project:**
    ```bash
    mkdir ssr-portfolio-app
    cd ssr-portfolio-app
@@ -415,19 +466,19 @@ Now let's create a React Router v7 SSR application that directly accesses D1 dat
    npm install
    ```
 
-3. **Install additional dependencies for D1:**
+16. **Install additional dependencies for D1:**
    ```bash
    npm install drizzle-orm
    npm install --save-dev drizzle-kit
    ```
 
-4. **Set up the database schema and types:**
+17. **Set up the database schema and types:**
    ```bash
    mkdir -p app/db app/lib
    touch app/db/schema.ts app/db/client.ts drizzle.config.ts
    ```
 
-5. **Create the database schema:**
+18. **Create the database schema:**
 
    **app/db/schema.ts:**
    ```typescript
@@ -473,7 +524,7 @@ Now let's create a React Router v7 SSR application that directly accesses D1 dat
    });
    ```
 
-6. **Create the main app structure:**
+19. **Create the main app structure:**
 
    **app/routes/_index.tsx:**
    ```tsx
@@ -517,7 +568,7 @@ Now let's create a React Router v7 SSR application that directly accesses D1 dat
    }
    ```
 
-7. **Set up Cloudflare configuration:**
+20. **Set up Cloudflare configuration:**
 
    **wrangler.toml:**
    ```toml
@@ -532,13 +583,13 @@ Now let's create a React Router v7 SSR application that directly accesses D1 dat
    migrations_dir = "migrations"
    ```
 
-8. **Create database migrations:**
+21. **Create database migrations:**
    ```bash
    mkdir migrations
    npx drizzle-kit generate
    ```
 
-9. **Update package.json:**
+22. **Update package.json:**
    ```json
    {
      "name": "{{PROJECT_NAME}}",
@@ -559,7 +610,7 @@ Now let's create a React Router v7 SSR application that directly accesses D1 dat
    }
    ```
 
-10. **Convert to template:**
+23. **Convert to template:**
     ```bash
     npx make-template convert --yes
     ```
@@ -574,12 +625,12 @@ Finally, let's create a split-architecture full-stack application: a Cloudflare 
 
 ### Instructions
 
-1. **Navigate back to the workshop directory:**
+24. **Navigate back to the workshop directory:**
    ```bash
    cd ..
    ```
 
-2. **Create the API server (Cloudflare Worker + D1):**
+25. **Create the API server (Cloudflare Worker + D1):**
    ```bash
    mkdir portfolio-api
    cd portfolio-api
@@ -588,13 +639,13 @@ Finally, let's create a split-architecture full-stack application: a Cloudflare 
    npm install --save-dev drizzle-kit
    ```
 
-3. **Set up the API server structure:**
+26. **Set up the API server structure:**
    ```bash
    mkdir -p src/db src/routes
    touch src/db/schema.ts src/db/client.ts src/routes/projects.ts src/routes/tasks.ts drizzle.config.ts
    ```
 
-4. **Create the database schema:**
+27. **Create the database schema:**
 
    **src/db/schema.ts:**
    ```typescript
@@ -638,7 +689,7 @@ Finally, let's create a split-architecture full-stack application: a Cloudflare 
    });
    ```
 
-5. **Create API routes:**
+28. **Create API routes:**
 
    **src/routes/projects.ts:**
    ```typescript
@@ -677,7 +728,7 @@ Finally, let's create a split-architecture full-stack application: a Cloudflare 
    export default router;
    ```
 
-6. **Update the main worker file:**
+29. **Update the main worker file:**
 
    **src/index.ts:**
    ```typescript
@@ -703,7 +754,7 @@ Finally, let's create a split-architecture full-stack application: a Cloudflare 
    };
    ```
 
-7. **Set up wrangler configuration:**
+30. **Set up wrangler configuration:**
 
    **wrangler.toml:**
    ```toml
@@ -718,12 +769,12 @@ Finally, let's create a split-architecture full-stack application: a Cloudflare 
    migrations_dir = "migrations"
    ```
 
-8. **Generate migrations:**
+31. **Generate migrations:**
    ```bash
    npx drizzle-kit generate
    ```
 
-9. **Create the client app in a separate directory:**
+32. **Create the client app in a separate directory:**
    ```bash
    cd ..
    mkdir portfolio-client
@@ -732,7 +783,7 @@ Finally, let's create a split-architecture full-stack application: a Cloudflare 
    npm install
    ```
 
-10. **Update the client app to fetch from API:**
+33. **Update the client app to fetch from API:**
 
     **app/routes/_index.tsx:**
     ```tsx
@@ -789,7 +840,7 @@ Finally, let's create a split-architecture full-stack application: a Cloudflare 
     }
     ```
 
-11. **Update package.json files:**
+34. **Update package.json files:**
 
     **portfolio-api/package.json:**
     ```json
@@ -826,7 +877,7 @@ Finally, let's create a split-architecture full-stack application: a Cloudflare 
     }
     ```
 
-12. **Convert both to templates:**
+35. **Convert both to templates:**
     ```bash
     # Convert API server
     cd portfolio-api
@@ -845,9 +896,9 @@ A complete split-architecture application with separate API server and client, d
 
 You successfully created three templates that demonstrate a progressive modern stack for Cloudflare deployment:
 
-1. **Basic React SPA** - Modern frontend foundation with Vite + React (learned complete workflow)
-2. **SSR Portfolio App** - React Router v7 with SSR and direct D1 database access
-3. **Full-Stack Portfolio** - Split architecture with API server (Workers + D1) and client app
+1. **Basic React SPA** - Modern frontend foundation with Vite + React (learned complete workflow in steps 1-13)
+2. **SSR Portfolio App** - React Router v7 with SSR and direct D1 database access (steps 14-23)
+3. **Full-Stack Portfolio** - Split architecture with API server (Workers + D1) and client app (steps 24-35)
 
 Each template demonstrates:
 - Modern tooling and frameworks (Vite, React Router v7, Cloudflare Workers)
