@@ -20,14 +20,15 @@ last_updated: "2025-11-12"
 
 ## What you'll learn
 
-In this tutorial, you'll learn how to create three templates that demonstrate a progressive modern stack for Cloudflare deployment. You'll see how to build up complexity from a simple React SPA to a full-stack application with edge computing and databases.
+In this tutorial, you'll learn how to create four templates that demonstrate a progressive modern stack for Cloudflare deployment. You'll start with learning the make-template workflow (manual → undo → auto-templatization), then build up complexity from a simple React SPA to a full-stack application with edge computing and databases.
 
 ## What you'll build
 
-You'll create three templates that showcase a progressive modern stack for Cloudflare deployment:
+You'll create four templates that showcase a progressive modern stack for Cloudflare deployment:
 
-1. **Basic React SPA** - Modern frontend foundation with Vite + React
-2. **SSR Portfolio App** - React Router v7 with SSR and direct D1 database access
+1. **Template Workflow Demo** - Learn manual templatization, undo features, and auto-templatization
+2. **Basic React SPA** - Modern frontend foundation with Vite + React
+3. **SSR Portfolio App** - React Router v7 with SSR and direct D1 database access
 3. **Full-Stack Portfolio** - Split architecture with API server (Workers + D1) and client app
 
 Each template demonstrates different levels of complexity and Cloudflare integration, building toward a complete portfolio management system.
@@ -44,7 +45,206 @@ Before starting this tutorial, make sure you have:
 - **Basic command line familiarity** (navigating directories, running commands)
 - **Completed the [getting-started tutorial](getting-started.md)**
 
-## Step 1: Create Basic React SPA Template
+## Template 1: Learn make-template Workflow
+
+Before diving into complex templates, let's learn the make-template workflow by demonstrating manual templatization, the undo feature, and auto-templatization capabilities. This template will show you how make-template can automatically detect and convert project-specific values into reusable placeholders.
+
+### Instructions
+
+1. **Create a new directory for your templates:**
+   ```bash
+   mkdir template-workshop
+   cd template-workshop
+   ```
+
+2. **Create a sample React project to templatize:**
+   ```bash
+   mkdir workflow-demo
+   cd workflow-demo
+   npm create vite@latest . -- --template react --no-interactive --immediate
+   ```
+
+3. **Customize the project with specific content:**
+
+   **src/App.jsx:**
+   ```jsx
+   import React from 'react'
+   import './App.css'
+
+   function App() {
+     return (
+       <div className="App">
+         <header className="App-header">
+           <h1>My Awesome Project</h1>
+           <p>Welcome to my portfolio website!</p>
+           <p>Built by John Doe with React and Vite</p>
+           <img src="/logo.png" alt="My Company Logo" />
+           <a href="https://github.com/johndoe" className="github-link">View on GitHub</a>
+         </header>
+       </div>
+     )
+   }
+
+   export default App
+   ```
+
+   **index.html:**
+   ```html
+   <!doctype html>
+   <html lang="en">
+     <head>
+       <meta charset="UTF-8" />
+       <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+       <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+       <title>My Awesome Project</title>
+     </head>
+     <body>
+       <div id="root"></div>
+       <script type="module" src="/src/main.jsx"></script>
+     </body>
+   </html>
+   ```
+
+   **package.json (update these fields):**
+   ```json
+   {
+     "name": "my-awesome-project",
+     "description": "A portfolio website built with React",
+     "author": "John Doe <john@example.com>",
+     "repository": {
+       "type": "git",
+       "url": "https://github.com/johndoe/my-awesome-project.git"
+     }
+   }
+   ```
+
+4. **Manual Templatization - Convert specific values to placeholders:**
+
+   Let's manually convert some values to placeholders using the convert command with specific options:
+
+   ```bash
+   # Convert with manual placeholder specification
+   npx make-template convert --placeholder-format "{{NAME}}" --yes
+   ```
+
+   This creates a template with auto-detected placeholders. Let's see what was detected:
+
+   ```bash
+   cat .template-undo.json | head -20
+   ```
+
+5. **Explore Auto-Detection Results:**
+
+   The auto-templatization should have detected placeholders like:
+   - `{{PROJECT_NAME}}` for "my-awesome-project"
+   - `{{AUTHOR}}` for "John Doe <john@example.com>"
+   - `{{README_TITLE}}` for the README title
+   - `{{HTML_TITLE}}` for the HTML title
+   - `{{TEXT_CONTENT_0}}` for "My Awesome Project"
+   - `{{TEXT_CONTENT_1}}` for "Welcome to my portfolio website!"
+   - `{{TAGLINE}}` for "Built by John Doe with React and Vite"
+   - `{{IMAGE_URL_0}}` for "/logo.png"
+   - `{{ALT_TEXT_0}}` for "My Company Logo"
+   - `{{LINK_URL_0}}` for "https://github.com/johndoe"
+
+6. **Test the Template:**
+
+   Let's test that the template works by scaffolding a new project:
+
+   ```bash
+   cd ..
+   npx create-scaffold scaffold workflow-demo --yes
+   cd workflow-demo-scaffolded
+   npm install
+   npm run dev
+   ```
+
+   You should see the template working with placeholder values.
+
+7. **Undo Feature - Restore the original project:**
+
+   Now let's demonstrate the undo feature to restore the original project:
+
+   ```bash
+   cd ../workflow-demo
+   npx make-template restore --yes
+   ```
+
+   This restores all the original values from the `.template-undo.json` file.
+
+8. **Verify Restoration:**
+
+   Check that your original values are back:
+
+   ```bash
+   grep "My Awesome Project" src/App.jsx
+   grep "John Doe" package.json
+   ```
+
+9. **Advanced Auto-Templatization:**
+
+   Let's try a different project type to see more auto-detection features. Create a Cloudflare Worker project:
+
+   ```bash
+   cd ..
+   mkdir cf-worker-demo
+   cd cf-worker-demo
+   npm create cloudflare@latest . -- --template hello-world --yes
+   ```
+
+   Add a wrangler.jsonc with specific values:
+
+   **wrangler.jsonc:**
+   ```jsonc
+   {
+     "name": "my-special-worker",
+     "main": "src/index.ts",
+     "compatibility_date": "2024-01-01",
+     "account_id": "1234567890abcdef",
+     "d1_databases": [
+       {
+         "binding": "MY_DATABASE",
+         "database_name": "my_special_db",
+         "database_id": "abcdef1234567890"
+       }
+     ]
+   }
+   ```
+
+   Now convert this Cloudflare project:
+
+   ```bash
+   npx make-template convert --type cf-d1 --yes
+   ```
+
+   The auto-templatization should detect:
+   - `{{WORKER_NAME}}` for "my-special-worker"
+   - `{{CLOUDFLARE_ACCOUNT_ID}}` for the account ID
+   - `{{D1_DATABASE_BINDING_0}}` for "MY_DATABASE"
+   - `{{D1_DATABASE_ID_0}}` for the database ID
+
+10. **Clean up and continue:**
+
+    ```bash
+    cd ..
+    rm -rf workflow-demo cf-worker-demo *-scaffolded
+    ```
+
+### What You Learned
+
+- **Manual Templatization**: Using `convert` command with specific options
+- **Auto-Detection**: make-template automatically finds project-specific values in:
+  - package.json (name, description, author, repository)
+  - README.md titles
+  - HTML titles and content
+  - JSX text content, images, links, and alt text
+  - Cloudflare wrangler.jsonc configurations
+- **Undo Feature**: `restore` command reverses templatization using `.template-undo.json`
+- **Project Types**: Different auto-detection rules for different project types (`vite-react`, `cf-d1`, `cf-turso`)
+
+Now you're ready to create more sophisticated templates!
+
+## Step 2: Create Basic React SPA Template
 
 Let's start by creating a modern React SPA template using Vite - the foundation for our progressive stack.
 
@@ -60,8 +260,7 @@ Let's start by creating a modern React SPA template using Vite - the foundation 
    ```bash
    mkdir basic-react-spa
    cd basic-react-spa
-   npm create vite@latest . -- --template react --yes
-   npm install
+   npm create vite@latest . -- --template react --no-interactive --immediate
    ```
 
 3. **Customize the project structure:**
@@ -144,7 +343,7 @@ You should see:
 
 The template is now ready and demonstrates modern React development with Vite.
 
-## Step 2: Create SSR Portfolio App Template
+## Step 3: Create SSR Portfolio App Template
 
 Now let's create a React Router v7 SSR application that directly accesses D1 database - demonstrating server-side rendering with database queries.
 
@@ -316,7 +515,7 @@ Now let's create a React Router v7 SSR application that directly accesses D1 dat
 
 A modern SSR application template with direct D1 database access, demonstrating React Router v7's server-side capabilities.
 
-## Step 3: Create Full-Stack Portfolio Template
+## Step 4: Create Full-Stack Portfolio Template
 
 Finally, let's create a split-architecture full-stack application: a Cloudflare Worker API server with D1 database, and a separate React Router v7 client that fetches data from the API.
 
