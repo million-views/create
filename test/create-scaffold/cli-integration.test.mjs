@@ -287,7 +287,7 @@ async function runInteractiveFlow({ args, _envOverrides = {}, cwd, promptPlan = 
   // Import the InteractiveSession class
   const { InteractiveSession } = await import('../../bin/create-scaffold/interactive-session.mjs');
   const { CacheManager } = await import('../../bin/create-scaffold/cache-manager.mjs');
-  const { TemplateDiscovery } = await import('../../bin/create-scaffold/template-discovery.mjs');
+  const { TemplateDiscovery } = await import('../../lib/shared/utils/template-discovery.mjs');
 
   // Create dependencies
   const cacheManager = new CacheManager();

@@ -12,12 +12,11 @@ import {
 import { CacheManager } from './cache-manager.mjs';
 import { TemplateResolver } from './template-resolver.mjs';
 import { Logger } from '../../lib/shared/utils/logger.mjs';
-import { TemplateDiscovery } from './template-discovery.mjs';
+import { TemplateDiscovery, loadTemplateMetadataFromPath } from '../../lib/shared/utils/template-discovery.mjs';
 import { DryRunEngine } from './dry-run-engine.mjs';
 import { execCommand } from '../../lib/shared/utils/command-utils.mjs';
 import { validateDirectoryExists } from '../../lib/shared/utils/fs-utils.mjs';
 import { createTemplateIgnoreSet, stripIgnoredFromTree } from '../../lib/shared/utils/template-ignore.mjs';
-import { loadTemplateMetadataFromPath } from './template-metadata.mjs';
 import { normalizeOptions } from './options-processor.mjs';
 import { resolvePlaceholders } from './placeholder-resolver.mjs';
 import { createConfigManager } from '../../lib/cli/config-manager.mjs';

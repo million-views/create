@@ -4,7 +4,7 @@ import fs from 'node:fs/promises';
 import readline from 'node:readline/promises';
 import path from 'node:path';
 import process, { stdin as defaultStdin, stdout as defaultStdout } from 'node:process';
-import { TemplateDiscovery } from './template-discovery.mjs';
+import { TemplateDiscovery } from '../../lib/shared/utils/template-discovery.mjs';
 import {
   sanitizeErrorMessage,
   ValidationError,

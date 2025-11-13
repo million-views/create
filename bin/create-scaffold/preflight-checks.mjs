@@ -6,6 +6,7 @@ import { sanitizeErrorMessage, getPackageName, validatePackageIdentity } from '.
 import { execCommand } from '../../lib/shared/utils/command-utils.mjs';
 import { validateDirectoryExists } from '../../lib/shared/utils/fs-utils.mjs';
 import { Logger } from '../../lib/shared/utils/logger.mjs';
+import { PreflightError } from '../../lib/shared/utils/error-classes.mjs';
 
 /**
  * Logger instance for user interactions
@@ -16,17 +17,6 @@ const logger = Logger.getInstance();
  * Comprehensive preflight checks module
  * Implements enhanced validation and verification before main operations begin
  */
-
-/**
- * Custom error class for preflight check failures
- */
-export class PreflightError extends Error {
-  constructor(message, code = null) {
-    super(message);
-    this.name = 'PreflightError';
-    this.code = code;
-  }
-}
 
 /**
  * Enhanced git installation verification with comprehensive error messages

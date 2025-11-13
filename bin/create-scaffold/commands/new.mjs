@@ -12,7 +12,7 @@ import { DryRunEngine } from '../dry-run-engine.mjs';
 import { execCommand } from '../../../lib/shared/utils/command-utils.mjs';
 import { validateDirectoryExists } from '../../../lib/shared/utils/fs-utils.mjs';
 import { createTemplateIgnoreSet, stripIgnoredFromTree } from '../../../lib/shared/utils/template-ignore.mjs';
-import { loadTemplateMetadataFromPath } from '../template-metadata.mjs';
+import { loadTemplateMetadataFromPath } from '../../../lib/shared/utils/template-discovery.mjs';
 import { normalizeOptions } from '../options-processor.mjs';
 import { resolvePlaceholders } from '../placeholder-resolver.mjs';
 import { loadConfig } from '../config-loader.mjs';
