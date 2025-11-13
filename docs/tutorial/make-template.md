@@ -20,15 +20,15 @@ last_updated: "2025-11-12"
 
 ## What you'll learn
 
-In this tutorial, you'll learn how to create three templates that demonstrate a progressive modern stack for Cloudflare deployment. You'll start by learning the make-template workflow (manual → auto-templatization) while creating your first template, then build up complexity from a simple React SPA to a full-stack application with edge computing and databases.
+In this tutorial, you'll learn how to create three templates that demonstrate a progressive modern stack for Cloudflare deployment. You'll start by learning the make-template workflow (manual → auto-templatization) while creating your first template, then build up complexity from a simple React SPA to a full-stack application with edge computing and databases, focusing on auto-templatization for subsequent projects.
 
 ## What you'll build
 
 You'll create three templates that showcase a progressive modern stack for Cloudflare deployment:
 
 1. **Basic React SPA** - Modern frontend foundation with Vite + React (learn manual → auto templatization workflow)
-2. **SSR Portfolio App** - React Router v7 with SSR and direct D1 database access
-3. **Full-Stack Portfolio** - Split architecture with API server (Workers + D1) and client app
+2. **SSR Portfolio App** - React Router v7 with SSR and direct D1 database access (auto-templatization demo)
+3. **Full-Stack Portfolio** - Split architecture with API server (Workers + D1) and client app (auto-templatization demo)
 
 Each template demonstrates different levels of complexity and Cloudflare integration, building toward a complete portfolio management system.
 
@@ -352,16 +352,16 @@ The template is now ready and demonstrates modern React development with Vite, p
 
 ## Step 2: Create SSR Portfolio App Template
 
-Now let's create a React Router v7 SSR application that directly accesses D1 database - demonstrating server-side rendering with database queries.
+Now let's create a React Router v7 SSR application that directly accesses D1 database - demonstrating server-side rendering with database queries. Since we already learned the detailed templatization workflow in Step 1, we'll build this project normally and let make-template auto-detect the placeholders.
 
 ### Instructions
 
-14. **Navigate back to the workshop directory:**
+1. **Navigate back to the workshop directory:**
    ```bash
    cd ..
    ```
 
-15. **Create the React Router v7 SSR project:**
+2. **Create the React Router v7 SSR project:**
    ```bash
    mkdir ssr-portfolio-app
    cd ssr-portfolio-app
@@ -369,19 +369,19 @@ Now let's create a React Router v7 SSR application that directly accesses D1 dat
    npm install
    ```
 
-16. **Install additional dependencies for D1:**
+3. **Install additional dependencies for D1:**
    ```bash
    npm install drizzle-orm
    npm install --save-dev drizzle-kit
    ```
 
-17. **Set up the database schema and types:**
+4. **Set up the database schema and types:**
    ```bash
    mkdir -p app/db app/lib
    touch app/db/schema.ts app/db/client.ts drizzle.config.ts
    ```
 
-18. **Create the database schema:**
+5. **Create the database schema:**
 
    **app/db/schema.ts:**
    ```typescript
@@ -427,7 +427,7 @@ Now let's create a React Router v7 SSR application that directly accesses D1 dat
    });
    ```
 
-19. **Create the main app structure:**
+6. **Create the main app structure:**
 
    **app/routes/_index.tsx:**
    ```tsx
@@ -451,7 +451,7 @@ Now let's create a React Router v7 SSR application that directly accesses D1 dat
      return (
        <div className="container mx-auto p-6">
          <header className="mb-8">
-           <h1 className="text-4xl font-bold mb-2">{{PROJECT_NAME}}</h1>
+           <h1 className="text-4xl font-bold mb-2">SSR Portfolio App</h1>
            <p className="text-gray-600">Creator Portfolio - Built with React Router v7 & D1</p>
          </header>
 
@@ -471,31 +471,31 @@ Now let's create a React Router v7 SSR application that directly accesses D1 dat
    }
    ```
 
-20. **Set up Cloudflare configuration:**
+7. **Set up Cloudflare configuration:**
 
    **wrangler.toml:**
    ```toml
-   name = "{{PROJECT_NAME}}"
+   name = "ssr-portfolio-app"
    main = "server/index.ts"
    compatibility_date = "2024-01-01"
 
    [[d1_databases]]
    binding = "DB"
-   database_name = "{{PROJECT_NAME}}_db"
+   database_name = "ssr_portfolio_app_db"
    database_id = ""
    migrations_dir = "migrations"
    ```
 
-21. **Create database migrations:**
+8. **Create database migrations:**
    ```bash
    mkdir migrations
    npx drizzle-kit generate
    ```
 
-22. **Update package.json:**
+9. **Update package.json:**
    ```json
    {
-     "name": "{{PROJECT_NAME}}",
+     "name": "ssr-portfolio-app",
      "version": "1.0.0",
      "description": "SSR Portfolio App with React Router v7 and D1 database",
      "type": "module",
@@ -505,18 +505,56 @@ Now let's create a React Router v7 SSR application that directly accesses D1 dat
        "start": "wrangler dev",
        "deploy": "npm run build && wrangler deploy",
        "db:generate": "drizzle-kit generate",
-       "db:migrate": "wrangler d1 migrations apply {{PROJECT_NAME}}_db"
+       "db:migrate": "wrangler d1 migrations apply ssr_portfolio_app_db"
      },
      "keywords": ["react-router", "ssr", "d1", "cloudflare", "portfolio", "template"],
-     "author": "{{AUTHOR_NAME}}",
+     "author": "John Doe <john@example.com>",
      "license": "MIT"
    }
    ```
 
-23. **Convert to template:**
+10. **Convert to template:**
     ```bash
     npx make-template convert --yes
     ```
+
+11. **Review the generated template.json:**
+
+    Let's see what placeholders make-template auto-detected:
+
+    ```bash
+    cat template.json
+    ```
+
+    You should see something like this:
+
+    **template.json:**
+    ```json
+    {
+      "name": "SSR Portfolio App Template",
+      "description": "SSR Portfolio App with React Router v7 and D1 database",
+      "placeholders": {
+        "PROJECT_NAME": {
+          "default": "ssr-portfolio-app",
+          "description": "The name of your project"
+        },
+        "PROJECT_DESCRIPTION": {
+          "default": "SSR Portfolio App with React Router v7 and D1 database",
+          "description": "Brief description of your project"
+        },
+        "AUTHOR": {
+          "default": "John Doe <john@example.com>",
+          "description": "Project author information"
+        },
+        "D1_DATABASE_NAME": {
+          "default": "ssr_portfolio_app_db",
+          "description": "D1 database name"
+        }
+      }
+    }
+    ```
+
+    **Note:** make-template auto-detected common placeholders from package.json, wrangler.toml, and other configuration files. If you want to templatize additional values (like the app title "SSR Portfolio App"), you can manually edit files to use placeholders like `{{APP_TITLE}}` and add them to template.json with their original values as defaults.
 
 ### Expected Result
 
@@ -524,16 +562,16 @@ A modern SSR application template with direct D1 database access, demonstrating 
 
 ## Step 3: Create Full-Stack Portfolio Template
 
-Finally, let's create a split-architecture full-stack application: a Cloudflare Worker API server with D1 database, and a separate React Router v7 client that fetches data from the API.
+Finally, let's create a split-architecture full-stack application: a Cloudflare Worker API server with D1 database, and a separate React Router v7 client that fetches data from the API. We'll build both projects normally and let make-template auto-detect placeholders.
 
 ### Instructions
 
-24. **Navigate back to the workshop directory:**
+1. **Navigate back to the workshop directory:**
    ```bash
    cd ..
    ```
 
-25. **Create the API server (Cloudflare Worker + D1):**
+2. **Create the API server (Cloudflare Worker + D1):**
    ```bash
    mkdir portfolio-api
    cd portfolio-api
@@ -542,13 +580,13 @@ Finally, let's create a split-architecture full-stack application: a Cloudflare 
    npm install --save-dev drizzle-kit
    ```
 
-26. **Set up the API server structure:**
+3. **Set up the API server structure:**
    ```bash
    mkdir -p src/db src/routes
    touch src/db/schema.ts src/db/client.ts src/routes/projects.ts src/routes/tasks.ts drizzle.config.ts
    ```
 
-27. **Create the database schema:**
+4. **Create the database schema:**
 
    **src/db/schema.ts:**
    ```typescript
@@ -592,7 +630,7 @@ Finally, let's create a split-architecture full-stack application: a Cloudflare 
    });
    ```
 
-28. **Create API routes:**
+5. **Create API routes:**
 
    **src/routes/projects.ts:**
    ```typescript
@@ -631,7 +669,7 @@ Finally, let's create a split-architecture full-stack application: a Cloudflare 
    export default router;
    ```
 
-29. **Update the main worker file:**
+6. **Update the main worker file:**
 
    **src/index.ts:**
    ```typescript
@@ -649,7 +687,7 @@ Finally, let's create a split-architecture full-stack application: a Cloudflare 
 
        // Health check
        if (request.url.endsWith('/health')) {
-         return Response.json({ status: 'OK', service: '{{PROJECT_NAME}} API' });
+         return Response.json({ status: 'OK', service: 'Portfolio API' });
        }
 
        return new Response('Not Found', { status: 404 });
@@ -657,36 +695,54 @@ Finally, let's create a split-architecture full-stack application: a Cloudflare 
    };
    ```
 
-30. **Set up wrangler configuration:**
+7. **Set up wrangler configuration:**
 
    **wrangler.toml:**
    ```toml
-   name = "{{PROJECT_NAME}}-api"
+   name = "portfolio-api"
    main = "src/index.ts"
    compatibility_date = "2024-01-01"
 
    [[d1_databases]]
    binding = "DB"
-   database_name = "{{PROJECT_NAME}}_db"
+   database_name = "portfolio_api_db"
    database_id = ""
    migrations_dir = "migrations"
    ```
 
-31. **Generate migrations:**
+8. **Generate migrations:**
    ```bash
    npx drizzle-kit generate
    ```
 
-32. **Create the client app in a separate directory:**
-   ```bash
-   cd ..
-   mkdir portfolio-client
-   cd portfolio-client
-   npm create react-router@latest . -- --template basic --yes
-   npm install
+9. **Update API package.json:**
+   ```json
+   {
+     "name": "portfolio-api",
+     "version": "1.0.0",
+     "description": "Portfolio API server with Cloudflare Workers and D1",
+     "scripts": {
+       "dev": "wrangler dev",
+       "deploy": "wrangler deploy",
+       "db:generate": "drizzle-kit generate",
+       "db:migrate": "wrangler d1 migrations apply portfolio_api_db"
+     },
+     "keywords": ["api", "cloudflare", "workers", "d1", "portfolio", "template"],
+     "author": "John Doe <john@example.com>",
+     "license": "MIT"
+   }
    ```
 
-33. **Update the client app to fetch from API:**
+10. **Create the client app in a separate directory:**
+    ```bash
+    cd ..
+    mkdir portfolio-client
+    cd portfolio-client
+    npm create react-router@latest . -- --template basic --yes
+    npm install
+    ```
+
+11. **Update the client app to fetch from API:**
 
     **app/routes/_index.tsx:**
     ```tsx
@@ -698,7 +754,7 @@ Finally, let's create a split-architecture full-stack application: a Cloudflare 
       // In production, this would be the deployed Worker URL
       const apiUrl = process.env.NODE_ENV === 'development'
         ? 'http://localhost:8787'
-        : 'https://{{PROJECT_NAME}}-api.{{AUTHOR_NAME}}.workers.dev';
+        : 'https://portfolio-api.johndoe.workers.dev';
 
       try {
         const response = await fetch(`${apiUrl}/api/projects`);
@@ -716,7 +772,7 @@ Finally, let's create a split-architecture full-stack application: a Cloudflare 
       return (
         <div className="container mx-auto p-6">
           <header className="mb-8">
-            <h1 className="text-4xl font-bold mb-2">{{PROJECT_NAME}}</h1>
+            <h1 className="text-4xl font-bold mb-2">Portfolio Client</h1>
             <p className="text-gray-600">Creator Portfolio - Split Architecture</p>
             <p className="text-sm text-gray-500">API: {apiUrl}</p>
           </header>
@@ -743,30 +799,10 @@ Finally, let's create a split-architecture full-stack application: a Cloudflare 
     }
     ```
 
-34. **Update package.json files:**
-
-    **portfolio-api/package.json:**
+12. **Update client package.json:**
     ```json
     {
-      "name": "{{PROJECT_NAME}}-api",
-      "version": "1.0.0",
-      "description": "Portfolio API server with Cloudflare Workers and D1",
-      "scripts": {
-        "dev": "wrangler dev",
-        "deploy": "wrangler deploy",
-        "db:generate": "drizzle-kit generate",
-        "db:migrate": "wrangler d1 migrations apply {{PROJECT_NAME}}_db"
-      },
-      "keywords": ["api", "cloudflare", "workers", "d1", "portfolio", "template"],
-      "author": "{{AUTHOR_NAME}}",
-      "license": "MIT"
-    }
-    ```
-
-    **portfolio-client/package.json:**
-    ```json
-    {
-      "name": "{{PROJECT_NAME}}-client",
+      "name": "portfolio-client",
       "version": "1.0.0",
       "description": "Portfolio client app with React Router v7",
       "scripts": {
@@ -775,12 +811,12 @@ Finally, let's create a split-architecture full-stack application: a Cloudflare 
         "start": "react-router-serve ./build/server/index.js"
       },
       "keywords": ["react-router", "client", "portfolio", "template"],
-      "author": "{{AUTHOR_NAME}}",
+      "author": "John Doe <john@example.com>",
       "license": "MIT"
     }
     ```
 
-35. **Convert both to templates:**
+13. **Convert both to templates:**
     ```bash
     # Convert API server
     cd portfolio-api
@@ -791,6 +827,56 @@ Finally, let's create a split-architecture full-stack application: a Cloudflare 
     npx make-template convert --yes
     ```
 
+14. **Review the generated template.json files:**
+
+    Let's check what placeholders were auto-detected for both projects:
+
+    **portfolio-api/template.json:**
+    ```json
+    {
+      "name": "Portfolio API Template",
+      "description": "Portfolio API server with Cloudflare Workers and D1",
+      "placeholders": {
+        "PROJECT_NAME": {
+          "default": "portfolio-api",
+          "description": "The name of your API project"
+        },
+        "D1_DATABASE_NAME": {
+          "default": "portfolio_api_db",
+          "description": "D1 database name"
+        },
+        "AUTHOR": {
+          "default": "John Doe <john@example.com>",
+          "description": "Project author information"
+        }
+      }
+    }
+    ```
+
+    **portfolio-client/template.json:**
+    ```json
+    {
+      "name": "Portfolio Client Template",
+      "description": "Portfolio client app with React Router v7",
+      "placeholders": {
+        "PROJECT_NAME": {
+          "default": "portfolio-client",
+          "description": "The name of your client project"
+        },
+        "API_URL": {
+          "default": "https://portfolio-api.johndoe.workers.dev",
+          "description": "API server URL"
+        },
+        "AUTHOR": {
+          "default": "John Doe <john@example.com>",
+          "description": "Project author information"
+        }
+      }
+    }
+    ```
+
+    **Note:** make-template auto-detected placeholders from package.json, wrangler.toml, and other configuration files. For more extensive templatization (like the app title "Portfolio Client"), you can manually edit files to use placeholders like `{{APP_TITLE}}` and add them to template.json with their original values as defaults.
+
 ### Expected Result
 
 A complete split-architecture application with separate API server and client, demonstrating modern full-stack development with Cloudflare.
@@ -800,8 +886,8 @@ A complete split-architecture application with separate API server and client, d
 You successfully created three templates that demonstrate a progressive modern stack for Cloudflare deployment:
 
 1. **Basic React SPA** - Modern frontend foundation with Vite + React (learned complete workflow in steps 1-13)
-2. **SSR Portfolio App** - React Router v7 with SSR and direct D1 database access (steps 14-23)
-3. **Full-Stack Portfolio** - Split architecture with API server (Workers + D1) and client app (steps 24-35)
+2. **SSR Portfolio App** - React Router v7 with SSR and direct D1 database access (steps 1-11)
+3. **Full-Stack Portfolio** - Split architecture with API server (Workers + D1) and client app (steps 1-14)
 
 Each template demonstrates:
 - Modern tooling and frameworks (Vite, React Router v7, Cloudflare Workers)
