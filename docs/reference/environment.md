@@ -442,5 +442,5 @@ export default async function setup({ ctx, tools }) {
 - [Creating Templates](../how-to/creating-templates.md) – guided walkthrough with practical examples.
 - [Author Workflow](../how-to/author-workflow.md) – recommended iteration loops for WYSIWYG and composable templates.
 - [Setup Script Recipes](../how-to/setup-recipes.md) – copy-ready snippets for frequent helper tasks.
-- [Dimensions Glossary](../reference/dimensions-glossary.md) – reserved names and usage guidelines.
+- [Template Schema Reference](../reference/template-schema.md) – complete schema reference
 - [CLI Reference](cli-reference.md) – command-line options such as `--help`, `--dry-run`, `--log-file`, and `--no-cache`.

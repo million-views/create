@@ -13,7 +13,7 @@ related_docs:
   - "../reference/environment.md"
   - "setup-recipes.md"
   - "author-workflow.md"
-  - "../reference/dimensions-glossary.md"
+  - "../reference/template-schema.md"
 last_updated: "2025-11-12"
 ---
 

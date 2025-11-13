@@ -246,6 +246,6 @@ console.log('Debug state:', state); // Will trigger validation warning
 - Run `create-scaffold --validate-template <path-to-template>` (add `--json` for CI) to catch manifest, setup, and required-file issues before publishing.
 - Update `handoff` instructions so operators know the first commands to run.
 - Cross-link consumer docs: mention supported dimensions, recommended options, and IDE presets.
-- Consider adding an appendix in the template README summarizing dimensions and defaults. Link to the [Dimensions Glossary](../reference/dimensions-glossary.md) so teams stay aligned.
+- Consider adding an appendix in the template README summarizing dimensions and defaults. Link to the [Template Schema Reference](../reference/template-schema.md) so teams stay aligned.
 
 Following these loops keeps template iteration fast while ensuring @m5nv/create-scaffold users receive clean, deterministic scaffolds every time.
