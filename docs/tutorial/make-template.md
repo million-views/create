@@ -118,12 +118,57 @@ Before diving into complex templates, let's learn the make-template workflow by 
    }
    ```
 
-4. **Manual Templatization - Convert specific values to placeholders:**
+4. **Manual Templatization - Replace values with placeholders manually:**
 
-   Let's manually convert some values to placeholders using the convert command with specific options:
+   Before we use the automatic features, let's manually convert some values to placeholders to understand how templatization works. This will help you appreciate what the auto-detection does.
+
+   **Edit src/App.jsx and replace the specific values with placeholders:**
 
    ```bash
-   # Convert with manual placeholder specification
+   # Open the file in your editor
+   # Replace "My Awesome Project" with "{{PROJECT_NAME}}"
+   # Replace "Welcome to my portfolio website!" with "{{WELCOME_MESSAGE}}"
+   # Replace "Built by John Doe with React and Vite" with "{{AUTHOR_TAGLINE}}"
+   # Replace "/logo.png" with "{{LOGO_URL}}"
+   # Replace "My Company Logo" with "{{COMPANY_NAME}}"
+   # Replace "https://github.com/johndoe" with "{{GITHUB_URL}}"
+   ```
+
+   **Edit index.html and replace the title:**
+
+   ```bash
+   # Replace "My Awesome Project" with "{{PROJECT_NAME}}"
+   ```
+
+   **Edit package.json and replace the specific values:**
+
+   ```bash
+   # Replace "my-awesome-project" with "{{PROJECT_NAME}}"
+   # Replace "A portfolio website built with React" with "{{PROJECT_DESCRIPTION}}"
+   # Replace "John Doe <john@example.com>" with "{{AUTHOR}}"
+   # Replace the repository URL with "{{REPOSITORY_URL}}"
+   ```
+
+5. **Check your manual placeholders:**
+
+   Let's see what placeholders you created by examining the template.json file that make-template will generate:
+
+   ```bash
+   # First, let's create the template to see the structure
+   npx make-template convert --dry-run --yes
+   ```
+
+   This dry-run will show you what the template.json would look like with your manual placeholders. Check the generated template.json to see your placeholders listed.
+
+6. **Now let's see Auto-Templatization:**
+
+   Instead of manually replacing all strings, let's start fresh and let make-template automatically detect placeholders:
+
+   ```bash
+   # Restore the original project first
+   npx make-template restore --yes 2>/dev/null || echo "No template to restore"
+   
+   # Now convert with auto-detection
    npx make-template convert --placeholder-format "{{NAME}}" --yes
    ```
 
@@ -133,7 +178,7 @@ Before diving into complex templates, let's learn the make-template workflow by 
    cat .template-undo.json | head -20
    ```
 
-5. **Explore Auto-Detection Results:**
+7. **Compare Manual vs Auto Results:**
 
    The auto-templatization should have detected placeholders like:
    - `{{PROJECT_NAME}}` for "my-awesome-project"
@@ -147,7 +192,7 @@ Before diving into complex templates, let's learn the make-template workflow by 
    - `{{ALT_TEXT_0}}` for "My Company Logo"
    - `{{LINK_URL_0}}` for "https://github.com/johndoe"
 
-6. **Test the Template:**
+8. **Test the Template:**
 
    Let's test that the template works by scaffolding a new project:
 
@@ -161,7 +206,7 @@ Before diving into complex templates, let's learn the make-template workflow by 
 
    You should see the template working with placeholder values.
 
-7. **Undo Feature - Restore the original project:**
+9. **Undo Feature - Restore the original project:**
 
    Now let's demonstrate the undo feature to restore the original project:
 
@@ -172,7 +217,7 @@ Before diving into complex templates, let's learn the make-template workflow by 
 
    This restores all the original values from the `.template-undo.json` file.
 
-8. **Verify Restoration:**
+10. **Verify Restoration:**
 
    Check that your original values are back:
 
@@ -181,7 +226,7 @@ Before diving into complex templates, let's learn the make-template workflow by 
    grep "John Doe" package.json
    ```
 
-9. **Advanced Auto-Templatization:**
+11. **Advanced Auto-Templatization:**
 
    Let's try a different project type to see more auto-detection features. Create a Cloudflare Worker project:
 
@@ -223,7 +268,7 @@ Before diving into complex templates, let's learn the make-template workflow by 
    - `{{D1_DATABASE_BINDING_0}}` for "MY_DATABASE"
    - `{{D1_DATABASE_ID_0}}` for the database ID
 
-10. **Clean up and continue:**
+12. **Clean up and continue:**
 
     ```bash
     cd ..
