@@ -85,6 +85,7 @@ create-scaffold new <project-directory> --template <template-name> [options]
 
 **Options:**
 - `--template, -T`: Template URL or shorthand (required)
+- `--ide, -i`: Target IDE for template customization (e.g., vscode, cursor)
 - `--branch, -b`: Git branch to use
 - `--selection`: Path to selection.json file to load existing choices
 - `--options`: Contextual options for template customization

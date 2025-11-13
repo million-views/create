@@ -15,559 +15,335 @@ last_updated: "2025-11-12"
 
 # Dimensions Glossary
 
-Complete reference for template dimensions in Schema V1.0. Templates declare option vocabularies through `metadata.dimensions` in `template.json`. This glossary summarizes the reserved dimensions and provides guidance for introducing your own.
+Complete reference for template dimensions in Schema V1.0. Templates declare option vocabularies through `setup.dimensions` in `template.json`. This glossary summarizes the required dimensions and provides guidance for template authoring.
 
 ## Overview
 
-Dimensions are user-selectable options defined in `template.json` under `metadata.dimensions`. They let template users customize scaffolded projects during creation.
+Dimensions are user-selectable options defined in `template.json` under `setup.dimensions`. They let template users customize scaffolded projects during creation. Schema V1.0 requires seven specific dimensions that all templates must implement.
 
-## Reserved Dimensions
+## Required Dimensions
+
+All templates must define these seven dimensions in `setup.dimensions`:
 
 | Name | Type | Description |
 |------|------|-------------|
-| `ide` | `single` | User-selectable dimension for IDE-specific configurations. Values include `kiro`, `vscode`, `cursor`, `windsurf`. |
-| `stack` | `single` | Optional hint describing the primary framework (e.g., `react-vite`, `express`, `nextjs`). Useful when a template repository contains multiple stacks. |
-| `infrastructure` | `single` | Infrastructure target such as `cloudflare-d1`, `cloudflare-turso`, `none`. Surface defaults to keep scaffolds deterministic. |
-| `capabilities` | `multi` | Default multi-select dimension for feature toggles. When present, @m5nv/create-scaffold treats it as the "catch-all" dimension for tokens that do not specify a dimension explicitly. |
+| `deployment_target` | `single` | Deployment platform (cloudflare-workers, linode, droplet, deno-deploy, or custom x- prefixed values) |
+| `features` | `multi` | Custom feature toggles (any string values) |
+| `database` | `single` | Database choice (d1, tursodb, sqlite3, none) |
+| `storage` | `single` | Storage solution (r2, s3, file, none) |
+| `auth_providers` | `multi` | Authentication providers (google, github) |
+| `payments` | `single` | Payment processor (stripe, hyperswitch, none) |
+| `analytics` | `single` | Analytics service (umami, plausible, none) |
 
-## Dimension Types
+## Dimension Details
 
-### Single-Select Dimensions
+### deployment_target
 
-Users choose **one value** from a list.
+**Type:** `single` (required)  
+**Purpose:** Specifies the deployment platform and infrastructure target.
 
-**Schema:**
+**Allowed Values:**
+- `cloudflare-workers` - Cloudflare Workers
+- `linode` - Linode platform
+- `droplet` - DigitalOcean Droplet
+- `deno-deploy` - Deno Deploy
+- Custom values starting with `x-` (e.g., `x-custom-platform`)
+
+**Schema Example:**
 ```json
 {
-  "metadata": {
-    "dimensions": {
-      "styling": {
-        "description": "Choose CSS framework",
-        "type": "single-select",
-        "values": ["css-modules", "tailwind", "styled-components"],
-        "default": "css-modules"
-      }
-    }
+  "deployment_target": {
+    "type": "single",
+    "values": ["cloudflare-workers", "linode", "droplet"],
+    "default": "cloudflare-workers"
   }
 }
 ```
 
-**Usage:**
-```bash
-npm create @m5nv/scaffold my-app -- --template react-vite --options "styling=tailwind"
-```
+### features
 
-### Multi-Select Dimensions
+**Type:** `multi` (required)  
+**Purpose:** Custom feature toggles specific to your template.
 
-Users choose **multiple values** from a list.
+**Allowed Values:** Any string values you define
 
-**Schema:**
+**Schema Example:**
 ```json
 {
-  "metadata": {
-    "dimensions": {
-      "features": {
-        "description": "Optional features to include",
-        "type": "multi-select",
-        "values": ["auth", "testing", "i18n", "analytics"],
-        "default": []
-      }
-    }
-  }
-}
-```
-
-**Usage:**
-```bash
-npm create @m5nv/scaffold my-app -- --template react-vite --options "features=auth+testing+i18n"
-```
-
-## Naming Conventions
-
-- Use lowercase identifiers starting with a letter: `^[a-z][a-z0-9_-]{0,49}$`
-- Keep values short (≤ 50 characters) and descriptive: `auth`, `testing`, `observability`
-
-## Dependency and Conflict Patterns
-
-Use `requires` and `conflicts` to keep selections coherent:
-
-```json
-{
-  "capabilities": {
+  "features": {
     "type": "multi",
-    "values": ["auth", "testing", "docs"],
-    "requires": {
-      "testing": ["auth"]
-    },
-    "conflicts": {
-      "docs": ["testing"]
-    }
-  }
-}
-```
-
-- `requires` enforces that whenever `testing` is selected, `auth` must also be present
-- `conflicts` prevents `docs` and `testing` from being selected together
-- Combine with `policy: "strict"` (default) to fail fast when users pick unsupported values
-
-## Introducing New Dimensions
-
-1. Ensure the dimension aligns with a single authoring concern (e.g., `deployment`, `database`, `frontend`)
-2. Provide defaults so users can omit the dimension without surprises
-3. Reference the dimension explicitly in `_setup.mjs` via `tools.options.in('dimension', 'value')`
-4. Update your template README to document available values and how they interact
-
-By following these conventions, template authors can extend the option taxonomy without surprising @m5nv/create-scaffold operators.
-
-## Common Dimension Patterns
-
-### Styling Dimensions
-
-Choose CSS framework or styling approach.
-
-**Common Names:** `styling`, `css`, `styles`
-
-**Example Values:**
-- `css-modules` - CSS Modules
-- `tailwind` - Tailwind CSS
-- `styled-components` - Styled Components
-- `sass` - Sass/SCSS
-- `less` - Less
-- `vanilla` - Plain CSS
-
-**Example:**
-```json
-{
-  "styling": {
-    "description": "CSS framework",
-    "type": "single-select",
-    "values": ["css-modules", "tailwind", "styled-components"],
-    "default": "css-modules"
-  }
-}
-```
-
-### Features Dimensions
-
-Optional capabilities to include.
-
-**Common Names:** `features`, `capabilities`, `addons`
-
-**Example Values:**
-- `auth` - Authentication
-- `testing` - Test suite
-- `i18n` - Internationalization
-- `analytics` - Analytics tracking
-- `logging` - Structured logging
-- `docs` - Documentation
-
-**Example:**
-```json
-{
-  "features": {
-    "description": "Optional features",
-    "type": "multi-select",
-    "values": ["auth", "testing", "i18n", "analytics"],
-    "default": []
-  }
-}
-```
-
-### Stack Dimensions
-
-Primary framework or runtime.
-
-**Common Names:** `stack`, `framework`, `platform`
-
-**Example Values:**
-- `react-vite` - React with Vite
-- `next` - Next.js
-- `remix` - Remix
-- `express` - Express.js
-- `fastify` - Fastify
-- `sveltekit` - SvelteKit
-
-**Example:**
-```json
-{
-  "stack": {
-    "description": "Framework choice",
-    "type": "single-select",
-    "values": ["react-vite", "next", "remix"],
-    "default": "react-vite"
-  }
-}
-```
-
-### Infrastructure Dimensions
-
-Deployment target or infrastructure.
-
-**Common Names:** `infrastructure`, `deployment`, `platform`
-
-**Example Values:**
-- `vercel` - Vercel
-- `cloudflare` - Cloudflare Workers/Pages
-- `aws` - AWS (Lambda, ECS, etc.)
-- `docker` - Docker containers
-- `none` - No specific infrastructure
-
-**Example:**
-```json
-{
-  "infrastructure": {
-    "description": "Deployment target",
-    "type": "single-select",
-    "values": ["vercel", "cloudflare", "aws", "none"],
-    "default": "none"
-  }
-}
-```
-
-### Database Dimensions
-
-Database choice.
-
-**Common Names:** `database`, `db`, `storage`
-
-**Example Values:**
-- `postgres` - PostgreSQL
-- `mysql` - MySQL
-- `sqlite` - SQLite
-- `mongodb` - MongoDB
-- `redis` - Redis
-- `none` - No database
-
-**Example:**
-```json
-{
-  "database": {
-    "description": "Database choice",
-    "type": "single-select",
-    "values": ["postgres", "mysql", "sqlite", "none"],
-    "default": "none"
-  }
-}
-```
-
-## Dimension Names
-
-- **Lowercase**: Use all lowercase letters
-- **Descriptive**: Choose clear, meaningful names
-- **Concise**: Keep names short (≤ 50 characters)
-- **Pattern**: `^[a-z][a-z0-9_-]{0,49}$`
-
-**Good Examples:**
-- `styling`
-- `features`
-- `database`
-- `deployment-target`
-- `auth-provider`
-
-**Avoid:**
-- `STYLING` (uppercase)
-- `123features` (starts with number)
-- `my.dimension` (contains dot)
-- `very-long-dimension-name-that-goes-on-forever` (too long)
-
-### Value Names
-
-- **Lowercase**: Use all lowercase
-- **Kebab-case**: Prefer hyphens for multi-word values
-- **Short**: Keep concise (≤ 50 characters)
-
-**Good Examples:**
-- `tailwind`
-- `styled-components`
-- `cloudflare-workers`
-- `auth-jwt`
-
-**Avoid:**
-- `Tailwind` (mixed case)
-- `styled_components` (underscores - use hyphens)
-- `cloudflare.workers` (dots)
-
-## Dependency Management
-
-### Requires
-
-Enforce that certain values need others to be selected.
-
-**Example:**
-```json
-{
-  "features": {
-    "type": "multi-select",
-    "values": ["auth", "testing", "api"],
-    "requires": {
-      "testing": ["auth"]
-    }
-  }
-}
-```
-
-**Effect**: If user selects `testing`, they must also select `auth`.
-
-### Conflicts
-
-Prevent certain values from being selected together.
-
-**Example:**
-```json
-{
-  "features": {
-    "type": "multi-select",
-    "values": ["rest-api", "graphql-api", "grpc-api"],
-    "conflicts": {
-      "rest-api": ["graphql-api", "grpc-api"],
-      "graphql-api": ["rest-api", "grpc-api"]
-    }
-  }
-}
-```
-
-**Effect**: Users can only choose one API type.
-
-### Combined Example
-
-```json
-{
-  "features": {
-    "type": "multi-select",
-    "values": ["auth", "testing", "docs", "api"],
-    "requires": {
-      "testing": ["auth"],
-      "api": ["auth"]
-    },
-    "conflicts": {
-      "docs": ["testing"]
-    }
-  }
-}
-```
-
-## Validation Policies
-
-Control how unknown values are handled.
-
-### Strict Policy (Default)
-
-Reject unknown values with an error.
-
-```json
-{
-  "styling": {
-    "type": "single-select",
-    "values": ["tailwind", "styled-components"],
-    "policy": "strict"
-  }
-}
-```
-
-**Behavior**: Error if user provides unlisted value.
-
-### Warn Policy
-
-Accept unknown values but log a warning.
-
-```json
-{
-  "styling": {
-    "type": "single-select",
-    "values": ["tailwind", "styled-components"],
-    "policy": "warn"
-  }
-}
-```
-
-**Behavior**: Warning logged, but scaffolding continues.
-
-**Recommendation**: Use `strict` for production templates, `warn` only during development.
-
-## Default Values
-
-Always provide sensible defaults.
-
-### Single-Select Default
-
-```json
-{
-  "styling": {
-    "type": "single-select",
-    "values": ["css-modules", "tailwind"],
-    "default": "css-modules"
-  }
-}
-```
-
-**Effect**: If user doesn't specify styling, `css-modules` is used.
-
-### Multi-Select Default
-
-```json
-{
-  "features": {
-    "type": "multi-select",
-    "values": ["auth", "testing", "i18n"],
+    "values": ["auth", "testing", "i18n", "logging"],
     "default": ["testing"]
   }
 }
 ```
 
-**Effect**: If user doesn't specify features, `testing` is included by default.
+### database
 
-### Empty Default
+**Type:** `single` (required)  
+**Purpose:** Database technology choice.
 
+**Allowed Values:**
+- `d1` - Cloudflare D1
+- `tursodb` - TursoDB
+- `sqlite3` - SQLite3
+- `none` - No database
+
+**Schema Example:**
 ```json
 {
-  "features": {
-    "type": "multi-select",
-    "values": ["auth", "testing", "i18n"],
+  "database": {
+    "type": "single",
+    "values": ["d1", "tursodb", "sqlite3", "none"],
+    "default": "none"
+  }
+}
+```
+
+### storage
+
+**Type:** `single` (required)  
+**Purpose:** File/object storage solution.
+
+**Allowed Values:**
+- `r2` - Cloudflare R2
+- `s3` - Amazon S3
+- `file` - Local file system
+- `none` - No storage
+
+**Schema Example:**
+```json
+{
+  "storage": {
+    "type": "single",
+    "values": ["r2", "s3", "file", "none"],
+    "default": "none"
+  }
+}
+```
+
+### auth_providers
+
+**Type:** `multi` (required)  
+**Purpose:** Authentication providers to configure.
+
+**Allowed Values:**
+- `google` - Google OAuth
+- `github` - GitHub OAuth
+
+**Schema Example:**
+```json
+{
+  "auth_providers": {
+    "type": "multi",
+    "values": ["google", "github"],
     "default": []
   }
 }
 ```
 
-**Effect**: No features included by default.
+### payments
 
-## Accessing Dimensions in Setup Scripts
+**Type:** `single` (required)  
+**Purpose:** Payment processing service.
 
-Use `ctx.options.byDimension` and `tools.options` to work with dimensions.
+**Allowed Values:**
+- `stripe` - Stripe
+- `hyperswitch` - Hyperswitch
+- `none` - No payments
 
-### Reading Values
-
-```javascript
-// _setup.mjs
-export default async function setup({ ctx, tools }) {
-  // Single-select dimension
-  const styling = ctx.options.byDimension.styling || 'css-modules';
-  
-  // Multi-select dimension
-  const features = ctx.options.byDimension.features || [];
-  
-  console.log(`Styling: ${styling}`);
-  console.log(`Features: ${features.join(', ')}`);
-}
-```
-
-### Checking Values
-
-```javascript
-// _setup.mjs
-export default async function setup({ ctx, tools }) {
-  // Check if value is present (multi-select)
-  if (tools.options.in('features', 'auth')) {
-    // Setup authentication
-  }
-  
-  // Check multiple values
-  if (tools.options.in('features', 'auth') && 
-      tools.options.in('features', 'testing')) {
-    // Setup auth tests
-  }
-}
-```
-
-## Complete Example
-
-Comprehensive dimension configuration:
-
+**Schema Example:**
 ```json
 {
-  "schemaVersion": "1.0.0",
-  "metadata": {
-    "name": "full-stack-template",
-    "description": "Full-stack application template",
-    "author": {
-      "name": "Template Author",
-      "email": "author@example.com"
-    },
-    "dimensions": {
-      "frontend": {
-        "description": "Frontend framework",
-        "type": "single-select",
-        "values": ["react", "vue", "svelte"],
-        "default": "react"
+  "payments": {
+    "type": "single",
+    "values": ["stripe", "hyperswitch", "none"],
+    "default": "none"
+  }
+}
+```
+
+### analytics
+
+**Type:** `single` (required)  
+**Purpose:** Analytics and tracking service.
+
+**Allowed Values:**
+- `umami` - Umami Analytics
+- `plausible` - Plausible Analytics
+- `none` - No analytics
+
+**Schema Example:**
+```json
+{
+  "analytics": {
+    "type": "single",
+    "values": ["umami", "plausible", "none"],
+    "default": "none"
+  }
+}
+```
+
+## Dimension Types
+
+### Single-Select Dimensions
+
+Users choose **one value** from a list. Required dimensions use this for mutually exclusive choices.
+
+**Usage:**
+```bash
+npm create @m5nv/scaffold my-app -- --template my-template --options "database=d1"
+```
+
+### Multi-Select Dimensions
+
+Users choose **multiple values** from a list. Use `+` to combine values.
+
+**Usage:**
+```bash
+npm create @m5nv/scaffold my-app -- --template my-template --options "features=auth+testing"
+```
+
+## Gates and Compatibility
+
+Templates use `setup.gates` to define which dimension combinations are valid for each deployment target.
+
+**Example Gates:**
+```json
+{
+  "gates": {
+    "deployment_target": {
+      "cloudflare-workers": {
+        "database": ["d1", "tursodb", "sqlite3"],
+        "storage": ["r2"]
       },
-      "styling": {
-        "description": "CSS framework",
-        "type": "single-select",
-        "values": ["tailwind", "styled-components", "css-modules"],
-        "default": "css-modules"
-      },
-      "backend": {
-        "description": "Backend framework",
-        "type": "single-select",
-        "values": ["express", "fastify", "hono"],
-        "default": "express"
-      },
-      "database": {
-        "description": "Database choice",
-        "type": "single-select",
-        "values": ["postgres", "mysql", "sqlite", "none"],
-        "default": "none"
-      },
-      "features": {
-        "description": "Optional features",
-        "type": "multi-select",
-        "values": ["auth", "testing", "i18n", "analytics", "logging"],
-        "default": ["testing"],
-        "requires": {
-          "testing": ["auth"]
-        }
-      },
-      "infrastructure": {
-        "description": "Deployment target",
-        "type": "single-select",
-        "values": ["vercel", "cloudflare", "aws", "docker", "none"],
-        "default": "none"
+      "linode": {
+        "database": ["d1", "tursodb", "sqlite3"],
+        "storage": ["s3", "file"]
       }
     }
   }
 }
 ```
 
-**Usage:**
-```bash
-npm create @m5nv/scaffold my-app -- \
-  --template full-stack \
-  --options "frontend=react,styling=tailwind,backend=express,database=postgres,features=auth+testing+logging,infrastructure=vercel"
+## Accessing Dimensions in Setup Scripts
+
+Use `ctx.options.byDimension` to access selected values:
+
+```javascript
+// _setup.mjs
+export default async function setup({ ctx, tools }) {
+  // Access required dimensions
+  const deploymentTarget = ctx.options.byDimension.deployment_target;
+  const features = ctx.options.byDimension.features || [];
+  const database = ctx.options.byDimension.database;
+  const storage = ctx.options.byDimension.storage;
+  const authProviders = ctx.options.byDimension.auth_providers || [];
+  const payments = ctx.options.byDimension.payments;
+  const analytics = ctx.options.byDimension.analytics;
+
+  // Use values to configure project
+  if (tools.options.in('features', 'auth')) {
+    // Setup authentication
+  }
+
+  if (database === 'd1') {
+    // Configure D1 database
+  }
+}
+```
+
+## Complete Template Schema Example
+
+```json
+{
+  "schemaVersion": "1.0.0",
+  "title": "My Template",
+  "id": "my-template",
+  "description": "A template with all required dimensions",
+
+  "setup": {
+    "dimensions": {
+      "deployment_target": {
+        "type": "single",
+        "values": ["cloudflare-workers", "linode"],
+        "default": "cloudflare-workers"
+      },
+      "features": {
+        "type": "multi",
+        "values": ["auth", "testing", "logging"],
+        "default": ["testing"]
+      },
+      "database": {
+        "type": "single",
+        "values": ["d1", "tursodb", "none"],
+        "default": "none"
+      },
+      "storage": {
+        "type": "single",
+        "values": ["r2", "s3", "none"],
+        "default": "none"
+      },
+      "auth_providers": {
+        "type": "multi",
+        "values": ["google", "github"],
+        "default": []
+      },
+      "payments": {
+        "type": "single",
+        "values": ["stripe", "none"],
+        "default": "none"
+      },
+      "analytics": {
+        "type": "single",
+        "values": ["umami", "none"],
+        "default": "none"
+      }
+    },
+    "gates": {
+      "deployment_target": {
+        "cloudflare-workers": {
+          "database": ["d1", "tursodb"],
+          "storage": ["r2"]
+        },
+        "linode": {
+          "database": ["d1", "tursodb"],
+          "storage": ["s3"]
+        }
+      }
+    },
+    "policy": "strict"
+  },
+
+  "featureSpecs": {},
+  "constants": {}
+}
 ```
 
 ## Best Practices
 
-1. **Provide Defaults**: Always include sensible default values
-2. **Clear Descriptions**: Write helpful description fields
-3. **Logical Grouping**: Group related options into dimensions
-4. **Limit Choices**: Keep 3-7 values per dimension
-5. **Test Combinations**: Verify all option combinations work
-6. **Document Well**: Explain dimensions in template README
-7. **Use Strict Policy**: Default to strict validation
-8. **Consistent Naming**: Follow naming conventions
-9. **Handle Missing**: Always check if dimension exists before using
-10. **Idempotent Setup**: Ensure setup scripts work with any combination
+1. **Always Define All Required Dimensions**: Schema validation will fail if any are missing
+2. **Use Appropriate Defaults**: Provide sensible defaults for all dimensions
+3. **Configure Gates**: Use gates to prevent invalid combinations
+4. **Test All Combinations**: Verify your setup scripts work with all valid dimension combinations
+5. **Document Your Template**: Explain what each dimension value does in your README
 
-## Template Schema V1.0
+## IDE Support
 
-All templates must now use the V1.0 schema format. The legacy `supportedOptions` format is no longer supported.
+IDE customization is handled separately from dimensions. Use the `--ide` CLI flag and access via `ctx.ide` in setup scripts:
 
-**Required V1.0 Format:**
-```json
-{
-  "schemaVersion": "1.0.0",
-  "setup": {
-    "dimensions": {
-      "features": {
-        "type": "multi",
-        "values": ["typescript", "testing", "eslint"],
-        "default": []
-      }
-    },
-    "gates": {},
-    "policy": "strict"
-  },
-  "featureSpecs": {},
-  "constants": {}
+```bash
+npm create @m5nv/scaffold my-app -- --template my-template --ide vscode
+```
+
+```javascript
+// _setup.mjs
+export default async function setup({ ctx, tools }) {
+  const ide = ctx.ide; // 'vscode', 'cursor', etc.
+
+  if (ide === 'vscode') {
+    // Configure VS Code settings
+  }
 }
 ```
 
@@ -575,8 +351,7 @@ All templates must now use the V1.0 schema format. The legacy `supportedOptions`
 
 - **[Creating Templates](../how-to/creating-templates.md)** - Template authoring guide
 - **[Environment Reference](environment.md)** - Setup script API
-- **[Setup Recipes](../how-to/setup-recipes.md)** - Common patterns
-- **[CLI Reference](cli-reference.md)** - Command usage
+- **[CLI Reference](cli-reference.md)** - Command usage including `--ide` flag
 
 ## Related Documentation
 
