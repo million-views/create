@@ -52,20 +52,20 @@ Let's start by scaffolding a project using the Basic React App template you crea
    cd template-workshop
    ```
 
-2. **Create a React app project from your template:**
+2. **Create a React SPA project from your template:**
    ```bash
-   npx @m5nv/create-scaffold my-react-app --template ./basic-react-app --repo local
+   npx @m5nv/create-scaffold my-react-spa --template ./basic-react-spa --repo local
    ```
 
 3. **Navigate to the new project:**
    ```bash
-   cd my-react-app
+   cd my-react-spa
    ```
 
 4. **Install dependencies and start development:**
    ```bash
    npm install
-   npm start
+   npm run dev
    ```
 
 5. **Explore the project structure:**
@@ -98,9 +98,9 @@ my-react-app/
 - Project structure matches the template
 - All dependencies are properly installed
 
-## Example 2: API Server
+## Example 2: SSR Portfolio App
 
-Now let's scaffold a backend API server using the API Server template you created.
+Now let's scaffold a server-side rendered portfolio application using the SSR Portfolio template you created.
 
 ### Instructions
 
@@ -109,19 +109,21 @@ Now let's scaffold a backend API server using the API Server template you create
    cd ..
    ```
 
-2. **Create an API server project:**
+2. **Create an SSR portfolio project:**
    ```bash
-   npx @m5nv/create-scaffold my-api-server --template ./api-server --repo local
+   npx @m5nv/create-scaffold my-portfolio --template ./ssr-portfolio-app --repo local
    ```
 
-3. **Navigate to the API project:**
+3. **Navigate to the portfolio project:**
    ```bash
-   cd my-api-server
+   cd my-portfolio
    ```
 
-4. **Install dependencies and start the server:**
+4. **Set up the database and start development:**
    ```bash
    npm install
+   npx wrangler d1 create my-portfolio_db
+   npm run db:migrate
    npm run dev
    ```
 
@@ -145,28 +147,30 @@ Now let's scaffold a backend API server using the API Server template you create
 You should have a running API server:
 
 ```
-my-api-server/
-├── package.json          # API server dependencies
-├── src/
-│   ├── server.js         # Express server setup
+my-portfolio/
+├── app/
+│   ├── db/
+│   │   ├── schema.ts      # Database schema with Drizzle
+│   │   └── client.ts      # D1 database client
 │   └── routes/
-│       └── users.js      # User API routes
-├── .env.example          # Environment configuration
-└── node_modules/         # Installed dependencies
+│       └── _index.tsx     # SSR route with data loading
+├── wrangler.toml          # Cloudflare Workers configuration
+├── drizzle.config.ts      # Database migration config
+└── migrations/            # D1 migration files
 ```
 
-**Key Learning:** API templates provide complete backend setups with routing, middleware, and environment configuration, ready for development.
+**Key Learning:** SSR templates demonstrate server-side rendering with direct database access, Cloudflare Workers deployment, and modern React Router patterns.
 
 ### Verification Steps
 
-- Server starts successfully on port 3001
-- Health endpoint returns status OK
-- API routes are functional
-- Environment variables are configured
+- Application starts with wrangler dev
+- Database migrations run successfully
+- SSR routes load data from D1
+- Application deploys to Cloudflare
 
-## Example 3: Full-Stack Application
+## Example 3: Full-Stack Portfolio (Split Architecture)
 
-Finally, let's create a complete full-stack application using the Full-Stack App template that combines frontend and backend.
+Finally, let's create a complete full-stack application using the split architecture: separate API server and client app.
 
 ### Instructions
 
@@ -175,27 +179,26 @@ Finally, let's create a complete full-stack application using the Full-Stack App
    cd ..
    ```
 
-2. **Create a full-stack application:**
+2. **Create the API server:**
    ```bash
-   npx @m5nv/create-scaffold my-fullstack-app --template ./fullstack-app --repo local
-   ```
-
-3. **Navigate to the full-stack project:**
-   ```bash
-   cd my-fullstack-app
-   ```
-
-4. **Install dependencies:**
-   ```bash
+   npx @m5nv/create-scaffold portfolio-api --template ./portfolio-api --repo local
+   cd portfolio-api
    npm install
-   ```
-
-5. **Start the full-stack development environment:**
-   ```bash
+   npx wrangler d1 create portfolio_db
+   npm run db:migrate
    npm run dev
    ```
 
-6. **Test the application:**
+3. **In a new terminal, create the client app:**
+   ```bash
+   cd ..
+   npx @m5nv/create-scaffold portfolio-client --template ./portfolio-client --repo local
+   cd portfolio-client
+   npm install
+   npm run dev
+   ```
+
+4. **Test the full-stack application:**
    ```bash
    # The app should be running on localhost:3000
    # Frontend serves from client, backend API from server
@@ -272,9 +275,10 @@ Now that you understand scaffolding from templates:
 ## Project locations
 
 Your scaffolded projects are ready for development:
-- `template-workshop/my-react-app/` - React frontend project
-- `template-workshop/my-api-server/` - Express API backend project
-- `template-workshop/my-fullstack-app/` - Full-stack application project
+- `template-workshop/my-react-spa/` - Modern React SPA with Vite
+- `template-workshop/my-portfolio/` - SSR portfolio app with D1 database
+- `template-workshop/portfolio-api/` - Cloudflare Workers API server
+- `template-workshop/portfolio-client/` - React Router v7 client app
 
 ## Troubleshooting
 

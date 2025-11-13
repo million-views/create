@@ -20,17 +20,17 @@ last_updated: "2025-11-12"
 
 ## What you'll learn
 
-In this tutorial, you'll learn how to create three specific templates that demonstrate different project types and template features. These templates will be used in the [create-scaffold tutorial](create-scaffold.md) to show how developers can scaffold projects from templates.
+In this tutorial, you'll learn how to create three templates that demonstrate a progressive modern stack for Cloudflare deployment. You'll see how to build up complexity from a simple React SPA to a full-stack application with edge computing and databases.
 
 ## What you'll build
 
-You'll create three templates that showcase different approaches:
+You'll create three templates that showcase a progressive modern stack for Cloudflare deployment:
 
-1. **Basic React App** - Simple frontend application with modern tooling
-2. **API Server** - Backend service with REST API and database integration
-3. **Full-Stack App** - Complete application combining frontend and backend
+1. **Basic React SPA** - Modern frontend foundation with Vite + React
+2. **SSR Portfolio App** - React Router v7 with SSR and direct D1 database access
+3. **Full-Stack Portfolio** - Split architecture with API server (Workers + D1) and client app
 
-Each template will demonstrate different template features like placeholders, setup scripts, and configuration options.
+Each template demonstrates different levels of complexity and Cloudflare integration, building toward a complete portfolio management system.
 
 ## Prerequisites
 
@@ -44,9 +44,9 @@ Before starting this tutorial, make sure you have:
 - **Basic command line familiarity** (navigating directories, running commands)
 - **Completed the [getting-started tutorial](getting-started.md)**
 
-## Step 1: Create Basic React App Template
+## Step 1: Create Basic React SPA Template
 
-Let's start by creating a simple React application template that demonstrates basic template features.
+Let's start by creating a modern React SPA template using Vite - the foundation for our progressive stack.
 
 ### Instructions
 
@@ -56,79 +56,71 @@ Let's start by creating a simple React application template that demonstrates ba
    cd template-workshop
    ```
 
-2. **Create the basic React app project:**
+2. **Create the modern React SPA project:**
    ```bash
-   mkdir basic-react-app
-   cd basic-react-app
-   npm init -y
-   npm install react react-dom
-   npm install --save-dev @babel/core @babel/preset-react webpack webpack-cli webpack-dev-server html-webpack-plugin babel-loader
+   mkdir basic-react-spa
+   cd basic-react-spa
+   npm create vite@latest . -- --template react --yes
+   npm install
    ```
 
-3. **Create the basic file structure:**
+3. **Customize the project structure:**
    ```bash
-   mkdir src public
-   touch src/index.js src/App.js public/index.html
+   # Vite creates a good structure, but let's add our template placeholders
    ```
 
-4. **Add content to the files:**
+4. **Update the main React files with placeholders:**
 
-   **src/index.js:**
-   ```javascript
-   import React from 'react';
-   import ReactDOM from 'react-dom/client';
-   import App from './App';
-
-   const root = ReactDOM.createRoot(document.getElementById('root'));
-   root.render(<App />);
-   ```
-
-   **src/App.js:**
-   ```javascript
-   import React from 'react';
+   **src/App.jsx:**
+   ```jsx
+   import React from 'react'
+   import './App.css'
 
    function App() {
      return (
        <div className="App">
          <header className="App-header">
            <h1>{{PROJECT_NAME}}</h1>
-           <p>Welcome to your new React app!</p>
+           <p>Welcome to your modern React SPA!</p>
+           <p>Built with Vite + React</p>
          </header>
        </div>
-     );
+     )
    }
 
-   export default App;
+   export default App
    ```
 
-   **public/index.html:**
+   **index.html:**
    ```html
-   <!DOCTYPE html>
+   <!doctype html>
    <html lang="en">
-   <head>
-     <meta charset="UTF-8">
-     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-     <title>{{PROJECT_NAME}}</title>
-   </head>
-   <body>
-     <div id="root"></div>
-   </body>
+     <head>
+       <meta charset="UTF-8" />
+       <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+       <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+       <title>{{PROJECT_NAME}}</title>
+     </head>
+     <body>
+       <div id="root"></div>
+       <script type="module" src="/src/main.jsx"></script>
+     </body>
    </html>
    ```
 
-5. **Update package.json with scripts and metadata:**
+5. **Update package.json with template metadata:**
    ```json
    {
-     "name": "basic-react-app",
+     "name": "{{PROJECT_NAME}}",
      "version": "1.0.0",
-     "description": "A basic React application template",
-     "main": "src/index.js",
+     "description": "A modern React SPA template built with Vite",
+     "type": "module",
      "scripts": {
-       "start": "webpack serve --mode development",
-       "build": "webpack --mode production",
-       "test": "echo \"No tests specified\""
+       "dev": "vite",
+       "build": "vite build",
+       "preview": "vite preview"
      },
-     "keywords": ["react", "frontend", "template"],
+     "keywords": ["react", "vite", "spa", "frontend", "template"],
      "author": "{{AUTHOR_NAME}}",
      "license": "MIT"
    }
@@ -150,11 +142,11 @@ You should see:
 ✅ Conversion complete!
 ```
 
-The template is now ready and will be used in the create-scaffold tutorial.
+The template is now ready and demonstrates modern React development with Vite.
 
-## Step 2: Create API Server Template
+## Step 2: Create SSR Portfolio App Template
 
-Now let's create an API server template that demonstrates backend development patterns and database integration.
+Now let's create a React Router v7 SSR application that directly accesses D1 database - demonstrating server-side rendering with database queries.
 
 ### Instructions
 
@@ -163,337 +155,454 @@ Now let's create an API server template that demonstrates backend development pa
    cd ..
    ```
 
-2. **Create the API server project:**
+2. **Create the React Router v7 SSR project:**
    ```bash
-   mkdir api-server
-   cd api-server
-   npm init -y
-   npm install express cors helmet dotenv
-   npm install --save-dev nodemon
+   mkdir ssr-portfolio-app
+   cd ssr-portfolio-app
+   npm create react-router@latest . -- --template cloudflare --yes
+   npm install
    ```
 
-3. **Create the server structure:**
+3. **Install additional dependencies for D1:**
    ```bash
-   mkdir src routes models middleware
-   touch src/server.js routes/users.js models/User.js middleware/auth.js .env.example
+   npm install drizzle-orm
+   npm install --save-dev drizzle-kit
    ```
 
-4. **Add content to the files:**
-
-   **src/server.js:**
-   ```javascript
-   const express = require('express');
-   const cors = require('cors');
-   const helmet = require('helmet');
-   require('dotenv').config();
-
-   const app = express();
-   const PORT = process.env.PORT || 3001;
-
-   // Middleware
-   app.use(helmet());
-   app.use(cors());
-   app.use(express.json());
-
-   // Routes
-   app.use('/api/users', require('../routes/users'));
-
-   // Health check
-   app.get('/health', (req, res) => {
-     res.json({ status: 'OK', service: '{{PROJECT_NAME}}' });
-   });
-
-   app.listen(PORT, () => {
-     console.log(`🚀 {{PROJECT_NAME}} server running on port ${PORT}`);
-   });
-
-   module.exports = app;
+4. **Set up the database schema and types:**
+   ```bash
+   mkdir -p app/db app/lib
+   touch app/db/schema.ts app/db/client.ts drizzle.config.ts
    ```
 
-   **routes/users.js:**
-   ```javascript
-   const express = require('express');
-   const router = express.Router();
+5. **Create the database schema:**
 
-   // In-memory storage for demo (replace with real database)
-   let users = [];
-   let nextId = 1;
+   **app/db/schema.ts:**
+   ```typescript
+   import { sqliteTable, text, integer } from 'drizzle-orm/sqlite-core';
 
-   router.get('/', (req, res) => {
-     res.json(users);
+   export const projects = sqliteTable('projects', {
+     id: integer('id').primaryKey({ autoIncrement: true }),
+     title: text('title').notNull(),
+     description: text('description'),
+     status: text('status').default('draft'),
+     createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
    });
 
-   router.post('/', (req, res) => {
-     const { name, email } = req.body;
-     if (!name || !email) {
-       return res.status(400).json({ error: 'Name and email required' });
-     }
-
-     const user = { id: nextId++, name, email, createdAt: new Date() };
-     users.push(user);
-     res.status(201).json(user);
+   export const tasks = sqliteTable('tasks', {
+     id: integer('id').primaryKey({ autoIncrement: true }),
+     projectId: integer('project_id').references(() => projects.id),
+     title: text('title').notNull(),
+     completed: integer('completed', { mode: 'boolean' }).default(false),
+     createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
    });
-
-   router.get('/:id', (req, res) => {
-     const user = users.find(u => u.id === parseInt(req.params.id));
-     if (!user) {
-       return res.status(404).json({ error: 'User not found' });
-     }
-     res.json(user);
-   });
-
-   module.exports = router;
    ```
 
-   **.env.example:**
-   ```
-   PORT=3001
-   NODE_ENV=development
-   DATABASE_URL=your_database_url_here
-   JWT_SECRET=your_jwt_secret_here
-   ```
+   **app/db/client.ts:**
+   ```typescript
+   import { drizzle } from 'drizzle-orm/d1';
+   import * as schema from './schema';
 
-5. **Update package.json:**
-   ```json
-   {
-     "name": "api-server",
-     "version": "1.0.0",
-     "description": "A REST API server template with Express.js",
-     "main": "src/server.js",
-     "scripts": {
-       "start": "node src/server.js",
-       "dev": "nodemon src/server.js",
-       "test": "echo \"No tests specified\""
-     },
-     "keywords": ["api", "express", "backend", "rest", "template"],
-     "author": "{{AUTHOR_NAME}}",
-     "license": "MIT"
+   export function createDb(connection: D1Database) {
+     return drizzle(connection, { schema });
    }
+
+   export type Database = ReturnType<typeof createDb>;
    ```
 
-6. **Convert to template:**
-   ```bash
-   npx make-template convert --yes
+   **drizzle.config.ts:**
+   ```typescript
+   import { defineConfig } from 'drizzle-kit';
+
+   export default defineConfig({
+     dialect: 'sqlite',
+     schema: './app/db/schema.ts',
+     out: './migrations',
+   });
    ```
 
-### Expected Result
+6. **Create the main app structure:**
 
-Another template created successfully, ready for use in scaffolding tutorials.
+   **app/routes/_index.tsx:**
+   ```tsx
+   import { json } from '@react-router/node';
+   import { useLoaderData } from 'react-router';
+   import type { LoaderFunctionArgs } from '@react-router/node';
+   import { createDb } from '~/db/client';
+   import { projects } from '~/db/schema';
+   import { desc } from 'drizzle-orm';
 
-## Step 3: Create Full-Stack App Template
+   export async function loader({ context }: LoaderFunctionArgs) {
+     const db = createDb(context.cloudflare.env.DB);
+     const allProjects = await db.select().from(projects).orderBy(desc(projects.createdAt));
 
-Finally, let's create a full-stack application template that combines frontend and backend, demonstrating advanced template features.
+     return json({ projects: allProjects });
+   }
 
-### Instructions
-
-1. **Navigate back to the workshop directory:**
-   ```bash
-   cd ..
-   ```
-
-2. **Create the full-stack project:**
-   ```bash
-   mkdir fullstack-app
-   cd fullstack-app
-   npm init -y
-   npm install express react react-dom cors helmet dotenv concurrently
-   npm install --save-dev @babel/core @babel/preset-react webpack webpack-cli webpack-dev-server html-webpack-plugin babel-loader nodemon
-   ```
-
-3. **Create the project structure:**
-   ```bash
-   mkdir client server shared
-   mkdir client/src client/public
-   mkdir server/routes server/models server/middleware
-   ```
-
-4. **Create client files:**
-
-   **client/src/index.js:**
-   ```javascript
-   import React from 'react';
-   import ReactDOM from 'react-dom/client';
-   import App from './App';
-
-   const root = ReactDOM.createRoot(document.getElementById('root'));
-   root.render(<App />);
-   ```
-
-   **client/src/App.js:**
-   ```javascript
-   import React, { useState, useEffect } from 'react';
-
-   function App() {
-     const [users, setUsers] = useState([]);
-     const [loading, setLoading] = useState(true);
-
-     useEffect(() => {
-       fetch('/api/users')
-         .then(res => res.json())
-         .then(data => {
-           setUsers(data);
-           setLoading(false);
-         })
-         .catch(err => {
-           console.error('Failed to fetch users:', err);
-           setLoading(false);
-         });
-     }, []);
+   export default function Index() {
+     const { projects } = useLoaderData<typeof loader>();
 
      return (
-       <div className="App">
-         <header>
-           <h1>{{PROJECT_NAME}}</h1>
-           <p>Full-Stack Application</p>
+       <div className="container mx-auto p-6">
+         <header className="mb-8">
+           <h1 className="text-4xl font-bold mb-2">{{PROJECT_NAME}}</h1>
+           <p className="text-gray-600">Creator Portfolio - Built with React Router v7 & D1</p>
          </header>
-         <main>
-           <h2>Users</h2>
-           {loading ? (
-             <p>Loading users...</p>
-           ) : (
-             <ul>
-               {users.map(user => (
-                 <li key={user.id}>{user.name} - {user.email}</li>
-               ))}
-             </ul>
-           )}
-         </main>
+
+         <div className="grid gap-6">
+           {projects.map((project) => (
+             <div key={project.id} className="border rounded-lg p-6 shadow-sm">
+               <h2 className="text-2xl font-semibold mb-2">{project.title}</h2>
+               <p className="text-gray-700 mb-4">{project.description}</p>
+               <span className="inline-block bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
+                 {project.status}
+               </span>
+             </div>
+           ))}
+         </div>
        </div>
      );
    }
-
-   export default App;
    ```
 
-   **client/public/index.html:**
-   ```html
-   <!DOCTYPE html>
-   <html lang="en">
-   <head>
-     <meta charset="UTF-8">
-     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-     <title>{{PROJECT_NAME}}</title>
-   </head>
-   <body>
-     <div id="root"></div>
-   </body>
-   </html>
+7. **Set up Cloudflare configuration:**
+
+   **wrangler.toml:**
+   ```toml
+   name = "{{PROJECT_NAME}}"
+   main = "server/index.ts"
+   compatibility_date = "2024-01-01"
+
+   [[d1_databases]]
+   binding = "DB"
+   database_name = "{{PROJECT_NAME}}_db"
+   database_id = ""
+   migrations_dir = "migrations"
    ```
 
-5. **Create server files:**
-
-   **server/server.js:**
-   ```javascript
-   const express = require('express');
-   const cors = require('cors');
-   const helmet = require('helmet');
-   const path = require('path');
-   require('dotenv').config();
-
-   const app = express();
-   const PORT = process.env.PORT || 3000;
-
-   // Middleware
-   app.use(helmet());
-   app.use(cors());
-   app.use(express.json());
-
-   // API Routes
-   app.use('/api/users', require('./routes/users'));
-
-   // Serve static files from React app in production
-   if (process.env.NODE_ENV === 'production') {
-     app.use(express.static(path.join(__dirname, '../client/dist')));
-     app.get('*', (req, res) => {
-       res.sendFile(path.join(__dirname, '../client/dist/index.html'));
-     });
-   }
-
-   // Health check
-   app.get('/health', (req, res) => {
-     res.json({ status: 'OK', service: '{{PROJECT_NAME}}' });
-   });
-
-   app.listen(PORT, () => {
-     console.log(`🚀 {{PROJECT_NAME}} server running on port ${PORT}`);
-   });
-
-   module.exports = app;
+8. **Create database migrations:**
+   ```bash
+   mkdir migrations
+   npx drizzle-kit generate
    ```
 
-   **server/routes/users.js:**
-   ```javascript
-   const express = require('express');
-   const router = express.Router();
-
-   // In-memory storage for demo
-   let users = [
-     { id: 1, name: 'John Doe', email: 'john@example.com', createdAt: new Date() },
-     { id: 2, name: 'Jane Smith', email: 'jane@example.com', createdAt: new Date() }
-   ];
-   let nextId = 3;
-
-   router.get('/', (req, res) => {
-     res.json(users);
-   });
-
-   router.post('/', (req, res) => {
-     const { name, email } = req.body;
-     if (!name || !email) {
-       return res.status(400).json({ error: 'Name and email required' });
-     }
-
-     const user = { id: nextId++, name, email, createdAt: new Date() };
-     users.push(user);
-     res.status(201).json(user);
-   });
-
-   module.exports = router;
-   ```
-
-6. **Update package.json with full-stack scripts:**
+9. **Update package.json:**
    ```json
    {
-     "name": "fullstack-app",
+     "name": "{{PROJECT_NAME}}",
      "version": "1.0.0",
-     "description": "A full-stack application template with React frontend and Express backend",
-     "main": "server/server.js",
+     "description": "SSR Portfolio App with React Router v7 and D1 database",
+     "type": "module",
      "scripts": {
-       "start": "NODE_ENV=production node server/server.js",
-       "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
-       "dev:server": "nodemon server/server.js",
-       "dev:client": "cd client && webpack serve --mode development",
-       "build": "cd client && webpack --mode production",
-       "test": "echo \"No tests specified\""
+       "build": "react-router build",
+       "dev": "react-router dev",
+       "start": "wrangler dev",
+       "deploy": "npm run build && wrangler deploy",
+       "db:generate": "drizzle-kit generate",
+       "db:migrate": "wrangler d1 migrations apply {{PROJECT_NAME}}_db"
      },
-     "keywords": ["fullstack", "react", "express", "frontend", "backend", "template"],
+     "keywords": ["react-router", "ssr", "d1", "cloudflare", "portfolio", "template"],
      "author": "{{AUTHOR_NAME}}",
      "license": "MIT"
    }
    ```
 
-7. **Convert to template:**
-   ```bash
-   npx make-template convert --yes
-   ```
+10. **Convert to template:**
+    ```bash
+    npx make-template convert --yes
+    ```
 
 ### Expected Result
 
-Your third and final template is created, completing the set of templates that will be used in the create-scaffold tutorial.
+A modern SSR application template with direct D1 database access, demonstrating React Router v7's server-side capabilities.
+
+## Step 3: Create Full-Stack Portfolio Template
+
+Finally, let's create a split-architecture full-stack application: a Cloudflare Worker API server with D1 database, and a separate React Router v7 client that fetches data from the API.
+
+### Instructions
+
+1. **Navigate back to the workshop directory:**
+   ```bash
+   cd ..
+   ```
+
+2. **Create the API server (Cloudflare Worker + D1):**
+   ```bash
+   mkdir portfolio-api
+   cd portfolio-api
+   npm create cloudflare@latest . -- --template hello-world --yes
+   npm install drizzle-orm itty-router
+   npm install --save-dev drizzle-kit
+   ```
+
+3. **Set up the API server structure:**
+   ```bash
+   mkdir -p src/db src/routes
+   touch src/db/schema.ts src/db/client.ts src/routes/projects.ts src/routes/tasks.ts drizzle.config.ts
+   ```
+
+4. **Create the database schema:**
+
+   **src/db/schema.ts:**
+   ```typescript
+   import { sqliteTable, text, integer } from 'drizzle-orm/sqlite-core';
+
+   export const projects = sqliteTable('projects', {
+     id: integer('id').primaryKey({ autoIncrement: true }),
+     title: text('title').notNull(),
+     description: text('description'),
+     status: text('status').default('draft'),
+     createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
+   });
+
+   export const tasks = sqliteTable('tasks', {
+     id: integer('id').primaryKey({ autoIncrement: true }),
+     projectId: integer('project_id').references(() => projects.id),
+     title: text('title').notNull(),
+     completed: integer('completed', { mode: 'boolean' }).default(false),
+     createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
+   });
+   ```
+
+   **src/db/client.ts:**
+   ```typescript
+   import { drizzle } from 'drizzle-orm/d1';
+   import * as schema from './schema';
+
+   export function createDb(env: { DB: D1Database }) {
+     return drizzle(env.DB, { schema });
+   }
+   ```
+
+   **drizzle.config.ts:**
+   ```typescript
+   import { defineConfig } from 'drizzle-kit';
+
+   export default defineConfig({
+     dialect: 'sqlite',
+     schema: './src/db/schema.ts',
+     out: './migrations',
+   });
+   ```
+
+5. **Create API routes:**
+
+   **src/routes/projects.ts:**
+   ```typescript
+   import { Router } from 'itty-router';
+   import { createDb } from '../db/client';
+   import { projects, tasks } from '../db/schema';
+   import { eq, desc } from 'drizzle-orm';
+
+   const router = Router();
+
+   router.get('/api/projects', async (request, env) => {
+     const db = createDb(env);
+     const allProjects = await db.select().from(projects).orderBy(desc(projects.createdAt));
+     return Response.json(allProjects);
+   });
+
+   router.post('/api/projects', async (request, env) => {
+     const db = createDb(env);
+     const body = await request.json();
+     const result = await db.insert(projects).values({
+       title: body.title,
+       description: body.description,
+       status: body.status || 'draft',
+       createdAt: new Date(),
+     }).returning();
+     return Response.json(result[0], { status: 201 });
+   });
+
+   router.get('/api/projects/:id/tasks', async (request, env) => {
+     const db = createDb(env);
+     const projectId = parseInt(request.params.id);
+     const projectTasks = await db.select().from(tasks).where(eq(tasks.projectId, projectId));
+     return Response.json(projectTasks);
+   });
+
+   export default router;
+   ```
+
+6. **Update the main worker file:**
+
+   **src/index.ts:**
+   ```typescript
+   import projectsRouter from './routes/projects';
+
+   export interface Env {
+     DB: D1Database;
+   }
+
+   export default {
+     async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
+       // Handle API routes
+       const apiResponse = await projectsRouter.handle(request, env, ctx);
+       if (apiResponse) return apiResponse;
+
+       // Health check
+       if (request.url.endsWith('/health')) {
+         return Response.json({ status: 'OK', service: '{{PROJECT_NAME}} API' });
+       }
+
+       return new Response('Not Found', { status: 404 });
+     },
+   };
+   ```
+
+7. **Set up wrangler configuration:**
+
+   **wrangler.toml:**
+   ```toml
+   name = "{{PROJECT_NAME}}-api"
+   main = "src/index.ts"
+   compatibility_date = "2024-01-01"
+
+   [[d1_databases]]
+   binding = "DB"
+   database_name = "{{PROJECT_NAME}}_db"
+   database_id = ""
+   migrations_dir = "migrations"
+   ```
+
+8. **Generate migrations:**
+   ```bash
+   npx drizzle-kit generate
+   ```
+
+9. **Create the client app in a separate directory:**
+   ```bash
+   cd ..
+   mkdir portfolio-client
+   cd portfolio-client
+   npm create react-router@latest . -- --template basic --yes
+   npm install
+   ```
+
+10. **Update the client app to fetch from API:**
+
+    **app/routes/_index.tsx:**
+    ```tsx
+    import { useLoaderData } from 'react-router';
+    import type { LoaderFunctionArgs } from '@react-router/node';
+
+    export async function loader({}: LoaderFunctionArgs) {
+      // In development, fetch from local API server
+      // In production, this would be the deployed Worker URL
+      const apiUrl = process.env.NODE_ENV === 'development'
+        ? 'http://localhost:8787'
+        : 'https://{{PROJECT_NAME}}-api.{{AUTHOR_NAME}}.workers.dev';
+
+      try {
+        const response = await fetch(`${apiUrl}/api/projects`);
+        const projects = await response.json();
+        return { projects, apiUrl };
+      } catch (error) {
+        console.error('Failed to fetch projects:', error);
+        return { projects: [], apiUrl, error: 'Failed to load projects' };
+      }
+    }
+
+    export default function Index() {
+      const { projects, apiUrl, error } = useLoaderData<typeof loader>();
+
+      return (
+        <div className="container mx-auto p-6">
+          <header className="mb-8">
+            <h1 className="text-4xl font-bold mb-2">{{PROJECT_NAME}}</h1>
+            <p className="text-gray-600">Creator Portfolio - Split Architecture</p>
+            <p className="text-sm text-gray-500">API: {apiUrl}</p>
+          </header>
+
+          {error && (
+            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6">
+              {error}
+            </div>
+          )}
+
+          <div className="grid gap-6">
+            {projects.map((project) => (
+              <div key={project.id} className="border rounded-lg p-6 shadow-sm">
+                <h2 className="text-2xl font-semibold mb-2">{project.title}</h2>
+                <p className="text-gray-700 mb-4">{project.description}</p>
+                <span className="inline-block bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
+                  {project.status}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
+    ```
+
+11. **Update package.json files:**
+
+    **portfolio-api/package.json:**
+    ```json
+    {
+      "name": "{{PROJECT_NAME}}-api",
+      "version": "1.0.0",
+      "description": "Portfolio API server with Cloudflare Workers and D1",
+      "scripts": {
+        "dev": "wrangler dev",
+        "deploy": "wrangler deploy",
+        "db:generate": "drizzle-kit generate",
+        "db:migrate": "wrangler d1 migrations apply {{PROJECT_NAME}}_db"
+      },
+      "keywords": ["api", "cloudflare", "workers", "d1", "portfolio", "template"],
+      "author": "{{AUTHOR_NAME}}",
+      "license": "MIT"
+    }
+    ```
+
+    **portfolio-client/package.json:**
+    ```json
+    {
+      "name": "{{PROJECT_NAME}}-client",
+      "version": "1.0.0",
+      "description": "Portfolio client app with React Router v7",
+      "scripts": {
+        "dev": "react-router dev",
+        "build": "react-router build",
+        "start": "react-router-serve ./build/server/index.js"
+      },
+      "keywords": ["react-router", "client", "portfolio", "template"],
+      "author": "{{AUTHOR_NAME}}",
+      "license": "MIT"
+    }
+    ```
+
+12. **Convert both to templates:**
+    ```bash
+    # Convert API server
+    cd portfolio-api
+    npx make-template convert --yes
+
+    # Convert client app
+    cd ../portfolio-client
+    npx make-template convert --yes
+    ```
+
+### Expected Result
+
+A complete split-architecture application with separate API server and client, demonstrating modern full-stack development with Cloudflare.
 
 ## What you accomplished
 
-You successfully created three templates that demonstrate different project types:
+You successfully created three templates that demonstrate a progressive modern stack for Cloudflare deployment:
 
-1. **Basic React App** - Frontend-focused template with modern React setup
-2. **API Server** - Backend service template with REST API patterns
-3. **Full-Stack App** - Complete application combining frontend and backend
+1. **Basic React SPA** - Modern frontend foundation with Vite + React
+2. **SSR Portfolio App** - React Router v7 with SSR and direct D1 database access
+3. **Full-Stack Portfolio** - Split architecture with API server (Workers + D1) and client app
 
-Each template includes:
-- Proper project structure and dependencies
-- Placeholder variables for customization ({{PROJECT_NAME}}, {{AUTHOR_NAME}})
-- Working npm scripts and configuration
-- Template metadata and setup scripts
+Each template demonstrates:
+- Modern tooling and frameworks (Vite, React Router v7, Cloudflare Workers)
+- Progressive complexity building from SPA → SSR → Split Architecture
+- Database integration with D1 and Drizzle ORM
+- Cloudflare deployment patterns and configurations
+- Template features like placeholders, setup scripts, and assetsDir
 
 ## Next steps
 
@@ -507,11 +616,12 @@ Now that you've created these templates, learn how to use them:
 ## Template locations
 
 Your templates are now ready in the `template-workshop` directory:
-- `template-workshop/basic-react-app/` - React frontend template
-- `template-workshop/api-server/` - Express API backend template  
-- `template-workshop/fullstack-app/` - Full-stack application template
+- `template-workshop/basic-react-spa/` - Modern React SPA with Vite
+- `template-workshop/ssr-portfolio-app/` - React Router v7 SSR app with D1
+- `template-workshop/portfolio-api/` - Cloudflare Workers API server
+- `template-workshop/portfolio-client/` - React Router v7 client app
 
-These will be used in the next tutorial to demonstrate scaffolding from templates.
+These will be used in the next tutorial to demonstrate scaffolding from templates and the progressive stack approach.
 
 ## Troubleshooting
 
