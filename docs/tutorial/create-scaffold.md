@@ -27,9 +27,9 @@ In this tutorial, you'll learn how to scaffold new projects using the three temp
 ## What you'll scaffold
 
 You'll create projects using three different templates:
-1. **Basic React App** - Simple frontend application
-2. **API Server** - Backend service with REST API
-3. **Full-Stack App** - Complete application with frontend and backend
+1. **Basic React SPA** - Modern frontend application with Vite and React
+2. **SSR Portfolio App** - Server-side rendered application with Cloudflare Workers and D1
+3. **Split Architecture Full-Stack** - Separate API server and client app for maximum flexibility
 
 ## Prerequisites
 
@@ -130,16 +130,17 @@ Now let's scaffold a server-side rendered portfolio application using the SSR Po
 5. **Test the API endpoints:**
    ```bash
    # In another terminal, test the health endpoint
-   curl http://localhost:3001/health
+   curl http://localhost:8787/health
 
-   # Test the users API
-   curl http://localhost:3001/api/users
+   # Test the projects API
+   curl http://localhost:8787/api/projects
    ```
 
 6. **Explore the API structure:**
    ```bash
-   ls -la src/
-   cat src/server.js
+   ls -la app/
+   cat app/routes/_index.tsx
+   cat wrangler.toml
    ```
 
 ### Expected Result
@@ -200,53 +201,68 @@ Finally, let's create a complete full-stack application using the split architec
 
 4. **Test the full-stack application:**
    ```bash
-   # The app should be running on localhost:3000
-   # Frontend serves from client, backend API from server
-   curl http://localhost:3000/health
+   # API should be running on localhost:8787
+   curl http://localhost:8787/health
+   curl http://localhost:8787/api/projects
+
+   # Client should be running on localhost:5173
+   # Open http://localhost:5173 in your browser
    ```
 
-7. **Explore the full-stack structure:**
+5. **Explore the split architecture:**
    ```bash
-   ls -la
-   ls -la client/src/
-   ls -la server/
+   # Check API structure
+   ls -la portfolio-api/app/
+
+   # Check client structure
+   ls -la portfolio-client/src/
    ```
 
 ### Expected Result
 
-You should have a complete full-stack application:
+You should have two separate projects running:
 
 ```
-my-fullstack-app/
-├── package.json          # Full-stack dependencies and scripts
-├── client/               # React frontend
-│   ├── src/
-│   │   ├── App.js        # React components
-│   │   └── index.js      # Frontend entry point
-│   ├── public/
-│   └── webpack.config.js # Frontend build config
-├── server/               # Express backend
-│   ├── server.js         # Backend server
-│   └── routes/           # API routes
-└── shared/               # Shared utilities
+portfolio-api/           # Cloudflare Worker API
+├── app/
+│   ├── db/
+│   │   ├── schema.ts      # Database schema with Drizzle
+│   │   └── client.ts      # D1 database client
+│   └── routes/
+│       ├── _index.tsx     # API health check
+│       └── api.projects.tsx # Projects API endpoint
+├── wrangler.toml          # Cloudflare Workers configuration
+├── drizzle.config.ts      # Database migration config
+└── migrations/            # D1 migration files
+
+portfolio-client/         # React SPA Client
+├── src/
+│   ├── components/        # React components
+│   ├── hooks/            # Custom React hooks
+│   ├── pages/            # Page components
+│   └── lib/              # Utility functions
+├── vite.config.ts         # Vite configuration
+├── index.html            # HTML entry point
+└── package.json          # Dependencies and scripts
 ```
 
-**Key Learning:** Full-stack templates provide complete application architectures with both frontend and backend components, development tooling, and proper project organization.
+**Key Learning:** Split architecture provides better separation of concerns, independent deployment, and scalability. The API can be deployed to Cloudflare Workers while the client can be deployed to any static hosting service.
 
 ### Verification Steps
 
-- Both frontend and backend start successfully
-- Frontend communicates with backend API
-- Full-stack development workflow works
-- Project structure supports both client and server development
+- API server starts successfully on port 8787
+- Client app starts successfully on port 5173
+- API endpoints return expected data
+- Client can communicate with API server
+- Both projects can be developed and deployed independently
 
 ## What you accomplished
 
 You successfully scaffolded three different types of projects using templates you created:
 
-1. **Basic React App** - Frontend application with modern tooling
-2. **API Server** - Backend service with REST API endpoints
-3. **Full-Stack App** - Complete application with integrated frontend and backend
+1. **Basic React SPA** - Modern frontend application with Vite and React
+2. **SSR Portfolio App** - Server-side rendered application with Cloudflare Workers and D1
+3. **Split Architecture Full-Stack** - Separate API server and client app for maximum flexibility
 
 Each project demonstrates how templates enable rapid development by providing:
 - Complete project structure and dependencies
@@ -334,12 +350,12 @@ Your scaffolded projects are ready for development:
 
 ## Summary
 
-You've now experienced the complete create-scaffold workflow:
+You've now experienced the complete create-scaffold workflow using templates you created:
 
-1. **Basic Project**: Simple scaffolding workflow
-2. **Customized Project**: Template options and preferences
-3. **Feature Project**: Technology integration
-4. **Team Project**: Production-ready configurations
-5. **Advanced Workflow**: CLI power features
+1. **Basic React SPA**: Scaffolded a modern frontend application with Vite and React
+2. **SSR Portfolio App**: Created a server-side rendered application with Cloudflare Workers and D1 database
+3. **Split Architecture Full-Stack**: Built separate API and client projects for maximum flexibility and scalability
 
-Remember: Start with basic templates and add options as your project needs grow. The scaffolding tool adapts to your requirements!
+Each example demonstrated how templates enable rapid development by providing complete project structures, proper tooling, and best practices. The split architecture approach shows how to build scalable full-stack applications with independent deployment capabilities.
+
+Remember: Templates are the foundation - start with the right template for your project type and customize as needed!
