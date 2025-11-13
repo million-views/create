@@ -232,6 +232,7 @@ export default async function setup({ ctx, tools }) {
 ```bash
 npm install
 npm run dev
+```
 ````
 
 ---
