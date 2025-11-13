@@ -377,7 +377,7 @@ create-scaffold new test-project user/repo --template your-template --dry-run
 
 **Step 2: Check template directory structure**
 Expected structure:
-```
+```text
 repository/
 ├── template-name/
 │   ├── files and directories to copy

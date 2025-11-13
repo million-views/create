@@ -22,7 +22,7 @@ stable because interactive behavior is opt-in.
   in `.kiro/steering/diataxis-documentation.md`.
 
 ## User Flow
-```
+```text
 parseArguments
       │
       ▼
@@ -106,7 +106,7 @@ Normalized arguments → validateArguments → validateAllInputs → scaffold
 ## Data Model
 
 ### Session Result
-```
+```json
 {
   projectDirectory: string,
   template: string,
@@ -127,7 +127,7 @@ Normalized arguments → validateArguments → validateAllInputs → scaffold
   unchanged.
 
 ### Template Menu Entry
-```
+```json
 {
   id: number,
   name: string,

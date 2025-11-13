@@ -48,7 +48,7 @@ We built a git-native template system that leverages existing developer workflow
 
 The system supports multiple template sources with a unified resolution process:
 
-```
+```text
 Template Resolution Flow:
 User Input → Validation → Source Detection → Repository Access → Template Location
 ```
@@ -66,7 +66,7 @@ User Input → Validation → Source Detection → Repository Access → Templat
 
 ### Repository Processing Pipeline
 
-```
+```text
 Repository → Clone/Cache → Template Discovery → Validation → Processing → Cleanup
 ```
 
@@ -81,7 +81,7 @@ Repository → Clone/Cache → Template Discovery → Validation → Processing 
 
 Templates follow a simple but flexible structure:
 
-```
+```text
 template-repository/
 ├── README.md                 # Template documentation
 ├── package.json             # Optional: npm package metadata
@@ -188,7 +188,7 @@ Setup scripts run in a resource-restricted sandbox and rely exclusively on the c
 
 ### Core Components
 
-```
+```text
 ┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
 │   CLI Parser    │───▶│  Preflight       │───▶│  Template       │
 │                 │    │  Validation      │    │  Processor      │

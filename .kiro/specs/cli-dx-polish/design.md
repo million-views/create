@@ -28,7 +28,7 @@ This design specification outlines the architectural approach for implementing c
 ## Architectural Components
 
 ### Core CLI Framework
-```
+```text
 lib/cli/
 ├── argument-parser.mjs      # Unified argument parsing with subcommand support
 ├── help-generator.mjs       # Context-aware help generation
@@ -40,7 +40,7 @@ lib/cli/
 ```
 
 ### Tool-Specific Components
-```
+```text
 bin/create-scaffold/
 ├── commands/
 │   ├── new.mjs             # create-scaffold new <template>
@@ -59,7 +59,7 @@ bin/make-template/
 ```
 
 ### Shared Infrastructure
-```
+```text
 lib/shared/
 ├── cli-framework.mjs       # Core CLI utilities and patterns
 ├── template-registry.mjs   # Shared template discovery and management
@@ -109,7 +109,7 @@ Global Options:
 ## Progressive Disclosure Implementation
 
 ### Help System Architecture
-```
+```text
 Help Generation Flow:
 1. Parse command context
 2. Determine disclosure level (basic/advanced)

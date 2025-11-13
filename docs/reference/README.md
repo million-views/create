@@ -49,13 +49,13 @@ Complete reference for running and understanding the test suite, including all t
 
 | Parameter | Short | Required | Description |
 |-----------|-------|----------|-------------|
-| `<project-directory>` | - | Yes* | Directory name for new project |
-| `--template` | `-T` | Yes* | Template name or URL to use |
+| `<project-directory>` | - | Yes¹ | Directory name for new project |
+| `--template` | `-T` | Yes¹ | Template name or URL to use |
 | `--repo` | `-r` | No | Repository URL (default: configured registry) |
 | `--options` | `-o` | No | Comma-separated template options |
 | `--help` | `-h` | No | Show help information |
 
-*Not required for `list`, `info`, `validate` commands or `--help`
+¹Not required for `list`, `info`, `validate` commands or `--help`
 
 ### Most Common Exit Codes
 

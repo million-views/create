@@ -8,7 +8,7 @@ The @m5nv/make-template CLI tool is designed as a Node.js ESM application that c
 
 ### High-Level Architecture
 
-```
+```text
 ┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
 │   CLI Entry     │───▶│  Core Engine     │───▶│ File Processors │
 │   (bin/cli.js)  │    │  (lib/engine.js) │    │ (lib/processors)│
@@ -31,7 +31,7 @@ The @m5nv/make-template CLI tool is designed as a Node.js ESM application that c
 
 ### Module Structure
 
-```
+```text
 src/
 ├── bin/
 │   └── cli.js                 # CLI entry point
@@ -439,7 +439,7 @@ const ERROR_CODES = {
 
 ### Test Fixtures
 
-```
+```text
 test/fixtures/
 ├── input-projects/
 │   ├── cf-d1-project/          # Sample Cloudflare D1 project

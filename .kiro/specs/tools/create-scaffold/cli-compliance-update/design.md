@@ -17,7 +17,7 @@ This design document outlines the architectural changes needed to update the @m5
 
 ### Data Flow
 
-```
+```text
 CLI Input → Argument Parsing → Input Validation → Preflight Checks → 
 Git Clone → Template Verification → File Copy → Setup Execution → Cleanup
 ```
@@ -181,7 +181,7 @@ async function executeSetupScript(projectDir, context) {
 - **Exit Codes:** Use appropriate exit codes (0 success, 1 error)
 
 ### Error Message Format
-```
+```text
 ❌ Error: [Brief description]
 
 [Detailed explanation]

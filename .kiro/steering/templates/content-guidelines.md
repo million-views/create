@@ -163,7 +163,7 @@ npm run test:functional # End-to-end CLI behavior tests
 
 ### Directory Structure
 Follows Diátaxis organization (see steering document for details):
-```
+```text
 docs/
 ├── tutorial/           # Learning-oriented content
 ├── guides/            # Task-oriented content

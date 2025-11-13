@@ -340,7 +340,7 @@ Let's start by creating a modern React SPA template using Vite - the foundation 
 ### Expected Result
 
 You should see:
-```
+```text
 🔄 Converting project to template...
 📄 Generated template.json
 ⚙️  Generated _setup.mjs

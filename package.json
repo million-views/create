@@ -49,6 +49,7 @@
   },
   "homepage": "https://github.com/million-views/create#readme",
   "devDependencies": {
+    "@eslint/markdown": "^7.5.1",
     "@types/eslint": "^9.6.1",
     "eslint": "^9.38.0",
     "eslint-plugin-import": "^2.31.0",

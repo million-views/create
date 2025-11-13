@@ -37,8 +37,6 @@ Setup scripts (`_setup.mjs`) run in a secure Node.js VM sandbox with restricted 
 
 ## Basic Placeholder Replacement
 
-## Basic Placeholder Replacement
-
 Replace placeholders in template files with user-provided values.
 
 ### Recipe
@@ -226,7 +224,7 @@ export default async function setup({ ctx, tools }) {
 ```
 
 **After:**
-```markdown
+````markdown
 # my-app
 
 ## Getting Started
@@ -234,8 +232,7 @@ export default async function setup({ ctx, tools }) {
 ```bash
 npm install
 npm run dev
-```
-```
+````
 
 ---
 
@@ -344,7 +341,7 @@ export default async function setup({ ctx, tools }) {
 ```
 
 **Template Structure:**
-```
+```console
 template/
 ├── __scaffold__/
 │   ├── auth/
@@ -355,7 +352,7 @@ template/
 ```
 
 **Result (scaffolded project):**
-```
+```console
 my-app/
 ├── src/
 │   └── auth/
@@ -414,7 +411,7 @@ export default async function setup({ ctx, tools }) {
 ```
 
 **Template Structure:**
-```
+```console
 template/
 ├── __scaffold__/
 │   ├── auth/
@@ -513,7 +510,7 @@ export default async function setup({ ctx, tools }) {
 ```
 
 **Result (.env.example):**
-```bash
+```text
 # Environment Variables
 
 # Project: my-app
@@ -658,7 +655,7 @@ export default async function setup({ ctx, tools }) {
 ```
 
 **Console Output:**
-```
+```text
 ℹ Starting setup...
 ℹ Set project name to: my-app
 ℹ Enabling features: auth, testing

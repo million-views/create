@@ -22,7 +22,7 @@ This design outlines a focused sprint to make `make-template` production-ready f
 
 ### Current Architecture Review
 
-```
+```text
 make-template/
 ├── index.mjs              # Main CLI entry point
 ├── command-router.mjs     # Command routing logic
@@ -50,7 +50,7 @@ make-template/
 
 ### Proposed Architecture Enhancements
 
-```
+```text
 make-template/ (Enhanced)
 ├── index.mjs              # Main CLI entry point
 ├── command-router.mjs     # Command routing logic (ADD test.mjs)
@@ -169,7 +169,7 @@ const helpText = HelpGenerator.generate({
 ### 5. Documentation Enhancement
 
 #### Template Author Documentation Structure
-```
+```text
 docs/
 ├── template-authoring/
 │   ├── getting-started.md          # Quick start guide

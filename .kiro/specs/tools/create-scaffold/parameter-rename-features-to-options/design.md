@@ -8,7 +8,7 @@ This design outlines the complete replacement of the `--features` parameter with
 
 ### Parameter Flow Architecture
 
-```
+```text
 User Input (--options a,b,c)
     ↓
 Argument Parser (util.parseArgs)

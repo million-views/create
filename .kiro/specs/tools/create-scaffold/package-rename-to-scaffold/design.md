@@ -208,7 +208,7 @@ The `npm create @m5nv/scaffold` command works because:
 3. npm executes the `create-scaffold` binary from that package
 
 **Note:** The command `npm create @m5nv/scaffold` works due to npm's package naming convention that transforms it to `npm exec @m5nv/create-scaffold`.
-```
+```text
 
 ### Help Text Updates
 
@@ -234,7 +234,7 @@ Examples:
   npx @m5nv/create-scaffold@latest full-stack --from-template nextjs --ide vscode
 `;
 }
-```
+```text
 
 ## Implementation Phases
 

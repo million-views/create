@@ -6,7 +6,7 @@ This directory contains comprehensive functional tests for the @m5nv/create-scaf
 
 The test suite is organized to support monorepo development with clear tool boundaries:
 
-```
+```text
 test/
 ├── create-scaffold/     # Tests specific to create-scaffold tool
 │   ├── argument-parser.test.mjs

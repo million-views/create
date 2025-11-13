@@ -189,7 +189,7 @@ node bin/create-scaffold/index.mjs new ../evil --template hack      # Security v
 
 ### Codebase Architecture
 
-```
+```text
 create/
 ├── bin/                           # Core CLI modules
 │   ├── create-scaffold/          # Main scaffold creation tool

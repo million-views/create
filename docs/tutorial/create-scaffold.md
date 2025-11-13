@@ -89,7 +89,7 @@ Registries are configured in your `.m5nvrc` configuration file. Let's set up a l
 
 You should see all four templates listed in your workshop registry:
 
-```
+```console
 📋 Templates in registry "workshop":
 
 • basic-react-spa
@@ -153,7 +153,7 @@ Now let's scaffold a project using the Basic React SPA template from our worksho
 
 You should have a working React application:
 
-```
+```text
 my-react-app/
 ├── package.json          # Project dependencies and scripts
 ├── webpack.config.js     # Webpack configuration
@@ -222,7 +222,7 @@ Now let's scaffold a server-side rendered portfolio application using the SSR Po
 
 You should have a running API server:
 
-```
+```text
 my-portfolio/
 ├── app/
 │   ├── db/
@@ -297,7 +297,7 @@ Finally, let's create a complete full-stack application using the split architec
 
 You should have two separate projects running:
 
-```
+```text
 portfolio-api/           # Cloudflare Worker API
 ├── app/
 │   ├── db/

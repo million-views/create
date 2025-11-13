@@ -80,7 +80,7 @@ The @m5nv/create CLI tool needs to be updated to fully comply with the specifica
 
 #### Acceptance Criteria
 
-1. THE CLI_Tool SHALL look for _setup.mjs in the root of the copied template directory
+1. THE CLI_Tool SHALL look for `_setup.mjs` in the root of the copied template directory
 2. THE CLI_Tool SHALL execute setup scripts using dynamic import() method
 3. THE CLI_Tool SHALL pass correct context (projectDirectory, projectName) to setup scripts
 4. THE CLI_Tool SHALL handle setup script failures gracefully with warnings

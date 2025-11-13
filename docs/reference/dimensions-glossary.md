@@ -118,7 +118,7 @@ Users choose **multiple values** from a list.
     }
   }
 }
-```
+```text
 
 **Usage:**
 ```bash

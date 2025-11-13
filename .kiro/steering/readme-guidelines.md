@@ -75,7 +75,7 @@ A visitor should understand **what the project does**, **why they should care**,
 ## Content Guidelines by Project Type
 
 ### CLI Tools
-```markdown
+````markdown
 # Tool Name
 Brief description of what it does and why it's useful
 
@@ -100,10 +100,10 @@ tool-name create my-project
 - 📚 [Getting Started](docs/tutorial/getting-started.md) - Your first project in 15 minutes
 - 🛠️ [Advanced Usage](docs/guides/advanced-usage.md) - Power user features
 - 📖 [Complete Reference](docs/reference/cli-reference.md) - All commands and options
-```
+````
 
 ### Libraries/SDKs
-```markdown
+````markdown
 # Library Name
 What it does and why developers should use it
 
@@ -131,10 +131,10 @@ const result = mainFunction({
 - 📚 [Getting Started](docs/tutorial/getting-started.md) - Learn by building
 - 📖 [API Reference](docs/reference/api.md) - Complete method documentation
 - 💡 [Architecture Guide](docs/explanation/architecture.md) - How it works
-```
+````
 
 ### Web Applications
-```markdown
+````markdown
 # App Name
 Brief description of what users can accomplish
 
@@ -162,7 +162,7 @@ npm install && npm start
 ## For Developers
 - 🛠️ [Development Setup](docs/how-to/development.md) - Local development
 - 🤝 [Contributing](CONTRIBUTING.md) - How to contribute
-```
+````
 
 ## Writing Guidelines
 

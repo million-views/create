@@ -127,7 +127,7 @@ The Diátaxis framework organizes documentation into four distinct types based o
 
 ### Directory Structure
 
-```
+```console
 docs/
 ├── tutorial/           # Learning-oriented content
 ├── guides/            # Task-oriented content (how-to)

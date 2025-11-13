@@ -11,7 +11,7 @@
 
 The new architecture separates authoring concerns from selection concerns through two distinct schemas:
 
-```
+```text
 template.v1.json (Authoring Schema)
 ├── Header metadata (id, name, description, etc.)
 ├── Setup configuration (policy, constants)
@@ -185,7 +185,7 @@ class SelectionValidator {
 ## Data Flow Diagrams
 
 ### Template Authoring Flow
-```
+```text
 Author → make-template init → skeleton template.json
        ↓
 Author → make-template lint → TemplateValidator → validation results
@@ -194,7 +194,7 @@ Author → hints catalog → autocomplete suggestions
 ```
 
 ### Template Selection Flow
-```
+```text
 User → create-scaffold → load template.json
        ↓
 TemplateValidator → validate template
@@ -205,7 +205,7 @@ Generate selection.json → scaffold execution
 ```
 
 ### Validation Pipeline
-```
+```text
 Input Document → Schema Validation → Domain Validation → Compatibility Validation → Result
                       ↓                        ↓                        ↓
                 JSON Schema            Business Rules            Cross-References
@@ -233,14 +233,14 @@ Input Document → Schema Validation → Domain Validation → Compatibility Val
 ### Error Message Format
 
 **Standard Format:**
-```
+```text
 [LEVEL] [CATEGORY] [FIELD]: Message
 Suggestion: Actionable guidance
 Context: Additional information
 ```
 
 **Examples:**
-```
+```text
 ERROR SCHEMA name: Required field 'name' is missing
 Suggestion: Add "name": "My Template" to the template header
 

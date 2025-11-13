@@ -16,7 +16,7 @@ Following the architectural vision from systems architecture group memos:
 - Consumed by create-scaffold for project generation
 
 ### Tri-Gated Capability Flow
-```
+```text
 Deployment → Features → Capabilities
     ↓         ↓         ↓
 Platform  Needs    Choices

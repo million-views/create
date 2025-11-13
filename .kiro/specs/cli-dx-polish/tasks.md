@@ -75,7 +75,7 @@ The CLI DX Polish project successfully transformed the developer experience for 
 ### Command Structure Evolution
 
 #### create-scaffold Commands
-```
+```console
 # Before: Flat options
 create-scaffold my-app --template react --ide vscode
 
@@ -86,7 +86,7 @@ create-scaffold new my-app --template react --ide vscode --log-file debug.log  #
 ```
 
 #### make-template Commands
-```
+```console
 # Before: Flat options
 make-template --convert --dry-run
 

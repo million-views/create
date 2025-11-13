@@ -31,7 +31,7 @@ Enhance `buildSummary()` to compute an object keyed by destination directory (re
 
 Modify `displayPreview()` so the file section renders aggregated buckets:
 
-```
+```console
 📋 File Copy (12 total):
    • ./ (5 files)
    • public/ (1 file)

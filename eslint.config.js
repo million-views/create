@@ -1,4 +1,6 @@
 /** @type {import('eslint').Linter.Config[]} */
+import markdown from '@eslint/markdown';
+
 export default [
   {
     ignores: ['tmp/**'],
@@ -92,5 +94,20 @@ export default [
       // Allow console.log in the Logger class as it's the centralized output mechanism
       'no-console-log': 'off'
     }
-  }
+  },
+  // Include the markdown recommended config
+  ...markdown.configs.recommended.map(config => ({
+    ...config,
+    ignores: ['tmp/**'],
+    rules: {
+      ...config.rules,
+      // Adjust some rules for our documentation style
+      'markdown/fenced-code-language': 'warn', // Warn instead of error for missing languages
+      'markdown/no-duplicate-headings': 'off', // Allow duplicate headings in recipe documentation
+      'markdown/no-empty-links': 'error',
+      'markdown/no-invalid-label-refs': 'error',
+      'markdown/no-missing-label-refs': 'off', // Disable for template files with placeholders
+      'markdown/no-multiple-h1': 'error'
+    }
+  }))
 ];

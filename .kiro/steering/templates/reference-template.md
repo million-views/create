@@ -19,7 +19,7 @@ last_updated: "YYYY-MM-DD"
 
 ## Syntax
 
-```
+```text
 [command/function/api syntax]
 ```
 
@@ -41,7 +41,7 @@ command --param1 value
 ```
 
 **Output:**
-```
+```text
 Expected output here
 ```
 
@@ -53,7 +53,7 @@ command --param1 value --param2 --param3 item1,item2
 ```
 
 **Output:**
-```
+```text
 Expected output here
 ```
 

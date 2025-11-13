@@ -10,7 +10,7 @@ human review or CI automation.
 
 ## Architecture
 
-```
+```text
 bin/
 ├── index.mjs                # detects --validate-template and dispatches
 ├── templateValidation.mjs   # new orchestrator (public entry for CLI mode)
@@ -88,7 +88,7 @@ bin/
 - Introduce helper `formatValidationSummary(results)` that returns `{ passed,
   warnings, failed }` counts and computed overall status.
 - Human output example:
-  ````
+  ```text
   🔍 Validating template at ./templates/react
 
   ✅ Manifest
@@ -97,7 +97,7 @@ bin/
     - Optional setup script not found
 
   Summary: 2 passed, 1 warning, 0 failed
-  ````
+  ```
 - JSON output example:
   ```json
   {

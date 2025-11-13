@@ -12,7 +12,7 @@ HOME=$PWD/tmp/home node ./bin/index.mjs \
 ```
 
 Output:
-```
+```console
 🔍 DRY RUN MODE - Preview of planned operations (no changes will be made)
 
 📦 Template: react-vite

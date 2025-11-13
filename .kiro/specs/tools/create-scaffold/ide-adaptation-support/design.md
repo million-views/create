@@ -303,7 +303,7 @@ export default function setup(env) {
 
 Update the help text to include new arguments:
 
-```
+```console
 Usage: m5nv-create <project-name> [options]
 
 Options:

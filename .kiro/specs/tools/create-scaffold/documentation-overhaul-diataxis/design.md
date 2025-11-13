@@ -8,7 +8,7 @@ This design restructures the entire documentation system following the Diátaxis
 
 ### Diátaxis Framework Implementation
 
-```
+```text
 Documentation Architecture
 ├── README.md (Landing/Discovery)
 ├── docs/

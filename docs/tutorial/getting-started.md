@@ -65,7 +65,7 @@ Let's make sure everything is set up correctly before we begin.
 You should see version numbers for all three commands. If any command fails, install the missing tool before continuing.
 
 **Example output:**
-```
+```console
 $ node --version
 v22.10.0
 

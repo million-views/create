@@ -51,7 +51,7 @@ npm unlink -g @m5nv/create-scaffold
 
 The codebase follows a modular architecture with clear separation of concerns:
 
-```
+```text
 create/
 ├── bin/                           # Core CLI modules
 │   ├── index.mjs                 # Main entry point and CLI orchestration
@@ -188,6 +188,8 @@ The project follows a comprehensive testing strategy with multiple specialized t
 - Development workflows and debugging
 - Performance characteristics and troubleshooting
 
+### Test Suites
+
 #### 3. Resource Leak Tests (`test/resource-leak-test.mjs`)
 
 - Resource management validation tests
@@ -292,7 +294,7 @@ npm run lint
 ```
 
 See the [Testing Reference](../reference/testing.md) for complete testing commands, individual test suites, and debugging workflows.
-```
+```text
 
 ### Development Testing Workflow
 
@@ -323,7 +325,7 @@ node test/template-discovery.test.mjs
 
 **Successful Test Run**:
 
-```
+```text
 🧪 Functional Tests
    36 end-to-end CLI behavior tests
 ✅ Functional Tests - 1247ms

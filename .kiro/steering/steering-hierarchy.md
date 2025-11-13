@@ -56,7 +56,7 @@ Monorepo environments require different levels of guidance depending on whether 
 ## Document Organization
 
 ### Steering Directory Structure
-```
+```text
 .kiro/steering/
 ├── universal/           # Level 1: Universal standards
 │   ├── greenfield-development.md

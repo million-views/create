@@ -11,7 +11,7 @@ In monorepo environments, features often span multiple packages with complex int
 ## Spec Organization for Monorepos
 
 ### Hierarchical Spec Structure
-```
+```console
 .kiro/specs/
 ├── apps/
 │   ├── frontend-app/

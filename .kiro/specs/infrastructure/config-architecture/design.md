@@ -2,7 +2,7 @@
 
 ## Proposed Architecture
 
-```
+```text
 ~/.m5nv/
 ├── rc.json          # Shared config for all m5nv products
 └── cache/           # Cache directory (existing)

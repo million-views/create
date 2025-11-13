@@ -8,7 +8,7 @@ The Template Restoration feature extends the existing @m5nv/make-template CLI to
 
 ### High-Level Architecture Extension
 
-```
+```text
 ┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
 │   CLI Entry     │───▶│  Core Engine     │───▶│ File Processors │
 │   (bin/cli.js)  │    │  (lib/engine.js) │    │ (lib/processors)│
@@ -31,7 +31,7 @@ The Template Restoration feature extends the existing @m5nv/make-template CLI to
 
 ### Extended Module Structure
 
-```
+```text
 src/
 ├── bin/
 │   └── cli.js                     # Extended CLI with restoration options
@@ -576,7 +576,7 @@ const RESTORATION_ERROR_CODES = {
 - Error recovery scenarios
 
 **Test Fixtures:**
-```
+```text
 test/fixtures/
 ├── restoration-scenarios/
 │   ├── cf-d1-with-undo/           # Template with undo log
@@ -641,7 +641,7 @@ test/fixtures/
 ### Restoration Workflow UX
 
 **Clear Progress Indication:**
-```
+```text
 🔄 Reading undo log (.template-undo.json)...
 📋 Planning restoration (15 files, 8 placeholders)...
 ⚠️  WARNING: This will overwrite 3 existing files
@@ -678,7 +678,7 @@ test/fixtures/
 ```
 
 **Helpful Error Messages:**
-```
+```text
 ❌ Undo log not found (.template-undo.json)
 💡 This directory may not be a converted template
 💡 Try running make-template first to create a template

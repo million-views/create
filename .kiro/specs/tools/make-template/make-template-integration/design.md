@@ -7,7 +7,7 @@ The integration follows a monorepo consolidation pattern where make-template com
 ## Directory Structure
 
 ### Before Integration
-```
+```text
 create-scaffold/
 ├── bin/create-scaffold/
 ├── lib/shared/core/          # create-scaffold utilities
@@ -22,7 +22,7 @@ make-template/ (separate repo)
 ```
 
 ### After Integration
-```
+```text
 create-scaffold/ (monorepo)
 ├── bin/
 │   ├── create-scaffold/
@@ -46,7 +46,7 @@ create-scaffold/ (monorepo)
 - Updates package.json bin field to include both commands
 
 ### Shared Components Migration
-```
+```text
 Source: make-template/lib/shared/make-template/
 ├── analyzers/     → lib/shared/make-template/analyzers/
 ├── processors/    → lib/shared/make-template/processors/
@@ -128,7 +128,7 @@ import { ensureDirectory } from '../../../core/fs-utils.mjs';
 ## Test Suite Integration
 
 ### Test Organization
-```
+```text
 test/
 ├── create-scaffold/     # existing tests
 ├── make-template/       # migrated tests

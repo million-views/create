@@ -45,7 +45,7 @@ We implement a multi-layered caching system with integrity checking, TTL managem
 
 ### Cache Architecture
 
-```
+```text
 Cache Structure:
 ~/.m5nv/cache/
 ├── [repo-hash-1]/
@@ -77,7 +77,7 @@ const repoHash = sha256(hashInput).slice(0, 16);  // 16-character unique identif
 
 ### Cache Lifecycle
 
-```
+```text
 Operation Flow:
 Request → Hash Generation → Cache Check → TTL Validation → Integrity Check → Use/Refresh
 ```

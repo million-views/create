@@ -63,7 +63,7 @@ git init
 
 Each template lives in its own directory at the repository root:
 
-```
+```text
 my-templates/
 ├── react-vite/
 │   ├── package.json
@@ -219,7 +219,7 @@ When `metadata.placeholders` lists a value that shouldn't be replaced inline, mo
 
 Store reusable snippets under `__scaffold__/` (or your custom `authorAssetsDir`):
 
-```
+```text
 react-vite/
 ├── __scaffold__/
 │   ├── auth/

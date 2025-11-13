@@ -28,7 +28,7 @@ Phase 3 introduces advanced workflow capabilities through multi-template orchest
 ## Architectural Components
 
 ### Enhanced Template Schema Extensions
-```
+```text
 schema/
 ├── template.v2.json        # Extended schema with dependency support
 ├── setup-hooks.v1.json     # Enhanced setup script capabilities
@@ -36,7 +36,7 @@ schema/
 ```
 
 ### Template Dependency System
-```
+```text
 lib/template/
 ├── dependency-resolver.mjs     # Template dependency management
 ├── composition-engine.mjs      # Multi-template orchestration
@@ -46,7 +46,7 @@ lib/template/
 ```
 
 ### Enhanced Setup Runtime
-```
+```text
 lib/setup/
 ├── multi-template-runner.mjs   # Orchestrate multiple template setups
 ├── context-manager.mjs         # Shared context across templates

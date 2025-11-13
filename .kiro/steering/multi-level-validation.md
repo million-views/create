@@ -63,7 +63,7 @@ Monorepo validation requires multiple levels of testing to ensure quality across
 ## Test Organization
 
 ### Test Directory Structure
-```
+```console
 tests/
 ├── unit/                    # Level 1: Unit tests
 │   ├── package-a/

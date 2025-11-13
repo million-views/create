@@ -4,7 +4,7 @@
 Canonical template variables let templates opt into well-known placeholder tokens—launching with `{{AUTHOR}}` and `{{LICENSE}}`—backed by curated prompts, defaults, and validation. The CLI augments manifest metadata with these canonical definitions, ensuring downstream systems receive consistent placeholder structures while avoiding repetitive template author boilerplate.
 
 ## Architecture
-```
+```text
 Template Manifest
    │
    ▼
@@ -78,7 +78,7 @@ canonicalVariables.mjs  placeholderSchema.mjs
 | license | `{{LICENSE}}` | string | false    | `MIT`   | false     | "Open-source license identifier applied to generated project content." |
 
 ### Normalized Placeholder Payload
-```
+```json
 {
   token: 'AUTHOR',
   raw: '{{AUTHOR}}',
