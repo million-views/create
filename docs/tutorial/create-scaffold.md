@@ -2,7 +2,7 @@
 title: "Create Scaffold Tutorial"
 type: "tutorial"
 audience: "intermediate"
-estimated_time: "25 minutes"
+estimated_time: "35 minutes"
 prerequisites:
   - "Completed Getting Started tutorial"
   - "Completed make-template tutorial"
@@ -20,7 +20,7 @@ last_updated: "2025-11-12"
 
 ## What you'll learn
 
-In this tutorial, you'll learn how to scaffold new projects using the three templates you created in the [make-template tutorial](make-template.md). You'll explore different project types and see how templates enable rapid development of various application architectures.
+In this tutorial, you'll learn how to scaffold new projects using the three templates you created in the [make-template tutorial](make-template.md). You'll explore different project types, master registry management for template organization, and discover powerful customization features like `selection.json` and `.m5nvrc` configuration files.
 
 > This tutorial assumes you've completed both the [Getting Started tutorial](getting-started.md) and the [make-template tutorial](make-template.md) where you created the templates used here.
 
@@ -38,23 +38,84 @@ Before starting this tutorial, make sure you have:
 - **Completed the [Getting Started tutorial](getting-started.md)**
 - **Completed the [make-template tutorial](make-template.md)** (you created the templates)
 - **Node.js v22+** and **Git** installed and working
-- **25 minutes** available for hands-on practice
+- **35 minutes** available for hands-on practice
 - **A code editor** ready
 
-## Example 1: Basic React App
+## Introducing Registries
 
-Let's start by scaffolding a project using the Basic React App template you created in the make-template tutorial.
+Before we start scaffolding projects, let's introduce **registries** - a powerful feature that makes template management much easier. Instead of constantly navigating to the `template-workshop` directory, we'll create a local registry and register all our templates there.
 
-### Instructions
+### What are Registries?
 
-1. **Navigate to your template workshop directory:**
+Registries are collections of templates that you can reference by name instead of file paths. They eliminate the need for `cd` commands and make your workflow much smoother.
+
+### Create Your Workshop Registry
+
+1. **Navigate to your template workshop:**
    ```bash
    cd template-workshop
    ```
 
-2. **Create a React SPA project from your template:**
+2. **Create a local registry called 'workshop':**
    ```bash
-   npx @m5nv/create-scaffold my-react-spa --template ./basic-react-spa --repo local
+   npx @m5nv/create-scaffold registry create workshop --local
+   ```
+
+3. **Register all your templates:**
+   ```bash
+   # Register the Basic React SPA template
+   npx @m5nv/create-scaffold registry add workshop ./basic-react-spa
+
+   # Register the SSR Portfolio App template
+   npx @m5nv/create-scaffold registry add workshop ./ssr-portfolio-app
+
+   # Register the split architecture templates
+   npx @m5nv/create-scaffold registry add workshop ./portfolio-api
+   npx @m5nv/create-scaffold registry add workshop ./portfolio-client
+   ```
+
+4. **Verify your registry:**
+   ```bash
+   npx @m5nv/create-scaffold registry list workshop
+   ```
+
+### Expected Result
+
+You should see all four templates listed in your workshop registry:
+
+```
+workshop registry:
+├── basic-react-spa
+├── ssr-portfolio-app
+├── portfolio-api
+└── portfolio-client
+```
+
+**Key Learning:** Registries provide a clean way to organize and reference templates. Now you can scaffold projects from anywhere without navigating to template directories!
+
+### Registry Benefits
+
+- **No more `cd` commands** - Reference templates by name
+- **Centralized management** - All templates in one place
+- **Easy sharing** - Registries can be shared across projects
+- **Version control** - Track template versions in registries
+
+## Example 1: Basic React SPA
+
+Now let's scaffold a project using the Basic React SPA template from our workshop registry. Notice how we can do this from anywhere!
+
+### Instructions
+
+1. **Navigate to a clean directory for your projects:**
+   ```bash
+   cd ..
+   mkdir scaffolded-projects
+   cd scaffolded-projects
+   ```
+
+2. **Create a React SPA project from the registry:**
+   ```bash
+   npx @m5nv/create-scaffold my-react-spa --template basic-react-spa --registry workshop
    ```
 
 3. **Navigate to the new project:**
@@ -100,18 +161,18 @@ my-react-app/
 
 ## Example 2: SSR Portfolio App
 
-Now let's scaffold a server-side rendered portfolio application using the SSR Portfolio template you created.
+Now let's scaffold a server-side rendered portfolio application using the SSR Portfolio template from our registry.
 
 ### Instructions
 
-1. **Navigate back to the template workshop:**
+1. **Navigate back to the projects directory:**
    ```bash
    cd ..
    ```
 
 2. **Create an SSR portfolio project:**
    ```bash
-   npx @m5nv/create-scaffold my-portfolio --template ./ssr-portfolio-app --repo local
+   npx @m5nv/create-scaffold my-portfolio --template ssr-portfolio-app --registry workshop
    ```
 
 3. **Navigate to the portfolio project:**
@@ -171,18 +232,18 @@ my-portfolio/
 
 ## Example 3: Full-Stack Portfolio (Split Architecture)
 
-Finally, let's create a complete full-stack application using the split architecture: separate API server and client app.
+Finally, let's create a complete full-stack application using the split architecture: separate API server and client app from our registry.
 
 ### Instructions
 
-1. **Navigate back to the template workshop:**
+1. **Navigate back to the projects directory:**
    ```bash
    cd ..
    ```
 
 2. **Create the API server:**
    ```bash
-   npx @m5nv/create-scaffold portfolio-api --template ./portfolio-api --repo local
+   npx @m5nv/create-scaffold portfolio-api --template portfolio-api --registry workshop
    cd portfolio-api
    npm install
    npx wrangler d1 create portfolio_db
@@ -193,7 +254,7 @@ Finally, let's create a complete full-stack application using the split architec
 3. **In a new terminal, create the client app:**
    ```bash
    cd ..
-   npx @m5nv/create-scaffold portfolio-client --template ./portfolio-client --repo local
+   npx @m5nv/create-scaffold portfolio-client --template portfolio-client --registry workshop
    cd portfolio-client
    npm install
    npm run dev
@@ -256,15 +317,132 @@ portfolio-client/         # React SPA Client
 - Client can communicate with API server
 - Both projects can be developed and deployed independently
 
+## Customizing Scaffolding with selection.json
+
+Templates often contain placeholders that get replaced during scaffolding. You can provide custom values for these placeholders using a `selection.json` file.
+
+### How Placeholders Work
+
+When you create templates with `make-template`, it automatically detects placeholders in files like:
+- `package.json` (project name, description, author)
+- Configuration files (ports, database names, API endpoints)
+- Documentation files (project titles, descriptions)
+
+### Creating a selection.json File
+
+1. **Navigate to your projects directory:**
+   ```bash
+   cd scaffolded-projects
+   ```
+
+2. **Create a selection.json file with custom values:**
+   ```json
+   {
+     "projectName": "MyAwesomePortfolio",
+     "projectDescription": "A stunning portfolio website built with modern web technologies",
+     "authorName": "Your Name",
+     "authorEmail": "your.email@example.com",
+     "databaseName": "portfolio_production",
+     "apiPort": "3001",
+     "clientPort": "5173"
+   }
+   ```
+
+3. **Scaffold with custom values:**
+   ```bash
+   npx @m5nv/create-scaffold custom-portfolio --template ssr-portfolio-app --registry workshop --selection ./selection.json
+   ```
+
+4. **Check the results:**
+   ```bash
+   cd custom-portfolio
+   cat package.json
+   ```
+
+### Expected Result
+
+Your scaffolded project will have all placeholders replaced with your custom values:
+
+```json
+{
+  "name": "myawesomeportfolio",
+  "description": "A stunning portfolio website built with modern web technologies",
+  "author": "Your Name <your.email@example.com>",
+  ...
+}
+```
+
+**Key Learning:** `selection.json` gives you complete control over template customization, perfect for maintaining consistent project metadata across your organization.
+
+## Using .m5nvrc for Common Values
+
+For values you use frequently across all your projects, create a `.m5nvrc` file in your home directory to store common defaults.
+
+### Setting Up .m5nvrc
+
+1. **Create the config file in your home directory:**
+   ```bash
+   cd ~
+   touch .m5nvrc
+   ```
+
+2. **Add your common values:**
+   ```json
+   {
+     "authorName": "Your Name",
+     "authorEmail": "your.email@example.com",
+     "license": "MIT",
+     "repository": "https://github.com/yourusername"
+   }
+   ```
+
+3. **Test it works:**
+   ```bash
+   cd ~/scaffolded-projects
+   npx @m5nv/create-scaffold test-project --template basic-react-spa --registry workshop
+   cd test-project
+   cat package.json
+   ```
+
+### Expected Result
+
+The scaffolded project automatically includes your `.m5nvrc` values:
+
+```json
+{
+  "name": "test-project",
+  "author": "Your Name <your.email@example.com>",
+  "license": "MIT",
+  "repository": "https://github.com/yourusername",
+  ...
+}
+```
+
+**Key Learning:** `.m5nvrc` provides global defaults that apply to all scaffolding, while `selection.json` allows per-project customization.
+
+### Configuration Hierarchy
+
+Values are applied in this order (later sources override earlier ones):
+1. Template defaults
+2. `.m5nvrc` global values
+3. `selection.json` project-specific values
+4. Command-line options (highest priority)
+
 ## What you accomplished
 
-You successfully scaffolded three different types of projects using templates you created:
+You successfully scaffolded three different types of projects using templates from your workshop registry:
 
 1. **Basic React SPA** - Modern frontend application with Vite and React
 2. **SSR Portfolio App** - Server-side rendered application with Cloudflare Workers and D1
 3. **Split Architecture Full-Stack** - Separate API server and client app for maximum flexibility
 
-Each project demonstrates how templates enable rapid development by providing:
+Along the way, you learned:
+- **Registry Management**: How to create and manage template registries for organized template storage
+- **Template Registration**: Registering templates for easy reference without file paths
+- **Custom Scaffolding**: Using `selection.json` for project-specific customization
+- **Global Configuration**: Setting up `.m5nvrc` for common values across all projects
+
+Each project demonstrates how templates and registries enable rapid development by providing:
 - Complete project structure and dependencies
 - Working development environment
 - Proper configuration and scripts
@@ -350,12 +528,15 @@ Your scaffolded projects are ready for development:
 
 ## Summary
 
-You've now experienced the complete create-scaffold workflow using templates you created:
+You've now experienced the complete create-scaffold workflow using templates from your workshop registry:
 
-1. **Basic React SPA**: Scaffolded a modern frontend application with Vite and React
-2. **SSR Portfolio App**: Created a server-side rendered application with Cloudflare Workers and D1 database
-3. **Split Architecture Full-Stack**: Built separate API and client projects for maximum flexibility and scalability
+1. **Registry Management**: Created and populated a local registry with all your templates
+2. **Basic React SPA**: Scaffolded a modern frontend application with Vite and React
+3. **SSR Portfolio App**: Created a server-side rendered application with Cloudflare Workers and D1 database
+4. **Split Architecture Full-Stack**: Built separate API and client projects for maximum flexibility and scalability
+5. **Custom Configuration**: Used `selection.json` for project-specific customization
+6. **Global Defaults**: Set up `.m5nvrc` for common values across all projects
 
-Each example demonstrated how templates enable rapid development by providing complete project structures, proper tooling, and best practices. The split architecture approach shows how to build scalable full-stack applications with independent deployment capabilities.
+Each example demonstrated how templates and registries enable rapid development by providing complete project structures, proper tooling, and best practices. The registry system eliminates navigation overhead, while configuration files give you complete control over project customization.
 
-Remember: Templates are the foundation - start with the right template for your project type and customize as needed!
+Remember: Registries organize your templates, `selection.json` customizes individual projects, and `.m5nvrc` sets your global defaults - together they create a powerful, flexible scaffolding system!
