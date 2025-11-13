@@ -32,8 +32,4 @@ export default async function setup({ ctx, tools }) {
       block: ['## Contents', '- Overview', '- Next Steps']
     });
   });
-
-  if (ctx.ide) {
-    await tools.ide.applyPreset(ctx.ide);
-  }
 }

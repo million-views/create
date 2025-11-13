@@ -425,7 +425,7 @@ class CompositionError extends Error {
 
       case 'missing-dependency':
         return [
-          'Ensure all dependent templates are included in --from-templates',
+          'Ensure all dependent templates are included in --templates',
           'Check template compatibility requirements'
         ];
     }

@@ -51,7 +51,6 @@ Complete reference for running and understanding the test suite, including all t
 |-----------|-------|----------|-------------|
 | `<project-directory>` | - | Yes¹ | Directory name for new project |
 | `--template` | `-T` | Yes¹ | Template name or URL to use |
-| `--repo` | `-r` | No | Repository URL (default: configured registry) |
 | `--options` | `-o` | No | Comma-separated template options |
 | `--help` | `-h` | No | Show help information |
 

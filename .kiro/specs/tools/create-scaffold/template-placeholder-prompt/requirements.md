@@ -33,7 +33,7 @@ Template authors rely on `metadata.placeholders` in `template.json` to describe 
 
 ## Success Criteria
 
-- Running `npm create @m5nv/scaffold my-app -- --from-template demo` (i.e., instantiating a template) prompts for required placeholders defined in the template when not provided via CLI flags.
+- Running `npm create @m5nv/scaffold my-app -- --template demo` (i.e., instantiating a template) prompts for required placeholders defined in the template when not provided via CLI flags.
 - Setup scripts can read collected values (e.g., via `ctx.inputs` or similar) and finish replacements without AI-generated boilerplate.
 - Non-interactive usage can supply values with `--placeholder NAME=value` or env vars, and missing required values cause a clear error.
 - Documentation updates clarify the schema and how to declare placeholders.

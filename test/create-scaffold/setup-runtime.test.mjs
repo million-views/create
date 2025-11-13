@@ -51,7 +51,7 @@ async function withProjectCwd(baseDir, fn) {
   }
 }
 
-test('Placeholder replacement and IDE preset application', async (t) => {
+test('Placeholder replacement and IDE configuration copying', async (t) => {
   const baseDir = await createTempDir(t, 'runtime-base');
   const projectName = 'runtime-project';
   const projectDir = path.join(baseDir, projectName);
@@ -59,17 +59,25 @@ test('Placeholder replacement and IDE preset application', async (t) => {
   await fs.writeFile(path.join(projectDir, 'README.md'), '# {{PROJECT_NAME}}\n');
   await fs.writeFile(path.join(projectDir, 'package.json'), JSON.stringify({ name: '{{PROJECT_NAME}}' }, null, 2));
 
+  // Create __scaffold__ directory with IDE config
+  const scaffoldDir = path.join(projectDir, '__scaffold__');
+  const vscodeDir = path.join(scaffoldDir, '.vscode');
+  await fs.mkdir(vscodeDir, { recursive: true });
+  await fs.writeFile(path.join(vscodeDir, 'settings.json'), JSON.stringify({
+    'editor.formatOnSave': true
+  }, null, 2));
+
   const setupScriptPath = path.join(projectDir, '_setup.mjs');
   await fs.writeFile(setupScriptPath, `
 export default async function setup({ ctx, tools }) {
   await tools.placeholders.replaceAll({ PROJECT_NAME: ctx.projectName }, ['README.md', 'package.json']);
-  await tools.ide.applyPreset('vscode');
+  await tools.templates.copy('.vscode', '.vscode');
   await tools.json.merge('runtime-state.json', { done: true });
 }
 `);
 
   await withProjectCwd(baseDir, async () => {
-    const ctx = buildContext(baseDir, projectName, { ide: 'vscode' });
+    const ctx = buildContext(baseDir, projectName);
     const tools = await buildTools(projectDir, projectName, ctx);
     await loadSetupScript(setupScriptPath, ctx, tools);
   });

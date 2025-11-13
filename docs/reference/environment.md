@@ -74,12 +74,12 @@ export default async function setup({ ctx, tools }) {
 | `projectDir` | `string` | Absolute path to the project directory. All helper methods already scope operations to this root, so you rarely need it directly. |
 | `projectName` | `string` | Sanitized name chosen by the user (letters, numbers, hyphen, underscore). Use it when updating metadata such as `package.json` or README content. |
 | `cwd` | `string` | Directory where the CLI command was executed. Helpful when you need to compute workspace-relative paths. |
+| `ide` | `string \| null` | IDE specified by user (lowercase: 'vscode', 'kiro', 'cursor', 'windsurf') or null if not specified. |
 | `authoringMode` | `"wysiwyg" \| "composable"` | Mode declared in `template.json`. WYSIWYG templates mirror a working project; composable templates assemble features via `_setup.mjs`. |
 | `authorAssetsDir` | `string` | Directory name for template assets (configured via `setup.authorAssetsDir`, defaults to `"__scaffold__"`). |
 | `options` | `object` | Normalized user selections with defaults already applied. See breakdown below. |
 | `inputs` | `Record<string, string \| number \| boolean>` | Placeholder answers collected during template instantiation. Keys omit braces (`PROJECT_NAME`). Values are immutable and type-coerced based on `metadata.placeholders` and any canonical `metadata.variables` entries. |
 | `constants` | `Record<string, any>` | Template-defined constants from `template.json` that are always available regardless of user selections. |
-| `ide` | `string \| null` | IDE preset selected by the user (e.g., `"vscode"`, `"cursor"`). `null` if no IDE integration was requested. |
 
 `ctx.options` contains two readonly views:
 
@@ -296,18 +296,6 @@ Log a warning message with optional structured data.
 Log tabular data as formatted output.  
 *Parameters:* `rows: any[]`
 
-### `tools.ide`
-
-IDE integration operations.
-
-**applyPreset(name)**  
-Apply one of the built-in IDE presets (`kiro`, `vscode`, `cursor`, `windsurf`). Each preset creates or merges configuration files idempotently.  
-*Parameters:* `name: string`
-
-**presets**  
-Array of available preset names for feature detection or UI.  
-*Returns:* `string[]`
-
 ### `tools.options`
 
 Dimension-based option checking and conditional logic.
@@ -403,10 +391,6 @@ export default async function setup({ ctx, tools }) {
   if (tools.options.in('infrastructure', 'cloudflare-d1')) {
     await tools.templates.copy('infra/cloudflare-d1', 'infra/cloudflare');
   }
-
-  if (ctx.ide) {
-    await tools.ide.applyPreset(ctx.ide);
-  }
 }
 ```
 
@@ -451,9 +435,7 @@ export default async function setup({ ctx, tools }) {
   - `requires`: map of dependencies (value → required selections in the same dimension).
   - `conflicts`: map of conflicts (value → incompatible selections in the same dimension).
   - `policy`: `"strict"` (reject unknown values) or `"warn"` (allow but warn). Defaults to `"strict"`.
-  - `builtIn`: `true` for global dimensions such as `ide` when provided by create-scaffold.
-
-Legacy `setup.supportedOptions` entries are automatically upgraded into a `capabilities` dimension at runtime, but new templates should rely on `metadata.dimensions` exclusively.
+  - `ui`: optional UI configuration object.
 
 ## Additional Reading
 

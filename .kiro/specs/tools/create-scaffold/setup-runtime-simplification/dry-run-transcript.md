@@ -6,7 +6,7 @@ Command:
 ```bash
 HOME=$PWD/tmp/home node ./bin/index.mjs \
   preview-project \
-  --from-template react-vite \
+  --template react-vite \
   --repo $PWD/tmp/local-templates \
   --dry-run
 ```

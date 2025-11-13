@@ -74,57 +74,56 @@ function generateSkeletonTemplate() {
     'tags': ['web', 'api', 'fullstack'],
     'author': 'Your Name or Organization',
     'license': 'MIT',
-    'constants': {
-      'language': 'typescript',
-      'framework': 'nextjs',
-      'styling': 'tailwind',
-      'testing': 'jest',
-      'ci': 'github-actions'
-    },
-    'dimensions': {
-      'deployment_target': {
-        'values': ['vercel', 'netlify', 'railway', 'render', 'fly', 'heroku']
+    'setup': {
+      'authoringMode': 'composable',
+      'policy': 'lenient',
+      'dimensions': {
+        'deployment_target': {
+          'type': 'single',
+          'values': ['vercel', 'netlify', 'railway', 'render', 'fly', 'heroku'],
+          'default': 'vercel'
+        },
+        'features': {
+          'type': 'multi',
+          'values': ['auth', 'database', 'api', 'ui', 'storage', 'payments', 'analytics'],
+          'default': []
+        },
+        'database': {
+          'type': 'single',
+          'values': ['postgresql', 'mysql', 'sqlite', 'mongodb', 'redis', 'd1', 'tursodb', 'none'],
+          'default': 'none'
+        },
+        'storage': {
+          'type': 'single',
+          'values': ['aws-s3', 'cloudflare-r2', 'vercel-blob', 'local', 'none'],
+          'default': 'none'
+        },
+        'auth_providers': {
+          'type': 'multi',
+          'values': ['google', 'github', 'twitter', 'email', 'none'],
+          'default': ['none']
+        },
+        'payments': {
+          'type': 'single',
+          'values': ['stripe', 'paypal', 'none'],
+          'default': 'none'
+        },
+        'analytics': {
+          'type': 'single',
+          'values': ['mixpanel', 'posthog', 'google-analytics', 'plausible', 'none'],
+          'default': 'none'
+        }
       },
-      'features': {
-        'values': ['auth', 'database', 'api', 'ui', 'storage', 'payments', 'analytics']
-      },
-      'database': {
-        'values': ['postgresql', 'mysql', 'sqlite', 'mongodb', 'redis', 'd1', 'tursodb', 'none']
-      },
-      'storage': {
-        'values': ['aws-s3', 'cloudflare-r2', 'vercel-blob', 'local', 'none']
-      },
-      'auth_providers': {
-        'values': ['google', 'github', 'twitter', 'email', 'none']
-      },
-      'payments': {
-        'values': ['stripe', 'paypal', 'none']
-      },
-      'analytics': {
-        'values': ['mixpanel', 'posthog', 'google-analytics', 'plausible', 'none']
-      }
-    },
-    'gates': {
-      'cloudflare-workers': {
-        'platform': 'edge',
-        'constraint': 'Limited runtime capabilities for edge computing',
-        'allowed': {
+      'gates': {
+        'cloudflare-workers': {
           'database': ['sqlite', 'tursodb', 'd1', 'none'],
           'storage': ['cloudflare-r2', 'none']
-        }
-      },
-      'deno-deploy': {
-        'platform': 'edge',
-        'constraint': 'Deno runtime with limited storage options',
-        'allowed': {
+        },
+        'deno-deploy': {
           'database': ['sqlite', 'tursodb', 'none'],
           'storage': ['none']
-        }
-      },
-      'linode': {
-        'platform': 'vm',
-        'constraint': 'Full VM with file system access',
-        'allowed': {
+        },
+        'linode': {
           'database': ['sqlite', 'tursodb', 'postgresql', 'mysql', 'mongodb', 'redis', 'none'],
           'storage': ['local', 'aws-s3', 'none']
         }
@@ -177,6 +176,14 @@ function generateSkeletonTemplate() {
         'needs': {},
         'category': 'analytics'
       }
+    },
+    'constants': {
+      'language': 'typescript',
+      'framework': 'nextjs',
+      'styling': 'tailwind',
+      'ci_cd': 'github-actions',
+      'code_quality': 'prettier',
+      'transactional_emails': 'gmail-org-service-account'
     },
     'hints': {
       'features': {

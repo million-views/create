@@ -17,6 +17,8 @@ async function createIsolatedWorkspace() {
   await mkdir(path.join(tmpDir, 'schema'), { recursive: true });
   await cp(path.join(repoRoot, 'schema', 'template.v1.json'), path.join(tmpDir, 'schema', 'template.v1.json'));
   await cp(path.join(repoRoot, 'schema', 'template.json'), path.join(tmpDir, 'schema', 'template.json'));
+  await cp(path.join(repoRoot, 'schema', 'selection.v1.json'), path.join(tmpDir, 'schema', 'selection.v1.json'));
+  await cp(path.join(repoRoot, 'schema', 'selection.json'), path.join(tmpDir, 'schema', 'selection.json'));
   return tmpDir;
 }
 
@@ -24,21 +26,50 @@ test('buildTemplateSchema generates TypeScript artifacts', async () => {
   const workspace = await createIsolatedWorkspace();
   await buildTemplateSchema({ rootDir: workspace });
 
-  const tsPath = path.join(workspace, 'types', 'template-schema.ts');
-  const dtsPath = path.join(workspace, 'types', 'template-schema.d.ts');
-  const mjsPath = path.join(workspace, 'types', 'template-schema.mjs');
+  // Template schema files
+  const templateTsPath = path.join(workspace, 'types', 'template-schema.ts');
+  const templateDtsPath = path.join(workspace, 'types', 'template-schema.d.ts');
+  const templateMjsPath = path.join(workspace, 'types', 'template-schema.mjs');
 
-  const tsContent = await readFile(tsPath, 'utf8');
-  const dtsContent = await readFile(dtsPath, 'utf8');
-  const mjsContent = await readFile(mjsPath, 'utf8');
+  // Selection schema files
+  const selectionTsPath = path.join(workspace, 'types', 'selection-schema.ts');
+  const selectionDtsPath = path.join(workspace, 'types', 'selection-schema.d.ts');
+  const selectionMjsPath = path.join(workspace, 'types', 'selection-schema.mjs');
 
-  assert.match(tsContent, /export interface TemplateManifest/);
-  assert.match(tsContent, /type TemplateAuthoringMode = 'wysiwyg' \| 'composable';/);
-  assert.match(tsContent, /export interface TemplateCanonicalVariable/);
-  assert.match(tsContent, /variables\?: TemplateCanonicalVariable\[];/);
-  assert.equal(tsContent, dtsContent);
-  assert.match(mjsContent, /exports nothing at runtime/);
-  assert.match(mjsContent, /export \{\};/);
+  const templateTsContent = await readFile(templateTsPath, 'utf8');
+  const templateDtsContent = await readFile(templateDtsPath, 'utf8');
+  const templateMjsContent = await readFile(templateMjsPath, 'utf8');
+
+  const selectionTsContent = await readFile(selectionTsPath, 'utf8');
+  const selectionDtsContent = await readFile(selectionDtsPath, 'utf8');
+  const selectionMjsContent = await readFile(selectionMjsPath, 'utf8');
+
+  // Template schema checks
+  assert.match(templateTsContent, /export interface TemplateManifest/);
+  assert.match(templateTsContent, /type TemplateAuthoringMode = 'wysiwyg' \| 'composable';/);
+  assert.match(templateTsContent, /export interface TemplateCanonicalVariable/);
+  assert.match(templateTsContent, /variables\?: TemplateCanonicalVariable\[];/);
+  // .ts file should have 'as const' assertions
+  assert.match(templateTsContent, /export const TEMPLATE_SCHEMA_VERSION = '[^']+' as const;/);
+  assert.match(templateTsContent, /export const TEMPLATE_SCHEMA_PATH = '[^']+' as const;/);
+  // .d.ts file should NOT have 'as const' assertions (ambient context restriction)
+  assert.match(templateDtsContent, /export const TEMPLATE_SCHEMA_VERSION = '[^']+';$/m);
+  assert.match(templateDtsContent, /export const TEMPLATE_SCHEMA_PATH = '[^']+';$/m);
+  assert.match(templateMjsContent, /exports nothing at runtime/);
+  assert.match(templateMjsContent, /export \{\};/);
+
+  // Selection schema checks
+  assert.match(selectionTsContent, /export interface SelectionManifest/);
+  assert.match(selectionTsContent, /type SelectionDeploymentTarget = 'vercel' \| 'netlify'/);
+  assert.match(selectionTsContent, /export interface SelectionChoices/);
+  // .ts file should have 'as const' assertions
+  assert.match(selectionTsContent, /export const SELECTION_SCHEMA_VERSION = '[^']+' as const;/);
+  assert.match(selectionTsContent, /export const SELECTION_SCHEMA_PATH = '[^']+' as const;/);
+  // .d.ts file should NOT have 'as const' assertions (ambient context restriction)
+  assert.match(selectionDtsContent, /export const SELECTION_SCHEMA_VERSION = '[^']+';$/m);
+  assert.match(selectionDtsContent, /export const SELECTION_SCHEMA_PATH = '[^']+';$/m);
+  assert.match(selectionMjsContent, /exports nothing at runtime/);
+  assert.match(selectionMjsContent, /export \{\};/);
 });
 
 test('buildTemplateSchema --check detects drift', async () => {

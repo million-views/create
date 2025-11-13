@@ -205,7 +205,7 @@ make-template test ./my-template --verbose
 ## Future Roadmap
 
 ### Phase 3: Advanced Workflows (v0.6)
-- **Multi-Template Projects**: `--from-templates` flag for complex applications
+- **Multi-Template Projects**: `--templates` flag for complex applications
 - **Workflow Automation**: Enhanced manifest hooks and post-processing
 - **Template Composition**: Schema for multi-template orchestration
 

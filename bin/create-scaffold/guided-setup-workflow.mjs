@@ -1060,8 +1060,7 @@ export class GuidedSetupWorkflow {
           constants: this.metadata?.constants || {},
           authorAssetsDir: this.metadata?.setup?.authorAssetsDir || '__scaffold__'
         },
-        dimensions: this.metadata?.dimensions || {},
-        supportedIdes: this.metadata?.setup?.supportedIdes || []
+        dimensions: this.metadata?.dimensions || {}
       });
 
       await loadSetupScript(setupScriptPath, {
@@ -1075,8 +1074,7 @@ export class GuidedSetupWorkflow {
         options: {
           raw: this.options?.raw || [],
           byDimension: this.options?.byDimension || {}
-        },
-        supportedIdes: this.metadata?.setup?.supportedIdes || []
+        }
       }, tools, this.logger);
 
       console.error('DEBUG: Setup script execution completed successfully');

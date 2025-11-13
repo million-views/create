@@ -49,9 +49,9 @@ test('temp directory cleanup on nonexistent repository', async () => {
 test('resource cleanup across multiple failure scenarios', async () => {
   const before = await getResourceSnapshot();
   const scenarios = [
-    ['new', 'test-multi-1', '--from-template', '../invalid'],
-    ['new', 'test-multi-2', '--from-template', 'basic', '--repo', 'invalid!'],
-    ['new', 'test-multi-3', '--from-template', 'basic', '--branch', 'invalid; branch']
+    ['new', 'test-multi-1', '--template', '../invalid'],
+    ['new', 'test-multi-2', '--template', 'basic', '--repo', 'invalid!'],
+    ['new', 'test-multi-3', '--template', 'basic', '--branch', 'invalid; branch']
   ];
 
   for (const args of scenarios) {

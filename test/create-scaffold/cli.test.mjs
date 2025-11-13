@@ -1107,7 +1107,7 @@ runner.test('Resource cleanup on process interruption', async () => {
   // This simulates the same cleanup behavior without actually hanging
   const result = await TestUtils.execCLI([
     'new', 'test-interrupt-project',
-    '--from-template', 'basic',
+    '--template', 'basic',
     '--repo', 'https://definitely-does-not-exist-interrupt-test.invalid/repo.git'
   ], { timeout: 5000 });
 
@@ -1486,7 +1486,7 @@ runner.test('Error messages reference correct package name', async () => {
   }
 
   // Test path traversal error
-  const pathTraversalResult = await TestUtils.execCLI(['new', '../invalid-dir', '--from-template', 'basic']);
+  const pathTraversalResult = await TestUtils.execCLI(['new', '../invalid-dir', '--template', 'basic']);
 
   if (pathTraversalResult.exitCode !== 1) {
     throw new Error('Path traversal should cause error');
@@ -1582,7 +1582,7 @@ runner.test('Author assets are staged for setup and removed afterwards', async (
   const setupScript = `
 export default async function setup({ ctx, tools }) {
   // Copy author assets
-  await tools.files.copy('__scaffold__/snippets', 'snippets');
+  await tools.templates.copy('snippets', 'snippets');
   
   // Remove scaffold directory
   await tools.files.remove('__scaffold__');

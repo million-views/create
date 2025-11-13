@@ -110,7 +110,7 @@ cat debug.log | grep -A 10 -B 5 "setup_script"
 ls -la __scaffold__/
 
 # Verify setup script is calling the right helper
-grep "copyFromTemplate" _setup.mjs
+grep "templates.copy" _setup.mjs
 ```
 
 **Placeholder replacement fails silently:**
@@ -182,7 +182,7 @@ import('./_setup.mjs').then(async (module) => {
     inputs: {}
   };
   const mockTools = {
-    files: { copyFromTemplate: async (from, to) => console.log('Would copy', from, 'to', to) },
+    templates: { copy: async (from, to) => console.log('Would copy', from, 'to', to) },
     placeholders: { applyInputs: async (files) => console.log('Would apply to', files) }
   };
   await module.default({ ctx: mockCtx, tools: mockTools });

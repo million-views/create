@@ -1,5 +1,5 @@
 ---
-title: "Getting Started with create-scaffold"
+title: "Getting Started with make-template and create-scaffold"
 type: "tutorial"
 audience: "beginner"
 estimated_time: "15 minutes"
@@ -12,15 +12,16 @@ related_docs:
   - "../reference/cli-reference.md"
   - "../how-to/author-workflow.md"
   - "create-scaffold.md"
+  - "make-template.md"
   - "../how-to/setup-recipes.md"
 last_updated: "2025-11-12"
 ---
 
-# Getting Started with create-scaffold
+# Getting Started with `make-template` and `create-scaffold`
 
 ## What you'll learn
 
-In this tutorial, you'll set up your development environment and verify that you have everything needed to work with create-scaffold and make-template. This tutorial focuses on prerequisites and environment setup.
+In this tutorial, you'll set up your development environment and verify that you have everything needed to work with `make-template` and `create-scaffold`. This tutorial focuses on prerequisites and environment setup.
 
 ## What you'll accomplish
 
@@ -122,7 +123,7 @@ Your environment is now ready for template development and project scaffolding!
 
 Now that your environment is set up, you can proceed to the hands-on tutorials:
 
-- **[make-template Tutorial](make-template.md)** — Learn how to create templates from existing projects
+- **[Make Template Tutorial](make-template.md)** — Learn how to create templates from existing projects
 - **[Create Scaffold Tutorial](create-scaffold.md)** — Learn how to scaffold projects from templates
 
 ## Troubleshooting

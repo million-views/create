@@ -98,14 +98,9 @@ export async function validateAllArguments(args) {
 
   // Validate template requirement
   if (!args.template) {
-    errors.push('Template name is required (use --from-template or -t flag)');
+    errors.push('Template name is required (use --template or -t flag)');
   } else if (typeof args.template !== 'string' || args.template.trim().length === 0) {
     errors.push('Template name must be a non-empty string');
-  }
-
-  // Validate repository format if provided
-  if (args.repo && (typeof args.repo !== 'string' || args.repo.trim().length === 0)) {
-    errors.push('Repository URL must be a non-empty string if provided');
   }
 
   // Validate branch name if provided
@@ -128,8 +123,8 @@ export async function validateAllArguments(args) {
       'Invalid command line arguments:\n' +
       errors.map(error => `  • ${error}`).join('\n') + '\n\n' +
       `Use --help for usage information and examples.\n\n` +
-      `Correct usage: npm create @m5nv/scaffold <project-name> -- --from-template <template-name>\n` +
-      `Alternative: npx ${packageName}@latest <project-name> --from-template <template-name>`,
+      `Correct usage: npm create @m5nv/scaffold <project-name> -- --template <template-name>\n` +
+      `Alternative: npx ${packageName}@latest <project-name> --template <template-name>`,
       'INVALID_ARGUMENTS'
     );
   }

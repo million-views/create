@@ -381,7 +381,7 @@ async function main() {
     // Configuration already loaded above for early exit modes
 
     // Template resolution logic - handle different template input types
-    let templatePath, templateName, repoUrl, branchName, metadata;
+    let templatePath, templateName, repoUrl, branchName, metadata, templateResolution;
 
     // First, check if the template is a registry alias and resolve it
     let resolvedTemplate = args.template;
@@ -410,7 +410,7 @@ async function main() {
       } else if (resolvedTemplate.includes('://') || resolvedTemplate.includes('#')) {
         // Template URL (including resolved registry aliases) or URL with branch syntax - use TemplateResolver
         const templateResolver = new TemplateResolver(cacheManager, configMetadata);
-        const templateResolution = await templateResolver.resolveTemplate(resolvedTemplate, {
+        templateResolution = await templateResolver.resolveTemplate(resolvedTemplate, {
           branch: args.branch,
           logger
         });
@@ -421,7 +421,7 @@ async function main() {
       } else {
         console.error('DEBUG: Taking repository shorthand branch');
         // Repository shorthand - assume it's a template name in default repo
-        const repoUrlResolved = args.repo || DEFAULT_REPO;
+        const repoUrlResolved = DEFAULT_REPO;
         const branchNameResolved = args.branch;
         const cachedRepoPath = await ensureRepositoryCached(
           repoUrlResolved,
@@ -439,7 +439,7 @@ async function main() {
       // No template specified - this will be handled by the guided workflow
       templatePath = null;
       templateName = null;
-      repoUrl = args.repo || DEFAULT_REPO;
+      repoUrl = DEFAULT_REPO;
       branchName = args.branch;
     }
 
@@ -448,13 +448,34 @@ async function main() {
       metadata = await loadTemplateMetadata(templatePath, logger);
     }
 
+    // Extract URL parameters if available
+    let urlParameters = {};
+    if (typeof templateResolution !== 'undefined' && templateResolution?.parameters) {
+      urlParameters = templateResolution.parameters;
+    }
+
     // Prepare options and placeholders
     let options = {};
     let placeholders = {};
 
-    if (args.options && metadata) {
+    // Process options from CLI args and URL parameters
+    const allOptionTokens = [];
+    if (args.options) {
+      // CLI options come as comma-separated string, split them
+      const cliOptions = Array.isArray(args.options) ? args.options : args.options.split(',').map(opt => opt.trim());
+      allOptionTokens.push(...cliOptions);
+    }
+    if (urlParameters.options) {
+      // URL options come as comma-separated string, split them
+      const urlOptions = Array.isArray(urlParameters.options)
+        ? urlParameters.options
+        : urlParameters.options.split(',').map(opt => opt.trim());
+      allOptionTokens.push(...urlOptions);
+    }
+
+    if (allOptionTokens.length > 0 && metadata) {
       const normalizedOptionResult = normalizeOptions({
-        rawTokens: Array.isArray(args.options) ? args.options : [args.options],
+        rawTokens: allOptionTokens,
         dimensions: metadata.dimensions
       });
       options = normalizedOptionResult.byDimension;

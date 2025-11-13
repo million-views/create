@@ -148,8 +148,6 @@ import type { TemplateManifest } from '@m5nv/create-scaffold/types/template-sche
 export const template = { /* ... */ };
 ```
 
-Legacy `setup.supportedOptions` arrays still work; the CLI upgrades them to a `capabilities` dimension automatically, but new templates should define `dimensions` explicitly.
-
 ### Step 4: Write `_setup.mjs`
 
 The setup script receives a sandboxed environment with restricted capabilities. Setup scripts run in a Node.js VM with access to only `console`, timers, and `process.env` - all other Node built-ins are blocked. Use the provided `tools` object for all filesystem operations, JSON manipulation, and project modifications.
@@ -162,9 +160,8 @@ export default async function setup({ ctx, tools }) {
     ['README.md', 'package.json']
   );
 
-  if (ctx.ide) {
-    await tools.ide.applyPreset(ctx.ide);
-  }
+  // Copy IDE configurations from template
+  await tools.templates.copy('.vscode', '.vscode');
 }
 ```
 
@@ -202,7 +199,7 @@ Remember:
 | You need to… | Preferred approach | Helper(s) |
 |--------------|-------------------|-----------|
 | Update text inside existing files (README, package.json) | Leave the placeholder in the file and replace it inline | `tools.placeholders.applyInputs` for collected answers, `tools.placeholders.replaceAll`/`tools.text.ensureBlock` when you need custom values |
-| Generate variations of an entire file or directory | Store the source material in `authorAssetsDir` and copy it on demand | `tools.files.copyFromTemplate`, `tools.templates.renderFile` |
+| Generate variations of an entire file or directory | Store the source material in `authorAssetsDir` and copy it on demand | `tools.templates.copy`, `tools.templates.renderFile` |
 | Produce derived JSON or config values | Mutate structured data during setup | `tools.json.set`, `tools.json.merge`
 | Toggle optional capabilities | Express the vocabulary under `metadata.dimensions` and branch on `tools.options.in/when` | `tools.options.*`
 
@@ -323,7 +320,6 @@ for details.
 | Item | Description |
 |------|-------------|
 | `ctx.projectName` | Sanitized project name. Ideal for injecting into README files, package metadata, or IDE settings. |
-| `ctx.ide` | Target IDE (`kiro`, `vscode`, `cursor`, `windsurf`, or `null`). Pair with `tools.ide.applyPreset()`. |
 | `ctx.options` | Array of options from `--options`. Use `tools.options.when()` for feature toggles. |
 | `tools.placeholders` | Replace `{{TOKEN}}` strings across one or many files. |
 | `tools.text` | Insert/ensure blocks, replace between markers, append lines, or run guarded search/replace. |

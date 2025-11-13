@@ -1,246 +1,100 @@
 ---
-title: "IDE Integration Philosophy Explained"
+title: "IDE Integration"
 type: "explanation"
-audience: "intermediate"
-estimated_time: "6 minutes read"
+audience: "template-authors"
+estimated_time: "3 minutes read"
 prerequisites:
-  - "Familiarity with different IDEs and development environments"
   - "Understanding of project scaffolding concepts"
 related_docs:
   - "../how-to/creating-templates.md"
   - "../reference/environment.md"
-  - "template-system.md"
   - "../how-to/setup-recipes.md"
 last_updated: "2025-11-12"
 ---
 
-# IDE Integration Philosophy Explained
+# IDE Integration
 
-## Introduction
+## Overview
 
-This guidance explains how @m5nv/create-scaffold exposes IDE context to templates. The CLI does not enforce tooling choices; instead it supplies templates with the requested IDE so authors can opt into editor-specific configuration when it helps.
-
-## The Problem
-
-Modern development happens across diverse environments, each with unique strengths:
-
-- **IDE Diversity**: Developers use different IDEs (VS Code, Kiro, Cursor, Windsurf) with varying capabilities
-- **Configuration Fragmentation**: Each IDE has different configuration formats and conventions
-- **Workflow Differences**: IDEs have different approaches to debugging, extensions, and project management
-- **Team Consistency**: Teams need consistent project setup across different developer preferences
-- **Evolution**: IDE landscape changes rapidly with new tools and features
-
-## Our Approach
-
-We provide contextual information to templates without mandating specific IDE choices, enabling intelligent adaptation while preserving developer autonomy.
-
-### Key Principles
-
-1. **IDE Agnostic Core**: Core functionality works regardless of IDE choice
-2. **Contextual Enhancement**: Templates can enhance experience for specific IDEs
-3. **Graceful Degradation**: Templates work well even without IDE-specific features
-4. **Developer Choice**: Users control their development environment
-5. **Future Compatibility**: Architecture supports new IDEs without breaking changes
+@m5nv/create-scaffold allows template authors to include IDE-specific configurations using the `__scaffold__` directory mechanism. Templates can ship curated IDE settings that get copied to the project during setup.
 
 ## How It Works
 
-### Current State
-
-**IDE integration is not currently implemented.** The CLI does not support IDE-specific customization at this time. All templates work in an IDE-agnostic manner.
-
-Future versions may add IDE detection and customization capabilities, but this is not available in the current implementation.
-
-### Environment Object Integration
-
-Templates receive IDE context through `ctx.ide` inside the setup sandbox:
+Templates can include IDE configuration files in their `__scaffold__` directory. During project creation, these files are copied to the project root using `tools.templates.copy()`.
 
 ```javascript
 // In template _setup.mjs
 export default async function setup({ ctx, tools }) {
-  if (ctx.ide) {
-    await tools.ide.applyPreset(ctx.ide);
-  } else {
-    tools.logger.info('No IDE preset requested');
-  }
+  // Copy VSCode configuration
+  await tools.templates.copy('.vscode', '.vscode');
+  
+  // Copy Cursor configuration  
+  await tools.templates.copy('.cursor', '.cursor');
+  
+  tools.logger.info('IDE configurations applied');
 }
 ```
 
-### Supported IDE Ecosystem
+## Template Structure
 
-Currently supported IDEs with their characteristics:
+```console
+template/
+├── __scaffold__/
+│   ├── .vscode/
+│   │   ├── settings.json
+│   │   ├── extensions.json
+│   │   └── launch.json
+│   ├── .cursor/
+│   │   └── config.json
+│   └── .windsurf/
+│       └── settings.json
+├── src/
+└── _setup.mjs
+```
 
-- **VS Code**: Microsoft's popular editor with extensive extension ecosystem
-- **Kiro**: AI-powered development environment with integrated assistance
-- **Cursor**: AI-first code editor with advanced completion capabilities
-- **Windsurf**: Modern development environment with collaborative features
+## Supported IDEs
 
-**Design Philosophy**: Support IDEs that represent different approaches to development while maintaining a manageable scope.
+Templates can include configurations for any IDE. Common examples include:
 
-## Design Decisions
+- **VS Code**: `.vscode/settings.json`, `.vscode/extensions.json`, `.vscode/launch.json`
+- **Cursor**: `.cursor/config.json` 
+- **Windsurf**: `.windsurf/settings.json`
+- **Kiro**: `.kiro/settings.json`
 
-### Decision 1: Explicit IDE Specification
+## Conditional IDE Configuration
 
-**Why we chose this:** Users explicitly specify their IDE rather than automatic detection.
+The CLI supports an `--ide` flag that allows users to specify their preferred IDE. This value is available in the setup context as `ctx.ide`.
 
-**Trade-offs:**
-- **Gained**: Clear user intent, no detection errors, works in any environment
-- **Given up**: Convenience of automatic detection
-
-**Alternatives considered:**
-- **Automatic detection** (rejected - unreliable, environment-dependent)
-- **Configuration file detection** (rejected - assumes single IDE per project)
-- **Process detection** (rejected - privacy concerns, unreliable)
-
-### Decision 2: Optional IDE Integration
-
-**Why we chose this:** IDE integration is enhancement, not requirement.
-
-**Trade-offs:**
-- **Gained**: Templates work universally, no IDE lock-in, graceful degradation
-- **Given up**: Some potential optimization for IDE-specific workflows
-
-**Alternatives considered:**
-- **IDE-specific templates** (rejected - fragments ecosystem)
-- **Mandatory IDE specification** (rejected - reduces flexibility)
-- **IDE-specific CLI tools** (rejected - maintenance burden)
-
-### Decision 3: Template-Controlled Adaptation
-
-**Why we chose this:** Templates decide how to use IDE information rather than CLI tool.
-
-**Trade-offs:**
-- **Gained**: Template flexibility, no CLI tool complexity, extensible approach
-- **Given up**: Standardized IDE integration patterns
-
-**Alternatives considered:**
-- **CLI-controlled integration** (rejected - limits template creativity)
-- **Plugin system** (rejected - adds complexity)
-- **Configuration-driven integration** (rejected - less flexible)
-
-### Decision 4: Curated IDE Support
-
-**Why we chose this:** Support specific IDEs rather than accepting arbitrary values.
-
-**Trade-offs:**
-- **Gained**: Quality assurance, predictable behavior, security validation
-- **Given up**: Support for niche or new IDEs (until explicitly added)
-
-**Alternatives considered:**
-- **Open-ended IDE values** (rejected - validation complexity, security risk)
-- **Plugin-based IDE support** (rejected - maintenance complexity)
-- **Community-driven IDE list** (rejected - quality control issues)
-
-## Implementation Patterns
-
-### Template Adaptation Strategies
-
-**Progressive Enhancement:**
 ```javascript
+// Conditional IDE setup
 export default async function setup({ ctx, tools }) {
-  // Base functionality for all environments
-  await setupBasicProject(tools);
-
-  // Enhanced functionality for specific IDEs
-  switch (ctx.ide) {
-  case 'vscode':
-    await enhanceForVSCode();
-    break;
-  case 'kiro':
-    await enhanceForKiro();
-    break;
-  // ... other IDEs
-  default:
-    // No additional enhancement needed
-    break;
+  if (ctx.ide === 'vscode') {
+    await tools.templates.copy('.vscode', '.vscode');
+  } else if (ctx.ide === 'cursor') {
+    await tools.templates.copy('.cursor', '.cursor');
+  } else if (ctx.ide === 'windsurf') {
+    await tools.templates.copy('.windsurf', '.windsurf');
   }
+  
+  tools.logger.info(`IDE configuration applied for ${ctx.ide || 'default'}`);
 }
 ```
 
-**Feature Detection:**
-```javascript
-export default async function setup({ ctx, tools }) {
-  const hasDebugSupport = ['vscode', 'kiro'].includes(ctx.ide);
-  const hasAIAssistance = ['kiro', 'cursor'].includes(ctx.ide);
+## Best Practices
 
-  if (hasDebugSupport) {
-    await setupDebugConfiguration(tools);
-  }
+### Include What Matters
 
-  if (hasAIAssistance) {
-    await setupAIOptimizedStructure(tools);
-  }
-}
-```
+Focus on configurations that improve the development experience:
 
-### Configuration Management
+- **Code formatting settings** (indentation, line endings)
+- **Extension recommendations** for language support
+- **Debug configurations** for common scenarios
+- **Workspace settings** that work well with the template
 
-**IDE-Specific Configuration Files:**
-- **VS Code**: `.vscode/settings.json`, `.vscode/launch.json`, `.vscode/extensions.json`
-- **Kiro**: `.kiro/settings.json`, `.kiro/hooks/`, `.kiro/steering/`
-- **Generic**: `package.json` scripts, standard configuration files
+### Keep It Optional
 
-**Shared Configuration:**
-- **EditorConfig**: `.editorconfig` for consistent formatting
-- **Git Configuration**: `.gitignore`, `.gitattributes`
-- **Language Tools**: `eslint.config.js`, `tsconfig.json`, etc.
+IDE configurations should enhance but not require specific tooling. Templates work universally regardless of IDE choice.
 
-## Implications
+### Test Across Environments
 
-### For Template Authors
-
-- **Universal Compatibility**: Templates should work well without IDE-specific features
-- **Progressive Enhancement**: Add IDE-specific features as enhancements, not requirements
-- **Testing Across IDEs**: Consider testing templates with different IDE contexts
-- **Documentation**: Document IDE-specific features and their benefits, and reference helper APIs (for example, `tools.ide.applyPreset`) instead of bespoke implementations
-
-### For Users
-
-- **Choice Preservation**: Your IDE preference doesn't limit template options
-- **Enhanced Experience**: Specifying your IDE can unlock additional features
-- **Consistency**: Teams can use same templates across different IDE preferences
-- **Flexibility**: Can switch IDEs while maintaining project functionality
-
-### For IDE Vendors
-
-- **Integration Opportunity**: Can work with template authors to optimize experience
-- **Standard Patterns**: Common integration patterns emerge across templates
-- **Ecosystem Growth**: More templates support IDE-specific features over time
-- **User Value**: Users get better experience when using supported IDEs
-
-## Limitations
-
-Current limitations in IDE integration approach:
-
-1. **Manual Specification**: Users must explicitly specify IDE (no auto-detection)
-2. **Limited IDE Set**: Only specific IDEs are supported (not extensible by users)
-3. **Template Dependency**: IDE integration quality depends on template author effort
-4. **No Runtime Detection**: Cannot detect IDE changes after project creation
-5. **Single IDE Assumption**: Assumes one primary IDE per project
-
-## Future Considerations
-
-### Planned Enhancements
-
-- **IDE Detection**: Optional automatic IDE detection based on environment
-- **Multi-IDE Support**: Support for projects used across multiple IDEs
-- **Configuration Sync**: Keep IDE configurations synchronized across team
-- **Extension Management**: Automated extension installation and management
-
-### Research Areas
-
-- **Dynamic Adaptation**: Adapt project configuration when IDE changes
-- **Cross-IDE Standards**: Promote standards that work across multiple IDEs
-- **AI-Powered Optimization**: Use AI to optimize project setup for specific IDEs
-- **Community Extensions**: Allow community to add support for additional IDEs
-
-## Related Concepts
-
-- **Template System Architecture**: How IDE integration fits into template processing
-- **Environment Object**: Technical details of how IDE context is provided
-- **Security Model**: Security considerations in IDE-specific configurations
-
-## Further Reading
-
-- 📚 [Creating Templates Guide](../how-to/creating-templates.md) - How to create IDE-aware templates
-- 🛠️ [Environment Reference](../reference/environment.md) - Complete Environment documentation
-- 📖 [Template System Architecture](template-system.md) - How IDE integration fits the broader system
+Verify that your template works well with and without IDE-specific configurations.

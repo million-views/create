@@ -127,7 +127,7 @@ Templates may define additional dimensions under `setup.dimensions` with `policy
   - `_setup.mjs` templates or fragments
   - `.tpl` files for render helpers
   - Documentation assets not meant for end users
-- `_setup.mjs` can reference `__scaffold__` via `tools.files.copyFromTemplate('__scaffold__/ide', '.vscode')` etc.
+- `_setup.mjs` can reference `__scaffold__` via `tools.templates.copy('ide', '.vscode')` etc.
 - make-template recognizes and preserves this directory and exposes a toggle when authors choose WYSIWYG mode (to hide unused scaffolding).
 
 ## Documentation Realignment

@@ -127,7 +127,7 @@ function pickCatchAllDimension(dimensions) {
   }
 
   for (const [name, definition] of Object.entries(dimensions)) {
-    if (definition.type === 'multi' && !definition.builtIn) {
+    if (definition.type === 'multi') {
       return name;
     }
   }

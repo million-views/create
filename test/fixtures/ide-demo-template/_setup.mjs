@@ -21,6 +21,6 @@ export default async function setup({ ctx, tools }) {
   await tools.json.addToArray('package.json', 'keywords', ide);
 
   if (ide !== 'none') {
-    await tools.ide.applyPreset(ide);
+    await tools.templates.copy('.vscode', '.vscode');
   }
 }

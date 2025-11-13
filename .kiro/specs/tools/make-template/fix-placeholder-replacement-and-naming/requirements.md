@@ -12,7 +12,7 @@ The create-scaffold team has identified critical issues blocking template functi
 - No integration with CLI's placeholder resolution system
 
 ### Issue 2: Template Naming Confusion
-- Users confused about which name to use for --from-template
+- Users confused about which name to use for --template
 - Directory names can be invalid handles
 - No distinction between display names and handles
 

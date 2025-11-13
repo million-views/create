@@ -118,13 +118,13 @@ export default async function setup({ ctx, tools }) {
 
   await tools.json.set('package.json', 'scripts.dev', 'vite dev');
 
-  if (ctx.ide) {
-    await tools.ide.applyPreset(ctx.ide);
-  }
+  // Copy IDE configurations from template
+  await tools.templates.copy('.vscode', '.vscode');
+}
 }
 ```
 
-Setup scripts run in a resource-restricted sandbox and rely exclusively on the curated helper library (`tools.placeholders`, `tools.text`, `tools.json`, `tools.files`, `tools.ide`, `tools.options`, `tools.templates`, `tools.logger`). Refer to the [Environment Reference](../reference/environment.md) and the [Setup Script Recipes how-to](../how-to/setup-recipes.md) for a complete catalogue of helper capabilities.
+Setup scripts run in a resource-restricted sandbox and rely exclusively on the curated helper library (`tools.placeholders`, `tools.text`, `tools.json`, `tools.files`, `tools.options`, `tools.templates`, `tools.logger`). Refer to the [Environment Reference](../reference/environment.md) and the [Setup Script Recipes how-to](../how-to/setup-recipes.md) for a complete catalogue of helper capabilities.
 **Design Rationale:**
 - **Immutable**: Prevents accidental modification during setup
 - **Validated**: All values are security-validated before creation
@@ -231,7 +231,7 @@ Setup scripts run in a resource-restricted sandbox and rely exclusively on the c
 - **Git Workflow**: Use standard git operations for versioning and distribution
 - **Flexible Organization**: Organize templates hierarchically within repositories
 - **Curated Setup Tools**: Apply text, JSON, file, IDE, and templating helpers without importing Node built-ins or third-party code
-- **Environment Awareness**: Adapt scaffolds using `ctx.ide`, `ctx.options`, and other contextual data
+- **Environment Awareness**: Adapt scaffolds using `ctx.options`, `ctx.constants`, and other contextual data
 
 ### For Users
 

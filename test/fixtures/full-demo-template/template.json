@@ -3,6 +3,8 @@
   "id": "test/full-demo-template",
   "name": "Full Demo Template",
   "description": "Fixture combining files, JSON, and IDE utilities",
+  "setup": {
+  },
   "dimensions": {
     "features": {
       "values": ["docs"],

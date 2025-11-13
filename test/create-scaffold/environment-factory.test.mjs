@@ -4,7 +4,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import path from 'node:path';
 import { createEnvironmentObject } from '../../bin/create-scaffold/environment-factory.mjs';
-import { validateSupportedOptionsMetadata, ValidationError } from '../../lib/shared/security.mjs';
+import { ValidationError } from '../../lib/shared/security.mjs';
 
 const BASE_PARAMS = Object.freeze({
   projectDirectory: 'test-project',
@@ -51,26 +51,6 @@ function buildParams(overrides = {}) {
     options
   };
 }
-
-test('validateSupportedOptionsMetadata normalizes and deduplicates values', () => {
-  const result = validateSupportedOptionsMetadata(['auth', 'testing', 'auth']);
-  assert.deepEqual(result, ['auth', 'testing']);
-});
-
-test('validateSupportedOptionsMetadata rejects invalid entries', () => {
-  const invalidSamples = [123, 'bad option!', '', null];
-
-  for (const sample of invalidSamples) {
-    assert.throws(
-      () => validateSupportedOptionsMetadata([sample]),
-      (error) => {
-        assert.ok(error instanceof ValidationError);
-        return true;
-      },
-      `Expected ValidationError for ${String(sample)}`
-    );
-  }
-});
 
 test('createEnvironmentObject returns expected structure', () => {
   const env = createEnvironmentObject(buildParams());

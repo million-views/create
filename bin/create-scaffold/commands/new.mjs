@@ -68,7 +68,7 @@ export async function executeNewCommand(args) {
     const logger = args[TERMINOLOGY.OPTION.LOG_FILE] ? new Logger('file', 'info', args[TERMINOLOGY.OPTION.LOG_FILE]) : Logger.getInstance();
 
     // Template resolution logic - handle different template input types
-    let templatePath, templateName, repoUrl, branchName, metadata;
+    let templatePath, templateName, repoUrl, branchName, metadata, templateResolution;
     let _allowFallback = false;
 
     // First, check if the template is a registry alias and resolve it
@@ -112,7 +112,7 @@ export async function executeNewCommand(args) {
       } else if (resolvedTemplate.includes('://') || resolvedTemplate.includes('#') || resolvedTemplate.includes('/')) {
         // Template URL, URL with branch syntax, or repo/template shorthand - use TemplateResolver
         const templateResolver = new TemplateResolver(cacheManager, configMetadata);
-        const templateResolution = await templateResolver.resolveTemplate(resolvedTemplate, {
+        templateResolution = await templateResolver.resolveTemplate(resolvedTemplate, {
           branch: args[TERMINOLOGY.OPTION.BRANCH],
           logger
         });
@@ -124,7 +124,7 @@ export async function executeNewCommand(args) {
       } else {
         console.error('DEBUG: Taking repository shorthand branch');
         // Repository shorthand - assume it's a template name in default repo
-        const repoUrlResolved = args.repo || DEFAULT_REPO;
+        const repoUrlResolved = DEFAULT_REPO;
         const branchNameResolved = args[TERMINOLOGY.OPTION.BRANCH];
         const cachedRepoPath = await ensureRepositoryCached(
           repoUrlResolved,
@@ -143,7 +143,7 @@ export async function executeNewCommand(args) {
       // No template specified - this will be handled by the guided workflow
       templatePath = null;
       templateName = null;
-      repoUrl = args.repo || DEFAULT_REPO;
+      repoUrl = DEFAULT_REPO;
       branchName = args[TERMINOLOGY.OPTION.BRANCH];
       _allowFallback = true; // No template specified should allow fallback
     }
@@ -153,13 +153,34 @@ export async function executeNewCommand(args) {
       metadata = await loadTemplateMetadata(templatePath, logger);
     }
 
+    // Extract URL parameters if available
+    let urlParameters = {};
+    if (typeof templateResolution !== 'undefined' && templateResolution?.parameters) {
+      urlParameters = templateResolution.parameters;
+    }
+
     // Prepare options and placeholders
     let options = {};
     let placeholders = {};
 
-    if (args.options && metadata) {
+    // Process options from CLI args and URL parameters
+    const allOptionTokens = [];
+    if (args.options) {
+      // CLI options come as comma-separated string, split them
+      const cliOptions = Array.isArray(args.options) ? args.options : args.options.split(',').map(opt => opt.trim());
+      allOptionTokens.push(...cliOptions);
+    }
+    if (urlParameters.options) {
+      // URL options come as comma-separated string, split them
+      const urlOptions = Array.isArray(urlParameters.options)
+        ? urlParameters.options
+        : urlParameters.options.split(',').map(opt => opt.trim());
+      allOptionTokens.push(...urlOptions);
+    }
+
+    if (allOptionTokens.length > 0 && metadata) {
       const normalizedOptionResult = normalizeOptions({
-        rawTokens: Array.isArray(args.options) ? args.options : [args.options],
+        rawTokens: allOptionTokens,
         dimensions: metadata.dimensions
       });
       options = normalizedOptionResult.byDimension;

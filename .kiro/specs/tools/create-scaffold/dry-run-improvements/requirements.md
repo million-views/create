@@ -8,7 +8,7 @@ The current `--dry-run` mode for @m5nv/create-scaffold provides minimal feedback
 
 - **CLI_Tool**: The @m5nv/create-scaffold command-line interface.
 - **Dry_Run_Mode**: Execution mode triggered by the `--dry-run` flag where no file system changes occur.
-- **Template_Directory**: The template subdirectory within the cached repository selected by `--from-template`.
+- **Template_Directory**: The template subdirectory within the cached repository selected by `--template`.
 - **Operation_Summary**: Structured data describing planned file copies, directory creations, and setup scripts.
 - **Tree_Output**: Pretty-printed directory structure from the `tree` command limited to depth two (`tree -L 2`).
 - **Cache_Path**: Location in `~/.m5nv/cache/<repo-hash>` where templates are stored.

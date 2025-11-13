@@ -4,7 +4,7 @@
 We will introduce a single source of truth for template-level ignore rules so every pathway that replicates template files omits `.template-undo.json`. The change touches three execution contexts:
 - Core scaffolding (`bin/index.mjs`) which copies templates into the project directory.
 - Dry-run analysis/reporting (`bin/dryRunEngine.mjs`) which enumerates future copy operations and renders the tree preview.
-- Setup runtime helpers (`bin/setupRuntime.mjs`) where `_setup.mjs` scripts can copy bundled directories via `tools.files.copyFromTemplate`.
+- Setup runtime helpers (`bin/setupRuntime.mjs`) where `_setup.mjs` scripts can copy bundled directories via `tools.templates.copy`.
 
 Documentation will be updated to describe the new ignore behavior and reassure template authors that `.template-undo.json` is safe to commit.
 
@@ -24,8 +24,8 @@ Documentation will be updated to describe the new ignore behavior and reassure t
 - Post-process `generateTreePreview` output (both when `tree` is present and when unavailable) by removing any lines containing ignored filenames to keep the preview clean.
 
 ### Setup runtime helpers (`bin/setupRuntime.mjs`)
-- In `tools.files.copyFromTemplate`, apply the shared ignore filter via `fs.cp`'s `filter` option (falling back to manual skip if needed) so runtime copies initiated by template scripts never recreate the undo file.
-- Ensure any helper that shells out or walks directories copies respecting the ignore list (currently only `copyFromTemplate` is affected).
+- In `tools.templates.copy`, apply the shared ignore filter via `fs.cp`'s `filter` option (falling back to manual skip if needed) so runtime copies initiated by template scripts never recreate the undo file.
+- Ensure any helper that shells out or walks directories copies respecting the ignore list (currently only `tools.templates.copy` is affected).
 
 ### Documentation
 - Refresh authoring docs (`docs/explanation/template-system.md`, authoring/reference pages) to list `.template-undo.json` among files excluded by default.
@@ -33,7 +33,7 @@ Documentation will be updated to describe the new ignore behavior and reassure t
 
 ## Testing Strategy
 - Extend unit tests:
-  - `test/setup-runtime.test.mjs` to assert `copyFromTemplate` omits `.template-undo.json`.
+  - `test/setup-runtime.test.mjs` to assert `tools.templates.copy` omits `.template-undo.json`.
   - `test/dry-run-engine.test.mjs` (or equivalent) to verify summaries exclude the file.
 - Update CLI integration fixture(s) to include `.template-undo.json` and confirm:
   - Generated projects do not contain it.

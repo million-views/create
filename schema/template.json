@@ -1,367 +1,267 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://schemas.million-views.dev/create/template.v1.json",
-  "title": "create-scaffold Template Manifest",
-  "description": "Authoritative schema describing template.json metadata expected by the @m5nv/create-scaffold CLI.",
+  "$id": "https://m5nv.com/schema/template.v1.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "template.json v1",
   "type": "object",
-  "additionalProperties": true,
-  "required": [
-    "name",
-    "description"
-  ],
+  "required": ["setup", "featureSpecs", "constants"],
   "properties": {
-    "name": {
-      "type": "string",
-      "minLength": 1,
-      "maxLength": 120,
-      "description": "Human-readable template identifier (defaults to directory name when omitted)."
-    },
-    "description": {
-      "type": "string",
-      "minLength": 1,
-      "description": "Short summary displayed in template listings and CLI output."
-    },
-    "handoff": {
-      "type": "array",
-      "description": "Post-create next steps presented to end users after scaffolding.",
-      "items": {
-        "$ref": "#/$defs/handoffStep"
-      }
-    },
-    "metadata": {
-      "type": "object",
-      "description": "Supplemental metadata consumed by create-scaffold tooling.",
-      "additionalProperties": true,
-      "properties": {
-        "placeholders": {
-          "type": "array",
-          "description": "Inventory of placeholder tokens that still require runtime values.",
-          "items": {
-            "$ref": "#/$defs/placeholder"
-          }
-        },
-        "variables": {
-          "type": "array",
-          "description": "List of opt-in canonical variables provided by the CLI with standardized metadata.",
-          "items": {
-            "$ref": "#/$defs/canonicalVariable"
-          }
-        }
-      }
-    },
+    "schemaVersion": { "type": "string" },
+    "title": { "type": "string" },
+    "id": { "type": "string" },
+    "name": { "type": "string" },
+    "description": { "type": "string" },
+
     "setup": {
       "type": "object",
-      "description": "Declarative configuration used to drive scaffolding behaviour.",
-      "additionalProperties": false,
+      "required": ["dimensions", "gates", "policy"],
       "properties": {
-        "authoringMode": {
-          "type": "string",
-          "enum": [
-            "wysiwyg",
-            "composable"
-          ],
-          "description": "Authoring workflow mode. WYSIWYG mirrors a finished project; composable assembles features."
-        },
-        "authorAssetsDir": {
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 80,
-          "pattern": "^[A-Za-z0-9._-]+$",
-          "description": "Directory that stores author-only assets copied in before setup (default __scaffold__)."
-        },
+        "authoringMode": { "type": "string", "enum": ["composable", "fixed"] },
+        "policy": { "type": "string", "enum": ["strict", "lenient"] },
+
         "dimensions": {
           "type": "object",
-          "description": "Feature toggles exposed to end users when instantiating the template.",
-          "minProperties": 1,
-          "patternProperties": {
-            "^[a-z][a-z0-9_-]{0,49}$": {
-              "$ref": "#/$defs/dimension"
+          "required": ["deployment_target", "features", "database", "storage", "auth_providers", "payments", "analytics"],
+          "properties": {
+            "deployment_target": {
+              "type": "object",
+              "required": ["type", "values", "default"],
+              "properties": {
+                "type": { "const": "single" },
+                "values": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "anyOf": [
+                      { "enum": ["cloudflare-workers", "linode", "droplet", "deno-deploy"] },
+                      { "type": "string", "pattern": "^x-[a-z0-9-]+$" }
+                    ]
+                  },
+                  "minItems": 1
+                },
+                "default": {
+                  "type": "string",
+                  "anyOf": [
+                    { "enum": ["cloudflare-workers", "linode", "droplet", "deno-deploy"] },
+                    { "type": "string", "pattern": "^x-[a-z0-9-]+$" }
+                  ]
+                },
+                "ui": { "type": "object" }
+              },
+              "additionalProperties": false
+            },
+
+            "features": {
+              "type": "object",
+              "required": ["type", "values", "default"],
+              "properties": {
+                "type": { "const": "multi" },
+                "values": { "type": "array", "items": { "type": "string" } },
+                "default": { "type": "array", "items": { "type": "string" } },
+                "ui": { "type": "object" }
+              },
+              "additionalProperties": false
+            },
+
+            "database": {
+              "type": "object",
+              "required": ["type", "values", "default"],
+              "properties": {
+                "type": { "const": "single" },
+                "values": { "type": "array", "items": { "enum": ["d1", "tursodb", "sqlite3", "none"] } },
+                "default": { "enum": ["d1", "tursodb", "sqlite3", "none"] },
+                "ui": { "type": "object" }
+              },
+              "additionalProperties": false
+            },
+
+            "storage": {
+              "type": "object",
+              "required": ["type", "values", "default"],
+              "properties": {
+                "type": { "const": "single" },
+                "values": { "type": "array", "items": { "enum": ["r2", "s3", "file", "none"] } },
+                "default": { "enum": ["r2", "s3", "file", "none"] },
+                "ui": { "type": "object" }
+              },
+              "additionalProperties": false
+            },
+
+            "auth_providers": {
+              "type": "object",
+              "required": ["type", "values", "default"],
+              "properties": {
+                "type": { "const": "multi" },
+                "values": { "type": "array", "items": { "enum": ["google", "github"] } },
+                "default": { "type": "array", "items": { "enum": ["google", "github"] } },
+                "ui": { "type": "object" }
+              },
+              "additionalProperties": false
+            },
+
+            "payments": {
+              "type": "object",
+              "required": ["type", "values", "default"],
+              "properties": {
+                "type": { "const": "single" },
+                "values": { "type": "array", "items": { "enum": ["stripe", "hyperswitch", "none"] } },
+                "default": { "enum": ["stripe", "hyperswitch", "none"] },
+                "ui": { "type": "object" }
+              },
+              "additionalProperties": false
+            },
+
+            "analytics": {
+              "type": "object",
+              "required": ["type", "values", "default"],
+              "properties": {
+                "type": { "const": "single" },
+                "values": { "type": "array", "items": { "enum": ["umami", "plausible", "none"] } },
+                "default": { "enum": ["umami", "plausible", "none"] },
+                "ui": { "type": "object" }
+              },
+              "additionalProperties": false
             }
           },
           "additionalProperties": false
         },
-        "supportedOptions": {
-          "type": "array",
-          "description": "Legacy array of option tokens upgraded to a capabilities dimension at runtime.",
-          "items": {
-            "$ref": "#/$defs/dimensionValue"
-          }
-        },
-        "supportedIdes": {
-          "type": "array",
-          "description": "List of IDEs this template provides configuration for. Setup scripts can apply presets automatically.",
-          "items": {
-            "type": "string",
-            "enum": [
-              "vscode",
-              "cursor",
-              "windsurf",
-              "kiro"
-            ]
-          },
-          "uniqueItems": true
-        }
-      }
-    }
-  },
-  "$defs": {
-    "handoffStep": {
-      "type": "string",
-      "minLength": 1,
-      "maxLength": 240,
-      "description": "Instruction or command presented after scaffold completion."
-    },
-    "placeholder": {
-      "type": "object",
-      "required": [
-        "name"
-      ],
-      "additionalProperties": false,
-      "properties": {
-        "name": {
-          "type": "string",
-          "pattern": "^\\{\\{[A-Z0-9_]+\\}\\}$",
-          "description": "Token formatted as {{TOKEN_NAME}} that appears in template files."
-        },
-        "description": {
-          "type": "string",
-          "minLength": 1,
-          "description": "Human-readable context for the placeholder."
-        },
-        "required": {
-          "type": "boolean",
-          "description": "Whether the token must be supplied before scaffolding can proceed."
-        },
-        "sensitive": {
-          "type": "boolean",
-          "description": "Marks values as secrets so tooling can mask them."
-        },
-        "type": {
-          "type": "string",
-          "enum": [
-            "string",
-            "number",
-            "boolean"
-          ],
-          "description": "Preferred primitive type when collecting values."
-        },
-        "default": {
-          "description": "Default value to use when no explicit input is provided.",
-          "anyOf": [
-            {
-              "type": "string"
-            },
-            {
-              "type": "number"
-            },
-            {
-              "type": "boolean"
-            }
-          ]
-        }
-      }
-    },
-    "canonicalVariable": {
-      "type": "object",
-      "required": [
-        "name"
-      ],
-      "additionalProperties": false,
-      "properties": {
-        "name": {
-          "type": "string",
-          "enum": [
-            "author",
-            "license"
-          ],
-          "description": "Identifier for the canonical variable."
-        },
-        "required": {
-          "type": "boolean",
-          "description": "Override the canonical required flag."
-        },
-        "overrides": {
-          "$ref": "#/$defs/canonicalVariableOverrides",
-          "description": "Override canonical placeholder metadata."
-        }
-      }
-    },
-    "canonicalVariableOverrides": {
-      "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "description": {
-          "type": "string",
-          "minLength": 1,
-          "description": "Custom description displayed during prompting."
-        },
-        "default": {
-          "description": "Override default value applied when no explicit input is provided.",
-          "anyOf": [
-            {
-              "type": "string"
-            },
-            {
-              "type": "number"
-            },
-            {
-              "type": "boolean"
-            }
-          ]
-        },
-        "sensitive": {
-          "type": "boolean",
-          "description": "Override canonical sensitivity flag."
-        },
-        "type": {
-          "type": "string",
-          "enum": [
-            "string",
-            "number",
-            "boolean"
-          ],
-          "description": "Override canonical preferred type."
-        }
-      }
-    },
-    "dimension": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "type",
-        "values"
-      ],
-      "properties": {
-        "type": {
-          "type": "string",
-          "enum": [
-            "single",
-            "multi"
-          ],
-          "description": "Selection mode for the dimension."
-        },
-        "values": {
-          "type": "array",
-          "minItems": 1,
-          "items": {
-            "$ref": "#/$defs/dimensionValue"
-          },
-          "uniqueItems": true,
-          "description": "Allowed tokens exposed for the dimension."
-        },
-        "default": {
-          "description": "Default selection applied when the user omits this dimension.",
-          "anyOf": [
-            {
-              "type": [
-                "string",
-                "null"
-              ]
-            },
-            {
-              "type": "array",
-              "items": {
-                "$ref": "#/$defs/dimensionValue"
-              },
-              "uniqueItems": true
-            }
-          ]
-        },
-        "requires": {
-          "$ref": "#/$defs/dimensionRelation",
-          "description": "Mapping of value -> required companion values within the same dimension."
-        },
-        "conflicts": {
-          "$ref": "#/$defs/dimensionRelation",
-          "description": "Mapping of value -> disallowed companion values within the same dimension."
-        },
-        "policy": {
-          "type": "string",
-          "enum": [
-            "strict",
-            "warn"
-          ],
-          "description": "Validation behaviour when unknown values are supplied."
-        },
-        "builtIn": {
-          "type": "boolean",
-          "description": "Flags values that originate from the CLI rather than the template author."
-        },
-        "description": {
-          "type": "string",
-          "minLength": 1,
-          "description": "Explains how the dimension influences the scaffold."
-        }
-      },
-      "allOf": [
-        {
-          "if": {
-            "properties": {
-              "type": {
-                "const": "single"
-              }
-            },
-            "required": [
-              "type"
-            ]
-          },
-          "then": {
-            "properties": {
-              "default": {
-                "type": [
-                  "string",
-                  "null"
-                ]
-              }
-            }
-          }
-        },
-        {
-          "if": {
-            "properties": {
-              "type": {
-                "const": "multi"
-              }
-            },
-            "required": [
-              "type"
-            ]
-          },
-          "then": {
-            "properties": {
-              "default": {
-                "type": "array",
-                "items": {
-                  "$ref": "#/$defs/dimensionValue"
+
+        "gates": {
+          "type": "object",
+          "required": ["deployment_target"],
+          "properties": {
+            "deployment_target": {
+              "type": "object",
+              "properties": {
+                "cloudflare-workers": {
+                  "type": "object",
+                  "required": ["database", "storage"],
+                  "properties": {
+                    "database": { "type": "array", "items": { "enum": ["d1", "tursodb", "sqlite3", "none"] } },
+                    "storage": { "type": "array", "items": { "enum": ["r2", "s3", "file", "none"] } }
+                  },
+                  "additionalProperties": false
                 },
-                "uniqueItems": true
-              }
+                "linode": {
+                  "type": "object",
+                  "required": ["database", "storage"],
+                  "properties": {
+                    "database": { "type": "array", "items": { "enum": ["d1", "tursodb", "sqlite3", "none"] } },
+                    "storage": { "type": "array", "items": { "enum": ["r2", "s3", "file", "none"] } }
+                  },
+                  "additionalProperties": false
+                },
+                "droplet": {
+                  "type": "object",
+                  "required": ["database", "storage"],
+                  "properties": {
+                    "database": { "type": "array", "items": { "enum": ["d1", "tursodb", "sqlite3", "none"] } },
+                    "storage": { "type": "array", "items": { "enum": ["r2", "s3", "file", "none"] } }
+                  },
+                  "additionalProperties": false
+                },
+                "deno-deploy": {
+                  "type": "object",
+                  "required": ["database", "storage"],
+                  "properties": {
+                    "database": { "type": "array", "items": { "enum": ["d1", "tursodb", "sqlite3", "none"] } },
+                    "storage": { "type": "array", "items": { "enum": ["r2", "s3", "file", "none"] } }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "patternProperties": {
+                "^x-[a-z0-9-]+$": {
+                  "type": "object",
+                  "required": ["database", "storage"],
+                  "properties": {
+                    "database": { "type": "array", "items": { "enum": ["d1", "tursodb", "sqlite3", "none"] } },
+                    "storage": { "type": "array", "items": { "enum": ["r2", "s3", "file", "none"] } }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "additionalProperties": false
             }
-          }
-        }
-      ]
-    },
-    "dimensionValue": {
-      "type": "string",
-      "minLength": 1,
-      "maxLength": 50,
-      "pattern": "^[A-Za-z0-9_-]+$",
-      "description": "Token representing a selectable option."
-    },
-    "dimensionRelation": {
-      "type": "object",
-      "minProperties": 1,
-      "patternProperties": {
-        "^[A-Za-z0-9_-]+$": {
-          "type": "array",
-          "minItems": 1,
-          "items": {
-            "$ref": "#/$defs/dimensionValue"
           },
-          "uniqueItems": true
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
+    },
+
+    "featureSpecs": {
+      "type": "object",
+      "minProperties": 0,
+      "patternProperties": {
+        "^[a-z0-9_:-]{2,64}$": {
+          "type": "object",
+          "required": ["label", "description", "needs"],
+          "properties": {
+            "label": { "type": "string", "minLength": 1, "maxLength": 80 },
+            "description": { "type": "string", "minLength": 1, "maxLength": 280 },
+            "needs": {
+              "type": "object",
+              "required": ["database", "auth", "payments", "storage"],
+              "properties": {
+                "database": { "enum": ["required", "optional", "none"] },
+                "auth": { "enum": ["required", "optional", "none"] },
+                "payments": { "enum": ["required", "optional", "none"] },
+                "storage": { "enum": ["required", "optional", "none"] }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+
+    "hints": {
+      "type": "object",
+      "properties": {
+        "features": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["id", "label", "description", "needs"],
+            "properties": {
+              "id": { "type": "string", "pattern": "^[a-z0-9_:-]{2,64}$" },
+              "label": { "type": "string" },
+              "description": { "type": "string" },
+              "examples": { "type": "array", "items": { "type": "string" } },
+              "needs": {
+                "type": "object",
+                "required": ["database", "auth", "payments", "storage"],
+                "properties": {
+                  "database": { "enum": ["required", "optional", "none"] },
+                  "auth": { "enum": ["required", "optional", "none"] },
+                  "payments": { "enum": ["required", "optional", "none"] },
+                  "storage": { "enum": ["required", "optional", "none"] }
+                },
+                "additionalProperties": false
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+
+    "constants": {
+      "type": "object",
+      "required": ["language", "framework", "styling", "ci_cd", "code_quality", "transactional_emails"],
+      "properties": {
+        "language": { "const": "typescript" },
+        "framework": { "const": "react-router-v7" },
+        "styling": { "const": "tailwind+daisyui" },
+        "ci_cd": { "const": "github-actions" },
+        "code_quality": { "const": "prettier" },
+        "transactional_emails": { "const": "gmail-org-service-account" }
+      },
+      "additionalProperties": false
     }
-  }
+  },
+  "additionalProperties": true
 }

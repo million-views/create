@@ -28,7 +28,7 @@ Path-based helpers using dot notation:
 
 ### `tools.files`
 - `write(file, content, { overwrite })` for single-file writes without manual `fs`.
-- `copyFromTemplate(source, target, { overwrite })` (optional convenience).
+- `tools.templates.copy(source, target, { overwrite })` (optional convenience).
 
 ### Removal
 - Delete `tools.astGrep`, related feature detection, and native import logic. Ensure runtime does not attempt to load optional modules.

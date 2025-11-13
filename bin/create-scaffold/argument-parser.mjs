@@ -124,6 +124,11 @@ export function parseArguments(argv = process.argv.slice(2)) {
         type: 'string',
         description: 'Path to selection.json file to load existing choices and skip interactive prompts'
       },
+      [TERMINOLOGY.OPTION.OPTIONS]: {
+        type: 'string',
+        short: 'o',
+        description: 'Comma-separated contextual options for template customization'
+      },
       [TERMINOLOGY.OPTION.HELP]: {
         type: 'boolean',
         short: 'h',
@@ -211,6 +216,7 @@ export function parseArguments(argv = process.argv.slice(2)) {
       [TERMINOLOGY.OPTION.EXPERIMENTAL_PLACEHOLDER_PROMPTS]: experimentalPlaceholderPrompts,
       [TERMINOLOGY.OPTION.GUIDED]: values[TERMINOLOGY.OPTION.GUIDED],
       [TERMINOLOGY.OPTION.SELECTION]: values.selection,
+      [TERMINOLOGY.OPTION.OPTIONS]: values[TERMINOLOGY.OPTION.OPTIONS],
       [TERMINOLOGY.OPTION.INTERACTIVE]: interactive,
       [TERMINOLOGY.OPTION.NON_INTERACTIVE]: explicitNoInteractive,
       [TERMINOLOGY.OPTION.NO_CONFIG]: noConfig,

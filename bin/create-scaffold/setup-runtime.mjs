@@ -23,99 +23,6 @@ function includeTemplateCopyEntry(source) {
   return !shouldIgnoreTemplateEntry(name);
 }
 
-const IDE_PRESETS = {
-  kiro: (ctx) => [
-    {
-      kind: 'json',
-      path: '.kiro/settings.json',
-      data: {
-        'editor.tabSize': 2,
-        'editor.insertSpaces': true,
-        'files.autoSave': 'afterDelay',
-        'kiro.projectName': ctx.projectName
-      }
-    },
-    {
-      kind: 'json',
-      path: '.kiro/tasks.json',
-      data: {
-        version: '2.0.0',
-        tasks: [
-          {
-            label: 'Start Application',
-            type: 'shell',
-            command: 'npm start',
-            group: 'build'
-          }
-        ]
-      }
-    }
-  ],
-  vscode: () => [
-    {
-      kind: 'json',
-      path: '.vscode/settings.json',
-      data: {
-        'editor.formatOnSave': true,
-        'editor.codeActionsOnSave': {
-          'source.fixAll.eslint': true
-        },
-        'editor.defaultFormatter': 'esbenp.prettier-vscode'
-      }
-    },
-    {
-      kind: 'json',
-      path: '.vscode/extensions.json',
-      data: {
-        recommendations: [
-          'esbenp.prettier-vscode',
-          'dbaeumer.vscode-eslint',
-          'ms-vscode.vscode-typescript-next'
-        ]
-      }
-    },
-    {
-      kind: 'json',
-      path: '.vscode/launch.json',
-      data: {
-        version: '0.2.0',
-        configurations: [
-          {
-            name: 'Launch App',
-            type: 'node',
-            request: 'launch',
-            program: '${workspaceFolder}/index.js',
-            skipFiles: ['<node_internals>/**']
-          }
-        ]
-      }
-    }
-  ],
-  cursor: () => [
-    {
-      kind: 'json',
-      path: '.cursor/config.json',
-      data: {
-        useGitIgnore: true,
-        assistant: {
-          style: 'pair-programmer'
-        }
-      }
-    }
-  ],
-  windsurf: () => [
-    {
-      kind: 'json',
-      path: '.windsurf/settings.json',
-      data: {
-        'editor.tabSize': 2,
-        'files.autoSave': 'onFocusChange',
-        'windsurf.experimental.aiAssistance': true
-      }
-    }
-  ]
-};
-
 function transformModuleSource(source) {
   if (/(^|\s)import\s+[^(']/m.test(source)) {
     throw new SetupSandboxError('Import is disabled inside setup scripts. Use provided tools instead.');
@@ -782,46 +689,12 @@ function pickDefaultDimension(dimensions) {
   }
 
   for (const [name, definition] of Object.entries(dimensions)) {
-    if (definition.type === 'multi' && !definition.builtIn) {
+    if (definition.type === 'multi') {
       return name;
     }
   }
 
   return null;
-}
-
-function createIdeApi(ctx, root) {
-  const presetKeys = Object.keys(IDE_PRESETS);
-
-  return Object.freeze({
-    presets: presetKeys.slice(),
-    async applyPreset(name) {
-      if (typeof name !== 'string' || !name.trim()) {
-        throw new SetupSandboxError('applyPreset requires an IDE name');
-      }
-
-      const key = name.trim().toLowerCase();
-      const presetBuilder = IDE_PRESETS[key];
-
-      if (!presetBuilder) {
-        throw new SetupSandboxError(`Unsupported IDE preset: ${name}`);
-      }
-
-      const resources = presetBuilder(ctx);
-      for (const resource of resources) {
-        if (resource.kind === 'json') {
-          const merged = await mergeJson(root, resource.path, resource.data);
-          await writeJson(root, resource.path, merged);
-        } else if (resource.kind === 'text') {
-          const target = resolveProjectPath(root, resource.path, 'preset path');
-          await ensureParentDirectory(target);
-          await fs.writeFile(target, resource.content, UTF8);
-        } else {
-          throw new SetupSandboxError(`Unsupported preset resource kind: ${resource.kind}`);
-        }
-      }
-    }
-  });
 }
 
 function buildPlaceholderApi(root, placeholderContext) {
@@ -1258,8 +1131,7 @@ export async function createSetupTools(options) {
     projectName,
     logger,
     templateContext,
-    dimensions = {},
-    supportedIdes = []
+    dimensions = {}
   } = options;
   const root = path.resolve(projectDirectory);
   const placeholderInputs = templateContext?.inputs ?? Object.freeze({});
@@ -1271,27 +1143,8 @@ export async function createSetupTools(options) {
     authoringMode: templateContext?.authoringMode ?? 'wysiwyg',
     inputs: placeholderInputs,
     constants: templateContext?.constants ?? {},
-    authorAssetsDir,
-    supportedIdes
+    authorAssetsDir
   };
-
-  // Auto-apply IDE presets for supported IDEs
-  if (Array.isArray(supportedIdes) && supportedIdes.length > 0) {
-    const ideApi = createIdeApi(ctx, root);
-    for (const ideName of supportedIdes) {
-      try {
-        await ideApi.applyPreset(ideName);
-      } catch (error) {
-        // Log but don't fail - IDE preset application is best effort
-        if (logger) {
-          await logger.logOperation('ide_preset_application_failed', {
-            ide: ideName,
-            error: error.message
-          });
-        }
-      }
-    }
-  }
 
   return Object.freeze({
     placeholders: buildPlaceholderApi(root, { projectName: ctx.projectName, inputs: placeholderInputs }),
@@ -1301,7 +1154,6 @@ export async function createSetupTools(options) {
     templates: buildTemplateApi(root, authorAssetsDir),
     text: buildTextApi(root),
     logger: createLoggerApi(logger),
-    ide: createIdeApi(ctx, root),
     options: createOptionsApi({
       options: { raw: [], byDimension: {} },
       dimensions

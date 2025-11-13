@@ -59,10 +59,10 @@ When users run `npm create @m5nv/scaffold`, npm transforms this to:
 **Primary Usage Examples:**
 ```bash
 # Primary recommended usage
-npm create @m5nv/scaffold my-project -- --from-template react-vite --ide kiro
+npm create @m5nv/scaffold my-project -- --template react-vite --ide kiro
 
 # Alternative npx usage
-npx @m5nv/create-scaffold@latest my-project --from-template react-vite --ide kiro
+npx @m5nv/create-scaffold@latest my-project --template react-vite --ide kiro
 ```
 
 **Explanation Section:**
@@ -191,13 +191,13 @@ console.error('Install @m5nv/create-scaffold globally or use npx');
 Use `npm create` for the standard experience:
 
 ```bash
-npm create @m5nv/scaffold <your-project-name> -- --from-template <template-name> [options]
+npm create @m5nv/scaffold <your-project-name> -- --template <template-name> [options]
 ```
 
 Alternatively, you can use `npx`:
 
 ```bash
-npx @m5nv/create-scaffold@latest <your-project-name> --from-template <template-name> [options]
+npx @m5nv/create-scaffold@latest <your-project-name> --template <template-name> [options]
 ```
 
 ### Why This Works
@@ -221,7 +221,7 @@ Usage: npm create @m5nv/scaffold <project-name> [options]
    or: npx @m5nv/create-scaffold@latest <project-name> [options]
 
 Options:
-  -t, --from-template <name>  Template name (default: basic)
+  -t, --template <name>  Template name (default: basic)
   -r, --repo <repo>          Repository (default: million-views/templates)
   -b, --branch <branch>      Git branch
   -i, --ide <ide>            Target IDE (kiro, vscode, cursor, windsurf)
@@ -229,9 +229,9 @@ Options:
   -h, --help                Show help
 
 Examples:
-  npm create @m5nv/scaffold my-app -- --from-template react-vite --ide kiro
-  npm create @m5nv/scaffold api-server -- --from-template express --features "auth,database"
-  npx @m5nv/create-scaffold@latest full-stack --from-template nextjs --ide vscode
+  npm create @m5nv/scaffold my-app -- --template react-vite --ide kiro
+  npm create @m5nv/scaffold api-server -- --template express --features "auth,database"
+  npx @m5nv/create-scaffold@latest full-stack --template nextjs --ide vscode
 `;
 }
 ```text

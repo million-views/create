@@ -6,8 +6,8 @@ export const TEMPLATE_SCHEMA_PATH = 'schema/template.v1.json' as const;
 
 export type TemplateAuthoringMode = 'wysiwyg' | 'composable';
 export type TemplatePlaceholderType = 'string' | 'number' | 'boolean';
-export type TemplateDimensionType = never;
-export type TemplateDimensionPolicy = never;
+export type TemplateDimensionType = 'single' | 'multi';
+export type TemplateDimensionPolicy = 'warn';
 export type TemplateCanonicalVariableName = never;
 
 export type TemplatePlaceholderPrimitive = string | number | boolean;
@@ -68,7 +68,6 @@ export interface TemplateSetup {
   authoringMode?: TemplateAuthoringMode;
   authorAssetsDir?: string;
   dimensions?: TemplateDimensions;
-  supportedOptions?: TemplateDimensionValue[];
 }
 
 export interface TemplateManifest {

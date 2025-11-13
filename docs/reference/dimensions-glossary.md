@@ -31,7 +31,7 @@ Dimensions are user-selectable options defined in `template.json` under `metadat
 
 |------|------|-------------|
 
----| `ide` | `single` | User-selectable dimension for IDE-specific configurations. Values include `kiro`, `vscode`, `cursor`, `windsurf`. Mark this dimension with `"builtIn": true` if you mirror it in metadata. |
+---| `ide` | `single` | User-selectable dimension for IDE-specific configurations. Values include `kiro`, `vscode`, `cursor`, `windsurf`. |
 
 | `stack` | `single` | Optional hint describing the primary framework (e.g., `react-vite`, `express`, `nextjs`). Useful when a template repository contains multiple stacks. |
 
@@ -49,7 +49,7 @@ Users choose **one value** from a list.
 
 **Schema:**- Keep values short (≤ 50 characters) and descriptive: `auth`, `testing`, `observability`.
 
-```json- Reserve `builtIn: true` for dimensions populated by @m5nv/create-scaffold (`ide`, future CLI flags). Custom dimensions should omit this flag.
+
 
 {
 
@@ -573,34 +573,27 @@ npm create @m5nv/scaffold my-app -- \
 
 ---
 
-## Migration Guide
+## Template Schema V1.0
 
-If you have templates using older patterns, here's how to migrate:
+All templates must now use the V1.0 schema format. The legacy `supportedOptions` format is no longer supported.
 
-### From Array to Dimensions
-
-**Old:**
+**Required V1.0 Format:**
 ```json
 {
+  "schemaVersion": "1.0.0",
   "setup": {
-    "supportedOptions": ["typescript", "testing", "eslint"]
-  }
-}
-```
-
-**New (Schema V1.0):**
-```json
-{
-  "metadata": {
     "dimensions": {
       "features": {
-        "description": "Optional features",
-        "type": "multi-select",
+        "type": "multi",
         "values": ["typescript", "testing", "eslint"],
         "default": []
       }
-    }
-  }
+    },
+    "gates": {},
+    "policy": "strict"
+  },
+  "featureSpecs": {},
+  "constants": {}
 }
 ```
 

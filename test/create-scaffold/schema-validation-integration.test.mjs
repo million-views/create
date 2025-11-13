@@ -108,7 +108,7 @@ test('New schema validation system CLI integration', async (t) => {
     // Test CLI validation
     const result = execCLI([
       'new', 'test-project',
-      '--from-template', 'test-template',
+      '--template', 'test-template',
       '--repo', repoDir,
       '--dry-run'
     ]);
@@ -145,7 +145,7 @@ test('New schema validation system CLI integration', async (t) => {
     // Test CLI validation - should fail
     const result = execCLI([
       'new', 'test-project',
-      '--from-template', 'invalid-template',
+      '--template', 'invalid-template',
       '--repo', repoDir,
       '--dry-run'
     ]);
@@ -187,7 +187,7 @@ test('New schema validation system CLI integration', async (t) => {
     // Test with valid options
     const validResult = execCLI([
       'new', 'test-project',
-      '--from-template', 'selection-template',
+      '--template', 'selection-template',
       '--repo', repoDir,
       '--options', 'auth,database',
       '--dry-run'
@@ -199,7 +199,7 @@ test('New schema validation system CLI integration', async (t) => {
     // Test with invalid options
     const invalidResult = execCLI([
       'new', 'test-project',
-      '--from-template', 'selection-template',
+      '--template', 'selection-template',
       '--repo', repoDir,
       '--options', 'invalid-feature',
       '--dry-run'
@@ -207,47 +207,5 @@ test('New schema validation system CLI integration', async (t) => {
 
     assert.equal(invalidResult.exitCode, 1, `Expected exit code 1 for invalid options, got ${invalidResult.exitCode}`);
     assert(invalidResult.stderr.includes('does not support'), 'Should show selection validation error');
-  });
-
-  await t.test('CLI handles backward compatibility with old schema templates', async () => {
-    // Create a mock repo with an old schema template
-    const repoDir = join(tempDir, 'mock-repo-old');
-    const templateDir = join(repoDir, 'old-template');
-    await mkdir(templateDir, { recursive: true });
-
-    const oldTemplate = {
-      name: 'old-template',
-      description: 'An old schema template',
-      setup: {
-        supportedOptions: ['auth', 'database']
-      },
-      handoff: ['npm install']
-    };
-
-    await writeFile(join(templateDir, 'template.json'), JSON.stringify(oldTemplate, null, 2));
-    await writeFile(join(templateDir, 'package.json'), JSON.stringify({
-      name: 'old-template',
-      version: '1.0.0'
-    }, null, 2));
-    await writeFile(join(templateDir, 'README.md'), '# Old Template\n\nAn old schema template.');
-
-    // Initialize git repo
-    execSync('git init', { cwd: repoDir });
-    execSync('git config user.name "Test User"', { cwd: repoDir });
-    execSync('git config user.email "test@example.com"', { cwd: repoDir });
-    execSync('git add .', { cwd: repoDir });
-    execSync('git commit -m "Initial commit"', { cwd: repoDir });
-
-    // Test CLI with old schema - should still work
-    const result = execCLI([
-      'new', 'test-project',
-      '--from-template', 'old-template',
-      '--repo', repoDir,
-      '--options', 'auth',
-      '--dry-run'
-    ]);
-
-    assert.equal(result.exitCode, 0, `Expected exit code 0 for old schema, got ${result.exitCode}`);
-    assert(!result.stderr.includes('❌'), 'Old schema should work without errors');
   });
 });

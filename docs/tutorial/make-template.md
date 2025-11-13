@@ -16,7 +16,7 @@ related_docs:
 last_updated: "2025-11-12"
 ---
 
-# make-template Tutorial
+# `make-template` Tutorial
 
 ## What you'll learn
 

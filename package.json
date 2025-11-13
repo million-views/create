@@ -13,9 +13,15 @@
     "./make-template": "./bin/make-template/index.mjs",
     "./schema/template.json": "./schema/template.json",
     "./schema/template.v1.json": "./schema/template.v1.json",
+    "./schema/selection.json": "./schema/selection.json",
+    "./schema/selection.v1.json": "./schema/selection.v1.json",
     "./types/template-schema": {
       "types": "./types/template-schema.d.ts",
       "default": "./types/template-schema.mjs"
+    },
+    "./types/selection-schema": {
+      "types": "./types/selection-schema.d.ts",
+      "default": "./types/selection-schema.mjs"
     }
   },
   "files": [

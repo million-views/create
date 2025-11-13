@@ -244,7 +244,6 @@ test('validateTemplateManifest returns normalized values for valid template', as
   assert.equal(result.authorAssetsDir, '__scaffold__');
   assert.equal(result.handoffSteps.length, 1);
   assert.equal(result.placeholders.length, manifest.metadata.placeholders.length);
-  assert.deepEqual(result.supportedOptions, []);
   assert.deepEqual(result.dimensions, {});
   assert.deepEqual(result.canonicalVariables, []);
 });

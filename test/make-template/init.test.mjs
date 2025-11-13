@@ -62,6 +62,7 @@ function execCLI(args, options = {}) {
 
 test('make-template init command', async (t) => {
   const baseTestDir = join(tmpdir(), `make-template-init-test-${Date.now()}`);
+  await mkdir(baseTestDir, { recursive: true });
 
   await t.test('init generates valid skeleton template.json', async () => {
     const testDir = join(baseTestDir, 'test1');
@@ -82,7 +83,7 @@ test('make-template init command', async (t) => {
     const template = JSON.parse(content);
 
     // Verify required keys exist (remove placeholders since it's not in the generated template)
-    const requiredKeys = ['schemaVersion', 'id', 'name', 'description', 'tags', 'author', 'license', 'constants', 'dimensions', 'gates', 'featureSpecs', 'hints'];
+    const requiredKeys = ['schemaVersion', 'id', 'name', 'description', 'tags', 'author', 'license', 'setup', 'featureSpecs', 'constants', 'hints'];
     for (const key of requiredKeys) {
       assert(template.hasOwnProperty(key), `Template should have ${key} property`);
     }
@@ -90,10 +91,11 @@ test('make-template init command', async (t) => {
     // Verify schema version
     assert.strictEqual(template.schemaVersion, '1.0.0', 'Should use correct schema version');
 
-    // Verify dimensions structure
-    assert(template.dimensions, 'Should have dimensions');
-    assert(template.dimensions.deployment_target, 'Should have deployment_target dimension');
-    assert(Array.isArray(template.dimensions.deployment_target.values), 'deployment_target should have values array');
+    // Verify setup structure
+    assert(template.setup, 'Should have setup section');
+    assert(template.setup.dimensions, 'Should have dimensions in setup');
+    assert(template.setup.dimensions.deployment_target, 'Should have deployment_target dimension');
+    assert(Array.isArray(template.setup.dimensions.deployment_target.values), 'deployment_target should have values array');
   });
 
   await t.test('init with custom filename works', async () => {

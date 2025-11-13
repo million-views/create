@@ -16,13 +16,11 @@ last_updated: "2025-11-12"
 
 # CLI Reference
 
-Complete command reference for `@m5nv/create-scaffold` and `@m5nv/make-template`.
+Complete command reference for the `@m5nv/create-scaffold` package.
 
 ## Overview
 
-Complete reference for the `@m5nv/create-scaffold` command-line interface. This package provides two complementary tools: `create-scaffold` for scaffolding new projects from templates, and `make-template` for converting existing projects into reusable templates.
-
-The `@m5nv/create` ecosystem provides two CLI tools:
+The `@m5nv/create-scaffold` package provides two complementary CLI tools:
 
 - **`create-scaffold`**: Scaffolds new projects from templates
 - **`make-template`**: Converts projects to templates and back
@@ -369,10 +367,11 @@ Configuration files must be UTF-8 JSON objects with the following optional field
 
 ### Precedence
 
-1. CLI flags (`--repo`, `--branch`, `--placeholder`, etc.).
-2. Environment variables (e.g. `CREATE_SCAFFOLD_PLACEHOLDER_<TOKEN>`).
-3. Configuration defaults from `.m5nvrc`.
-4. Template-declared defaults.
+1. CLI flags (`--branch`, `--placeholder`, etc.).
+2. URL parameters in template URLs (e.g., `?options=typescript&branch=main`).
+3. Environment variables (e.g. `CREATE_SCAFFOLD_PLACEHOLDER_<TOKEN>`).
+4. Configuration defaults from `.m5nvrc`.
+5. Template-declared defaults.
 
 Verbose mode prints which configuration file was used and which fields were applied, masking sensitive placeholder values. Errors reference the offending path and suggest `--no-config` for bypassing corrupt files.
 
@@ -388,15 +387,19 @@ npm create @m5nv/scaffold my-app -- --template react-vite
 ### Custom Repository
 
 ```bash
-# Use a custom repository
-npm create @m5nv/scaffold my-app -- --template nextjs --repo custom-user/templates
+# Use a custom repository by specifying it in the template URL
+npm create @m5nv/scaffold my-app -- --template https://github.com/custom-user/templates/nextjs
+# Or use shorthand for GitHub repos
+npm create @m5nv/scaffold my-app -- --template custom-user/templates/nextjs
 ```
 
 ### Template Options Customization
 
 ```bash
-# Create project with template options
+# Create project with template options via CLI flag
 npm create @m5nv/scaffold my-app -- --template react --options "typescript,testing"
+# Or specify options directly in the template URL
+npm create @m5nv/scaffold my-app -- --template react?options=typescript,testing
 ```
 
 ### Template Discovery
@@ -413,13 +416,17 @@ create-scaffold list
 create-scaffold new my-app --template react --dry-run
 ```
 
-## Repository Formats
+## Template URL Formats
 
-The `--repo` parameter accepts multiple formats:
+Templates can be specified in multiple formats:
 
 | Format | Example | Description |
 |--------|---------|-------------|
-| GitHub shorthand | `user/repo` | Expands to `https://github.com/user/repo.git` |
+| Registry shorthand | `favorites/react-vite` | Template from configured registry |
+| GitHub shorthand | `user/repo/template` | GitHub repo with subpath |
+| Full URL | `https://github.com/user/repo` | Complete repository URL |
+| Local path | `./my-templates/react` | Local directory path |
+| URL with options | `user/repo?options=typescript&branch=main` | URL with query parameters |
 | HTTPS URL | `https://github.com/user/repo.git` | Full GitHub HTTPS URL |
 | SSH URL | `git@github.com:user/repo.git` | SSH URL (requires SSH keys) |
 | Local path | `/path/to/local/repo` | Local git repository |
@@ -428,6 +435,16 @@ The `--repo` parameter accepts multiple formats:
 ## Dimensions and options
 
 `--options` accepts a comma-separated list. Use `dimension=value` to target a specific dimension; join multiple values for the same dimension with `+` (for example `capabilities=auth+testing`). Tokens without `=` apply to the template's default multi-select dimension, typically `capabilities`.
+
+Options can also be specified directly in template URLs using query parameters:
+
+```bash
+# CLI flag approach
+npm create @m5nv/scaffold my-app -- --template react --options "typescript,testing"
+
+# URL parameter approach
+npm create @m5nv/scaffold my-app -- --template react?options=typescript,testing
+```
 
 Templates describe their vocabulary in `template.json` via `metadata.dimensions`:
 

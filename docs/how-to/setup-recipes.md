@@ -327,8 +327,8 @@ Copy template-specific files into the project.
 // _setup.mjs
 export default async function setup({ ctx, tools }) {
   // Copy entire directory
-  await tools.files.copyFromTemplate(
-    '__scaffold__/auth',
+  await tools.templates.copy(
+    'auth',
     'src/auth',
     { overwrite: false }
   );
@@ -363,6 +363,54 @@ my-app/
 ```
 
 **Note**: `__scaffold__/` directory is automatically removed after setup completes.
+
+---
+
+## IDE Configuration with Author Assets
+
+Configure IDE settings by copying curated configurations from the template's `__scaffold__` directory.
+
+### Recipe
+
+```javascript
+// _setup.mjs
+export default async function setup({ ctx, tools }) {
+  // Copy VSCode configuration
+  await tools.templates.copy('.vscode', '.vscode');
+  
+  // Copy Cursor configuration  
+  await tools.templates.copy('.cursor', '.cursor');
+  
+  // Copy Windsurf configuration
+  await tools.templates.copy('.windsurf', '.windsurf');
+}
+```
+
+### Template Structure
+
+```console
+template/
+├── __scaffold__/
+│   ├── .vscode/
+│   │   ├── settings.json
+│   │   ├── extensions.json
+│   │   └── launch.json
+│   ├── .cursor/
+│   │   └── config.json
+│   └── .windsurf/
+│       └── settings.json
+├── src/
+└── _setup.mjs
+```
+
+### Benefits
+
+- **Full Control**: Template authors customize configurations for their specific stack
+- **Template-Specific**: Settings can vary based on project type, frameworks, or options
+- **Consumer Override**: Generated configs can be modified by end users
+- **Version Controlled**: IDE configs evolve with template updates
+
+**Note**: This approach gives template authors complete control over IDE configurations without making assumptions about what settings are "right" for everyone.
 
 ---
 
@@ -772,7 +820,3 @@ export default async function setup({ ctx, tools }) {
 ---
 
 ## Related Documentation
-
-- [Getting Started Tutorial](../tutorial/getting-started.md) - First project walkthrough
-- [create-scaffold Tutorial](../tutorial/create-scaffold.md) - Hands-on examples
-- [Troubleshooting Guide](../guides/troubleshooting.md) - Common issues

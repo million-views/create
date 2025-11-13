@@ -11,7 +11,7 @@ This feature adds IDE adaptation support to the @m5nv/create CLI tool, allowing 
 - **Setup_Script**: The _setup.mjs file within a template that performs post-copy customization
 - **IDE_Parameter**: The --ide command-line argument specifying target IDE
 - **Features_Parameter**: The --features command-line argument specifying enabled features
-- **Template_Parameter**: The --from-template command-line argument specifying which template to use
+- **Template_Parameter**: The --template command-line argument specifying which template to use
 - **Environment_Object**: A sandboxed parameter object passed to setup scripts containing project context
 - **Template_Developer**: A user who creates and maintains template repositories
 - **End_User**: A user who uses the CLI tool to scaffold projects from templates
@@ -84,7 +84,7 @@ This feature adds IDE adaptation support to the @m5nv/create CLI tool, allowing 
 
 #### Acceptance Criteria
 
-1. THE CLI_Tool SHALL provide help text that includes --ide, --features, and --from-template arguments
+1. THE CLI_Tool SHALL provide help text that includes --ide, --features, and --template arguments
 2. THE CLI_Tool SHALL include usage examples for IDE-specific template creation
 3. THE CLI_Tool SHALL document the Environment_Object structure and properties
 4. THE CLI_Tool SHALL provide comprehensive examples of IDE-specific customizations

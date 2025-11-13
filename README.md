@@ -8,10 +8,11 @@
 
 ## What is this?
 
-`@m5nv/create` provides a complete ecosystem for creating and using project templates:
+The `@m5nv/create` repository provides a complete ecosystem for creating and using project templates. The ecosystem consists of two complementary tools:
 
-- **`create-scaffold`**: Scaffold new projects from templates with guided workflows
-- **`make-template`**: Convert existing projects into reusable templates
+- **`@m5nv/create-scaffold`**: The npm package containing both CLI tools
+  - **`make-template`**: Convert existing projects into reusable templates
+  - **`create-scaffold`**: Scaffold new projects from templates with guided workflows
 - **Template Schema V1.0**: Declarative composition with platform gates, feature requirements, and smart defaults
 
 Together, these tools enable teams to codify project best practices, share battle-tested configurations, and bootstrap new projects in seconds.
@@ -22,10 +23,10 @@ Together, these tools enable teams to codify project best practices, share battl
 
 ```bash
 # Using npm create (recommended)
-npm create @m5nv/scaffold my-app -- --template react-vite
+npm create @m5nv/scaffold my-app -- --template basic-react-spa
 
 # Or with npx
-npx @m5nv/create-scaffold new my-app --template react-vite
+npx @m5nv/create-scaffold new my-app --template basic-react-spa
 ```
 
 ### Convert Your Project to a Template
@@ -72,20 +73,6 @@ npx make-template restore
 
 ## The Two Tools Explained
 
-### `create-scaffold`: Project Scaffolding Tool
-
-**What it does**: Creates new projects from templates
-
-**Key Features**:
-- URL-based template resolution (GitHub, registries, local paths)
-- Interactive guided workflows for template selection
-- Platform-aware validation (Cloudflare, VPS, Deno, etc.)
-- Feature-based composition with smart defaults
-- Caching for fast repeated scaffolding
-- Dry-run mode to preview changes
-
-**When to use**: Every time you start a new project
-
 ### `make-template`: Template Authoring Tool
 
 **What it does**: Converts projects into reusable templates
@@ -99,6 +86,22 @@ npx make-template restore
 - Undo tracking for safe experimentation
 
 **When to use**: When codifying a project as a reusable template
+
+### `create-scaffold`: Project Scaffolding Tool
+
+**What it does**: Creates new projects from templates with guided workflows
+
+*"Scaffolding" here means generating complete project structures from reusable templates, not building temporary construction scaffolding.*
+
+**Key Features**:
+- URL-based template resolution (GitHub, registries, local paths)
+- Interactive guided workflows for template selection
+- Platform-aware validation (Cloudflare, VPS, Deno, etc.)
+- Feature-based composition with smart defaults
+- Caching for fast repeated scaffolding
+- Dry-run mode to preview changes
+
+**When to use**: Every time you start a new project
 
 ## Template Schema V1.0
 
@@ -163,20 +166,20 @@ When scaffolding V1.0 templates, `create-scaffold` generates a `<template-name>.
 
 ```bash
 # Create project with interactive selection
-create-scaffold new my-app --template react-vite
+create-scaffold new my-app --template basic-react-spa
 
 # Reuse previous selections (skips interactive prompts)
-create-scaffold new my-other-app --template react-vite --selection ./react-vite.selection.json
+create-scaffold new my-other-app --template basic-react-spa --selection ./basic-react-spa.selection.json
 
 # Load selections from a different path
-create-scaffold new my-app --template react-vite --selection ~/my-selections/react-vite.selection.json
+create-scaffold new my-app --template basic-react-spa --selection ~/my-selections/basic-react-spa.selection.json
 ```
 
 ### Selection File Format
 
 ```json
 {
-  "templateId": "react-vite",
+  "templateId": "basic-react-spa",
   "version": "1.0.0",
   "selections": {
     "deployment_target": "vercel",
@@ -207,8 +210,10 @@ create-scaffold new my-app --template react-vite --selection ~/my-selections/rea
 ### Global Installation (Recommended)
 
 ```bash
-npm install -g @m5nv/create-scaffold @m5nv/make-template
+npm install -g @m5nv/create-scaffold
 ```
+
+This installs both `create-scaffold` and `make-template` commands.
 
 ### One-Time Usage
 
@@ -246,7 +251,7 @@ npx make-template convert
 
 ```bash
 # Basic usage
-create-scaffold new my-app --template react-vite
+create-scaffold new my-app --template basic-react-spa
 
 # From GitHub repository
 create-scaffold new my-app --template github.com/owner/repo
@@ -255,10 +260,10 @@ create-scaffold new my-app --template github.com/owner/repo
 create-scaffold new my-app --template favorites/react-spa
 
 # With platform and features
-create-scaffold new my-app --template react-vite --options "cloudflare,authentication"
+create-scaffold new my-app --template basic-react-spa --options "cloudflare,authentication"
 
 # Reuse previous selections (skips interactive prompts)
-create-scaffold new my-other-app --template react-vite --selection ./react-vite.selection.json
+create-scaffold new my-other-app --template basic-react-spa --selection ./basic-react-spa.selection.json
 
 # List available templates
 create-scaffold list
@@ -268,7 +273,7 @@ create-scaffold list --registry official
 create-scaffold validate ./my-template
 
 # Dry run (preview without creating)
-create-scaffold new my-app --template react-vite --dry-run
+create-scaffold new my-app --template basic-react-spa --dry-run
 ```
 
 ### Authoring Templates
@@ -324,16 +329,6 @@ Configure template registries in `~/.m5nvrc`:
 
 ## Features
 
-### create-scaffold
-✅ URL-based template resolution (GitHub, registries, local)  
-✅ Interactive guided workflows  
-✅ Platform-aware validation  
-✅ Feature-based composition  
-✅ Repository caching for performance  
-✅ Dry-run mode  
-✅ Progressive disclosure help system  
-✅ Enhanced error messages with suggestions  
-
 ### make-template
 ✅ One-command project → template conversion  
 ✅ Automatic placeholder detection  
@@ -344,18 +339,20 @@ Configure template registries in `~/.m5nvrc`:
 ✅ Template testing service  
 ✅ Undo tracking  
 
+### create-scaffold
+✅ URL-based template resolution (GitHub, registries, local)  
+✅ Interactive guided workflows  
+✅ Platform-aware validation  
+✅ Feature-based composition  
+✅ Repository caching for performance  
+✅ Dry-run mode  
+✅ Progressive disclosure help system  
+✅ Enhanced error messages with suggestions  
+
 ## Project Status
 
-**Current Version**: 0.5.0  
+**Current Version**: 0.6.0  
 **Status**: Pre-release (Production-ready, pending first publication)
-
-### Recent Highlights
-- ✅ Template Schema V1.0 with platform gates and feature requirements
-- ✅ Security hardening (injection prevention, path traversal protection)
-- ✅ Interactive workflows with guided prompts
-- ✅ Registry infrastructure for template distribution
-- ✅ Comprehensive validation with intelligent fix suggestions
-- ✅ Test coverage: 49 functional tests, 100% spec compliance
 
 ## Contributing
 
@@ -388,7 +385,6 @@ MIT © Million Views
 ## Community
 
 - [Report Issues](https://github.com/million-views/create/issues)
-- [Discussions](https://github.com/million-views/create/discussions)
 - [Code of Conduct](CODE_OF_CONDUCT.md)
 
 ---
