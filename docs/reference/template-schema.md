@@ -1,12 +1,12 @@
 ------
 
-title: "Template Schema Reference"title: "Dimensions Glossary"
+title: "Template Schema Reference"title: "Template Schema Reference"
 
 type: "reference"type: "reference"
 
 audience: "template-authors"audience: "template-authors"
 
-estimated_time: "10 minutes"estimated_time: "5 minutes"
+estimated_time: "10 minutes"estimated_time: "10 minutes"
 
 prerequisites:prerequisites:
 
@@ -22,17 +22,17 @@ related_docs:related_docs:
 
   - "../how-to/author-workflow.md"  - "../how-to/author-workflow.md"
 
-last_updated: "2025-11-12"last_updated: "2025-11-12"
+last_updated: "2025-11-13"last_updated: "2025-11-13"
 
 ------
 
 
 
-# Template Schema Reference# Dimensions Glossary
+# Template Schema Reference# Template Schema Reference
 
 
 
-Complete reference for Schema V1.0 (`template.json`). This document covers all sections of the template schema including metadata, setup configuration, feature specifications, hints, and constants.Complete reference for template dimensions in Schema V1.0. Templates declare option vocabularies through `setup.dimensions` in `template.json`. This glossary summarizes the required dimensions and provides guidance for template authoring.
+Complete reference for Schema V1.0 (`template.json`). This document covers all sections of the template schema including metadata, setup configuration, feature specifications, hints, and constants.Complete reference for Schema V1.0 (`template.json`). This document covers all sections of the template schema including metadata, setup configuration, feature specifications, hints, and constants.
 
 
 
@@ -40,15 +40,1111 @@ Complete reference for Schema V1.0 (`template.json`). This document covers all s
 
 
 
-Schema V1.0 defines the structure for `template.json` files. Templates are validated against this schema during creation and runtime. The schema ensures consistent behavior across all templates while allowing flexibility for different use cases.Dimensions are user-selectable options defined in `template.json` under `setup.dimensions`. They let template users customize scaffolded projects during creation. Schema V1.0 requires seven specific dimensions that all templates must implement.
+Schema V1.0 defines the structure for `template.json` files. Templates are validated against this schema during creation and runtime. The schema ensures consistent behavior across all templates while allowing flexibility for different use cases.Schema V1.0 defines the structure for `template.json` files. Templates are validated against this schema during creation and runtime. The schema ensures consistent behavior across all templates while allowing flexibility for different use cases.
 
 
 
-## Schema Structure## Required Dimensions
+## Schema Structure## Schema Structure
 
 
 
-```jsonAll templates must define these seven dimensions in `setup.dimensions`:
+```json```json
+
+{{
+
+  "schemaVersion": "1.0.0",  "schemaVersion": "1.0.0",
+
+  "title": "My Template",  "title": "My Template",
+
+  "id": "my-template",  "id": "my-template",
+
+  "name": "My Template",  "name": "My Template",
+
+  "description": "A template for building X",  "description": "A template for building X",
+
+  "setup": {  "setup": {
+
+    "authoringMode": "composable",    "authoringMode": "composable",
+
+    "policy": "strict",    "policy": "strict",
+
+    "dimensions": { /* required dimensions */ },    "dimensions": { /* required dimensions */ },
+
+    "gates": { /* compatibility rules */ }    "gates": { /* compatibility rules */ }
+
+  },  },
+
+  "featureSpecs": { /* feature definitions */ },  "featureSpecs": { /* feature definitions */ },
+
+  "hints": { /* advisory feature catalog */ },  "hints": { /* advisory feature catalog */ },
+
+  "constants": { /* fixed template values */ }  "constants": { /* fixed template values */ }
+
+}}
+
+``````
+
+
+
+## Top-Level Properties## Top-Level Properties
+
+
+
+| Property | Type | Required | Description || Property | Type | Required | Description |
+
+|----------|------|----------|-------------||----------|------|----------|-------------|
+
+| `schemaVersion` | `string` | No | Schema version (currently "1.0.0") || `schemaVersion` | `string` | No | Schema version (currently "1.0.0") |
+
+| `title` | `string` | No | Human-readable title || `title` | `string` | No | Human-readable title |
+
+| `id` | `string` | No | Unique template identifier || `id` | `string` | No | Unique template identifier |
+
+| `name` | `string` | No | Short template name || `name` | `string` | No | Short template name |
+
+| `description` | `string` | No | Template description || `description` | `string` | No | Template description |
+
+
+
+### Required Sections### Required Sections
+
+
+
+| Property | Type | Description || Property | Type | Description |
+
+|----------|------|-------------||----------|------|-------------|
+
+| `setup` | `object` | Template configuration and dimensions || `setup` | `object` | Template configuration and dimensions |
+
+| `featureSpecs` | `object` | Feature definitions with requirements || `featureSpecs` | `object` | Feature definitions with requirements |
+
+| `constants` | `object` | Fixed template constants || `constants` | `object` | Fixed template constants |
+
+
+
+## Setup Section## Setup Section
+
+
+
+The `setup` section configures template behavior and defines user-selectable options.The `setup` section configures template behavior and defines user-selectable options.
+
+
+
+### Setup Properties### Setup Properties
+
+
+
+| Property | Type | Required | Description || Property | Type | Required | Description |
+
+|----------|------|----------|-------------||----------|------|----------|-------------|
+
+| `authoringMode` | `string` | No | `"composable"` or `"fixed"` (default: `"composable"`) || `authoringMode` | `string` | No | `"composable"` or `"fixed"` (default: `"composable"`) |
+
+| `policy` | `string` | Yes | `"strict"` or `"lenient"` validation || `policy` | `string` | Yes | `"strict"` or `"lenient"` validation |
+
+| `dimensions` | `object` | Yes | User-selectable options || `dimensions` | `object` | Yes | User-selectable options |
+
+| `gates` | `object` | Yes | Compatibility constraints || `gates` | `object` | Yes | Compatibility constraints |
+
+
+
+### Authoring Modes### Authoring Modes
+
+
+
+- **`composable`**: Features assembled via `_setup.mjs` (recommended)- **`composable`**: Features assembled via `_setup.mjs` (recommended)
+
+- **`fixed`**: Pre-built combinations, limited customization- **`fixed`**: Pre-built combinations, limited customization
+
+
+
+### Validation Policies### Validation Policies
+
+
+
+- **`strict`**: Reject invalid selections (recommended for production)- **`strict`**: Reject invalid selections (recommended for production)
+
+- **`lenient`**: Allow unknown values with warnings (development only)- **`lenient`**: Allow unknown values with warnings (development only)
+
+
+
+## Dimensions## Dimensions
+
+
+
+Dimensions define user-selectable options. Schema V1.0 requires exactly 7 dimensions.Dimensions define user-selectable options. Schema V1.0 requires exactly 7 dimensions.
+
+
+
+### Required Dimensions### Required Dimensions
+
+
+
+All templates must define these dimensions:All templates must define these dimensions:
+
+
+
+| Name | Type | Purpose || Name | Type | Purpose |
+
+|------|------|---------||------|------|---------|
+
+| `deployment_target` | `single` | Deployment platform || `deployment_target` | `single` | Deployment platform |
+
+| `features` | `multi` | Custom feature toggles || `features` | `multi` | Custom feature toggles |
+
+| `database` | `single` | Database technology choice || `database` | `single` | Database technology choice |
+
+| `storage` | `single` | Storage solution || `storage` | `single` | Storage solution |
+
+| `auth_providers` | `multi` | Authentication providers || `auth_providers` | `multi` | Authentication providers |
+
+| `payments` | `single` | Payment processor || `payments` | `single` | Payment processor |
+
+| `analytics` | `single` | Analytics service || `analytics` | `single` | Analytics service |
+
+
+
+### Dimension Types### Dimension Types
+
+
+
+- **`single`**: User selects exactly one value from allowed options- **`single`**: User selects exactly one value from allowed options
+
+- **`multi`**: User selects zero or more values from allowed options- **`multi`**: User selects zero or more values from allowed options
+
+
+
+### Dimension Schema### Dimension Schema
+
+
+
+```json```json
+
+{{
+
+  "dimension_name": {  "dimension_name": {
+
+    "type": "single|multi",    "type": "single|multi",
+
+    "values": ["option1", "option2"],    "values": ["option1", "option2"],
+
+    "default": "option1" // or ["option1", "option2"] for multi    "default": "option1" // or ["option1", "option2"] for multi
+
+  }  }
+
+}}
+
+``````
+
+
+
+## Dimension Details## Dimension Details
+
+
+
+### deployment_target### deployment_target
+
+
+
+**Type:** `single` (required)**Type:** `single` (required)
+
+
+
+**Purpose:** Specifies the deployment platform and infrastructure target.**Purpose:** Specifies the deployment platform and infrastructure target.
+
+
+
+**Allowed Values:****Allowed Values:**
+
+- `cloudflare-workers` - Cloudflare Workers- `cloudflare-workers` - Cloudflare Workers
+
+- `linode` - Linode platform- `linode` - Linode platform
+
+- `droplet` - DigitalOcean Droplet- `droplet` - DigitalOcean Droplet
+
+- `deno-deploy` - Deno Deploy- `deno-deploy` - Deno Deploy
+
+- Custom values starting with `x-` (e.g., `x-custom-platform`)- Custom values starting with `x-` (e.g., `x-custom-platform`)
+
+
+
+**Schema Example:****Schema Example:**
+
+```json```json
+
+{{
+
+  "deployment_target": {  "deployment_target": {
+
+    "type": "single",    "type": "single",
+
+    "values": ["cloudflare-workers", "linode", "droplet"],    "values": ["cloudflare-workers", "linode", "droplet"],
+
+    "default": "cloudflare-workers"    "default": "cloudflare-workers"
+
+  }  }
+
+}}
+
+``````
+
+
+
+### features### features
+
+
+
+**Type:** `multi` (required)**Type:** `multi` (required)
+
+
+
+**Purpose:** Custom feature toggles specific to your template.**Purpose:** Custom feature toggles specific to your template.
+
+
+
+**Allowed Values:** Any string values you define**Allowed Values:** Any string values you define
+
+
+
+**Schema Example:****Schema Example:**
+
+```json```json
+
+{{
+
+  "features": {  "features": {
+
+    "type": "multi",    "type": "multi",
+
+    "values": ["auth", "testing", "i18n", "logging"],    "values": ["auth", "testing", "i18n", "logging"],
+
+    "default": ["testing"]    "default": ["testing"]
+
+  }  }
+
+}}
+
+``````
+
+
+
+### database### database
+
+
+
+**Type:** `single` (required)**Type:** `single` (required)
+
+
+
+**Purpose:** Database technology choice.**Purpose:** Database technology choice.
+
+
+
+**Allowed Values:****Allowed Values:**
+
+- `d1` - Cloudflare D1- `d1` - Cloudflare D1
+
+- `tursodb` - TursoDB- `tursodb` - TursoDB
+
+- `sqlite3` - SQLite3- `sqlite3` - SQLite3
+
+- `none` - No database- `none` - No database
+
+
+
+**Schema Example:****Schema Example:**
+
+```json```json
+
+{{
+
+  "database": {  "database": {
+
+    "type": "single",    "type": "single",
+
+    "values": ["d1", "tursodb", "sqlite3", "none"],    "values": ["d1", "tursodb", "sqlite3", "none"],
+
+    "default": "none"    "default": "none"
+
+  }  }
+
+}}
+
+``````
+
+
+
+### storage### storage
+
+
+
+**Type:** `single` (required)**Type:** `single` (required)
+
+
+
+**Purpose:** Storage solution for files and assets.**Purpose:** Storage solution for files and assets.
+
+
+
+**Allowed Values:****Allowed Values:**
+
+- `r2` - Cloudflare R2- `r2` - Cloudflare R2
+
+- `s3` - Amazon S3- `s3` - Amazon S3
+
+- `file` - Local file system- `file` - Local file system
+
+- `none` - No storage- `none` - No storage
+
+
+
+**Schema Example:****Schema Example:**
+
+```json```json
+
+{{
+
+  "storage": {  "storage": {
+
+    "type": "single",    "type": "single",
+
+    "values": ["r2", "s3", "file", "none"],    "values": ["r2", "s3", "file", "none"],
+
+    "default": "none"    "default": "none"
+
+  }  }
+
+}}
+
+``````
+
+
+
+### auth_providers### auth_providers
+
+
+
+**Type:** `multi` (required)**Type:** `multi` (required)
+
+
+
+**Purpose:** Authentication providers for user login.**Purpose:** Authentication providers for user login.
+
+
+
+**Allowed Values:****Allowed Values:**
+
+- `google` - Google OAuth- `google` - Google OAuth
+
+- `github` - GitHub OAuth- `github` - GitHub OAuth
+
+- Custom values starting with `x-`- Custom values starting with `x-`
+
+
+
+**Schema Example:****Schema Example:**
+
+```json```json
+
+{{
+
+  "auth_providers": {  "auth_providers": {
+
+    "type": "multi",    "type": "multi",
+
+    "values": ["google", "github"],    "values": ["google", "github"],
+
+    "default": []    "default": []
+
+  }  }
+
+}}
+
+``````
+
+
+
+### payments### payments
+
+
+
+**Type:** `single` (required)**Type:** `single` (required)
+
+
+
+**Purpose:** Payment processor for monetization.**Purpose:** Payment processor for monetization.
+
+
+
+**Allowed Values:****Allowed Values:**
+
+- `stripe` - Stripe payments- `stripe` - Stripe payments
+
+- `hyperswitch` - Hyperswitch- `hyperswitch` - Hyperswitch
+
+- `none` - No payments- `none` - No payments
+
+
+
+**Schema Example:****Schema Example:**
+
+```json```json
+
+{{
+
+  "payments": {  "payments": {
+
+    "type": "single",    "type": "single",
+
+    "values": ["stripe", "hyperswitch", "none"],    "values": ["stripe", "hyperswitch", "none"],
+
+    "default": "none"    "default": "none"
+
+  }  }
+
+}}
+
+``````
+
+
+
+### analytics### analytics
+
+
+
+**Type:** `single` (required)**Type:** `single` (required)
+
+
+
+**Purpose:** Analytics service for tracking.**Purpose:** Analytics service for tracking.
+
+
+
+**Allowed Values:****Allowed Values:**
+
+- `umami` - Umami Analytics- `umami` - Umami Analytics
+
+- `plausible` - Plausible Analytics- `plausible` - Plausible Analytics
+
+- `none` - No analytics- `none` - No analytics
+
+
+
+**Schema Example:****Schema Example:**
+
+```json```json
+
+{{
+
+  "analytics": {  "analytics": {
+
+    "type": "single",    "type": "single",
+
+    "values": ["umami", "plausible", "none"],    "values": ["umami", "plausible", "none"],
+
+    "default": "none"    "default": "none"
+
+  }  }
+
+}}
+
+``````
+
+
+
+## Gates## Gates
+
+
+
+Gates define compatibility constraints between dimension values. They prevent invalid combinations during template creation.Gates define compatibility constraints between dimension values. They prevent invalid combinations during template creation.
+
+
+
+### Gate Schema### Gate Schema
+
+
+
+```json```json
+
+{{
+
+  "gates": {  "gates": {
+
+    "dimension_name": {    "dimension_name": {
+
+      "value": {      "value": {
+
+        "requires|conflicts": {        "requires|conflicts": {
+
+          "other_dimension": ["allowed_values"]          "other_dimension": ["allowed_values"]
+
+        }        }
+
+      }      }
+
+    }    }
+
+  }  }
+
+}}
+
+``````
+
+
+
+### Gate Types### Gate Types
+
+
+
+- **`requires`**: When this value is selected, other dimensions must have specific values- **`requires`**: When this value is selected, other dimensions must have specific values
+
+- **`conflicts`**: When this value is selected, other dimensions cannot have specific values- **`conflicts`**: When this value is selected, other dimensions cannot have specific values
+
+
+
+### Gate Examples### Gate Examples
+
+
+
+```json```json
+
+{{
+
+  "gates": {  "gates": {
+
+    "deployment_target": {    "deployment_target": {
+
+      "cloudflare-workers": {      "cloudflare-workers": {
+
+        "requires": {        "requires": {
+
+          "database": ["d1"],          "database": ["d1"],
+
+          "storage": ["r2"]          "storage": ["r2"]
+
+        }        }
+
+      }      }
+
+    },    },
+
+    "database": {    "database": {
+
+      "d1": {      "d1": {
+
+        "requires": {        "requires": {
+
+          "deployment_target": ["cloudflare-workers"]          "deployment_target": ["cloudflare-workers"]
+
+        }        }
+
+      }      }
+
+    }    }
+
+  }  }
+
+}}
+
+``````
+
+
+
+## FeatureSpecs## FeatureSpecs
+
+
+
+FeatureSpecs define available features and their requirements. Each feature specifies what capabilities it needs from the selected dimensions.FeatureSpecs define available features and their requirements. Each feature specifies what capabilities it needs from the selected dimensions.
+
+
+
+### FeatureSpec Schema### FeatureSpec Schema
+
+
+
+```json```json
+
+{{
+
+  "featureSpecs": {  "featureSpecs": {
+
+    "feature_name": {    "feature_name": {
+
+      "label": "Human readable name",      "label": "Human readable name",
+
+      "description": "Feature description",      "description": "Feature description",
+
+      "needs": {      "needs": {
+
+        "dimension_name": "required|optional|none"        "dimension_name": "required|optional|none"
+
+      }      }
+
+    }    }
+
+  }  }
+
+}}
+
+``````
+
+
+
+### Needs Values### Needs Values
+
+
+
+- **`required`**: Feature requires this capability to be available- **`required`**: Feature requires this capability to be available
+
+- **`optional`**: Feature can use this capability if available- **`optional`**: Feature can use this capability if available
+
+- **`none`**: Feature doesn't use this capability- **`none`**: Feature doesn't use this capability
+
+
+
+### FeatureSpec Example### FeatureSpec Example
+
+
+
+```json```json
+
+{{
+
+  "featureSpecs": {  "featureSpecs": {
+
+    "auth": {    "auth": {
+
+      "label": "Authentication",      "label": "Authentication",
+
+      "description": "User authentication and session management",      "description": "User authentication and session management",
+
+      "needs": {      "needs": {
+
+        "auth_providers": "required",        "auth_providers": "required",
+
+        "database": "required"        "database": "required"
+
+      }      }
+
+    },    },
+
+    "payments": {    "payments": {
+
+      "label": "Payment Processing",      "label": "Payment Processing",
+
+      "description": "Accept and process payments",      "description": "Accept and process payments",
+
+      "needs": {      "needs": {
+
+        "payments": "required",        "payments": "required",
+
+        "database": "required"        "database": "required"
+
+      }      }
+
+    }    }
+
+  }  }
+
+}}
+
+``````
+
+
+
+## Hints## Hints
+
+
+
+Hints provide an advisory catalog of recommended features for different use cases. They're used by the CLI to suggest features during template creation.Hints provide an advisory catalog of recommended features for different use cases. They're used by the CLI to suggest features during template creation.
+
+
+
+### Hints Schema### Hints Schema
+
+
+
+```json```json
+
+{{
+
+  "hints": {  "hints": {
+
+    "category_name": {    "category_name": {
+
+      "label": "Category display name",      "label": "Category display name",
+
+      "description": "Category description",      "description": "Category description",
+
+      "features": ["feature1", "feature2"]      "features": ["feature1", "feature2"]
+
+    }    }
+
+  }  }
+
+}}
+
+``````
+
+
+
+### Hints Example### Hints Example
+
+
+
+```json```json
+
+{{
+
+  "hints": {  "hints": {
+
+    "web-app": {    "web-app": {
+
+      "label": "Web Application",      "label": "Web Application",
+
+      "description": "Features for building web applications",      "description": "Features for building web applications",
+
+      "features": ["auth", "database", "analytics"]      "features": ["auth", "database", "analytics"]
+
+    },    },
+
+    "api": {    "api": {
+
+      "label": "API Service",      "label": "API Service",
+
+      "description": "Features for building APIs",      "description": "Features for building APIs",
+
+      "features": ["auth", "database", "logging"]      "features": ["auth", "database", "logging"]
+
+    }    }
+
+  }  }
+
+}}
+
+``````
+
+
+
+## Constants## Constants
+
+
+
+Constants define fixed values that templates can reference. These are typically tooling versions, framework choices, or other immutable template settings.Constants define fixed values that templates can reference. These are typically tooling versions, framework choices, or other immutable template settings.
+
+
+
+### Constants Schema### Constants Schema
+
+
+
+```json```json
+
+{{
+
+  "constants": {  "constants": {
+
+    "typescript": "5.3.0",    "typescript": "5.3.0",
+
+    "react": "18.2.0",    "react": "18.2.0",
+
+    "tailwindcss": "3.4.0"    "tailwindcss": "3.4.0"
+
+  }  }
+
+}}
+
+``````
+
+
+
+### Common Constants### Common Constants
+
+
+
+```json```json
+
+{{
+
+  "constants": {  "constants": {
+
+    "typescript": "5.3.0",    "typescript": "5.3.0",
+
+    "react-router-v7": "7.0.0",    "react-router-v7": "7.0.0",
+
+    "tailwind+daisyui": "3.4.0+4.6.0",    "tailwind+daisyui": "3.4.0+4.6.0",
+
+    "vitest": "1.0.0",    "vitest": "1.0.0",
+
+    "eslint": "8.50.0"    "eslint": "8.50.0"
+
+  }  }
+
+}}
+
+``````
+
+
+
+## Complete Example## Complete Example
+
+
+
+```json```json
+
+{{
+
+  "schemaVersion": "1.0.0",  "schemaVersion": "1.0.0",
+
+  "title": "Full-Stack Web App Template",  "title": "Full-Stack Web App Template",
+
+  "id": "fullstack-webapp",  "id": "fullstack-webapp",
+
+  "name": "Full-Stack Web App",  "name": "Full-Stack Web App",
+
+  "description": "A complete web application with authentication, database, and payments",  "description": "A complete web application with authentication, database, and payments",
+
+  "setup": {  "setup": {
+
+    "authoringMode": "composable",    "authoringMode": "composable",
+
+    "policy": "strict",    "policy": "strict",
+
+    "dimensions": {    "dimensions": {
+
+      "deployment_target": {      "deployment_target": {
+
+        "type": "single",        "type": "single",
+
+        "values": ["cloudflare-workers", "linode", "droplet"],        "values": ["cloudflare-workers", "linode", "droplet"],
+
+        "default": "cloudflare-workers"        "default": "cloudflare-workers"
+
+      },      },
+
+      "features": {      "features": {
+
+        "type": "multi",        "type": "multi",
+
+        "values": ["auth", "payments", "analytics", "testing"],        "values": ["auth", "payments", "analytics", "testing"],
+
+        "default": ["testing"]        "default": ["testing"]
+
+      },      },
+
+      "database": {      "database": {
+
+        "type": "single",        "type": "single",
+
+        "values": ["d1", "tursodb", "sqlite3", "none"],        "values": ["d1", "tursodb", "sqlite3", "none"],
+
+        "default": "d1"        "default": "d1"
+
+      },      },
+
+      "storage": {      "storage": {
+
+        "type": "single",        "type": "single",
+
+        "values": ["r2", "s3", "file", "none"],        "values": ["r2", "s3", "file", "none"],
+
+        "default": "r2"        "default": "r2"
+
+      },      },
+
+      "auth_providers": {      "auth_providers": {
+
+        "type": "multi",        "type": "multi",
+
+        "values": ["google", "github"],        "values": ["google", "github"],
+
+        "default": []        "default": []
+
+      },      },
+
+      "payments": {      "payments": {
+
+        "type": "single",        "type": "single",
+
+        "values": ["stripe", "hyperswitch", "none"],        "values": ["stripe", "hyperswitch", "none"],
+
+        "default": "none"        "default": "none"
+
+      },      },
+
+      "analytics": {      "analytics": {
+
+        "type": "single",        "type": "single",
+
+        "values": ["umami", "plausible", "none"],        "values": ["umami", "plausible", "none"],
+
+        "default": "none"        "default": "none"
+
+      }      }
+
+    },    },
+
+    "gates": {    "gates": {
+
+      "deployment_target": {      "deployment_target": {
+
+        "cloudflare-workers": {        "cloudflare-workers": {
+
+          "requires": {          "requires": {
+
+            "database": ["d1"],            "database": ["d1"],
+
+            "storage": ["r2"]            "storage": ["r2"]
+
+          }          }
+
+        }        }
+
+      }      }
+
+    }    }
+
+  },  },
+
+  "featureSpecs": {  "featureSpecs": {
+
+    "auth": {    "auth": {
+
+      "label": "Authentication",      "label": "Authentication",
+
+      "description": "User authentication and session management",      "description": "User authentication and session management",
+
+      "needs": {      "needs": {
+
+        "auth_providers": "required",        "auth_providers": "required",
+
+        "database": "required"        "database": "required"
+
+      }      }
+
+    },    },
+
+    "payments": {    "payments": {
+
+      "label": "Payment Processing",      "label": "Payment Processing",
+
+      "description": "Accept and process payments",      "description": "Accept and process payments",
+
+      "needs": {      "needs": {
+
+        "payments": "required",        "payments": "required",
+
+        "database": "required"        "database": "required"
+
+      }      }
+
+    },    },
+
+    "analytics": {    "analytics": {
+
+      "label": "Analytics",      "label": "Analytics",
+
+      "description": "Track user behavior and app metrics",      "description": "Track user behavior and app metrics",
+
+      "needs": {      "needs": {
+
+        "analytics": "required"        "analytics": "required"
+
+      }      }
+
+    },    },
+
+    "testing": {    "testing": {
+
+      "label": "Testing Suite",      "label": "Testing Suite",
+
+      "description": "Unit and integration tests",      "description": "Unit and integration tests",
+
+      "needs": {}      "needs": {}
+
+    }    }
+
+  },  },
+
+  "hints": {  "hints": {
+
+    "minimal": {    "minimal": {
+
+      "label": "Minimal App",      "label": "Minimal App",
+
+      "description": "Basic web app with testing",      "description": "Basic web app with testing",
+
+      "features": ["testing"]      "features": ["testing"]
+
+    },    },
+
+    "fullstack": {    "fullstack": {
+
+      "label": "Full-Stack App",      "label": "Full-Stack App",
+
+      "description": "Complete application with all features",      "description": "Complete application with all features",
+
+      "features": ["auth", "payments", "analytics", "testing"]      "features": ["auth", "payments", "analytics", "testing"]
+
+    }    }
+
+  },  },
+
+  "constants": {  "constants": {
+
+    "typescript": "5.3.0",    "typescript": "5.3.0",
+
+    "react-router-v7": "7.0.0",    "react-router-v7": "7.0.0",
+
+    "tailwind+daisyui": "3.4.0+4.6.0",    "tailwind+daisyui": "3.4.0+4.6.0",
+
+    "vitest": "1.0.0",    "vitest": "1.0.0",
+
+    "eslint": "8.50.0"    "eslint": "8.50.0"
+
+  }  }
+
+}}
+
+``````
+
+
+
+## Migration from Earlier Versions## Migration from Earlier Versions
+
+
+
+If you're updating from templates without the full schema:If you're updating from templates without the full schema:
+
+
+
+1. Add the 7 required dimensions to `setup.dimensions`1. Add the 7 required dimensions to `setup.dimensions`
+
+2. Add `gates` object (can be empty `{}`)2. Add `gates` object (can be empty `{}`)
+
+3. Add `featureSpecs` with definitions for your features3. Add `featureSpecs` with definitions for your features
+
+4. Add `constants` with your fixed tooling versions4. Add `constants` with your fixed tooling versions
+
+5. Optionally add `hints` for better user experience5. Optionally add `hints` for better user experience
+
+
+
+## Validation## Validation
+
+
+
+Templates are validated against Schema V1.0 during:Templates are validated against Schema V1.0 during:
+
+- Template creation (`create-scaffold new`)- Template creation (`create-scaffold new`)
+
+- Template validation (`make-template validate`)- Template validation (`make-template validate`)
+
+- Runtime setup execution- Runtime setup execution
+
+
+
+Validation ensures all required dimensions are present and values conform to allowed options.Validation ensures all required dimensions are present and values conform to allowed options.jsonAll templates must define these seven dimensions in `setup.dimensions`:
 
 {
 
