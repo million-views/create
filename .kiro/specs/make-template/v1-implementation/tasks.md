@@ -6,7 +6,7 @@
 
 #### 1.1 Schema File Updates
 - [x] **Update template.v1.json schema** - Ensure gates, hints, featureSpecs, and constants sections match architecture memos
-- [x] **Update selection.v1.json schema** - Align with user selection workflow requirements
+- [x] **Update selection.v1.json schema** - Define JSON schema specification for user selections (consumed by create-scaffold)
 - [x] **Validate schema compliance** - Ensure all schemas pass JSON Schema Draft 2020-12 validation
 - [x] **Add schema documentation** - Document all fields, constraints, and usage patterns
 

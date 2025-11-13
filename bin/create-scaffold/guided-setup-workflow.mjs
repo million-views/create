@@ -30,7 +30,8 @@ export class GuidedSetupWorkflow {
     branchName,
     options,
     placeholders,
-    metadata
+    metadata,
+    selectionFilePath
   }) {
         // Debug logging for test environment
     if (process.env.NODE_ENV === 'test' && logger) {
@@ -56,6 +57,7 @@ export class GuidedSetupWorkflow {
     this.options = options || {};
     this.placeholders = placeholders || [];
     this.metadata = metadata || {};
+    this.selectionFilePath = selectionFilePath;
 
     this.stateFile = path.join(this.resolvedProjectDirectory, WORKFLOW_STATE_FILE);
     this.workflowState = {
@@ -102,6 +104,56 @@ export class GuidedSetupWorkflow {
   }
 
   /**
+   * Load existing selection.json file if provided
+   */
+  async #loadSelectionFile() {
+    if (!this.selectionFilePath) {
+      return null;
+    }
+
+    try {
+      // Resolve relative paths to absolute
+      const resolvedPath = path.resolve(this.selectionFilePath);
+
+      // Check if file exists
+      await fs.access(resolvedPath);
+
+      // Read and parse the selection file
+      const selectionData = JSON.parse(await fs.readFile(resolvedPath, 'utf8'));
+
+      this.logger.info(`✅ Loaded selection.json from ${resolvedPath}`);
+      return selectionData;
+    } catch (error) {
+      if (error.code === 'ENOENT') {
+        throw new Error(`Selection file not found: ${this.selectionFilePath}`);
+      }
+      throw new Error(`Failed to load selection file: ${error.message}`);
+    }
+  }
+
+  /**
+   * Validate loaded selections against template constraints
+   */
+  async #validateLoadedSelections(selections) {
+    try {
+      // Import SelectionValidator dynamically to avoid circular dependencies
+      const { SelectionValidator } = await import('../../lib/validation/selection-validator.mjs');
+
+      const validator = new SelectionValidator();
+      const result = await validator.validate(selections, this.metadata);
+
+      return result;
+    } catch (error) {
+      this.logger.warn(`Failed to validate loaded selections: ${error.message}`);
+      return {
+        valid: false,
+        errors: [{ message: `Validation failed: ${error.message}` }],
+        warnings: []
+      };
+    }
+  }
+
+  /**
    * Execute dimension selection for V1 templates
    */
   async #executeDimensionSelection() {
@@ -121,6 +173,38 @@ export class GuidedSetupWorkflow {
     // Initialize selections if not already done
     if (!this.workflowState.dimensionSelections) {
       this.workflowState.dimensionSelections = {};
+    }
+
+    // Try to load selections from file first
+    if (this.selectionFilePath && Object.keys(this.workflowState.dimensionSelections).length === 0) {
+      try {
+        const loadedSelection = await this.#loadSelectionFile();
+        if (loadedSelection && loadedSelection.selections) {
+          // Validate that the loaded selection matches the current template
+          if (loadedSelection.templateId === (this.metadata?.id || this.templateName) &&
+              loadedSelection.version === (this.metadata?.schemaVersion || '1.0.0')) {
+
+            // Validate the loaded selections against template constraints
+            const validationResult = await this.#validateLoadedSelections(loadedSelection.selections);
+            if (!validationResult.valid) {
+              await this.prompt.write(`\n❌ Loaded selections are invalid:\n`);
+              for (const error of validationResult.errors) {
+                await this.prompt.write(`  • ${error.message}\n`);
+              }
+              await this.prompt.write(`\nProceeding with interactive selection\n`);
+            } else {
+              this.workflowState.dimensionSelections = { ...loadedSelection.selections };
+              await this.prompt.write(`\n✅ Loaded and validated selections from ${this.selectionFilePath}\n`);
+              return { success: true, message: 'Dimension selection loaded from file' };
+            }
+          } else {
+            await this.prompt.write(`\n⚠️ Selection file doesn't match current template, proceeding with interactive selection\n`);
+          }
+        }
+      } catch (error) {
+        await this.prompt.write(`\n⚠️ Failed to load selection file: ${error.message}\n`);
+        await this.prompt.write(`Proceeding with interactive selection\n`);
+      }
     }
 
     // For each dimension, prompt user to select options
@@ -1043,6 +1127,12 @@ export class GuidedSetupWorkflow {
    */
   async #executeFinalization() {
     this.logger.debug('Starting finalization');
+
+    // Generate selection.json for V1 templates
+    if (this.#isV1Template()) {
+      await this.#generateSelectionJson();
+    }
+
     // Clean up workflow state file
     try {
       await fs.unlink(this.stateFile);
@@ -1056,6 +1146,101 @@ export class GuidedSetupWorkflow {
 
     this.logger.debug('Finalization completed');
     return { success: true, message: 'Project setup finalized' };
+  }
+
+  /**
+   * Generate selection.json file for V1 templates
+   */
+  async #generateSelectionJson() {
+    try {
+      const dimensionSelections = this.workflowState.dimensionSelections || {};
+
+      // Calculate derived flags based on feature requirements
+      const derived = this.#calculateDerivedFlags(dimensionSelections);
+
+      // Build selection.json structure
+      const selection = {
+        templateId: this.metadata?.id || `${this.templateName}`,
+        version: this.metadata?.schemaVersion || '1.0.0',
+        selections: {
+          deployment_target: dimensionSelections.deployment_target,
+          features: Array.isArray(dimensionSelections.features)
+            ? dimensionSelections.features
+            : dimensionSelections.features ? [dimensionSelections.features] : [],
+          database: dimensionSelections.database,
+          storage: dimensionSelections.storage,
+          auth_providers: Array.isArray(dimensionSelections.auth_providers)
+            ? dimensionSelections.auth_providers
+            : dimensionSelections.auth_providers ? [dimensionSelections.auth_providers] : [],
+          payments: dimensionSelections.payments,
+          analytics: dimensionSelections.analytics
+        },
+        derived,
+        metadata: {
+          name: this.workflowState.projectDirectory || 'my-project',
+          packageManager: 'npm', // Default, could be made configurable
+          createdAt: new Date().toISOString(),
+          cliVersion: await this.#getCliVersion()
+        }
+      };
+
+      // Write selection.json to current working directory with template-specific name
+      const selectionFilename = `${this.templateName}.selection.json`;
+      const selectionPath = path.join(process.cwd(), selectionFilename);
+      await fs.writeFile(selectionPath, JSON.stringify(selection, null, 2));
+
+      this.logger.info(`✅ Generated ${selectionFilename} at ${selectionPath}`);
+    } catch (error) {
+      this.logger.warn(`⚠️ Failed to generate selection.json: ${error.message}`);
+      // Don't fail the workflow for this - it's not critical
+    }
+  }
+
+  /**
+   * Calculate derived flags based on selected features and their requirements
+   */
+  #calculateDerivedFlags(dimensionSelections) {
+    const featureSpecs = this.metadata?.featureSpecs || {};
+    const selectedFeatures = dimensionSelections.features || [];
+
+    // Handle both single feature and array of features
+    const featuresToCheck = Array.isArray(selectedFeatures) ? selectedFeatures : [selectedFeatures];
+
+    let needAuth = false;
+    let needDb = false;
+    let needPayments = false;
+    let needStorage = false;
+
+    for (const selectedFeature of featuresToCheck) {
+      const featureSpec = featureSpecs[selectedFeature];
+      if (featureSpec && featureSpec.needs) {
+        const needs = featureSpec.needs;
+        if (needs.auth === 'required') needAuth = true;
+        if (needs.database === 'required') needDb = true;
+        if (needs.payments === 'required') needPayments = true;
+        if (needs.storage === 'required') needStorage = true;
+      }
+    }
+
+    return {
+      needAuth,
+      needDb,
+      needPayments,
+      needStorage
+    };
+  }
+
+  /**
+   * Get CLI version from package.json
+   */
+  async #getCliVersion() {
+    try {
+      const packageJsonPath = path.join(path.dirname(path.dirname(path.dirname(__filename))), 'package.json');
+      const packageData = JSON.parse(await fs.readFile(packageJsonPath, 'utf8'));
+      return packageData.version || '1.0.0';
+    } catch (_error) {
+      return '1.0.0'; // Fallback version
+    }
   }
 
   /**

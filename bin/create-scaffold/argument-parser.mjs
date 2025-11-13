@@ -120,6 +120,10 @@ export function parseArguments(argv = process.argv.slice(2)) {
         type: 'boolean',
         description: 'Use guided setup workflow with progress indicators and error recovery'
       },
+      selection: {
+        type: 'string',
+        description: 'Path to selection.json file to load existing choices and skip interactive prompts'
+      },
       [TERMINOLOGY.OPTION.HELP]: {
         type: 'boolean',
         short: 'h',
@@ -206,6 +210,7 @@ export function parseArguments(argv = process.argv.slice(2)) {
       [TERMINOLOGY.OPTION.VERBOSE]: verbose,
       [TERMINOLOGY.OPTION.EXPERIMENTAL_PLACEHOLDER_PROMPTS]: experimentalPlaceholderPrompts,
       [TERMINOLOGY.OPTION.GUIDED]: values[TERMINOLOGY.OPTION.GUIDED],
+      [TERMINOLOGY.OPTION.SELECTION]: values.selection,
       [TERMINOLOGY.OPTION.INTERACTIVE]: interactive,
       [TERMINOLOGY.OPTION.NON_INTERACTIVE]: explicitNoInteractive,
       [TERMINOLOGY.OPTION.NO_CONFIG]: noConfig,
@@ -450,6 +455,8 @@ PLACEHOLDER INPUTS:
          Enable placeholder prompt flow for templates that declare metadata.placeholders
   --placeholder NAME=value
          Provide placeholder overrides directly (repeat flag to set multiple values)
+  --selection <path>    Load existing selection.json file to skip interactive prompts
+         Use template-specific selections like 'portfolio-api.selection.json'
   --no-input-prompts Fail when required placeholders are missing instead of prompting
          Also supports environment variables: CREATE_SCAFFOLD_PLACEHOLDER_<TOKEN>=value
 

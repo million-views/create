@@ -137,11 +137,30 @@ test('validateArguments short-circuits when help is requested', () => {
   assert.equal(result.errors, undefined);
 });
 
+test('parseArguments recognizes selection flag', () => {
+  const result = parseArguments([
+    ...BASE_ARGS,
+    '--selection', './my-selections.json'
+  ]);
+
+  assert.equal(result[TERMINOLOGY.OPTION.SELECTION], './my-selections.json');
+});
+
+test('parseArguments handles selection flag with relative path', () => {
+  const result = parseArguments([
+    ...BASE_ARGS,
+    '--selection', 'portfolio-api.selection.json'
+  ]);
+
+  assert.equal(result[TERMINOLOGY.OPTION.SELECTION], 'portfolio-api.selection.json');
+});
+
 test('generateHelpText documents available options', () => {
   const helpText = generateHelpText();
 
   assert.match(helpText, /--placeholder/);
   assert.match(helpText, /--no-input-prompts/);
   assert.match(helpText, /--no-config/);
+  assert.match(helpText, /--selection/);
   assert.match(helpText, /USAGE:/);
 });

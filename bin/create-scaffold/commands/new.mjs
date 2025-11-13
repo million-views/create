@@ -303,16 +303,14 @@ export async function executeNewCommand(args) {
     console.error('DEBUG: Template path exists:', !!templatePath);
     console.error('DEBUG: Project directory:', args.projectDirectory);
     console.error('DEBUG: NODE_ENV:', process.env.NODE_ENV);
-    if (process.env.NODE_ENV === 'test') {
-      logger.info('DEBUG: About to create GuidedSetupWorkflow with:', {
-        projectDirectory: args.projectDirectory,
-        templatePath,
-        templateName,
-        options: !!options,
-        placeholders: !!placeholders,
-        metadata: !!metadata
-      });
-    }
+    console.error('DEBUG: About to create GuidedSetupWorkflow with:', {
+      projectDirectory: args.projectDirectory,
+      templatePath,
+      templateName,
+      options: !!options,
+      placeholders: !!placeholders,
+      metadata: !!metadata
+    });
     const workflow = new GuidedSetupWorkflow({
       cacheManager,
       logger,
@@ -353,7 +351,8 @@ export async function executeNewCommand(args) {
       branchName,
       options,
       placeholders,
-      metadata
+      metadata,
+      selectionFilePath: args.selection
     });
 
     let result;

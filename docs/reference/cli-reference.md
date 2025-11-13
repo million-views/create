@@ -88,6 +88,7 @@ create-scaffold new <project-directory> --template <template-name> [options]
 **Options:**
 - `--template, -T`: Template URL or shorthand (required)
 - `--branch, -b`: Git branch to use
+- `--selection`: Path to selection.json file to load existing choices
 - `--options`: Contextual options for template customization
 - `--dry-run`: Preview operations without executing them
 - `--log-file`: Write structured logs to specified file

@@ -150,6 +150,58 @@ Fixed attributes that define the template's identity (TypeScript, React, etc.)
 }
 ```
 
+## Selection Files (<template-name>.selection.json)
+
+When scaffolding V1.0 templates, `create-scaffold` generates a `<template-name>.selection.json` file in your current working directory that captures your configuration choices. This file enables:
+
+- **Reproducible builds**: Recreate the exact same project setup
+- **Configuration sharing**: Share your selections with team members
+- **Automation**: Use selections in CI/CD pipelines
+- **Template updates**: Reapply selections when updating templates
+
+### Using Selection Files
+
+```bash
+# Create project with interactive selection
+create-scaffold new my-app --template react-vite
+
+# Reuse previous selections (skips interactive prompts)
+create-scaffold new my-other-app --template react-vite --selection ./react-vite.selection.json
+
+# Load selections from a different path
+create-scaffold new my-app --template react-vite --selection ~/my-selections/react-vite.selection.json
+```
+
+### Selection File Format
+
+```json
+{
+  "templateId": "react-vite",
+  "version": "1.0.0",
+  "selections": {
+    "deployment_target": "vercel",
+    "features": ["auth", "database"],
+    "database": "postgresql",
+    "storage": "s3",
+    "auth_providers": ["google"],
+    "payments": "stripe",
+    "analytics": "plausible"
+  },
+  "derived": {
+    "needAuth": true,
+    "needDb": true,
+    "needPayments": true,
+    "needStorage": true
+  },
+  "metadata": {
+    "name": "my-app",
+    "packageManager": "npm",
+    "createdAt": "2025-11-12T10:30:00Z",
+    "cliVersion": "1.0.0"
+  }
+}
+```
+
 ## Installation
 
 ### Global Installation (Recommended)
@@ -204,6 +256,9 @@ create-scaffold new my-app --template favorites/react-spa
 
 # With platform and features
 create-scaffold new my-app --template react-vite --options "cloudflare,authentication"
+
+# Reuse previous selections (skips interactive prompts)
+create-scaffold new my-other-app --template react-vite --selection ./react-vite.selection.json
 
 # List available templates
 create-scaffold list
