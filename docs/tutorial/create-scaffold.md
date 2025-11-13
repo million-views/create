@@ -51,32 +51,38 @@ Registries are collections of templates that you can reference by name instead o
 
 ### Create Your Workshop Registry
 
-1. **Navigate to your template workshop:**
+### Create Your Workshop Registry
+
+Registries are configured in your `.m5nvrc` configuration file. Let's set up a local registry for your workshop templates.
+
+1. **Create or edit your `.m5nvrc` file in your home directory:**
+   ```bash
+   # If .m5nvrc doesn't exist, create it
+   touch ~/.m5nvrc
+   ```
+
+2. **Add the workshop registry configuration:**
+   ```json
+   {
+     "registries": {
+       "workshop": {
+         "basic-react-spa": "./template-workshop/basic-react-spa",
+         "ssr-portfolio-app": "./template-workshop/ssr-portfolio-app",
+         "portfolio-api": "./template-workshop/portfolio-api",
+         "portfolio-client": "./template-workshop/portfolio-client"
+       }
+     }
+   }
+   ```
+
+3. **Navigate to your template workshop directory:**
    ```bash
    cd template-workshop
    ```
 
-2. **Create a local registry called 'workshop':**
+4. **Verify your registry works:**
    ```bash
-   npx @m5nv/create-scaffold registry create workshop --local
-   ```
-
-3. **Register all your templates:**
-   ```bash
-   # Register the Basic React SPA template
-   npx @m5nv/create-scaffold registry add workshop ./basic-react-spa
-
-   # Register the SSR Portfolio App template
-   npx @m5nv/create-scaffold registry add workshop ./ssr-portfolio-app
-
-   # Register the split architecture templates
-   npx @m5nv/create-scaffold registry add workshop ./portfolio-api
-   npx @m5nv/create-scaffold registry add workshop ./portfolio-client
-   ```
-
-4. **Verify your registry:**
-   ```bash
-   npx @m5nv/create-scaffold registry list workshop
+   npx @m5nv/create-scaffold list --registry workshop
    ```
 
 ### Expected Result
@@ -84,11 +90,19 @@ Registries are collections of templates that you can reference by name instead o
 You should see all four templates listed in your workshop registry:
 
 ```
-workshop registry:
-├── basic-react-spa
-├── ssr-portfolio-app
-├── portfolio-api
-└── portfolio-client
+📋 Templates in registry "workshop":
+
+• basic-react-spa
+  URL: ./template-workshop/basic-react-spa
+
+• ssr-portfolio-app
+  URL: ./template-workshop/ssr-portfolio-app
+
+• portfolio-api
+  URL: ./template-workshop/portfolio-api
+
+• portfolio-client
+  URL: ./template-workshop/portfolio-client
 ```
 
 **Key Learning:** Registries provide a clean way to organize and reference templates. Now you can scaffold projects from anywhere without navigating to template directories!
@@ -317,9 +331,9 @@ portfolio-client/         # React SPA Client
 - Client can communicate with API server
 - Both projects can be developed and deployed independently
 
-## Customizing Scaffolding with selection.json
+## Customizing Scaffolding with Placeholder Values
 
-Templates often contain placeholders that get replaced during scaffolding. You can provide custom values for these placeholders using a `selection.json` file.
+Templates often contain placeholders that get replaced during scaffolding. You can provide custom values for these placeholders in several ways.
 
 ### How Placeholders Work
 
@@ -328,55 +342,76 @@ When you create templates with `make-template`, it automatically detects placeho
 - Configuration files (ports, database names, API endpoints)
 - Documentation files (project titles, descriptions)
 
-### Creating a selection.json File
+### Method 1: Command-Line Flags
 
-1. **Navigate to your projects directory:**
+The simplest way to customize placeholders is using the `--placeholder` flag:
+
+1. **Scaffold with custom values via CLI:**
    ```bash
-   cd scaffolded-projects
+   npx @m5nv/create-scaffold custom-portfolio --template ssr-portfolio-app --registry workshop --placeholder projectName=MyAwesomePortfolio --placeholder authorName="Your Name" --placeholder authorEmail="your.email@example.com"
    ```
 
-2. **Create a selection.json file with custom values:**
-   ```json
-   {
-     "projectName": "MyAwesomePortfolio",
-     "projectDescription": "A stunning portfolio website built with modern web technologies",
-     "authorName": "Your Name",
-     "authorEmail": "your.email@example.com",
-     "databaseName": "portfolio_production",
-     "apiPort": "3001",
-     "clientPort": "5173"
-   }
-   ```
-
-3. **Scaffold with custom values:**
-   ```bash
-   npx @m5nv/create-scaffold custom-portfolio --template ssr-portfolio-app --registry workshop --selection ./selection.json
-   ```
-
-4. **Check the results:**
+2. **Check the results:**
    ```bash
    cd custom-portfolio
    cat package.json
    ```
 
+### Method 2: Configuration File (.m5nvrc)
+
+For values you use frequently, add them to your `.m5nvrc` file:
+
+1. **Edit your `.m5nvrc` file:**
+   ```json
+   {
+     "registries": {
+       "workshop": {
+         "basic-react-spa": "./template-workshop/basic-react-spa",
+         "ssr-portfolio-app": "./template-workshop/ssr-portfolio-app",
+         "portfolio-api": "./template-workshop/portfolio-api",
+         "portfolio-client": "./template-workshop/portfolio-client"
+       }
+     },
+     "placeholders": {
+       "authorName": "Your Name",
+       "authorEmail": "your.email@example.com",
+       "license": "MIT"
+     }
+   }
+   ```
+
+2. **Scaffold using the configured defaults:**
+   ```bash
+   npx @m5nv/create-scaffold test-project --template basic-react-spa --registry workshop
+   ```
+
+### Method 3: Environment Variables
+
+You can also set placeholders via environment variables using the `CREATE_SCAFFOLD_PLACEHOLDER_` prefix:
+
+```bash
+CREATE_SCAFFOLD_PLACEHOLDER_projectName=MyProject CREATE_SCAFFOLD_PLACEHOLDER_authorName="Your Name" npx @m5nv/create-scaffold env-test --template basic-react-spa --registry workshop
+```
+
 ### Expected Result
 
-Your scaffolded project will have all placeholders replaced with your custom values:
+Your scaffolded projects will have placeholders replaced with your custom values:
 
 ```json
 {
   "name": "myawesomeportfolio",
-  "description": "A stunning portfolio website built with modern web technologies",
+  "description": "A portfolio project",
   "author": "Your Name <your.email@example.com>",
+  "license": "MIT",
   ...
 }
 ```
 
-**Key Learning:** `selection.json` gives you complete control over template customization, perfect for maintaining consistent project metadata across your organization.
+**Key Learning:** Multiple customization methods give you flexibility - use CLI flags for one-off customizations, `.m5nvrc` for common defaults, and environment variables for CI/CD pipelines.
 
-## Using .m5nvrc for Common Values
+## Using .m5nvrc for Global Configuration
 
-For values you use frequently across all your projects, create a `.m5nvrc` file in your home directory to store common defaults.
+For values you use frequently across all your projects, create a `.m5nvrc` file in your home directory to store common defaults for both registries and placeholders.
 
 ### Setting Up .m5nvrc
 
@@ -386,13 +421,23 @@ For values you use frequently across all your projects, create a `.m5nvrc` file 
    touch .m5nvrc
    ```
 
-2. **Add your common values:**
+2. **Add your common values and registries:**
    ```json
    {
-     "authorName": "Your Name",
-     "authorEmail": "your.email@example.com",
-     "license": "MIT",
-     "repository": "https://github.com/yourusername"
+     "registries": {
+       "workshop": {
+         "basic-react-spa": "./template-workshop/basic-react-spa",
+         "ssr-portfolio-app": "./template-workshop/ssr-portfolio-app",
+         "portfolio-api": "./template-workshop/portfolio-api",
+         "portfolio-client": "./template-workshop/portfolio-client"
+       }
+     },
+     "placeholders": {
+       "authorName": "Your Name",
+       "authorEmail": "your.email@example.com",
+       "license": "MIT",
+       "repository": "https://github.com/yourusername"
+     }
    }
    ```
 
@@ -418,15 +463,17 @@ The scaffolded project automatically includes your `.m5nvrc` values:
 }
 ```
 
-**Key Learning:** `.m5nvrc` provides global defaults that apply to all scaffolding, while `selection.json` allows per-project customization.
+**Key Learning:** `.m5nvrc` provides global defaults that apply to all scaffolding, combining both registry definitions and placeholder values in one convenient location.
 
 ### Configuration Hierarchy
 
-Values are applied in this order (later sources override earlier ones):
-1. Template defaults
-2. `.m5nvrc` global values
-3. `selection.json` project-specific values
-4. Command-line options (highest priority)
+Placeholder values are applied in this order (later sources override earlier ones):
+1. Template defaults (defined in template.json)
+2. `.m5nvrc` global placeholder values
+3. Environment variables (`CREATE_SCAFFOLD_PLACEHOLDER_*`)
+4. Command-line `--placeholder` flags (highest priority)
+
+Registry definitions are loaded from `.m5nvrc` and can be referenced via the `--registry` flag.
 
 ## What you accomplished
 
@@ -530,13 +577,13 @@ Your scaffolded projects are ready for development:
 
 You've now experienced the complete create-scaffold workflow using templates from your workshop registry:
 
-1. **Registry Management**: Created and populated a local registry with all your templates
+1. **Registry Management**: Created and configured a local registry in `.m5nvrc` with all your templates
 2. **Basic React SPA**: Scaffolded a modern frontend application with Vite and React
 3. **SSR Portfolio App**: Created a server-side rendered application with Cloudflare Workers and D1 database
 4. **Split Architecture Full-Stack**: Built separate API and client projects for maximum flexibility and scalability
-5. **Custom Configuration**: Used `selection.json` for project-specific customization
-6. **Global Defaults**: Set up `.m5nvrc` for common values across all projects
+5. **CLI Customization**: Used `--placeholder` flags for project-specific customization
+6. **Global Configuration**: Set up `.m5nvrc` for common values and registry definitions
 
-Each example demonstrated how templates and registries enable rapid development by providing complete project structures, proper tooling, and best practices. The registry system eliminates navigation overhead, while configuration files give you complete control over project customization.
+Each example demonstrated how templates and registries enable rapid development by providing complete project structures, proper tooling, and best practices. The registry system eliminates navigation overhead, while multiple placeholder customization methods give you complete control over project setup.
 
-Remember: Registries organize your templates, `selection.json` customizes individual projects, and `.m5nvrc` sets your global defaults - together they create a powerful, flexible scaffolding system!
+Remember: Registries organize your templates, `.m5nvrc` sets your global defaults, and `--placeholder` flags customize individual projects - together they create a powerful, flexible scaffolding system!
