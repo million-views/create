@@ -20,15 +20,14 @@ last_updated: "2025-11-12"
 
 ## What you'll learn
 
-In this tutorial, you'll learn how to create four templates that demonstrate a progressive modern stack for Cloudflare deployment. You'll start with learning the make-template workflow (manual → undo → auto-templatization), then build up complexity from a simple React SPA to a full-stack application with edge computing and databases.
+In this tutorial, you'll learn how to create three templates that demonstrate a progressive modern stack for Cloudflare deployment. You'll start by learning the make-template workflow (manual → auto-templatization) while creating your first template, then build up complexity from a simple React SPA to a full-stack application with edge computing and databases.
 
 ## What you'll build
 
-You'll create four templates that showcase a progressive modern stack for Cloudflare deployment:
+You'll create three templates that showcase a progressive modern stack for Cloudflare deployment:
 
-1. **Template Workflow Demo** - Learn manual templatization, undo features, and auto-templatization
-2. **Basic React SPA** - Modern frontend foundation with Vite + React
-3. **SSR Portfolio App** - React Router v7 with SSR and direct D1 database access
+1. **Basic React SPA** - Modern frontend foundation with Vite + React (learn manual → auto templatization workflow)
+2. **SSR Portfolio App** - React Router v7 with SSR and direct D1 database access
 3. **Full-Stack Portfolio** - Split architecture with API server (Workers + D1) and client app
 
 Each template demonstrates different levels of complexity and Cloudflare integration, building toward a complete portfolio management system.
@@ -45,9 +44,9 @@ Before starting this tutorial, make sure you have:
 - **Basic command line familiarity** (navigating directories, running commands)
 - **Completed the [getting-started tutorial](getting-started.md)**
 
-## Template 1: Learn make-template Workflow
+## Step 1: Create Basic React SPA Template
 
-Before diving into complex templates, let's learn the make-template workflow by demonstrating manual templatization, the undo feature, and auto-templatization capabilities. This template will show you how make-template can automatically detect and convert project-specific values into reusable placeholders.
+Let's start by creating a modern React SPA template using Vite - the foundation for our progressive stack. Along the way, you'll learn the complete make-template workflow: manual templatization, auto-templatization, testing, and undo features.
 
 ### Instructions
 
@@ -57,10 +56,10 @@ Before diving into complex templates, let's learn the make-template workflow by 
    cd template-workshop
    ```
 
-2. **Create a sample React project to templatize:**
+2. **Create the modern React SPA project:**
    ```bash
-   mkdir workflow-demo
-   cd workflow-demo
+   mkdir basic-react-spa
+   cd basic-react-spa
    npm create vite@latest . -- --template react --no-interactive --immediate
    ```
 
@@ -76,8 +75,8 @@ Before diving into complex templates, let's learn the make-template workflow by 
        <div className="App">
          <header className="App-header">
            <h1>My Awesome Project</h1>
-           <p>Welcome to my portfolio website!</p>
-           <p>Built by John Doe with React and Vite</p>
+           <p>Welcome to your modern React SPA!</p>
+           <p>Built with Vite + React</p>
            <img src="/logo.png" alt="My Company Logo" />
            <a href="https://github.com/johndoe" className="github-link">View on GitHub</a>
          </header>
@@ -120,15 +119,15 @@ Before diving into complex templates, let's learn the make-template workflow by 
 
 4. **Manual Templatization - Replace values with placeholders manually:**
 
-   Before we use the automatic features, let's manually convert some values to placeholders to understand how templatization works. This will help you appreciate what the auto-detection does.
+   Before using the automatic features, let's manually convert some values to placeholders to understand how templatization works. This will help you appreciate what the auto-detection does.
 
    **Edit src/App.jsx and replace the specific values with placeholders:**
 
    ```bash
    # Open the file in your editor
    # Replace "My Awesome Project" with "{{PROJECT_NAME}}"
-   # Replace "Welcome to my portfolio website!" with "{{WELCOME_MESSAGE}}"
-   # Replace "Built by John Doe with React and Vite" with "{{AUTHOR_TAGLINE}}"
+   # Replace "Welcome to your modern React SPA!" with "{{WELCOME_MESSAGE}}"
+   # Replace "Built with Vite + React" with "{{TECH_STACK}}"
    # Replace "/logo.png" with "{{LOGO_URL}}"
    # Replace "My Company Logo" with "{{COMPANY_NAME}}"
    # Replace "https://github.com/johndoe" with "{{GITHUB_URL}}"
@@ -186,8 +185,8 @@ Before diving into complex templates, let's learn the make-template workflow by 
    - `{{README_TITLE}}` for the README title
    - `{{HTML_TITLE}}` for the HTML title
    - `{{TEXT_CONTENT_0}}` for "My Awesome Project"
-   - `{{TEXT_CONTENT_1}}` for "Welcome to my portfolio website!"
-   - `{{TAGLINE}}` for "Built by John Doe with React and Vite"
+   - `{{TEXT_CONTENT_1}}` for "Welcome to your modern React SPA!"
+   - `{{TAGLINE}}` for "Built with Vite + React"
    - `{{IMAGE_URL_0}}` for "/logo.png"
    - `{{ALT_TEXT_0}}` for "My Company Logo"
    - `{{LINK_URL_0}}` for "https://github.com/johndoe"
@@ -198,8 +197,8 @@ Before diving into complex templates, let's learn the make-template workflow by 
 
    ```bash
    cd ..
-   npx create-scaffold scaffold workflow-demo --yes
-   cd workflow-demo-scaffolded
+   npx create-scaffold scaffold basic-react-spa --yes
+   cd basic-react-spa-scaffolded
    npm install
    npm run dev
    ```
@@ -211,7 +210,7 @@ Before diving into complex templates, let's learn the make-template workflow by 
    Now let's demonstrate the undo feature to restore the original project:
 
    ```bash
-   cd ../workflow-demo
+   cd ../basic-react-spa
    npx make-template restore --yes
    ```
 
@@ -272,12 +271,12 @@ Before diving into complex templates, let's learn the make-template workflow by 
 
     ```bash
     cd ..
-    rm -rf workflow-demo cf-worker-demo *-scaffolded
+    rm -rf basic-react-spa cf-worker-demo *-scaffolded
     ```
 
 ### What You Learned
 
-- **Manual Templatization**: Using `convert` command with specific options
+- **Manual Templatization**: Editing files directly to replace project-specific values with placeholders
 - **Auto-Detection**: make-template automatically finds project-specific values in:
   - package.json (name, description, author, repository)
   - README.md titles
@@ -287,9 +286,18 @@ Before diving into complex templates, let's learn the make-template workflow by 
 - **Undo Feature**: `restore` command reverses templatization using `.template-undo.json`
 - **Project Types**: Different auto-detection rules for different project types (`vite-react`, `cf-d1`, `cf-turso`)
 
-Now you're ready to create more sophisticated templates!
+### Expected Result
 
-## Step 2: Create Basic React SPA Template
+You should see:
+```
+🔄 Converting project to template...
+📄 Generated template.json
+⚙️  Generated _setup.mjs
+🔄 Generated .template-undo.json
+✅ Conversion complete!
+```
+
+The template is now ready and demonstrates modern React development with Vite, plus you've learned the complete make-template workflow!
 
 Let's start by creating a modern React SPA template using Vite - the foundation for our progressive stack.
 
@@ -388,7 +396,7 @@ You should see:
 
 The template is now ready and demonstrates modern React development with Vite.
 
-## Step 3: Create SSR Portfolio App Template
+## Step 2: Create SSR Portfolio App Template
 
 Now let's create a React Router v7 SSR application that directly accesses D1 database - demonstrating server-side rendering with database queries.
 
@@ -560,7 +568,7 @@ Now let's create a React Router v7 SSR application that directly accesses D1 dat
 
 A modern SSR application template with direct D1 database access, demonstrating React Router v7's server-side capabilities.
 
-## Step 4: Create Full-Stack Portfolio Template
+## Step 3: Create Full-Stack Portfolio Template
 
 Finally, let's create a split-architecture full-stack application: a Cloudflare Worker API server with D1 database, and a separate React Router v7 client that fetches data from the API.
 
@@ -837,7 +845,7 @@ A complete split-architecture application with separate API server and client, d
 
 You successfully created three templates that demonstrate a progressive modern stack for Cloudflare deployment:
 
-1. **Basic React SPA** - Modern frontend foundation with Vite + React
+1. **Basic React SPA** - Modern frontend foundation with Vite + React (learned complete workflow)
 2. **SSR Portfolio App** - React Router v7 with SSR and direct D1 database access
 3. **Full-Stack Portfolio** - Split architecture with API server (Workers + D1) and client app
 
@@ -860,7 +868,7 @@ Now that you've created these templates, learn how to use them:
 ## Template locations
 
 Your templates are now ready in the `template-workshop` directory:
-- `template-workshop/basic-react-spa/` - Modern React SPA with Vite
+- `template-workshop/basic-react-spa/` - Modern React SPA with Vite (learned complete workflow)
 - `template-workshop/ssr-portfolio-app/` - React Router v7 SSR app with D1
 - `template-workshop/portfolio-api/` - Cloudflare Workers API server
 - `template-workshop/portfolio-client/` - React Router v7 client app
