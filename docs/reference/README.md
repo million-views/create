@@ -1,6 +1,7 @@
 ---
 title: "Reference Documentation"
-type: "reference"
+description: "Complete technical reference for the @m5nv/create-scaffold package"
+type: reference
 audience: "all"
 estimated_time: "N/A (reference)"
 prerequisites: []

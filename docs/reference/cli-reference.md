@@ -1,6 +1,7 @@
 ---
 title: "CLI Reference"
-type: "reference"
+description: "Complete command reference for the @m5nv/create-scaffold package"
+type: reference
 audience: "all"
 estimated_time: "N/A (reference)"
 prerequisites: []

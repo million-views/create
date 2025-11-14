@@ -1,6 +1,7 @@
 ---
 title: "Security Features and Best Practices"
-type: "explanation"
+description: "Security features and best practices for @m5nv/create-scaffold"
+type: explanation
 audience: "all"
 estimated_time: "5 minutes read"
 prerequisites:

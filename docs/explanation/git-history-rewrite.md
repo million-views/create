@@ -1,6 +1,7 @@
 ---
 title: "Rewriting Git History"
-type: "explanation"
+description: "How to safely remove accidentally committed files from Git history"
+type: explanation
 audience: "advanced"
 estimated_time: "10 minutes"
 prerequisites:

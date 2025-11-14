@@ -1,6 +1,7 @@
 ---
 title: "Error Codes Reference"
-type: "reference"
+description: "Complete reference for exit codes, error messages, and troubleshooting"
+type: reference
 audience: "all"
 estimated_time: "N/A (reference)"
 prerequisites: []

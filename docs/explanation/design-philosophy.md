@@ -1,6 +1,7 @@
 ---
 title: "Design Philosophy and Decisions Explained"
-type: "explanation"
+description: "Core principles and architectural decisions that shaped @m5nv/create-scaffold's design"
+type: explanation
 audience: "advanced"
 estimated_time: "12 minutes read"
 prerequisites:

@@ -1,6 +1,7 @@
 ---
 title: "Template System Architecture Explained"
-type: "explanation"
+description: "Git-based template system architecture for project scaffolding"
+type: explanation
 audience: "intermediate"
 estimated_time: "10 minutes read"
 prerequisites:

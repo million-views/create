@@ -1,6 +1,7 @@
 ---
 title: "Security Model Explained"
-type: "explanation"
+description: "Comprehensive security-first approach to template processing and project scaffolding"
+type: explanation
 audience: "intermediate"
 estimated_time: "8 minutes read"
 prerequisites:

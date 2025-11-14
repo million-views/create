@@ -1,6 +1,7 @@
 ---
 title: "Testing Reference"
-type: "reference"
+description: "Complete reference for running and understanding the @m5nv/create-scaffold test suite"
+type: reference
 audience: "developers"
 estimated_time: "5 minutes read"
 prerequisites:

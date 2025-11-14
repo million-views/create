@@ -1,6 +1,7 @@
 ---
 title: "Troubleshooting Guide"
-type: "guide"
+description: "Step-by-step solutions for common @m5nv/create-scaffold issues and problems"
+type: how-to
 audience: "all"
 estimated_time: "5-15 minutes per issue"
 prerequisites:

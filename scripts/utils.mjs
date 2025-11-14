@@ -114,19 +114,19 @@ export function formatResults(title, results) {
   // Show errors
   if (results.errors && results.errors.length > 0) {
     console.log(colorize(`\n❌ ERRORS (${results.errors.length}):`, 'red'));
-    results.errors.forEach(error => console.log(`  ${error}`));
+    results.errors.forEach(error => formatClickableMessage(error));
   }
 
   // Show warnings
   if (results.warnings && results.warnings.length > 0) {
     console.log(colorize(`\n⚠️  WARNINGS (${results.warnings.length}):`, 'yellow'));
-    results.warnings.forEach(warning => console.log(`  ${warning}`));
+    results.warnings.forEach(warning => formatClickableMessage(warning));
   }
 
   // Show broken links
   if (results.brokenLinks && results.brokenLinks.length > 0) {
     console.log(colorize(`\n🔗 BROKEN LINKS (${results.brokenLinks.length}):`, 'red'));
-    results.brokenLinks.forEach(link => console.log(`  ${link}`));
+    results.brokenLinks.forEach(link => formatClickableMessage(link));
   }
 
   // Show missing frontmatter
@@ -140,6 +140,25 @@ export function formatResults(title, results) {
     console.log(colorize(`\n🔧 FIXES APPLIED (${results.fixesApplied.length}):`, 'green'));
     results.fixesApplied.forEach(fix => console.log(`  ${fix}`));
   }
+}
+
+/**
+ * Format a clickable message by splitting the file reference from the message
+ */
+function formatClickableMessage(message) {
+  // Check if message starts with file:// protocol
+  if (message.startsWith('file://')) {
+    const colonIndex = message.indexOf(': ', 7); // Find first ": " after "file://"
+    if (colonIndex !== -1) {
+      const fileRef = message.substring(0, colonIndex);
+      const msg = message.substring(colonIndex + 2);
+      console.log(`  ${fileRef}`);
+      console.log(`    ${msg}`);
+      return;
+    }
+  }
+  // Fallback for messages that don't match the expected format
+  console.log(`  ${message}`);
 }
 
 /**

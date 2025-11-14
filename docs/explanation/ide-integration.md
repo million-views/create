@@ -1,6 +1,7 @@
 ---
 title: "IDE Integration"
-type: "explanation"
+description: "How templates can include IDE-specific configurations and settings"
+type: explanation
 audience: "template-authors"
 estimated_time: "3 minutes read"
 prerequisites:

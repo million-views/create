@@ -1,6 +1,7 @@
 ---
 title: "make-template Tutorial"
-type: "tutorial"
+description: "Learn to create templates using make-template, building a progressive modern stack from React SPA to full-stack Cloudflare applications"
+type: tutorial
 audience: "intermediate"
 estimated_time: "30 minutes"
 prerequisites:

@@ -1,6 +1,7 @@
 ---
 title: "Caching Strategy Explained"
-type: "explanation"
+description: "How @m5nv/create-scaffold implements intelligent caching for improved performance and reliability"
+type: explanation
 audience: "intermediate"
 estimated_time: "7 minutes read"
 prerequisites:

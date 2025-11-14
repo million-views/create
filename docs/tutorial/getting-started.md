@@ -1,6 +1,7 @@
 ---
 title: "Getting Started with make-template and create-scaffold"
-type: "tutorial"
+description: "Set up your development environment and verify prerequisites for using make-template and create-scaffold tools"
+type: tutorial
 audience: "beginner"
 estimated_time: "15 minutes"
 prerequisites:

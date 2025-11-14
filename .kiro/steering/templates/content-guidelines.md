@@ -131,27 +131,30 @@ All code examples must:
 
 **Before (High Maintenance):**
 
-```markdown
+````markdown
 **Test-Driven Development**: Comprehensive test coverage with 78+ tests across 4 specialized test suites.
 
 #### 1. Functional Tests - Before (`test/cli.test.mjs`)
 
 - **36 tests** covering end-to-end CLI behavior
-
+```bash
 npm run test:functional # 36 end-to-end CLI behavior tests
 ```
+````
 
 **After (Low Maintenance):**
 
-```markdown
+````markdown
 **Test-Driven Development**: Comprehensive test coverage across multiple specialized test suites.
 
 #### 1. Functional Tests - After (`test/cli.test.mjs`)
 
 - Comprehensive end-to-end CLI behavior tests
 
+```bash
 npm run test:functional # End-to-end CLI behavior tests
 ```
+````
 
 ## Content Organization
 
@@ -163,7 +166,7 @@ npm run test:functional # End-to-end CLI behavior tests
 
 ### Directory Structure
 Follows Diátaxis organization (see steering document for details):
-```text
+```console
 docs/
 ├── tutorial/           # Learning-oriented content
 ├── guides/            # Task-oriented content

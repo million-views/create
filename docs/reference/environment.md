@@ -1,6 +1,7 @@
 ---
 title: "Environment Reference"
-type: "reference"
+description: "Complete reference for the Environment object passed to template setup scripts"
+type: reference
 audience: "template-authors"
 estimated_time: "N/A (reference)"
 prerequisites:

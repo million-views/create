@@ -50,7 +50,7 @@ npm unlink -g @m5nv/create-scaffold
 
 The codebase follows a modular architecture with clear separation of concerns:
 
-```text
+```console
 create/
 ├── bin/                           # Core CLI modules
 │   ├── index.mjs                 # Main entry point and CLI orchestration
@@ -278,7 +278,6 @@ npm uninstall -g @m5nv/create-scaffold
 ### Complete Test Suite
 
 ```bash
-```bash
 # Run all test suites with unified reporting
 npm test
 
@@ -293,7 +292,7 @@ npm run lint
 ```
 
 See the [Testing Reference](../reference/testing.md) for complete testing commands, individual test suites, and debugging workflows.
-```text
+
 
 ### Development Testing Workflow
 
@@ -324,7 +323,7 @@ node test/template-discovery.test.mjs
 
 **Successful Test Run**:
 
-```text
+```console
 🧪 Functional Tests
    36 end-to-end CLI behavior tests
 ✅ Functional Tests - 1247ms

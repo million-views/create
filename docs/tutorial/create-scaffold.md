@@ -1,6 +1,7 @@
 ---
 title: "Create Scaffold Tutorial"
-type: "tutorial"
+description: "Learn to scaffold new projects using templates with advanced customization features"
+type: tutorial
 audience: "intermediate"
 estimated_time: "35 minutes"
 prerequisites:

@@ -1,6 +1,7 @@
 ---
 title: "Template Schema Reference"
-type: "reference"
+description: "Complete reference for Schema V1.0 (template.json) structure and validation"
+type: reference
 audience: "template-authors"
 estimated_time: "10 minutes"
 prerequisites:
