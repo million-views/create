@@ -228,11 +228,13 @@ npx make-template convert
 ## Documentation
 
 ### Getting Started
-- [Getting Started Tutorial](docs/tutorial/getting-started.md) - First project walkthrough
-- [Template Authoring Guide](docs/how-to/creating-templates.md) - Create your first template
-- [Authoring Workflow](docs/how-to/author-workflow.md) - Complete authoring workflow
+- [Getting Started Tutorial](docs/tutorial/getting-started.md) - Installation and setup
+  - [Using make-template](docs/tutorial/make-template.md) - Convert projects to templates
+  - [Using create-scaffold](docs/tutorial/create-scaffold.md) - Scaffold projects from templates
 
 ### How-To Guides
+- [Template Authoring Guide](docs/how-to/creating-templates.md) - Create your first template
+- [Authoring Workflow](docs/how-to/author-workflow.md) - Complete authoring workflow
 - [Setup Script Recipes](docs/how-to/setup-recipes.md) - Common _setup.mjs patterns
 - [Development Guide](docs/how-to/development.md) - Contributing to this project
 

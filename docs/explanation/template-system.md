@@ -172,9 +172,9 @@ Setup scripts run in a resource-restricted sandbox and rely exclusively on the c
 - **Manifest-based discovery** (rejected - adds complexity and maintenance burden)
 - **Single template per repository** (rejected - limits organization flexibility)
 
-### Decision 4: Caching with Integrity Checking
+### Decision 4: Caching with Validation
 
-**Why we chose this:** Caching improves performance while integrity checking prevents corruption.
+**Why we chose this:** Caching improves performance while validation prevents corruption.
 
 **Trade-offs:**
 - **Gained**: Fast repeated access, corruption detection, configurable TTL
@@ -182,7 +182,7 @@ Setup scripts run in a resource-restricted sandbox and rely exclusively on the c
 
 **Alternatives considered:**
 - **No caching** (rejected - poor performance for repeated operations)
-- **Simple caching without integrity** (rejected - corruption risk)
+- **Simple caching without validation** (rejected - corruption risk)
 - **Network-only validation** (rejected - requires network access for cached operations)
 
 ## Implementation Architecture

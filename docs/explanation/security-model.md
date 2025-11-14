@@ -131,15 +131,15 @@ Error messages are sanitized to prevent information leakage:
 
 ### Decision 4: Cache Security
 
-**Why we chose this:** Cached repositories are stored in user directories with proper permissions and integrity checking.
+**Why we chose this:** Cached repositories are stored in user directories with proper permissions, metadata validation, and corruption detection.
 
 **Trade-offs:**
-- **Gained**: Protection against cache poisoning and unauthorized access
+- **Gained**: Protection against cache poisoning and unauthorized access through directory validation and metadata integrity
 - **Given up**: Some performance optimizations that would compromise security
 
 **Alternatives considered:**
 - System-wide cache (rejected - permission and isolation issues)
-- No integrity checking (rejected - allows cache corruption attacks)
+- No validation (rejected - allows cache corruption attacks)
 
 ## Implications
 

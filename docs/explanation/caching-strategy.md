@@ -32,12 +32,12 @@ Template scaffolding operations face several performance challenges:
 
 ## Our Approach
 
-We implement a multi-layered caching system with integrity checking, TTL management, and corruption detection to provide fast, reliable template access.
+We implement a multi-layered caching system with validation, TTL management, and corruption detection to provide fast, reliable template access.
 
 ### Key Principles
 
 1. **Transparent Caching**: Users benefit from caching without needing to manage it
-2. **Integrity First**: Cached data is validated to prevent corruption issues
+2. **Validation First**: Cached data is validated to prevent corruption issues
 3. **Configurable TTL**: Cache lifetime can be adjusted based on user needs
 4. **Graceful Degradation**: Cache failures don't prevent operations
 5. **Storage Efficiency**: Cache management prevents unbounded growth
@@ -85,7 +85,7 @@ Request → Hash Generation → Cache Check → TTL Validation → Integrity Che
 
 1. **Cache Lookup**: Generate repository hash and check for existing cache
 2. **TTL Validation**: Check if cached data is within time-to-live window
-3. **Integrity Check**: Verify cached repository structure is valid
+3. **Validation Check**: Verify cached repository directory and metadata are valid
 4. **Cache Hit**: Use cached data if valid and fresh
 5. **Cache Miss**: Download repository and update cache
 6. **Cleanup**: Remove expired or corrupted entries periodically
@@ -100,12 +100,7 @@ Each cached repository includes metadata for management:
   "branchName": "main",
   "lastUpdated": "2025-11-12T10:30:00.000Z",
   "ttlHours": 24,
-  "cacheVersion": "1.0",
-  "integrity": {
-    "hasGitDir": true,
-    "fileCount": 42,
-    "lastCommit": "abc123..."
-  }
+  "cacheVersion": "1.0"
 }
 ```
 
@@ -150,16 +145,16 @@ Each cached repository includes metadata for management:
 - **Compressed archives** (rejected - complicates git operations)
 - **Shallow clones only** (rejected - limits git functionality)
 
-### Decision 4: Integrity Checking
+### Decision 4: Cache Validation
 
-**Why we chose this:** Validate cache integrity before use to prevent corruption issues.
+**Why we chose this:** Validate cache structure before use to prevent corruption issues.
 
 **Trade-offs:**
 - **Gained**: Reliability, corruption detection, automatic recovery
-- **Given up**: Some performance (integrity checks take time)
+- **Given up**: Some performance (validation checks take time)
 
 **Alternatives considered:**
-- **No integrity checking** (rejected - corruption leads to confusing errors)
+- **No validation** (rejected - corruption leads to confusing errors)
 - **Checksum-only validation** (rejected - doesn't catch structural corruption)
 - **Full validation on every use** (rejected - too slow)
 
