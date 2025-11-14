@@ -1147,7 +1147,7 @@ runner.test('Setup script receives Environment_Object with correct properties', 
 
   const setupScript = `
 export default async function setup({ ctx, tools }) {
-  const requiredProps = ['projectDir', 'projectName', 'cwd', 'authoringMode', 'inputs', 'constants'];
+  const requiredProps = ['projectDir', 'projectName', 'cwd', 'authoring', 'inputs', 'constants'];
   const missingProps = requiredProps.filter(prop => !(prop in ctx));
 
   if (missingProps.length > 0) {
@@ -1163,8 +1163,8 @@ export default async function setup({ ctx, tools }) {
   if (typeof ctx.cwd !== 'string') {
     throw new Error('ctx.cwd must be a string');
   }
-  if (ctx.authoringMode !== 'wysiwyg') {
-    throw new Error('ctx.authoringMode must be "wysiwyg"');
+  if (ctx.authoring !== 'wysiwyg') {
+    throw new Error('ctx.authoring must be "wysiwyg"');
   }
   if (typeof ctx.inputs !== 'object') {
     throw new Error('ctx.inputs must be an object');
@@ -1177,7 +1177,7 @@ export default async function setup({ ctx, tools }) {
     projectDir: ctx.projectDir,
     projectName: ctx.projectName,
     cwd: ctx.cwd,
-    authoringMode: ctx.authoringMode,
+    authoring: ctx.authoring,
     inputs: ctx.inputs,
     constants: ctx.constants
   });
@@ -1216,8 +1216,8 @@ export default async function setup({ ctx, tools }) {
       throw new Error('Environment_Object missing required properties');
     }
 
-    if (validationData.authoringMode !== 'wysiwyg') {
-      throw new Error('env.authoringMode should be "wysiwyg"');
+    if (validationData.authoring !== 'wysiwyg') {
+      throw new Error('env.authoring should be "wysiwyg"');
     }
 
     if (typeof validationData.inputs !== 'object') {

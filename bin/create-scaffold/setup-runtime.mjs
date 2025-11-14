@@ -1140,7 +1140,7 @@ export async function createSetupTools(options) {
     projectName,
     projectDir: root,
     cwd: process.cwd(),
-    authoringMode: templateContext?.authoringMode ?? 'wysiwyg',
+    authoring: templateContext?.authoring ?? 'wysiwyg',
     inputs: placeholderInputs,
     constants: templateContext?.constants ?? {},
     authorAssetsDir

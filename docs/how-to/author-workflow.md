@@ -45,7 +45,7 @@ WYSIWYG templates mirror a working application. Iterate directly in the project,
 
 ### Checklist for WYSIWYG templates
 
-- `setup.authoringMode` is `"wysiwyg"` and `metadata.dimensions` is `{}`.
+- `setup.authoring` is `"wysiwyg"` and `metadata.dimensions` is `{}`.
 - `_setup.mjs` limits itself to placeholder replacement and light adjustments.
 - `handoff` instructions cover install and startup steps.
 - `.template-undo.json` remains checked in to support future restores.
@@ -84,7 +84,7 @@ Composable templates assemble different variants from a single source. Use autho
 
 ### Checklist for composable templates
 
-- `setup.authoringMode` is `"composable"`.
+- `setup.authoring` is `"composable"`.
 - Every dimension in `template.json` lists allowed values and sensible defaults.
 - `_setup.mjs` uses helper APIs only (`tools.files`, `tools.json`, `tools.options`).
 - Author assets live under `__scaffold__/` (or your configured alias) and are treated as immutable inputs.

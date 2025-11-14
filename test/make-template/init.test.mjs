@@ -94,8 +94,8 @@ test('make-template init command', async (t) => {
     // Verify setup structure
     assert(template.setup, 'Should have setup section');
     assert(template.setup.dimensions, 'Should have dimensions in setup');
-    assert(template.setup.dimensions.deployment_target, 'Should have deployment_target dimension');
-    assert(Array.isArray(template.setup.dimensions.deployment_target.values), 'deployment_target should have values array');
+    assert(template.setup.dimensions.deployment, 'Should have deployment dimension');
+    assert(Array.isArray(template.setup.dimensions.deployment.values), 'deployment should have values array');
   });
 
   await t.test('init with custom filename works', async () => {

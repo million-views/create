@@ -182,11 +182,11 @@ create-scaffold new my-app --template basic-react-spa --selection ~/my-selection
   "templateId": "basic-react-spa",
   "version": "1.0.0",
   "selections": {
-    "deployment_target": "vercel",
+    "deployment": "vercel",
     "features": ["auth", "database"],
     "database": "postgresql",
     "storage": "s3",
-    "auth_providers": ["google"],
+    "auth": ["google"],
     "payments": "stripe",
     "analytics": "plausible"
   },

@@ -75,7 +75,7 @@ export default async function setup({ ctx, tools }) {
 | `projectName` | `string` | Sanitized name chosen by the user (letters, numbers, hyphen, underscore). Use it when updating metadata such as `package.json` or README content. |
 | `cwd` | `string` | Directory where the CLI command was executed. Helpful when you need to compute workspace-relative paths. |
 | `ide` | `string \| null` | IDE specified by user (lowercase: 'vscode', 'kiro', 'cursor', 'windsurf') or null if not specified. |
-| `authoringMode` | `"wysiwyg" \| "composable"` | Mode declared in `template.json`. WYSIWYG templates mirror a working project; composable templates assemble features via `_setup.mjs`. |
+| `authoring` | `"wysiwyg" \| "composable"` | Mode declared in `template.json`. WYSIWYG templates mirror a working project; composable templates assemble features via `_setup.mjs`. |
 | `authorAssetsDir` | `string` | Directory name for template assets (configured via `setup.authorAssetsDir`, defaults to `"__scaffold__"`). |
 | `options` | `object` | Normalized user selections with defaults already applied. See breakdown below. |
 | `inputs` | `Record<string, string \| number \| boolean>` | Placeholder answers collected during template instantiation. Keys omit braces (`PROJECT_NAME`). Values are immutable and type-coerced based on `metadata.placeholders` and any canonical `metadata.variables` entries. |
@@ -401,7 +401,7 @@ export default async function setup({ ctx, tools }) {
 ```json
 {
   "setup": {
-    "authoringMode": "composable",
+    "authoring": "composable",
     "authorAssetsDir": "__scaffold__",
     "dimensions": {
       "capabilities": {
@@ -426,7 +426,7 @@ export default async function setup({ ctx, tools }) {
 }
 ```
 
-- **`authoringMode`** distinguishes WYSIWYG (`"wysiwyg"`) templates from composable ones (`"composable"`). The runtime exposes this value as `ctx.authoringMode` so setup scripts can tailor behaviour.
+- **`authoring`** distinguishes WYSIWYG (`"wysiwyg"`) templates from composable ones (`"composable"`). The runtime exposes this value as `ctx.authoring` so setup scripts can tailor behaviour.
 - **`authorAssetsDir`** names the directory that stores author-only snippets (defaults to `__scaffold__`). The CLI stages it before setup runs and deletes it afterwards.
 - **`dimensions`** enumerate the option vocabulary. Each entry supports:
   - `type`: `"single"` or `"multi"`.

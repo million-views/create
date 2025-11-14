@@ -60,7 +60,7 @@ const validTemplateV1 = {
       values: ['auth', 'database', 'api'],
       default: []
     },
-    deployment_target: {
+    deployment: {
       values: ['vercel', 'netlify'],
       default: 'vercel'
     }

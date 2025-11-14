@@ -75,10 +75,10 @@ function generateSkeletonTemplate() {
     'author': 'Your Name or Organization',
     'license': 'MIT',
     'setup': {
-      'authoringMode': 'composable',
+      'authoring': 'composable',
       'policy': 'lenient',
       'dimensions': {
-        'deployment_target': {
+        'deployment': {
           'type': 'single',
           'values': ['vercel', 'netlify', 'railway', 'render', 'fly', 'heroku'],
           'default': 'vercel'
@@ -98,7 +98,7 @@ function generateSkeletonTemplate() {
           'values': ['aws-s3', 'cloudflare-r2', 'vercel-blob', 'local', 'none'],
           'default': 'none'
         },
-        'auth_providers': {
+        'auth': {
           'type': 'multi',
           'values': ['google', 'github', 'twitter', 'email', 'none'],
           'default': ['none']

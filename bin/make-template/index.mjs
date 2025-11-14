@@ -324,7 +324,7 @@ function generateSkeletonTemplate() {
       'storage': {
         'values': ['aws-s3', 'cloudflare-r2', 'vercel-blob', 'local', 'none']
       },
-      'auth_providers': {
+      'auth': {
         'values': ['google', 'github', 'twitter', 'email', 'none']
       },
       'payments': {

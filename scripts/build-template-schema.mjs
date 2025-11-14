@@ -215,7 +215,7 @@ function generateTypeDefinitions(schema, version, schemaRelativePath, target = '
     '}',
     '',
     'export interface TemplateSetup {',
-    '  authoringMode?: TemplateAuthoringMode;',
+    '  authoring?: TemplateAuthoringMode;',
     '  authorAssetsDir?: string;',
     '  dimensions?: TemplateDimensions;',
     '}',
@@ -265,10 +265,10 @@ function generateSelectionTypeDefinitions(schema, version, schemaRelativePath, t
   const selectionsProps = properties.selections?.properties ?? {};
 
   // Extract enums from the schema
-  const deploymentTargetEnum = selectionsProps.deployment_target?.enum ?? [];
+  const deploymentTargetEnum = selectionsProps.deployment?.enum ?? [];
   const databaseEnum = selectionsProps.database?.enum ?? [];
   const storageEnum = selectionsProps.storage?.enum ?? [];
-  const authProvidersEnum = selectionsProps.auth_providers?.items?.enum ?? [];
+  const authProvidersEnum = selectionsProps.auth?.items?.enum ?? [];
   const paymentsEnum = selectionsProps.payments?.enum ?? [];
   const analyticsEnum = selectionsProps.analytics?.enum ?? [];
   const packageManagerEnum = properties.metadata?.properties?.packageManager?.enum ?? [];
@@ -295,7 +295,7 @@ function generateSelectionTypeDefinitions(schema, version, schemaRelativePath, t
     '  features?: string[];',
     '  database?: SelectionDatabase;',
     '  storage?: SelectionStorage;',
-    '  auth_providers?: SelectionAuthProvider[];',
+    '  auth?: SelectionAuthProvider[];',
     '  payments?: SelectionPaymentProcessor;',
     '  analytics?: SelectionAnalyticsProvider;',
     '}',

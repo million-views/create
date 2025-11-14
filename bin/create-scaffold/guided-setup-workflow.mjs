@@ -342,7 +342,7 @@ export class GuidedSetupWorkflow {
     const violations = [];
 
     for (const [gateName, gateConfig] of Object.entries(gates)) {
-      // Check if this gate applies (e.g., if deployment_target is cloudflare-workers)
+      // Check if this gate applies (e.g., if deployment is cloudflare-workers)
       const gateApplies = this.#doesGateApply(gateName, gateConfig, dimensionSelections);
 
       if (gateApplies) {
@@ -371,7 +371,7 @@ export class GuidedSetupWorkflow {
    */
   #doesGateApply(gateName, gateConfig, dimensionSelections) {
     // Gates are typically keyed by specific dimension values
-    // For example, "cloudflare-workers" gate applies when deployment_target is "cloudflare-workers"
+    // For example, "cloudflare-workers" gate applies when deployment is "cloudflare-workers"
     // We need to determine which dimension this gate applies to
 
     // For now, assume gates apply when their name matches a selected dimension value
@@ -1056,7 +1056,7 @@ export class GuidedSetupWorkflow {
         logger: this.logger,
         templateContext: {
           inputs: this.placeholders,
-          authoringMode: this.metadata?.authoringMode || 'wysiwyg',
+          authoring: this.metadata?.authoring || 'wysiwyg',
           constants: this.metadata?.constants || {},
           authorAssetsDir: this.metadata?.setup?.authorAssetsDir || '__scaffold__'
         },
@@ -1067,7 +1067,7 @@ export class GuidedSetupWorkflow {
         projectName: this.projectDirectory,
         projectDir: this.resolvedProjectDirectory,
         cwd: process.cwd(),
-        authoringMode: this.metadata?.authoringMode || 'wysiwyg',
+        authoring: this.metadata?.authoring || 'wysiwyg',
         inputs: this.placeholders,
         constants: this.metadata?.constants || {},
         authorAssetsDir: this.metadata?.setup?.authorAssetsDir || '__scaffold__',
@@ -1161,15 +1161,15 @@ export class GuidedSetupWorkflow {
         templateId: this.metadata?.id || `${this.templateName}`,
         version: this.metadata?.schemaVersion || '1.0.0',
         selections: {
-          deployment_target: dimensionSelections.deployment_target,
+          deployment: dimensionSelections.deployment,
           features: Array.isArray(dimensionSelections.features)
             ? dimensionSelections.features
             : dimensionSelections.features ? [dimensionSelections.features] : [],
           database: dimensionSelections.database,
           storage: dimensionSelections.storage,
-          auth_providers: Array.isArray(dimensionSelections.auth_providers)
-            ? dimensionSelections.auth_providers
-            : dimensionSelections.auth_providers ? [dimensionSelections.auth_providers] : [],
+          auth: Array.isArray(dimensionSelections.auth)
+            ? dimensionSelections.auth
+            : dimensionSelections.auth ? [dimensionSelections.auth] : [],
           payments: dimensionSelections.payments,
           analytics: dimensionSelections.analytics
         },

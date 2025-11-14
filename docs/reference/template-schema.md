@@ -31,7 +31,7 @@ Schema V1.0 defines the structure for `template.json` files. Templates are valid
   "name": "My Template",
   "description": "A template for building X",
   "setup": {
-    "authoringMode": "composable",
+    "authoring": "composable",
     "policy": "strict",
     "dimensions": { /* required dimensions */ },
     "gates": { /* compatibility rules */ }
@@ -68,7 +68,7 @@ The `setup` section configures template behavior and defines user-selectable opt
 
 | Property | Type | Required | Description |
 |----------|------|----------|-------------|
-| `authoringMode` | `string` | No | `"composable"` or `"fixed"` (default: `"composable"`) |
+| `authoring` | `string` | No | `"composable"` or `"fixed"` (default: `"composable"`) |
 | `policy` | `string` | Yes | `"strict"` or `"lenient"` validation |
 | `dimensions` | `object` | Yes | User-selectable options |
 | `gates` | `object` | Yes | Compatibility constraints |
@@ -93,11 +93,11 @@ All templates must define these dimensions:
 
 | Name | Type | Purpose |
 |------|------|---------|
-| `deployment_target` | `single` | Deployment platform |
+| `deployment` | `single` | Deployment platform |
 | `features` | `multi` | Custom feature toggles |
 | `database` | `single` | Database technology choice |
 | `storage` | `single` | Storage solution |
-| `auth_providers` | `multi` | Authentication providers |
+| `auth` | `multi` | Authentication providers |
 | `payments` | `single` | Payment processor |
 | `analytics` | `single` | Analytics service |
 
@@ -120,7 +120,7 @@ All templates must define these dimensions:
 
 ## Dimension Details
 
-### deployment_target
+### deployment
 
 **Type:** `single` (required)
 
@@ -136,7 +136,7 @@ All templates must define these dimensions:
 **Schema Example:**
 ```json
 {
-  "deployment_target": {
+  "deployment": {
     "type": "single",
     "values": ["cloudflare-workers", "linode", "droplet"],
     "default": "cloudflare-workers"
@@ -209,7 +209,7 @@ All templates must define these dimensions:
 }
 ```
 
-### auth_providers
+### auth
 
 **Type:** `multi` (required)
 
@@ -223,7 +223,7 @@ All templates must define these dimensions:
 **Schema Example:**
 ```json
 {
-  "auth_providers": {
+  "auth": {
     "type": "multi",
     "values": ["google", "github"],
     "default": []
@@ -305,7 +305,7 @@ Gates define compatibility constraints between dimension values. They prevent in
 ```json
 {
   "gates": {
-    "deployment_target": {
+    "deployment": {
       "cloudflare-workers": {
         "requires": {
           "database": ["d1"],
@@ -316,7 +316,7 @@ Gates define compatibility constraints between dimension values. They prevent in
     "database": {
       "d1": {
         "requires": {
-          "deployment_target": ["cloudflare-workers"]
+          "deployment": ["cloudflare-workers"]
         }
       }
     }
@@ -359,7 +359,7 @@ FeatureSpecs define available features and their requirements. Each feature spec
       "label": "Authentication",
       "description": "User authentication and session management",
       "needs": {
-        "auth_providers": "required",
+        "auth": "required",
         "database": "required"
       }
     },
@@ -384,7 +384,7 @@ Hints provide an advisory catalog of recommended features for different use case
 ```json
 {
   "hints": {
-    "category_name": {
+    "category": {
       "label": "Category display name",
       "description": "Category description",
       "features": ["feature1", "feature2"]
@@ -452,10 +452,10 @@ Constants define fixed values that templates can reference. These are typically 
   "name": "Full-Stack Web App",
   "description": "A complete web application with authentication, database, and payments",
   "setup": {
-    "authoringMode": "composable",
+    "authoring": "composable",
     "policy": "strict",
     "dimensions": {
-      "deployment_target": {
+      "deployment": {
         "type": "single",
         "values": ["cloudflare-workers", "linode", "droplet"],
         "default": "cloudflare-workers"
@@ -475,7 +475,7 @@ Constants define fixed values that templates can reference. These are typically 
         "values": ["r2", "s3", "file", "none"],
         "default": "r2"
       },
-      "auth_providers": {
+      "auth": {
         "type": "multi",
         "values": ["google", "github"],
         "default": []
@@ -492,7 +492,7 @@ Constants define fixed values that templates can reference. These are typically 
       }
     },
     "gates": {
-      "deployment_target": {
+      "deployment": {
         "cloudflare-workers": {
           "requires": {
             "database": ["d1"],
@@ -507,7 +507,7 @@ Constants define fixed values that templates can reference. These are typically 
       "label": "Authentication",
       "description": "User authentication and session management",
       "needs": {
-        "auth_providers": "required",
+        "auth": "required",
         "database": "required"
       }
     },

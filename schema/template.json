@@ -15,14 +15,14 @@
       "type": "object",
       "required": ["dimensions", "gates", "policy"],
       "properties": {
-        "authoringMode": { "type": "string", "enum": ["composable", "fixed"] },
+        "authoring": { "type": "string", "enum": ["composable", "fixed"] },
         "policy": { "type": "string", "enum": ["strict", "lenient"] },
 
         "dimensions": {
           "type": "object",
-          "required": ["deployment_target", "features", "database", "storage", "auth_providers", "payments", "analytics"],
+          "required": ["deployment", "features", "database", "storage", "auth", "payments", "analytics"],
           "properties": {
-            "deployment_target": {
+            "deployment": {
               "type": "object",
               "required": ["type", "values", "default"],
               "properties": {
@@ -86,7 +86,7 @@
               "additionalProperties": false
             },
 
-            "auth_providers": {
+            "auth": {
               "type": "object",
               "required": ["type", "values", "default"],
               "properties": {
@@ -127,9 +127,9 @@
 
         "gates": {
           "type": "object",
-          "required": ["deployment_target"],
+          "required": ["deployment"],
           "properties": {
-            "deployment_target": {
+            "deployment": {
               "type": "object",
               "properties": {
                 "cloudflare-workers": {

@@ -33,7 +33,7 @@ test('TemplateValidator comprehensive validation', async (t) => {
           values: ['auth', 'database', 'api'],
           default: []
         },
-        deployment_target: {
+        deployment: {
           values: ['vercel', 'netlify'],
           default: 'vercel'
         }
@@ -240,7 +240,7 @@ test('validateTemplateManifest returns normalized values for valid template', as
   const manifest = await loadFixture('placeholder-template');
   const result = validateTemplateManifest(manifest);
 
-  assert.equal(result.authoringMode, 'wysiwyg');
+  assert.equal(result.authoring, 'wysiwyg');
   assert.equal(result.authorAssetsDir, '__scaffold__');
   assert.equal(result.handoffSteps.length, 1);
   assert.equal(result.placeholders.length, manifest.metadata.placeholders.length);

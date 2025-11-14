@@ -25,7 +25,7 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "deployment_target": {
+        "deployment": {
           "type": "string",
           "enum": ["vercel", "netlify", "railway", "render", "fly", "heroku", "aws", "gcp", "azure", "local"],
           "description": "Selected deployment target."
@@ -49,7 +49,7 @@
           "enum": ["local", "s3", "cloudflare", "vercel-blob", "none"],
           "description": "Selected storage solution."
         },
-        "auth_providers": {
+        "auth": {
           "type": "array",
           "items": {
             "type": "string",

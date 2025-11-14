@@ -791,7 +791,7 @@ async function loadTemplateMetadata(templatePath, logger) {
       await logger.logOperation('template_metadata', {
         templatePath,
         handoffCount: metadata.handoffSteps.length,
-        authoringMode: metadata.authoringMode,
+        authoring: metadata.authoring,
         dimensions: Object.keys(metadata.dimensions)
       });
     }

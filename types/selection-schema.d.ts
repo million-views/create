@@ -17,7 +17,7 @@ export interface SelectionChoices {
   features?: string[];
   database?: SelectionDatabase;
   storage?: SelectionStorage;
-  auth_providers?: SelectionAuthProvider[];
+  auth?: SelectionAuthProvider[];
   payments?: SelectionPaymentProcessor;
   analytics?: SelectionAnalyticsProvider;
 }

@@ -82,8 +82,8 @@ If you are authoring composable templates with snippets, add an author-assets di
 
 | Mode | When to choose it | Expectations |
 |------|-------------------|--------------|
-| **WYSIWYG** (`authoringMode: "wysiwyg"`) | You iterate directly in a working app and only need light placeholder replacement. | No runtime option parsing. `metadata.dimensions` can stay empty. `_setup.mjs` should focus on tokens and minor tweaks. |
-| **Composable** (`authoringMode: "composable"`) | You need a single template to produce several variants (stacks, infra, capabilities). | Define option dimensions in `template.json`, store reusable assets in `__scaffold__/`, and keep `_setup.mjs` small but declarative. |
+| **WYSIWYG** (`authoring: "wysiwyg"`) | You iterate directly in a working app and only need light placeholder replacement. | No runtime option parsing. `metadata.dimensions` can stay empty. `_setup.mjs` should focus on tokens and minor tweaks. |
+| **Composable** (`authoring: "composable"`) | You need a single template to produce several variants (stacks, infra, capabilities). | Define option dimensions in `template.json`, store reusable assets in `__scaffold__/`, and keep `_setup.mjs` small but declarative. |
 | **Hybrid** | You start from a WYSIWYG base but require a few reusable snippets. | Keep placeholder replacement for inline updates, but move any repeated assets into `__scaffold__/` so they can be copied conditionally via helpers. |
 
 Switching modes later is as simple as updating `template.json`, but start with WYSIWYG unless you know you need composability.
@@ -98,7 +98,7 @@ Switching modes later is as simple as updating `template.json`, but start with W
   "description": "React starter with Vite",
   "handoff": ["npm install", "npm run dev"],
   "setup": {
-    "authoringMode": "composable",
+    "authoring": "composable",
     "authorAssetsDir": "__scaffold__",
     "dimensions": {
       "capabilities": {

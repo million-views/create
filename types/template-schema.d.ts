@@ -65,7 +65,7 @@ export interface TemplateMetadata {
 }
 
 export interface TemplateSetup {
-  authoringMode?: TemplateAuthoringMode;
+  authoring?: TemplateAuthoringMode;
   authorAssetsDir?: string;
   dimensions?: TemplateDimensions;
 }
