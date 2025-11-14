@@ -251,16 +251,38 @@
 
     "constants": {
       "type": "object",
-      "required": ["language", "framework", "styling", "ci_cd", "code_quality", "transactional_emails"],
+      "description": "Fixed template constants that define the template's identity. These values cannot be changed by users and distinguish one template from another.",
       "properties": {
-        "language": { "const": "typescript" },
-        "framework": { "const": "react-router-v7" },
-        "styling": { "const": "tailwind+daisyui" },
-        "ci_cd": { "const": "github-actions" },
-        "code_quality": { "const": "prettier" },
-        "transactional_emails": { "const": "gmail-org-service-account" }
+        "language": {
+          "type": "string",
+          "description": "Programming language used by the template"
+        },
+        "framework": {
+          "type": "string", 
+          "description": "Primary framework or library used"
+        },
+        "styling": {
+          "type": "string",
+          "description": "CSS framework or styling approach"
+        },
+        "ci_cd": {
+          "type": "string",
+          "description": "CI/CD platform used"
+        },
+        "runtime": {
+          "type": "string",
+          "description": "Runtime environment"
+        },
+        "code_quality": {
+          "type": "string",
+          "description": "Code quality tools and standards"
+        },
+        "transactional_emails": {
+          "type": "string",
+          "description": "Email service for transactional emails"
+        }
       },
-      "additionalProperties": false
+      "additionalProperties": true
     }
   },
   "additionalProperties": true

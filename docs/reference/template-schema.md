@@ -377,70 +377,160 @@ FeatureSpecs define available features and their requirements. Each feature spec
 
 ## Hints
 
-Hints provide an advisory catalog of recommended features for different use cases. They're used by the CLI to suggest features during template creation.
+Hints provide an advisory catalog of recommended features for different use cases. They're used by the CLI to suggest features during template creation and provide rich metadata for UI components.
 
 ### Hints Schema
 
 ```json
 {
   "hints": {
-    "category": {
-      "label": "Category display name",
-      "description": "Category description",
-      "features": ["feature1", "feature2"]
-    }
+    "features": [
+      {
+        "id": "feature_id",
+        "label": "Human readable name",
+        "description": "Feature description",
+        "needs": {
+          "database": "required|optional|none",
+          "auth": "required|optional|none",
+          "payments": "required|optional|none",
+          "storage": "required|optional|none"
+        },
+        "examples": ["Example use case 1", "Example use case 2"]
+      }
+    ]
   }
 }
 ```
+
+### Hints Properties
+
+- **`id`**: Unique feature identifier (2-64 chars, lowercase with underscores/hyphens/colons)
+- **`label`**: Human-readable display name
+- **`description`**: Detailed feature description
+- **`needs`**: Capability requirements (same as featureSpecs)
+- **`examples`** (optional): Array of example use cases
 
 ### Hints Example
 
 ```json
 {
   "hints": {
-    "web-app": {
-      "label": "Web Application",
-      "description": "Features for building web applications",
-      "features": ["auth", "database", "analytics"]
-    },
-    "api": {
-      "label": "API Service",
-      "description": "Features for building APIs",
-      "features": ["auth", "database", "logging"]
-    }
+    "features": [
+      {
+        "id": "public_static",
+        "label": "Public Static",
+        "description": "Static marketing pages (no forms).",
+        "needs": {
+          "auth": "none",
+          "database": "none",
+          "payments": "none",
+          "storage": "none"
+        },
+        "examples": ["Legal Pages", "About Us"]
+      },
+      {
+        "id": "auth_dataentry_simple",
+        "label": "Auth Data Entry (Simple)",
+        "description": "Authenticated forms without uploads.",
+        "needs": {
+          "auth": "required",
+          "database": "required",
+          "payments": "none",
+          "storage": "none"
+        },
+        "examples": ["Password Update", "Team Invite"]
+      }
+    ]
   }
 }
 ```
 
 ## Constants
 
-Constants define fixed values that templates can reference. These are typically tooling versions, framework choices, or other immutable template settings.
+Constants define fixed values that define the template's identity and cannot be changed by users. These values distinguish one template from another - changing constants creates a different template entirely. Constants prevent combinatorial explosion by keeping core template aspects immutable.
+
+The schema defines common constants that most templates use, while allowing template authors to add their own custom constants for any aspect that cannot be handled through the fixed dimensions.
 
 ### Constants Schema
 
 ```json
 {
   "constants": {
-    "typescript": "5.3.0",
-    "react": "18.2.0",
-    "tailwindcss": "3.4.0"
+    "language": "typescript",
+    "framework": "react-router-v7",
+    "styling": "tailwind+daisyui",
+    "ci_cd": "github-actions",
+    "runtime": "node",
+    "dns_provider": "cloudflare"
   }
 }
 ```
 
-### Common Constants
+### Predefined Constants
+
+The schema recognizes these common constants:
+
+| Constant | Type | Description |
+|----------|------|-------------|
+| `language` | `string` | Programming language (typescript, javascript, python, etc.) |
+| `framework` | `string` | Primary framework or library |
+| `styling` | `string` | CSS framework or styling approach |
+| `ci_cd` | `string` | CI/CD platform (github-actions, gitlab-ci, etc.) |
+| `runtime` | `string` | Runtime environment (node, deno, bun, etc.) |
+| `code_quality` | `string` | Code quality tools and standards |
+| `transactional_emails` | `string` | Email service for transactional emails |
+
+### Custom Constants
+
+Template authors can add any additional constants beyond the predefined ones:
 
 ```json
 {
   "constants": {
-    "typescript": "5.3.0",
-    "react-router-v7": "7.0.0",
-    "tailwind+daisyui": "3.4.0+4.6.0",
-    "vitest": "1.0.0",
-    "eslint": "8.50.0"
+    "language": "typescript",
+    "framework": "react-router-v7",
+    "styling": "tailwind+daisyui",
+    "ci_cd": "github-actions",
+    "runtime": "node",
+    "dns_provider": "cloudflare",
+    "monitoring": "datadog",
+    "logging": "winston",
+    "caching": "redis"
   }
 }
 ```
+
+### Constants Purpose
+
+Constants serve as the "DNA" of a template:
+- **Identity**: Define what makes this template unique
+- **Fixed**: Cannot be changed by users during configuration
+- **Immutable**: Changing constants requires creating a new template
+- **Extensible**: Template authors can add custom constants as needed
+- **Boundaries**: Prevent feature creep and maintain template focus
+
+### Constants vs Dimensions
+
+| Aspect | Constants | Dimensions |
+|--------|-----------|------------|
+| **Purpose** | Template identity | User choices |
+| **Changable** | Never (creates new template) | By users |
+| **Scope** | Template-wide | Per-project |
+| **Examples** | Language, framework, DNS provider | Database, auth providers |
+
+### When to Use Constants vs Dimensions
+
+Use **constants** for:
+- Core technology choices that define the template's identity
+- Infrastructure decisions that cannot vary per project
+- Services that are fundamental to the template's architecture
+- Any aspect that, if changed, would create a different template
+
+Use **dimensions** for:
+- Optional features users can choose
+- Configuration that varies by use case
+- Services that can be swapped out
+- Aspects that don't change the fundamental nature of the template
 
 ## Complete Example
 
@@ -533,16 +623,44 @@ Constants define fixed values that templates can reference. These are typically 
     }
   },
   "hints": {
-    "minimal": {
-      "label": "Minimal App",
-      "description": "Basic web app with testing",
-      "features": ["testing"]
-    },
-    "fullstack": {
-      "label": "Full-Stack App",
-      "description": "Complete application with all features",
-      "features": ["auth", "payments", "analytics", "testing"]
-    }
+    "features": [
+      {
+        "id": "auth",
+        "label": "Authentication",
+        "description": "User authentication and session management",
+        "needs": {
+          "auth": "required",
+          "database": "required",
+          "payments": "none",
+          "storage": "none"
+        },
+        "examples": ["User login", "Profile management"]
+      },
+      {
+        "id": "payments",
+        "label": "Payment Processing",
+        "description": "Accept and process payments",
+        "needs": {
+          "auth": "required",
+          "database": "required",
+          "payments": "required",
+          "storage": "none"
+        },
+        "examples": ["Subscription billing", "One-time purchases"]
+      },
+      {
+        "id": "analytics",
+        "label": "Analytics",
+        "description": "Track user behavior and app metrics",
+        "needs": {
+          "auth": "none",
+          "database": "none",
+          "payments": "none",
+          "storage": "none"
+        },
+        "examples": ["Page views", "User engagement"]
+      }
+    ]
   },
   "constants": {
     "typescript": "5.3.0",

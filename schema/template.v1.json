@@ -309,52 +309,68 @@
     },
     "hints": {
       "type": "object",
-      "additionalProperties": false,
       "properties": {
         "features": {
-          "type": "object",
-          "description": "Advisory feature catalog for authoring assistance (not enforced).",
-          "patternProperties": {
-            "^[a-z][a-z0-9_-]*$": {
-              "type": "object",
-              "additionalProperties": false,
-              "required": ["label", "description"],
-              "properties": {
-                "label": {
-                  "type": "string",
-                  "minLength": 1,
-                  "maxLength": 100
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["id", "label", "description", "needs"],
+            "properties": {
+              "id": { "type": "string", "pattern": "^[a-z0-9_:-]{2,64}$" },
+              "label": { "type": "string" },
+              "description": { "type": "string" },
+              "examples": { "type": "array", "items": { "type": "string" } },
+              "needs": {
+                "type": "object",
+                "required": ["database", "auth", "payments", "storage"],
+                "properties": {
+                  "database": { "enum": ["required", "optional", "none"] },
+                  "auth": { "enum": ["required", "optional", "none"] },
+                  "payments": { "enum": ["required", "optional", "none"] },
+                  "storage": { "enum": ["required", "optional", "none"] }
                 },
-                "description": {
-                  "type": "string",
-                  "minLength": 1,
-                  "maxLength": 500
-                },
-                "needs": {
-                  "type": "object",
-                  "patternProperties": {
-                    "^[a-z][a-z0-9_-]*$": {
-                      "type": "string",
-                      "enum": ["required", "optional", "none"],
-                      "description": "Suggested requirement level for this dimension."
-                    }
-                  },
-                  "description": "Suggested dimension requirements for this feature."
-                },
-                "category": {
-                  "type": "string",
-                  "enum": ["authentication", "database", "storage", "payments", "analytics", "ui", "api", "deployment", "other"]
-                }
+                "additionalProperties": false
               }
-            }
-          },
-          "additionalProperties": false
+            },
+            "additionalProperties": false
+          }
         }
-      }
+      },
+      "additionalProperties": false
     },
     "constants": {
       "type": "object",
       "description": "Fixed template attributes that don't vary by user selection.",
+      "properties": {
+        "language": {
+          "type": "string",
+          "description": "Programming language used by the template"
+        },
+        "framework": {
+          "type": "string", 
+          "description": "Primary framework or library used"
+        },
+        "styling": {
+          "type": "string",
+          "description": "CSS framework or styling approach"
+        },
+        "ci_cd": {
+          "type": "string",
+          "description": "CI/CD platform used"
+        },
+        "runtime": {
+          "type": "string",
+          "description": "Runtime environment"
+        },
+        "code_quality": {
+          "type": "string",
+          "description": "Code quality tools and standards"
+        },
+        "transactional_emails": {
+          "type": "string",
+          "description": "Email service for transactional emails"
+        }
+      },
       "additionalProperties": true
     },
     "scaffold": {
@@ -501,5 +517,10 @@
         }
       }
     }
+  },
+  "constants": {
+    "type": "object",
+    "description": "Fixed template constants that define the template's identity. These values cannot be changed by users and distinguish one template from another.",
+    "additionalProperties": true
   }
 }
