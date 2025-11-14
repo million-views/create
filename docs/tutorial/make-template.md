@@ -903,14 +903,14 @@ Now that you've created these templates, learn how to use them:
 - **[Create Scaffold Tutorial](create-scaffold.md)** — Learn how to scaffold new projects using the templates you just created
 - [How to Create Templates](../how-to/creating-templates.md) — Advanced template authoring techniques
 - [Author Workflow](../how-to/author-workflow.md) — Professional template development practices
-- [Template Validation](../reference/cli-reference.md#make-template-validate) — Ensure template quality
+- [Template Validation](../reference/cli-reference.md#make-template-commands) — Ensure template quality
 
 Now that you've created these templates, learn how to use them:
 
 - **[Create Scaffold Tutorial](create-scaffold.md)** — Learn how to scaffold new projects using the templates you just created
 - [How to Create Templates](../how-to/creating-templates.md) — Advanced template authoring techniques
 - [Author Workflow](../how-to/author-workflow.md) — Professional template development practices
-- [Template Validation](../reference/cli-reference.md#make-template-validate) — Ensure template quality
+- [Template Validation](../reference/cli-reference.md#make-template-commands) — Ensure template quality
 
 ## Template locations
 

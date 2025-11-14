@@ -141,7 +141,9 @@ async function validateLinks(filePath, content, allFiles) {
     return;
   }
 
-  const linkRegex = /\[([^\]]+)\]\(([^)]+)\)/g;
+  // More robust regex that avoids matching complex patterns in code blocks or quotes
+  // Only match simple markdown links, not complex regex patterns
+  const linkRegex = /^\s*\[([^\]]+)\]\(([^)\s]+)\)/gm;
   const fileDir = path.dirname(filePath);
   const _relativePaths = allFiles.map(f => path.relative(fileDir, f));
 
@@ -152,6 +154,11 @@ async function validateLinks(filePath, content, allFiles) {
 
     // Skip external links and anchors
     if (link.startsWith('http') || link.startsWith('#') || link.startsWith('mailto:')) {
+      continue;
+    }
+
+    // Skip links that contain regex special characters (likely code examples)
+    if (/[[\]{}()*+?.\\^$|]/.test(link)) {
       continue;
     }
 

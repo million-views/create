@@ -228,4 +228,4 @@ npm run test:spec
 
 - [Test Suite Documentation](../../test/README.md) - Detailed test coverage and implementation
 - [Development Guide](../how-to/development.md) - Development workflow and best practices
-- [Contributing Guide](../../../CONTRIBUTING.md) - Contribution requirements and testing standards
+- [Contributing Guide](../../CONTRIBUTING.md) - Contribution requirements and testing standards
