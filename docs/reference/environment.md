@@ -351,7 +351,7 @@ await tools.options.when('logging', async () => {
   });
 });
 
-if (tools.options.in('infrastructure', 'cloudflare-d1')) {
+if (tools.options.in('deployment', 'cloudflare-d1')) {
   await tools.templates.copy('infra/cloudflare-d1', 'infra');
 }
 ```
@@ -393,7 +393,7 @@ export default async function setup({ ctx, tools }) {
     });
   });
 
-  if (tools.options.in('infrastructure', 'cloudflare-d1')) {
+  if (tools.options.in('deployment', 'cloudflare-d1')) {
     await tools.templates.copy('infra/cloudflare-d1', 'infra/cloudflare');
   }
 }
@@ -421,7 +421,7 @@ export default async function setup({ ctx, tools }) {
         },
         "policy": "strict"
       },
-      "infrastructure": {
+      "deployment": {
         "type": "single",
         "values": ["none", "cloudflare-d1", "cloudflare-turso"],
         "default": "none"

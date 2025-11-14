@@ -466,7 +466,7 @@ Templates describe their vocabulary in `template.json` via `metadata.dimensions`
           "docs": ["testing"]
         }
       },
-      "infrastructure": {
+      "deployment": {
         "type": "single",
         "values": ["none", "cloudflare-d1", "cloudflare-turso"],
         "default": "none"

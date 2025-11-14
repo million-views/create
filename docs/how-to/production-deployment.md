@@ -427,13 +427,13 @@ certbot renew
 certbot certificates
 ```
 
-## Infrastructure Dimension Impact
+## Deployment Dimension Impact
 
-When you scaffold with infrastructure dimensions, deployment may require additional steps:
+When you scaffold with deployment dimensions, deployment may require additional steps:
 
 ### Cloudflare D1 Integration
 
-If your template uses `infrastructure: "cloudflare-d1"`:
+If your template uses `deployment: "cloudflare-d1"`:
 
 ```bash
 # Database is already configured in wrangler.toml
@@ -441,7 +441,7 @@ If your template uses `infrastructure: "cloudflare-d1"`:
 wrangler d1 execute my-app-db --file=./migrations/init.sql
 ```
 
-### No Infrastructure (`infrastructure: "none"`)
+### No Deployment (`deployment: "none"`)
 
 Standard deployment without database dependencies.
 
