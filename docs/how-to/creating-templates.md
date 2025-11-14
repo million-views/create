@@ -355,7 +355,7 @@ Commit and push your templates to make them available:
 ```bash
 # Add and commit your templates
 git add .
-git commit -m "Add portfolio-template with composable features and multiple infrastructure options"
+git commit -m "Add portfolio-template with composable features and multiple deployment options"
 
 # Push to GitHub (create repository first)
 git remote add origin https://github.com/yourusername/my-templates.git

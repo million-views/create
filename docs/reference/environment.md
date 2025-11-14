@@ -94,7 +94,7 @@ The context object is frozen; attempting to mutate it throws.
 ## How template metadata populates the environment
 
 1. **`template.json` declares intent** – Dimensions under `metadata.dimensions` define the option vocabulary, `metadata.placeholders` inventories template-defined `{{TOKEN}}` values, and `metadata.variables` opts into canonical placeholders supplied by the CLI.
-2. **The CLI normalizes user input** – Flags such as `--options "capabilities=auth+logging"` are validated against the declared dimensions and cached in `ctx.options.byDimension` (with defaults pre-applied). Placeholder values are gathered via `--placeholder`, environment variables, defaults, or interactive prompts so `ctx.inputs` is fully populated before `_setup.mjs` executes.
+2. **The CLI normalizes user input** – Flags such as `--options "features=auth+logging"` are validated against the declared dimensions and cached in `ctx.options.byDimension` (with defaults pre-applied). Placeholder values are gathered via `--placeholder`, environment variables, defaults, or interactive prompts so `ctx.inputs` is fully populated before `_setup.mjs` executes.
 3. **`ctx` and `tools` expose the results** – Setup scripts read `ctx.options` or helper wrappers (`tools.options.*`) to branch on selected features, and they access placeholder answers via `ctx.inputs` or `tools.inputs`. Helper APIs such as `tools.placeholders.applyInputs()` consume these values directly, keeping setup code deterministic.
 
 **Example**
