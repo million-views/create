@@ -1,4 +1,4 @@
-# @m5nv/create - Template Ecosystem for Node.js Projects
+# @m5nv/create-scaffold - Template Ecosystem for Node.js Projects
 
 > **A complete template authoring and project scaffolding ecosystem**
 
@@ -8,11 +8,11 @@
 
 ## What is this?
 
-The `@m5nv/create` repository provides a complete ecosystem for creating and using project templates. The ecosystem consists of two complementary tools:
+The `million-views/create` repository provides a complete ecosystem for creating and using project templates. The ecosystem consists of two complementary tools:
 
 - **`@m5nv/create-scaffold`**: The npm package containing both CLI tools
-  - **`make-template`**: Convert existing projects into reusable templates
   - **`create-scaffold`**: Scaffold new projects from templates with guided workflows
+  - **`make-template`**: Convert existing projects into reusable templates
 - **Template Schema V1.0**: Declarative composition with platform gates, feature requirements, and smart defaults
 
 Together, these tools enable teams to codify project best practices, share battle-tested configurations, and bootstrap new projects in seconds.

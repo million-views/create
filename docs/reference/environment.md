@@ -134,7 +134,7 @@ await tools.templates.renderFile('README.tpl.mjs', 'README.md', {
 });
 ```
 
-This shared schema lets template authoring tools (such as `@m5nv/make-template`) prompt for placeholder values, while the runtime guarantees consistent option handling inside `_setup.mjs`.
+This shared schema lets template authoring tools (such as `make-template`) prompt for placeholder values, while the runtime guarantees consistent option handling inside `_setup.mjs`.
 
 ## Tools Overview
 

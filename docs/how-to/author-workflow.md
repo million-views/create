@@ -17,7 +17,7 @@ last_updated: "2025-11-12"
 
 This guide helps template authors iterate efficiently while respecting the division of responsibilities between make-template (author tooling) and @m5nv/create-scaffold (consumer tooling). Follow these loops to keep your templates reliable and predictable.
 
-> **Remember:** Whenever you change files that still contain `{{TOKEN}}` markers, keep `metadata.placeholders` in `template.json` in sync so tooling (including @m5nv/make-template) knows what inputs to collect from users. Add `metadata.variables` entries when you want the CLI to supply canonical tokens such as `{{AUTHOR}}` or `{{LICENSE}}` with standardized prompts.
+> **Remember:** Whenever you change files that still contain `{{TOKEN}}` markers, keep `metadata.placeholders` in `template.json` in sync so tooling (including `make-template`) knows what inputs to collect from users. Add `metadata.variables` entries when you want the CLI to supply canonical tokens such as `{{AUTHOR}}` or `{{LICENSE}}` with standardized prompts.
 
 ## 1. Restore-first iteration (WYSIWYG mode)
 
