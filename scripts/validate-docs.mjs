@@ -15,7 +15,6 @@ import { colorize, fileExists, getMarkdownFiles, formatResults, isMethodologyTem
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const args = process.argv.slice(2);
-const FIX_MODE = args.includes('--fix');
 const VERBOSE = args.includes('--verbose');
 
 // Track validation results
@@ -26,8 +25,7 @@ const results = {
   missingFrontmatter: [],
   codeExamples: 0,
   errors: [],
-  warnings: [],
-  fixesApplied: []
+  warnings: []
 };
 
 /**
@@ -55,18 +53,13 @@ function isPlaceholderDiataxisDoc(filePath) {
  * Validate frontmatter in markdown files
  */
 async function validateFrontmatter(filePath, content) {
-  // Skip frontmatter validation for spec files (requirements.md, design.md, tasks.md)
-  const specFileName = path.basename(filePath, '.md');
   const relativePath = path.relative(process.cwd(), filePath);
 
-  if (relativePath.includes('.kiro/specs/') &&
-      (specFileName === 'requirements' || specFileName === 'design' || specFileName === 'tasks')) {
-    return; // Skip frontmatter validation for spec files
+  // Skip frontmatter validation for all files under .kiro/specs/ and .kiro/steering/
+  // Frontmatter validation should only apply to docs under docs/**
+  if (relativePath.includes('.kiro/specs/') || relativePath.includes('.kiro/steering/')) {
+    return;
   }
-
-  // Skip title/description validation for steering files (but not templates)
-  const isSteeringFile = relativePath.includes('.kiro/steering/') && !relativePath.includes('.kiro/steering/templates/');
-  const isTemplateFile = relativePath.includes('.kiro/steering/templates/');
 
   const lines = content.split('\n');
   const frontmatterStart = lines.findIndex(line => line.trim() === '---');
@@ -106,17 +99,13 @@ async function validateFrontmatter(filePath, content) {
 
   // Check for recommended frontmatter fields
   const recommendedFields = [];
-  if (isTemplateFile) {
-    // Template files should have standard frontmatter
-    recommendedFields.push('title', 'description', 'type');
-  } else if (!isSteeringFile) {
+  if (expectedType !== 'unknown') {
     // Regular docs should have standard frontmatter
     recommendedFields.push('title', 'description');
     if (expectedType !== 'unknown') {
       recommendedFields.push('type');
     }
   }
-  // Steering files (non-templates) skip all frontmatter checks
 
   for (const field of recommendedFields) {
     if (!frontmatter[field]) {
@@ -350,11 +339,7 @@ async function validateDocumentation() {
   if (totalIssues === 0) {
     return 0;
   } else {
-    if (FIX_MODE) {
-      console.log('Run without --fix to see current status.');
-    } else {
-      console.log('Run with --fix to automatically fix some issues.');
-    }
+    console.log('Run validation again after fixing issues.');
     return 1;
   }
 }
