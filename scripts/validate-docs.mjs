@@ -221,6 +221,46 @@ function validateDiataxisStructure(filePath) {
 }
 
 /**
+ * Validate terminology consistency (package vs tool references)
+ */
+function validateTerminology(filePath, content) {
+  const relativePath = path.relative(process.cwd(), filePath);
+
+  // Skip terminology validation for steering files (they may contain example/template content)
+  if (relativePath.includes('.kiro/steering/')) {
+    return;
+  }
+
+  // Skip terminology validation for spec files (they may contain historical references)
+  if (relativePath.includes('.kiro/specs/')) {
+    return;
+  }
+
+  const lines = content.split('\n');
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+
+    // Check for incorrect references to old package name
+    if (line.includes('@m5nv/create') && !line.includes('@m5nv/create-scaffold')) {
+      results.errors.push(`${filePath}:${i + 1}: Incorrect reference to old package name '@m5nv/create' (should be '@m5nv/create-scaffold')`);
+    }
+
+    // Check for incorrect tool references with package prefix
+    if (line.includes('@m5nv/make-template')) {
+      results.errors.push(`${filePath}:${i + 1}: Incorrect tool reference '@m5nv/make-template' (should be just 'make-template')`);
+    }
+
+    // Check for package references when tool is meant (context-dependent warnings)
+    // Only warn for specific problematic patterns, not general "provides tools" statements
+    const problematicPackageToolRegex = /@m5nv\/create-scaffold.*(?:CLI tool|command|executable)(?!s)/gi;
+    if (problematicPackageToolRegex.test(line)) {
+      results.warnings.push(`${filePath}:${i + 1}: Package reference '@m5nv/create-scaffold' used with singular tool terminology - consider if this should refer to the package or individual tool`);
+    }
+  }
+}
+
+/**
  * Main validation function
  */
 async function validateDocumentation() {
@@ -284,6 +324,7 @@ async function validateDocumentation() {
       await validateLinks(file, content, files);
       validateCodeExamples(file, content);
       validateDiataxisStructure(file);
+      validateTerminology(file, content);
 
     } catch (error) {
       results.errors.push(`${file}: ${error.message}`);
