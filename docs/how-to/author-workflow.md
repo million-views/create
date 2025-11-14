@@ -153,6 +153,14 @@ export default async function setup({ ctx, tools }) {
 
 ### Testing setup scripts in isolation
 
+When debugging setup scripts, you often want to test them quickly without running the full `create-scaffold` command each time. This approach creates a minimal test environment that simulates what `create-scaffold` provides, allowing you to iterate rapidly on your setup logic.
+
+**Why test in isolation?**
+- **Faster iteration**: Skip the full scaffold process for each test
+- **Focused debugging**: Test only your setup script logic, not the entire template
+- **Controlled environment**: Use mock objects to simulate different scenarios
+- **Early validation**: Catch setup script errors before publishing templates
+
 Create a minimal test scaffold to isolate setup script issues:
 
 ```bash
@@ -173,7 +181,7 @@ echo '{"name": "test-scaffold", "version": "1.0.0"}' > package.json
 # All operations must use the provided tools object
 # The test below simulates the sandbox environment
 
-# Test setup script manually (advanced)
+# Test setup script without having to invoke `create-scaffold`
 node -e "
 import('./_setup.mjs').then(async (module) => {
   const mockCtx = {
