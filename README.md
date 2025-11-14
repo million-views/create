@@ -8,12 +8,12 @@
 
 ## What is this?
 
-The `million-views/create` repository provides a complete ecosystem for creating and using project templates. The ecosystem consists of two complementary tools:
+The `million-views/create` repository provides a complete ecosystem for creating and using project templates. The ecosystem consists of two complementary CLI tools and a template schema, all delivered through the `@m5nv/create-scaffold` npm package:
 
-- **`@m5nv/create-scaffold`**: The npm package containing both CLI tools
+- **CLI Tools**:
   - **`create-scaffold`**: Scaffold new projects from templates with guided workflows
   - **`make-template`**: Convert existing projects into reusable templates
-- **Template Schema V1.0**: Declarative composition with platform gates, feature requirements, and smart defaults
+- **Template Schema V1.0**: Declarative composition format with platform gates, feature requirements, and smart defaults for use with developer tools
 
 Together, these tools enable teams to codify project best practices, share battle-tested configurations, and bootstrap new projects in seconds.
 

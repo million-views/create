@@ -323,7 +323,7 @@ Let's start by creating a modern React SPA template using Vite - the foundation 
 
     ```bash
     cd ..
-    rm -rf basic-react-spa cf-worker-demo *-scaffolded
+    rm -rf cf-worker-demo *-scaffolded
     ```
 
 ### What You Learned
@@ -370,62 +370,43 @@ Now let's create a React Router v7 SSR application that directly accesses D1 dat
    npm install
    ```
 
-3. **Install additional dependencies for D1:**
+3. **Install dependencies for D1 and SQL templating:**
    ```bash
-   npm install drizzle-orm
-   npm install --save-dev drizzle-kit
+   npm install @m5nv/stl
    ```
 
 4. **Set up the database schema and types:**
    ```bash
    mkdir -p app/db app/lib
-   touch app/db/schema.ts app/db/client.ts drizzle.config.ts
+   touch app/db/schema.sql app/db/client.ts
    ```
 
-5. **Create the database schema:**
+5. **Create the database schema SQL:**
 
-   **app/db/schema.ts:**
-   ```typescript
-   import { sqliteTable, text, integer } from 'drizzle-orm/sqlite-core';
+   **app/db/schema.sql:**
+   ```sql
+   CREATE TABLE projects (
+     id INTEGER PRIMARY KEY AUTOINCREMENT,
+     title TEXT NOT NULL,
+     description TEXT,
+     status TEXT DEFAULT 'draft',
+     created_at INTEGER NOT NULL
+   );
 
-   export const projects = sqliteTable('projects', {
-     id: integer('id').primaryKey({ autoIncrement: true }),
-     title: text('title').notNull(),
-     description: text('description'),
-     status: text('status').default('draft'),
-     createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
-   });
-
-   export const tasks = sqliteTable('tasks', {
-     id: integer('id').primaryKey({ autoIncrement: true }),
-     projectId: integer('project_id').references(() => projects.id),
-     title: text('title').notNull(),
-     completed: integer('completed', { mode: 'boolean' }).default(false),
-     createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
-   });
+   CREATE TABLE tasks (
+     id INTEGER PRIMARY KEY AUTOINCREMENT,
+     project_id INTEGER REFERENCES projects(id),
+     title TEXT NOT NULL,
+     completed INTEGER DEFAULT 0,
+     created_at INTEGER NOT NULL
+   );
    ```
 
    **app/db/client.ts:**
    ```typescript
-   import { drizzle } from 'drizzle-orm/d1';
-   import * as schema from './schema';
+   import stl from '@m5nv/stl';
 
-   export function createDb(connection: D1Database) {
-     return drizzle(connection, { schema });
-   }
-
-   export type Database = ReturnType<typeof createDb>;
-   ```
-
-   **drizzle.config.ts:**
-   ```typescript
-   import { defineConfig } from 'drizzle-kit';
-
-   export default defineConfig({
-     dialect: 'sqlite',
-     schema: './app/db/schema.ts',
-     out: './migrations',
-   });
+   export const sql = stl({ debug: false });
    ```
 
 6. **Create the main app structure:**
@@ -435,15 +416,14 @@ Now let's create a React Router v7 SSR application that directly accesses D1 dat
    import { json } from '@react-router/node';
    import { useLoaderData } from 'react-router';
    import type { LoaderFunctionArgs } from '@react-router/node';
-   import { createDb } from '~/db/client';
-   import { projects } from '~/db/schema';
-   import { desc } from 'drizzle-orm';
+   import { sql } from '~/db/client';
 
    export async function loader({ context }: LoaderFunctionArgs) {
-     const db = createDb(context.cloudflare.env.DB);
-     const allProjects = await db.select().from(projects).orderBy(desc(projects.createdAt));
+     const db = context.cloudflare.env.DB;
+     const query = sql`SELECT * FROM projects ORDER BY created_at DESC`;
+     const { results } = await db.prepare(query.string).bind(...query.parameters).all();
 
-     return json({ projects: allProjects });
+     return json({ projects: results });
    }
 
    export default function Index() {
@@ -487,13 +467,7 @@ Now let's create a React Router v7 SSR application that directly accesses D1 dat
    migrations_dir = "migrations"
    ```
 
-8. **Create database migrations:**
-   ```bash
-   mkdir migrations
-   npx drizzle-kit generate
-   ```
-
-9. **Update package.json:**
+8. **Update package.json:**
    ```json
    {
      "name": "ssr-portfolio-app",
@@ -504,9 +478,7 @@ Now let's create a React Router v7 SSR application that directly accesses D1 dat
        "build": "react-router build",
        "dev": "react-router dev",
        "start": "wrangler dev",
-       "deploy": "npm run build && wrangler deploy",
-       "db:generate": "drizzle-kit generate",
-       "db:migrate": "wrangler d1 migrations apply ssr_portfolio_app_db"
+       "deploy": "npm run build && wrangler deploy"
      },
      "keywords": ["react-router", "ssr", "d1", "cloudflare", "portfolio", "template"],
      "author": "John Doe <john@example.com>",
@@ -577,58 +549,41 @@ Finally, let's create a split-architecture full-stack application: a Cloudflare 
    mkdir portfolio-api
    cd portfolio-api
    npm create cloudflare@latest . -- --template hello-world --yes
-   npm install drizzle-orm itty-router
-   npm install --save-dev drizzle-kit
+   npm install @m5nv/stl itty-router
    ```
 
 3. **Set up the API server structure:**
    ```bash
    mkdir -p src/db src/routes
-   touch src/db/schema.ts src/db/client.ts src/routes/projects.ts src/routes/tasks.ts drizzle.config.ts
+   touch src/db/schema.sql src/db/client.ts src/routes/projects.ts
    ```
 
 4. **Create the database schema:**
 
-   **src/db/schema.ts:**
-   ```typescript
-   import { sqliteTable, text, integer } from 'drizzle-orm/sqlite-core';
+   **src/db/schema.sql:**
+   ```sql
+   CREATE TABLE projects (
+     id INTEGER PRIMARY KEY AUTOINCREMENT,
+     title TEXT NOT NULL,
+     description TEXT,
+     status TEXT DEFAULT 'draft',
+     created_at INTEGER NOT NULL
+   );
 
-   export const projects = sqliteTable('projects', {
-     id: integer('id').primaryKey({ autoIncrement: true }),
-     title: text('title').notNull(),
-     description: text('description'),
-     status: text('status').default('draft'),
-     createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
-   });
-
-   export const tasks = sqliteTable('tasks', {
-     id: integer('id').primaryKey({ autoIncrement: true }),
-     projectId: integer('project_id').references(() => projects.id),
-     title: text('title').notNull(),
-     completed: integer('completed', { mode: 'boolean' }).default(false),
-     createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
-   });
+   CREATE TABLE tasks (
+     id INTEGER PRIMARY KEY AUTOINCREMENT,
+     project_id INTEGER REFERENCES projects(id),
+     title TEXT NOT NULL,
+     completed INTEGER DEFAULT 0,
+     created_at INTEGER NOT NULL
+   );
    ```
 
    **src/db/client.ts:**
    ```typescript
-   import { drizzle } from 'drizzle-orm/d1';
-   import * as schema from './schema';
+   import stl from '@m5nv/stl';
 
-   export function createDb(env: { DB: D1Database }) {
-     return drizzle(env.DB, { schema });
-   }
-   ```
-
-   **drizzle.config.ts:**
-   ```typescript
-   import { defineConfig } from 'drizzle-kit';
-
-   export default defineConfig({
-     dialect: 'sqlite',
-     schema: './src/db/schema.ts',
-     out: './migrations',
-   });
+   export const sql = stl({ debug: false });
    ```
 
 5. **Create API routes:**
@@ -636,35 +591,30 @@ Finally, let's create a split-architecture full-stack application: a Cloudflare 
    **src/routes/projects.ts:**
    ```typescript
    import { Router } from 'itty-router';
-   import { createDb } from '../db/client';
-   import { projects, tasks } from '../db/schema';
-   import { eq, desc } from 'drizzle-orm';
+   import { sql } from '../db/client';
 
    const router = Router();
 
    router.get('/api/projects', async (request, env) => {
-     const db = createDb(env);
-     const allProjects = await db.select().from(projects).orderBy(desc(projects.createdAt));
-     return Response.json(allProjects);
+     const query = sql`SELECT * FROM projects ORDER BY created_at DESC`;
+     const { results } = await env.DB.prepare(query.string).bind(...query.parameters).all();
+     return Response.json(results);
    });
 
    router.post('/api/projects', async (request, env) => {
-     const db = createDb(env);
      const body = await request.json();
-     const result = await db.insert(projects).values({
-       title: body.title,
-       description: body.description,
-       status: body.status || 'draft',
-       createdAt: new Date(),
-     }).returning();
-     return Response.json(result[0], { status: 201 });
+     const query = sql`INSERT INTO projects (title, description, status, created_at) VALUES (?, ?, ?, ?) RETURNING *`;
+     const { results } = await env.DB.prepare(query.string)
+       .bind(body.title, body.description || null, body.status || 'draft', Date.now())
+       .run();
+     return Response.json(results[0], { status: 201 });
    });
 
    router.get('/api/projects/:id/tasks', async (request, env) => {
-     const db = createDb(env);
      const projectId = parseInt(request.params.id);
-     const projectTasks = await db.select().from(tasks).where(eq(tasks.projectId, projectId));
-     return Response.json(projectTasks);
+     const query = sql`SELECT * FROM tasks WHERE project_id = ?`;
+     const { results } = await env.DB.prepare(query.string).bind(projectId).all();
+     return Response.json(results);
    });
 
    export default router;
@@ -708,15 +658,9 @@ Finally, let's create a split-architecture full-stack application: a Cloudflare 
    binding = "DB"
    database_name = "portfolio_api_db"
    database_id = ""
-   migrations_dir = "migrations"
    ```
 
-8. **Generate migrations:**
-   ```bash
-   npx drizzle-kit generate
-   ```
-
-9. **Update API package.json:**
+8. **Update API package.json:**
    ```json
    {
      "name": "portfolio-api",
@@ -724,9 +668,7 @@ Finally, let's create a split-architecture full-stack application: a Cloudflare 
      "description": "Portfolio API server with Cloudflare Workers and D1",
      "scripts": {
        "dev": "wrangler dev",
-       "deploy": "wrangler deploy",
-       "db:generate": "drizzle-kit generate",
-       "db:migrate": "wrangler d1 migrations apply portfolio_api_db"
+       "deploy": "wrangler deploy"
      },
      "keywords": ["api", "cloudflare", "workers", "d1", "portfolio", "template"],
      "author": "John Doe <john@example.com>",
@@ -893,18 +835,11 @@ You successfully created three templates that demonstrate a progressive modern s
 Each template demonstrates:
 - Modern tooling and frameworks (Vite, React Router v7, Cloudflare Workers)
 - Progressive complexity building from SPA → SSR → Split Architecture
-- Database integration with D1 and Drizzle ORM
+- Database integration with D1 and @m5nv/stl SQL templating
 - Cloudflare deployment patterns and configurations
 - Template features like placeholders, setup scripts, and assetsDir
 
 ## Next steps
-
-Now that you've created these templates, learn how to use them:
-
-- **[Create Scaffold Tutorial](create-scaffold.md)** — Learn how to scaffold new projects using the templates you just created
-- [How to Create Templates](../how-to/creating-templates.md) — Advanced template authoring techniques
-- [Author Workflow](../how-to/author-workflow.md) — Professional template development practices
-- [Template Validation](../reference/cli-reference.md#make-template-commands) — Ensure template quality
 
 Now that you've created these templates, learn how to use them:
 

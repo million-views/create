@@ -52,8 +52,6 @@ Registries are collections of templates that you can reference by name instead o
 
 ### Create Your Workshop Registry
 
-### Create Your Workshop Registry
-
 Registries are configured in your `.m5nvrc` configuration file. Let's set up a local registry for your workshop templates.
 
 1. **Create or edit your `.m5nvrc` file in your home directory:**

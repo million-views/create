@@ -32,6 +32,8 @@ Use this guide when you need to:
 - Build templates with conditional features based on user options
 - Implement complex setup logic for project initialization
 
+> **Note:** This guide builds on the templates created in the [make-template tutorial](../tutorial/make-template.md), which creates `basic-react-spa`, `ssr-portfolio-app`, and `portfolio-api` templates. This guide shows advanced templating features like composable templates with dimensions, conditional asset inclusion, and complex setup scripts that go beyond the basic WYSIWYG approach covered in the tutorial.
+
 ## Prerequisites
 
 Before following this guide, ensure you have:
@@ -65,11 +67,14 @@ Each template lives in its own directory at the repository root:
 
 ```text
 my-templates/
-├── react-vite/
+├── basic-react-spa/
 │   ├── package.json
 │   ├── src/
 │   └── _setup.mjs
-└── express-api/
+├── ssr-portfolio-app/
+│   ├── package.json
+│   └── _setup.mjs
+└── portfolio-api/
     ├── package.json
     └── _setup.mjs
 ```
@@ -82,8 +87,8 @@ If you are authoring composable templates with snippets, add an author-assets di
 
 | Mode | When to choose it | Expectations |
 |------|-------------------|--------------|
-| **WYSIWYG** (`authoring: "wysiwyg"`) | You iterate directly in a working app and only need light placeholder replacement. | No runtime option parsing. `metadata.dimensions` can stay empty. `_setup.mjs` should focus on tokens and minor tweaks. |
-| **Composable** (`authoring: "composable"`) | You need a single template to produce several variants (stacks, infra, capabilities). | Define option dimensions in `template.json`, store reusable assets in `__scaffold__/`, and keep `_setup.mjs` small but declarative. |
+| **WYSIWYG** (`authoring: "wysiwyg"`) | You iterate directly in a working app and only need light placeholder replacement. This is what the make-template tutorial creates. | No runtime option parsing. `metadata.dimensions` can stay empty. `_setup.mjs` should focus on tokens and minor tweaks. |
+| **Composable** (`authoring: "composable"`) | You need a single template to produce several variants (stacks, infra, capabilities). Use this for advanced templating beyond the tutorial. | Define option dimensions in `template.json`, store reusable assets in `__scaffold__/`, and keep `_setup.mjs` small but declarative. |
 | **Hybrid** | You start from a WYSIWYG base but require a few reusable snippets. | Keep placeholder replacement for inline updates, but move any repeated assets into `__scaffold__/` so they can be copied conditionally via helpers. |
 
 Switching modes later is as simple as updating `template.json`, but start with WYSIWYG unless you know you need composability.
@@ -94,25 +99,36 @@ Switching modes later is as simple as updating `template.json`, but start with W
 
 ```json
 {
-  "name": "react-vite",
-  "description": "React starter with Vite",
+  "schemaVersion": "1.0.0",
+  "id": "your-org/portfolio-template",
+  "name": "portfolio-template",
+  "description": "Full-stack portfolio with multiple deployment options",
+  "author": "Your Organization",
+  "license": "MIT",
+  "tags": ["portfolio", "full-stack", "cloudflare"],
   "handoff": ["npm install", "npm run dev"],
   "setup": {
     "authoring": "composable",
     "authorAssetsDir": "__scaffold__",
     "dimensions": {
-      "capabilities": {
+      "features": {
         "type": "multi",
-        "values": ["auth", "docs", "logging"],
-        "default": ["logging"],
+        "values": ["auth", "blog", "analytics", "testing"],
+        "default": ["testing"],
         "policy": "strict"
       },
-      "infrastructure": {
+      "deployment": {
         "type": "single",
-        "values": ["none", "cloudflare-d1", "cloudflare-turso"],
-        "default": "none"
+        "values": ["cloudflare-d1", "vercel-postgres", "railway"],
+        "default": "cloudflare-d1"
       }
     }
+  },
+  "featureSpecs": {},
+  "constants": {
+    "language": "javascript",
+    "framework": "react",
+    "runtime": "node"
   }
 }
 ```
@@ -125,6 +141,8 @@ Switching modes later is as simple as updating `template.json`, but start with W
   - `default`: optional default when the user omits that dimension.
   - `requires` / `conflicts`: encode dependencies within the dimension.
   - `policy`: `"strict"` rejects unknown selections, `"warn"` logs but proceeds.
+
+> **Important:** Dimensions must use registered names from the schema. The current registered dimensions are: `deployment`, `features`, `database`, `storage`, `auth`, `payments`, `analytics`. Custom dimension names are not allowed - use only these predefined names to ensure schema compliance.
 
 > **Tooling tip:** Ship the schema with your repo to unlock editor validation. If you install `@m5nv/create-scaffold` as a dev dependency, VS Code can read the packaged schema automatically:
 > ```json
@@ -152,12 +170,12 @@ export const template = { /* ... */ };
 
 The setup script receives a sandboxed environment with restricted capabilities. Setup scripts run in a Node.js VM with access to only `console`, timers, and `process.env` - all other Node built-ins are blocked. Use the provided `tools` object for all filesystem operations, JSON manipulation, and project modifications.
 
-**WYSIWYG example**
+**WYSIWYG example** (like basic-react-spa template from tutorial)
 ```javascript
 export default async function setup({ ctx, tools }) {
   await tools.placeholders.replaceAll(
     { PROJECT_NAME: ctx.projectName },
-    ['README.md', 'package.json']
+    ['README.md', 'package.json', 'index.html']
   );
 
   // Copy IDE configurations from template
@@ -165,17 +183,24 @@ export default async function setup({ ctx, tools }) {
 }
 ```
 
-**Composable example with dimensions**
+**Composable example with dimensions** (advanced templating)
 ```javascript
 export default async function setup({ ctx, tools }) {
   await tools.json.set('package.json', 'name', ctx.projectName);
 
-  if (tools.options.in('capabilities', 'auth')) {
+  // Conditionally include authentication
+  if (tools.options.in('features', 'auth')) {
     await tools.templates.copy('auth', 'src/auth');
+    await tools.json.set('package.json', 'dependencies.@m5nv/auth-lib', '^1.0.0');
   }
 
-  if (tools.options.in('infrastructure', 'cloudflare-d1')) {
+  // Set up deployment target-specific files
+  if (tools.options.in('deployment', 'cloudflare-d1')) {
     await tools.templates.copy('infra/cloudflare-d1', 'infra');
+    await tools.placeholders.replaceAll(
+      { D1_DATABASE_NAME: `${ctx.projectName}_db` },
+      ['wrangler.toml']
+    );
   }
 
   await tools.text.ensureBlock({
@@ -217,32 +242,40 @@ When `metadata.placeholders` lists a value that shouldn't be replaced inline, mo
 Store reusable snippets under `__scaffold__/` (or your custom `authorAssetsDir`):
 
 ```text
-react-vite/
+portfolio-template/
 ├── __scaffold__/
 │   ├── auth/
-│   └── infra/
-│       └── cloudflare-d1/
+│   │   ├── src/auth/
+│   │   └── package.json.partial
+│   ├── infra/
+│   │   ├── cloudflare-d1/
+│   │   ├── vercel-postgres/
+│   │   └── railway/
+│   └── ui/
+│       ├── tailwind/
+│       ├── styled-components/
+│       └── vanilla-css/
 └── src/
 ```
 
 create-scaffold copies this directory into the project before `_setup.mjs` runs and removes it afterward. Treat it as read-only input. If you need to generate new assets, write them into the project tree (`src/`, `infra/`, etc.), not back into `__scaffold__/`.
 
-### Step 6: Test iteratively
+> **Note:** The templates created in the make-template tutorial use WYSIWYG authoring mode and don't require author assets directories. Use `__scaffold__` for advanced composable templates that need conditional asset inclusion based on user options.### Step 6: Test iteratively
 
 1. **Use make-template restore for fast loops.** After editing placeholders, run the generated restore command (based on `.template-undo.json`) to rehydrate the working app and verify changes inline.
 2. **Run create-scaffold dry runs when you touch metadata or `_setup.mjs`.**
    ```bash
-   create-scaffold demo-app --template react-vite --repo path/to/my-templates --dry-run
+   create-scaffold demo-app --template yourusername/my-templates/portfolio-template --options auth,cloudflare-d1 --dry-run
    ```
    Dry runs show directory/file counts, setup script detection, and skip author assets so the preview matches the final scaffold.
 3. **Execute a full scaffold periodically** to ensure the handoff instructions make sense and the generated project boots as expected.
 4. **Lint your manifest before publishing.** If your template repo depends on @m5nv/create-scaffold, add `npm run schema:check` to CI. The command verifies both the JSON schema (`template.json`) and the generated TypeScript definition.
 5. **Run the CLI validator before commits and releases.**
   ```bash
-  create-scaffold --validate-template ./path/to/templates/react-vite
+  create-scaffold --validate-template ./path/to/templates/portfolio-template
 
   # Capture JSON output for CI assertions
-  create-scaffold --validate-template ./path/to/templates/react-vite --json
+  create-scaffold --validate-template ./path/to/templates/portfolio-template --json
   ```
   The validator exits with code `1` when any manifest, required-file, or setup-script check fails, making it safe for local linting and CI pipelines.
 
@@ -252,27 +285,45 @@ Templates can choose to continue when a user supplies an unexpected value by set
 
 ### Post-create handoff instructions
 
-Help users get productive immediately by adding a `handoff` array to `template.json`. Each entry becomes a bullet under “Next steps” after scaffolding.
+Help users get productive immediately by adding a `handoff` array to `template.json`. Each entry becomes a bullet under "Next steps" after scaffolding.
 
 ```json
 {
-  "name": "react-vite",
-  "description": "React starter with Vite",
+  "schemaVersion": "1.0.0",
+  "id": "your-org/portfolio-template",
+  "name": "portfolio-template",
+  "description": "Full-stack portfolio with multiple deployment options",
+  "author": "Your Organization",
+  "license": "MIT",
+  "tags": ["portfolio", "full-stack", "cloudflare"],
   "handoff": [
     "npm install",
     "npm run dev  # Development server",
     "npm run build && npm run start  # Production build test",
-    "See README.md for deployment options (Cloudflare Workers/Linode VPS)"
+    "See README.md for deployment options (Cloudflare Workers/Vercel/Railway)"
   ],
   "setup": {
+    "authoring": "composable",
+    "authorAssetsDir": "__scaffold__",
     "dimensions": {
-      "capabilities": {
+      "features": {
         "type": "multi",
-        "values": ["testing", "docs"],
-        "default": ["testing"],
-        "policy": "warn"
+        "values": ["auth", "blog", "analytics"],
+        "default": ["analytics"],
+        "policy": "strict"
+      },
+      "deployment": {
+        "type": "single",
+        "values": ["cloudflare-d1", "vercel-postgres", "railway"],
+        "default": "cloudflare-d1"
       }
     }
+  },
+  "featureSpecs": {},
+  "constants": {
+    "language": "javascript",
+    "framework": "react",
+    "runtime": "node"
   }
 }
 ```
@@ -288,14 +339,14 @@ Before publishing, test your template locally:
 cd ..
 
 # Test the template (replace 'yourusername' with your GitHub username)
-npm create @m5nv/scaffold test-project -- --template react-vite --repo yourusername/my-templates
+npm create @m5nv/scaffold test-project -- --template yourusername/my-templates/portfolio-template --options auth,cloudflare-d1
 ```
 
 Verify the template works correctly:
 1. Check that `{{PROJECT_NAME}}` placeholders were replaced
 2. Ensure all files were copied correctly
 3. Test that the project runs: `cd test-project && npm install && npm run dev`
-4. Run `create-scaffold --validate-template ./path/to/templates/react-vite` against the template directory to confirm linting passes
+4. Run `create-scaffold --validate-template ./path/to/templates/basic-react-spa` against the template directory to confirm linting passes
 
 ### Step 8: Publish your template repository
 
@@ -304,7 +355,7 @@ Commit and push your templates to make them available:
 ```bash
 # Add and commit your templates
 git add .
-git commit -m "Add React Vite template"
+git commit -m "Add portfolio-template with composable features and multiple infrastructure options"
 
 # Push to GitHub (create repository first)
 git remote add origin https://github.com/yourusername/my-templates.git

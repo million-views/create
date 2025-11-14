@@ -249,19 +249,23 @@ Provide a function that receives a mutable clone of the JSON data. Return new ob
 *Parameters:* `path: string, updater: (data: any) => any`
 
 **set(path, value)**  
-Assign a value at a dot-path (e.g. `scripts.dev`). Intermediate objects/arrays created automatically.  
-*Parameters:* `path: string, value: any`
+Assign a value at a dot-path (e.g. `scripts.dev`). Dots in the path act as property separators, allowing deep object navigation. Property names can contain any valid JavaScript identifier characters, including special characters like `@` in scoped package names. Intermediate objects are created automatically.  
+*Parameters:* `path: string, value: any`  
+*Examples:*  
+- `tools.json.set('package.json', 'scripts.dev', 'node index.js')`  
+- `tools.json.set('package.json', 'dependencies.@m5nv/auth-lib', '^1.0.0')`  
+- `tools.json.set('package.json', 'config.database.host', 'localhost')`
 
 **remove(path)**  
-Remove a property or array entry at the dot-path.  
+Remove a property or array entry at the dot-path. Dots act as property separators for deep navigation.  
 *Parameters:* `path: string`
 
 **addToArray(path, value, options?)**  
-Push a value into an array at the dot-path, optionally enforcing uniqueness.  
+Push a value into an array at the dot-path, optionally enforcing uniqueness. Dots act as property separators for deep navigation.  
 *Parameters:* `path: string, value: any, options?: { unique?: boolean }`
 
 **mergeArray(path, items, options?)**  
-Merge multiple values into an array at the dot-path, optionally enforcing uniqueness.  
+Merge multiple values into an array at the dot-path, optionally enforcing uniqueness. Dots act as property separators for deep navigation.  
 *Parameters:* `path: string, items: any[], options?: { unique?: boolean }`
 
 ### `tools.templates`
