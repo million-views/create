@@ -12,7 +12,7 @@ last_updated: "2025-11-12"
 
 # Reference Documentation
 
-Complete technical reference for the `@m5nv/create-scaffold` CLI tool. These documents provide comprehensive, searchable information for quick lookup during development and troubleshooting.
+Complete technical reference for the `@m5nv/create-scaffold` package. These documents provide comprehensive, searchable information for quick lookup during development and troubleshooting.
 
 ## Available References
 

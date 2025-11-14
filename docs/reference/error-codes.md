@@ -14,7 +14,7 @@ last_updated: "2025-11-12"
 
 ## Overview
 
-Complete reference for exit codes, error messages, and troubleshooting information for the `@m5nv/create-scaffold` CLI tool.
+Complete reference for exit codes, error messages, and troubleshooting information for the `@m5nv/create-scaffold` package.
 
 ## Exit Codes
 
