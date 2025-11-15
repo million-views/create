@@ -5,14 +5,14 @@
  * Restores templatized projects back to working state
  */
 
-import { validateMakeTemplateArguments } from '../../../lib/shared/validators/make-template-args.mjs';
-import { RestorationEngine } from '../../../lib/shared/make-template/restoration-engine.mjs';
+import { validateMakeTemplateArguments } from '../lib/validators/make-template-args.mjs';
+import { RestorationEngine } from '../lib/restoration-engine.mjs';
 import { TERMINOLOGY } from '../../../lib/shared/ontology.mjs';
 import { parseArgs } from 'util';
 import { rm, readdir } from 'fs/promises';
 import { realpathSync } from 'fs';
 import { validateTemplateRestorable } from '../../../lib/shared/utils/fs-utils.mjs';
-import { handleArgumentParsingError, withErrorHandling } from '../../../lib/shared/error-handler.mjs';
+import { handleArgumentParsingError, withErrorHandling } from '../lib/utils/error-handler.mjs';
 import { Logger } from '../../../lib/shared/utils/logger.mjs';
 
 // Command-specific options schema

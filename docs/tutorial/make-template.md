@@ -117,12 +117,13 @@ Define your placeholders in `template.json`:
    - `{{AUTHOR}}` for "John Doe <john@example.com>"
    - `{{README_TITLE}}` for the README title
    - `{{HTML_TITLE}}` for the HTML title
-   - `{{TEXT_CONTENT_0}}` for "My Awesome Project"
-   - `{{TEXT_CONTENT_1}}` for "Welcome to your modern React SPA!"
+   - `{{TEXT_CONTENT_0}}`, `{{TEXT_CONTENT_1}}`, etc. for text content blocks
    - `{{TAGLINE}}` for "Built with Vite + React"
-   - `{{IMAGE_URL_0}}` for "/logo.png"
-   - `{{ALT_TEXT_0}}` for "My Company Logo"
-   - `{{LINK_URL_0}}` for "https://github.com/johndoe"
+   - `{{IMAGE_URL_0}}`, `{{IMAGE_URL_1}}`, etc. for image sources
+   - `{{ALT_TEXT_0}}`, `{{ALT_TEXT_1}}`, etc. for image alt text
+   - `{{LINK_URL_0}}`, `{{LINK_URL_1}}`, etc. for link URLs
+
+   **Note:** The system now supports up to 10 placeholders per type (images, links, alt text, text content, quotes). If your project has more templatable elements than this limit, only the first 10 of each type will be converted to placeholders.
 
 9. **Test the Template:**
 

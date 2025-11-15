@@ -7,7 +7,7 @@
 
 import { stat as _stat } from 'node:fs/promises';
 import { join as _join, basename, extname as _extname } from 'node:path';
-import { stat as sharedStat } from '../../utils/fs-utils.mjs';
+import { stat as sharedStat } from '../../../../lib/shared/utils/fs-utils.mjs';
 
 export class FileCategorizer {
   constructor() {

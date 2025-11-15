@@ -5,7 +5,7 @@
  * Provides consistent argument validation across all commands
  */
 
-import { TERMINOLOGY } from '../ontology.mjs';
+import { TERMINOLOGY } from '../../../../lib/shared/ontology.mjs';
 
 /**
  * Validate project type option

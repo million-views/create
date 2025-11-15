@@ -6,8 +6,8 @@
  */
 
 import { readFile } from 'node:fs/promises';
-import { exists } from '../../utils/fs-utils.mjs';
-import { Logger } from '../../utils/logger.mjs';
+import { exists } from '../../../../lib/shared/utils/fs-utils.mjs';
+import { Logger } from '../../../../lib/shared/utils/logger.mjs';
 
 export class RestorationPlanner {
   constructor() {

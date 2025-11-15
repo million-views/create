@@ -6,7 +6,7 @@
 
 import { readFile, readdir, stat as _stat } from 'node:fs/promises';
 import { join } from 'node:path';
-import { exists } from '../../utils/fs-utils.mjs';
+import { exists } from '../../../../lib/shared/utils/fs-utils.mjs';
 
 export class PlaceholderFinder {
   constructor() {
@@ -24,6 +24,40 @@ export class PlaceholderFinder {
       'vite-react': {
         'vite.config.js': ['base'],
         'index.html': ['title']
+      }
+    };
+
+    // Define placeholder types and their generation strategies
+    this.placeholderTypes = {
+      'image': {
+        prefix: 'IMAGE_URL',
+        maxSupported: 10, // Allow up to 10 images
+        generateName: (index, context) => {
+          if (context?.value?.toLowerCase().includes('logo')) {
+            return 'LOGO_URL';
+          }
+          return `${this.placeholderTypes.image.prefix}_${index}`;
+        }
+      },
+      'link': {
+        prefix: 'LINK_URL',
+        maxSupported: 10,
+        generateName: (index) => `${this.placeholderTypes.link.prefix}_${index}`
+      },
+      'alt': {
+        prefix: 'ALT_TEXT',
+        maxSupported: 10,
+        generateName: (index) => `${this.placeholderTypes.alt.prefix}_${index}`
+      },
+      'text': {
+        prefix: 'TEXT_CONTENT',
+        maxSupported: 10,
+        generateName: (index) => `${this.placeholderTypes.text.prefix}_${index}`
+      },
+      'quote': {
+        prefix: 'QUOTE',
+        maxSupported: 5,
+        generateName: (index) => `${this.placeholderTypes.quote.prefix}_${index}`
       }
     };
   }
@@ -302,6 +336,13 @@ export class PlaceholderFinder {
     while ((match = textRegex.exec(content)) !== null) {
       const text = match[1].trim();
       if (text.length >= 3 && !/^\s*$/.test(text)) { // Exclude very short or whitespace-only
+        const typeConfig = this.placeholderTypes.text;
+
+        if (index >= typeConfig.maxSupported) {
+          console.warn(`Warning: Found more than ${typeConfig.maxSupported} text content blocks in ${file}. Only first ${typeConfig.maxSupported} will be templatized.`);
+          break;
+        }
+
         const name = this.generateTextPlaceholderName(text, index);
         const location = this.getLocation(content, match.index);
         placeholders.push({
@@ -323,11 +364,11 @@ export class PlaceholderFinder {
     if (lowerText.includes('company') || lowerText.includes('brand') || lowerText.includes('corp')) {
       return 'COMPANY_NAME';
     } else if (lowerText.includes('quote') || text.includes('"')) {
-      return `QUOTE_${index}`;
+      return this.placeholderTypes.quote.generateName(index);
     } else if (lowerText.includes('tagline') || lowerText.length < 20) {
       return 'TAGLINE';
     } else {
-      return `TEXT_CONTENT_${index}`;
+      return this.placeholderTypes.text.generateName(index);
     }
   }
 
@@ -346,7 +387,14 @@ export class PlaceholderFinder {
 
     while ((match = imgRegex.exec(content)) !== null) {
       const src = match[1];
-      const name = this.generateImagePlaceholderName(src, index);
+      const typeConfig = this.placeholderTypes.image;
+
+      if (index >= typeConfig.maxSupported) {
+        console.warn(`Warning: Found more than ${typeConfig.maxSupported} images in ${file}. Only first ${typeConfig.maxSupported} will be templatized.`);
+        break;
+      }
+
+      const name = typeConfig.generateName(index, { value: src });
       const location = this.getLocation(content, match.index);
       placeholders.push({
         name,
@@ -360,14 +408,6 @@ export class PlaceholderFinder {
     }
   }
 
-  generateImagePlaceholderName(src, index) {
-    const lowerSrc = src.toLowerCase();
-    if (lowerSrc.includes('logo')) {
-      return 'LOGO_URL';
-    } else {
-      return `IMAGE_URL_${index}`;
-    }
-  }
 
   async extractLinkUrls(content, file, placeholders, format) {
     // Match href attributes in a tags
@@ -377,7 +417,14 @@ export class PlaceholderFinder {
 
     while ((match = linkRegex.exec(content)) !== null) {
       const href = match[1];
-      const name = `LINK_URL_${index}`;
+      const typeConfig = this.placeholderTypes.link;
+
+      if (index >= typeConfig.maxSupported) {
+        console.warn(`Warning: Found more than ${typeConfig.maxSupported} links in ${file}. Only first ${typeConfig.maxSupported} will be templatized.`);
+        break;
+      }
+
+      const name = typeConfig.generateName(index);
       const location = this.getLocation(content, match.index);
       placeholders.push({
         name,
@@ -399,7 +446,14 @@ export class PlaceholderFinder {
 
     while ((match = altRegex.exec(content)) !== null) {
       const alt = match[1];
-      const name = `ALT_TEXT_${index}`;
+      const typeConfig = this.placeholderTypes.alt;
+
+      if (index >= typeConfig.maxSupported) {
+        console.warn(`Warning: Found more than ${typeConfig.maxSupported} alt texts in ${file}. Only first ${typeConfig.maxSupported} will be templatized.`);
+        break;
+      }
+
+      const name = typeConfig.generateName(index);
       const location = this.getLocation(content, match.index);
       placeholders.push({
         name,
@@ -462,17 +516,17 @@ export class PlaceholderFinder {
 
     // Specific attribute-based naming
     if (lowerAttr === 'href' || lowerAttr === 'linkhref') {
-      return 'LINK_URL_0'; // Use consistent naming
+      return this.placeholderTypes.link.generateName(0); // Use first link slot for href
     } else if (lowerAttr === 'src' || lowerAttr === 'logosrc') {
-      return lowerValue.includes('logo') ? 'LOGO_URL' : `IMAGE_URL_${index}`;
+      return lowerValue.includes('logo') ? 'LOGO_URL' : this.placeholderTypes.image.generateName(index, { value: attrValue });
     } else if (lowerAttr === 'alt' || lowerAttr === 'logoalt') {
-      return 'ALT_TEXT_0'; // Use consistent naming
+      return this.placeholderTypes.alt.generateName(0); // Use first alt slot
     } else if (lowerAttr === 'companyname' || lowerAttr === 'brand') {
       return 'TAGLINE'; // Company name often serves as tagline
     } else if (lowerAttr === 'tagline') {
-      return 'TEXT_CONTENT_1'; // Tagline content
+      return 'TAGLINE'; // Tagline content
     } else if (lowerAttr === 'quotetext') {
-      return 'TEXT_CONTENT_2'; // Quote content
+      return this.placeholderTypes.quote.generateName(0); // Use first quote slot
     } else if (lowerAttr === 'quotecite') {
       return 'TAGLINE'; // Citation often uses tagline placeholder
     }
@@ -481,11 +535,11 @@ export class PlaceholderFinder {
     if (lowerValue.includes('logo')) {
       return 'LOGO_URL';
     } else if (lowerValue.includes('http') && lowerValue.includes('.')) {
-      return `LINK_URL_${index}`;
+      return this.placeholderTypes.link.generateName(index);
     } else if (lowerValue.length < 30 && !lowerValue.includes(' ')) {
       return 'TAGLINE'; // Short text without spaces is likely a tagline
     } else {
-      return `TEXT_CONTENT_${index}`;
+      return this.placeholderTypes.text.generateName(index);
     }
   }
 

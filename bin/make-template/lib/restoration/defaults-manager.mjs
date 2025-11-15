@@ -5,7 +5,7 @@
  * substitution, and defaults file generation for template restoration.
  */
 
-import { exists, readFile, writeFileAtomic } from '../../utils/fs-utils.mjs';
+import { exists, readFile, writeFileAtomic } from '../../../../lib/shared/utils/fs-utils.mjs';
 
 export class DefaultsManager {
   constructor() {

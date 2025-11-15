@@ -8,10 +8,10 @@
 import fs from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'node:url';
-import { execCommand } from './utils/command-utils.mjs';
-import { ensureDirectory, safeCleanup } from './utils/fs-utils.mjs';
-import { ContextualError, ErrorContext } from './utils/error-handler.mjs';
-import { Logger } from './utils/logger.mjs';
+import { execCommand } from '../../../../lib/shared/utils/command-utils.mjs';
+import { ensureDirectory, safeCleanup } from '../../../../lib/shared/utils/fs-utils.mjs';
+import { ContextualError, ErrorContext } from '../../../../lib/shared/utils/error-handler.mjs';
+import { Logger } from '../../../../lib/shared/utils/logger.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 

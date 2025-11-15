@@ -57,7 +57,7 @@ Due to architectural changes, 6 functional tests fail as expected:
 ## 🏗️ Architecture Overview
 
 ### Before (Duplicated)
-```
+```text
 create-scaffold/     make-template/
 ├── index.mjs        ├── index.mjs        (1,494 lines - custom CLI)
 ├── command-router.mjs                   (944 lines - custom CLI)
@@ -65,7 +65,7 @@ create-scaffold/     make-template/
 ```
 
 ### After (Unified)  
-```
+```text
 lib/cli/             create-scaffold/     make-template/
 ├── argument-parser.mjs  ├── index.mjs        ├── index.mjs        (TODO: migrate)
 ├── command-router.mjs   └── commands/        └── commands/

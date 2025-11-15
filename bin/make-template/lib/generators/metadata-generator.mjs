@@ -42,7 +42,7 @@ export class MetadataGenerator {
         type: 'string',
         sensitive: false
       };
-      const defaultValue = this.getPlaceholderDefault(p.name);
+      const defaultValue = this.getPlaceholderDefault(p.name, placeholders);
       if (defaultValue !== null) {
         def.default = defaultValue;
       }
@@ -171,8 +171,15 @@ export class MetadataGenerator {
     return requiredPlaceholders.includes(placeholderName);
   }
 
-  getPlaceholderDefault(placeholderName) {
-    const defaults = {
+  getPlaceholderDefault(placeholderName, allPlaceholders = []) {
+    // First check if we have a dynamic default based on the actual placeholders found
+    const dynamicDefault = this.generateDynamicDefault(placeholderName, allPlaceholders);
+    if (dynamicDefault !== null) {
+      return dynamicDefault;
+    }
+
+    // Fall back to static defaults for known placeholders
+    const staticDefaults = {
       'PROJECT_DESCRIPTION': null,
       'AUTHOR': 'Your Name',
       'README_TITLE': null,
@@ -187,25 +194,31 @@ export class MetadataGenerator {
       'REPOSITORY_URL': null,
       'COMPANY_NAME': null,
       'TAGLINE': 'Welcome',
-      'LOGO_URL': 'https://example.com/logo.png',
-      'ALT_TEXT_0': 'Logo',
-      'ALT_TEXT_1': 'Image 1',
-      'ALT_TEXT_2': 'Image 2',
-      'LINK_URL_0': 'https://example.com',
-      'LINK_URL_1': 'https://example.com/page1',
-      'LINK_URL_2': 'https://example.com/page2',
-      'IMAGE_URL_0': 'https://example.com/image1.png',
-      'IMAGE_URL_1': 'https://example.com/image2.png',
-      'IMAGE_URL_2': 'https://example.com/image3.png',
-      'QUOTE_0': 'Great product!',
-      'QUOTE_1': 'Excellent service!',
-      'QUOTE_2': 'Highly recommended!',
-      'TEXT_CONTENT_0': 'Content 0',
-      'TEXT_CONTENT_1': 'Content 1',
-      'TEXT_CONTENT_2': 'Content 2'
+      'LOGO_URL': 'https://example.com/logo.png'
     };
 
-    return defaults[placeholderName] || null;
+    return staticDefaults[placeholderName] || null;
+  }
+
+  generateDynamicDefault(placeholderName, allPlaceholders) {
+    // Generate defaults for indexed placeholders based on what was actually found
+    const placeholderTypes = {
+      'IMAGE_URL': { baseDefault: 'https://example.com/image{N}.png', pattern: /^IMAGE_URL_(\d+)$/ },
+      'LINK_URL': { baseDefault: 'https://example.com/page{N}', pattern: /^LINK_URL_(\d+)$/ },
+      'ALT_TEXT': { baseDefault: 'Alt text for image {N}', pattern: /^ALT_TEXT_(\d+)$/ },
+      'TEXT_CONTENT': { baseDefault: 'Content {N}', pattern: /^TEXT_CONTENT_(\d+)$/ },
+      'QUOTE': { baseDefault: 'Quote {N}', pattern: /^QUOTE_(\d+)$/ }
+    };
+
+    for (const [type, config] of Object.entries(placeholderTypes)) {
+      const match = placeholderName.match(config.pattern);
+      if (match) {
+        const index = parseInt(match[1], 10);
+        return config.baseDefault.replace('{N}', index + 1);
+      }
+    }
+
+    return null;
   }
 
   getFeatureOptions(projectType) {

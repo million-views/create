@@ -119,6 +119,34 @@ class TestRunner {
     this.printSummary();
   }
 
+  async runQuick() {
+    console.log('🚀 Running Quick Test Suite for @m5nv/create-scaffold');
+    console.log('='.repeat(60));
+    await fs.rm(this.homeBaseDir, { recursive: true, force: true });
+    await fs.mkdir(this.homeBaseDir, { recursive: true });
+
+    // Run only essential test suites for quick validation
+    const quickTests = [
+      'Smoke Tests',
+      'Environment Factory Tests',
+      'Argument Parser Tests',
+      'Security Tests'
+    ];
+
+    for (const suiteName of quickTests) {
+      const allTests = this.getAllTestDefinitions();
+      const test = allTests.find(t => t.name === suiteName);
+      if (test) {
+        const passed = await this.runTest(test);
+        if (!passed) {
+          break;
+        }
+      }
+    }
+
+    this.printSummary();
+  }
+
   async runSuite(suiteName) {
     console.log(`🎯 Running Specific Test Suite: ${suiteName}`);
     console.log('='.repeat(60));

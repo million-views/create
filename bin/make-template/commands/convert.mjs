@@ -5,14 +5,14 @@
  * Converts existing Node.js projects into reusable templates
  */
 
-import { validateMakeTemplateArguments } from '../../../lib/shared/validators/make-template-args.mjs';
-import { ConversionEngine } from '../../../lib/shared/make-template/engine.mjs';
+import { validateMakeTemplateArguments } from '../lib/validators/make-template-args.mjs';
+import { ConversionEngine } from '../lib/engine.mjs';
 import { TERMINOLOGY } from '../../../lib/shared/ontology.mjs';
 import { parseArgs } from 'util';
 import { readFile, access, constants } from 'fs/promises';
 import { validateNodeJsProject } from '../../../lib/shared/utils/fs-utils.mjs';
 import { realpathSync } from 'fs';
-import { handleArgumentParsingError, withErrorHandling } from '../../../lib/shared/error-handler.mjs';
+import { handleArgumentParsingError, withErrorHandling } from '../lib/utils/error-handler.mjs';
 import { Logger } from '../../../lib/shared/utils/logger.mjs';
 
 // Command-specific options schema

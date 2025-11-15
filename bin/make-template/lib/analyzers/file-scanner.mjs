@@ -6,7 +6,7 @@
 
 import { readdir, stat } from 'node:fs/promises';
 import { join } from 'node:path';
-import { exists } from '../../utils/fs-utils.mjs';
+import { exists } from '../../../../lib/shared/utils/fs-utils.mjs';
 import { CLEANUP_RULES } from '../config.mjs';
 
 export class FileScanner {

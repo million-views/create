@@ -8,7 +8,7 @@
 import { parseArgs } from 'util';
 import { realpathSync } from 'fs';
 import { TERMINOLOGY } from '../../../lib/shared/ontology.mjs';
-import { handleArgumentParsingError, withErrorHandling } from '../../../lib/shared/error-handler.mjs';
+import { handleArgumentParsingError, withErrorHandling } from '../lib/utils/error-handler.mjs';
 import { Logger } from '../../../lib/shared/utils/logger.mjs';
 
 // Command-specific options schema

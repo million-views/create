@@ -5,8 +5,8 @@
  * Implements requirements 1.1, 1.2, 1.3, 8.1, 8.2, and 8.3 for restoration execution.
  */
 
-import { writeFileAtomic, exists, readFile, stat, copyFile, remove, ensureDirectory } from '../../utils/fs-utils.mjs';
-import { Logger } from '../../utils/logger.mjs';
+import { writeFileAtomic, exists, readFile, stat, copyFile, remove, ensureDirectory } from '../../../../lib/shared/utils/fs-utils.mjs';
+import { Logger } from '../../../../lib/shared/utils/logger.mjs';
 import FileProcessor from './file-processor.mjs';
 import { ERROR_CODES } from '../config.mjs';
 import { RestorationError } from '../utils/errors.mjs';

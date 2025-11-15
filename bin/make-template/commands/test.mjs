@@ -7,9 +7,9 @@
 
 import { parseArgs } from 'util';
 import { realpathSync } from 'fs';
-import { TemplateTestingService } from '../../../lib/shared/template-testing-service.mjs';
+import { TemplateTestingService } from '../lib/services/template-testing-service.mjs';
 import { TERMINOLOGY } from '../../../lib/shared/ontology.mjs';
-import { handleArgumentParsingError, withErrorHandling } from '../../../lib/shared/error-handler.mjs';
+import { handleArgumentParsingError, withErrorHandling } from '../lib/utils/error-handler.mjs';
 import { Logger } from '../../../lib/shared/utils/logger.mjs';
 
 // Command-specific options schema

@@ -5,7 +5,7 @@
  * Implements requirements 3.1, 3.2, and 3.3 for sanitization functionality.
  */
 
-import { Logger } from '../../utils/logger.mjs';
+import { Logger } from '../../../../lib/shared/utils/logger.mjs';
 
 export class Sanitizer {
   constructor(options = {}) {
