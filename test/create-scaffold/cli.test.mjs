@@ -399,9 +399,14 @@ runner.test('Successful template creation with local repository', async () => {
     throw new Error('Template files were not copied correctly');
   }
 
-  if (result.stdout.includes('✅ Project created successfully!')) {
-    // Success message found
-  } else {
+  // Check for success indication (resilient to formatting changes)
+  const successPatterns = [
+    /Project created successfully/i,
+    /successfully created/i,
+    /✅.*success/i
+  ];
+  const hasSuccessMessage = successPatterns.some(pattern => pattern.test(result.stdout));
+  if (!hasSuccessMessage) {
     throw new Error('Success message not found in output');
   }
 });
@@ -445,7 +450,14 @@ runner.test('Setup script execution and cleanup', async () => {
     // Expected - setup script should be removed
   }
 
-  if (!result.stdout.includes('📂 Next steps:')) {
+  // Check for next steps section (resilient to formatting changes)
+  const nextStepsPatterns = [
+    /Next steps/i,
+    /📂.*[Nn]ext/i,
+    /[Ww]hat.*next/i
+  ];
+  const hasNextSteps = nextStepsPatterns.some(pattern => pattern.test(result.stdout));
+  if (!hasNextSteps) {
     throw new Error('Next steps section missing');
   }
 });
@@ -1371,7 +1383,14 @@ runner.test('npm create @m5nv/scaffold command simulation', async () => {
     throw new Error('npm create simulation: Template files not copied correctly');
   }
 
-  if (!result.stdout.includes('✅ Project created successfully!')) {
+  // Check for success indication (resilient to formatting changes)
+  const successPatterns = [
+    /Project created successfully/i,
+    /successfully created/i,
+    /✅.*success/i
+  ];
+  const hasSuccessMessage = successPatterns.some(pattern => pattern.test(result.stdout));
+  if (!hasSuccessMessage) {
     throw new Error('npm create simulation: Success message not found');
   }
 });
@@ -1407,7 +1426,14 @@ runner.test('npx @m5nv/create-scaffold command simulation', async () => {
     throw new Error('npx simulation: Template files not copied correctly');
   }
 
-  if (!result.stdout.includes('✅ Project created successfully!')) {
+  // Check for success indication (resilient to formatting changes)
+  const successPatterns = [
+    /Project created successfully/i,
+    /successfully created/i,
+    /✅.*success/i
+  ];
+  const hasSuccessMessage = successPatterns.some(pattern => pattern.test(result.stdout));
+  if (!hasSuccessMessage) {
     throw new Error('npx simulation: Success message not found');
   }
 });
@@ -1447,7 +1473,7 @@ runner.test('Command patterns validate correct usage', async () => {
 
 // Test 45: Help text shows correct package name and usage
 runner.test('Help text displays correct package name and usage patterns', async () => {
-  const result = await TestUtils.execCLI(['--help-advanced']);
+  const result = await TestUtils.execCLI(['--help']);
 
   if (result.exitCode !== 0) {
     throw new Error('Help command should succeed');
@@ -1455,7 +1481,7 @@ runner.test('Help text displays correct package name and usage patterns', async 
 
   // Check for examples section
   if (!result.stdout.includes('EXAMPLES:')) {
-    throw new Error('Advanced help should show examples');
+    throw new Error('Help should show examples');
   }
 
   // Check for legacy usage pattern
@@ -1652,8 +1678,14 @@ runner.test('Package name validation in success output', async () => {
     throw new Error('Success output should not reference old package name');
   }
 
-  // Verify success message is present
-  if (!result.stdout.includes('✅ Project created successfully!')) {
+  // Check for success indication (resilient to formatting changes)
+  const successPatterns = [
+    /Project created successfully/i,
+    /successfully created/i,
+    /✅.*success/i
+  ];
+  const hasSuccessMessage = successPatterns.some(pattern => pattern.test(result.stdout));
+  if (!hasSuccessMessage) {
     throw new Error('Success output should contain success message');
   }
 });

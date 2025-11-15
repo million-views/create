@@ -26,7 +26,10 @@ The `@m5nv/create-scaffold` package provides two complementary CLI tools:
 - **`create-scaffold`**: Scaffolds new projects from templates
 - **`make-template`**: Converts projects to templates and back
 
-Both tools use command-based interfaces and support progressive disclosure help.
+Both tools use command-based interfaces and support help commands:
+
+- `<tool> <command> --help`: Quick reference - shows options at a glance
+- `<tool> help <command>`: Detailed documentation - comprehensive format with examples
 
 ## Tools
 
@@ -69,6 +72,57 @@ make-template hints
 make-template test <template-path> [options]
 ```
 
+## Tools
+
+### create-scaffold
+
+Scaffolds new projects from git-based templates.
+
+```bash
+# Using npm create (recommended)
+npm create @m5nv/scaffold <project-directory> -- --template <template-name> [options]
+
+# Using npx with command syntax
+npx @m5nv/create-scaffold new <project-directory> --template <template-name> [options]
+
+# Global installation
+create-scaffold new <project-directory> --template <template-name> [options]
+```
+
+### make-template
+
+Converts existing Node.js projects into reusable templates.
+
+```bash
+# Convert project to template
+make-template convert [options]
+
+# Restore templated project
+make-template restore [options]
+
+# Initialize template.json
+make-template init [options]
+
+# Validate template
+make-template validate [options]
+
+# Show authoring hints
+make-template hints
+
+# Test template end-to-end
+make-template test <template-path> [options]
+```
+
+## Global Options
+
+Both tools support these global options:
+
+- `--help`: Show basic help
+- `--json`: Output results in JSON format (supported by: `list`, `validate` commands)
+- `--verbose`: Enable verbose logging
+- `--log-file <file>`: Write logs to specified file
+- `--version`: Show version information
+
 ## create-scaffold Commands
 
 ### `new` - Create New Project
@@ -85,16 +139,19 @@ create-scaffold new <project-directory> --template <template-name> [options]
 - `<project-directory>`: Name of the directory to create for your project
 
 **Options:**
-- `--template, -T`: Template URL or shorthand (required)
-- `--ide, -i`: Target IDE for template customization (e.g., vscode, cursor)
-- `--branch, -b`: Git branch to use
-- `--selection`: Path to selection.json file to load existing choices
-- `--options`: Contextual options for template customization
-- `--dry-run`: Preview operations without executing them
-- `--log-file`: Write structured logs to specified file
-- `--no-cache`: Bypass the local repository cache
-- `--cache-ttl`: Override cache TTL in hours
-- `--verbose`: Enable verbose logging
+- `--template, -T`: Template to use
+- `--branch, -b`: Git branch to use (default: main/master)
+- `--log-file`: Enable detailed logging to specified file
+- `--dry-run`: Preview changes without executing them
+- `--no-cache`: Bypass cache system and clone directly
+- `--cache-ttl`: Override default cache TTL in hours
+- `--placeholder`: Supply placeholder value in NAME=value form
+- `--experimental-placeholder-prompts`: Enable experimental placeholder prompting features
+- `--no-input-prompts`: Suppress prompts and non-essential output
+- `--interactive`: Force interactive mode
+- `--no-interactive`: Force non-interactive mode
+- `--no-config`: Skip loading user configuration
+- `--options`: Path to options file for template configuration
 
 ### `list` - List Available Templates
 
@@ -107,24 +164,9 @@ create-scaffold list [options]
 ```
 
 **Options:**
-- `--registry`: Registry name to list templates from
-- `--json`: Emit JSON-formatted results
-
-### `info` - Show Template Information
-
-Show detailed information about a template.
-
-**Usage:**
-
-```bash
-create-scaffold info <template-name> [options]
-```
-
-**Arguments:**
-- `<template-name>`: Name of the template to get information about
-
-**Options:**
-- `--registry`: Registry to search in
+- `--registry`: Registry to list templates from
+- `--verbose`: Show detailed operation information
+- `--format`: Output format (default: table)
 
 ### `validate` - Validate Template
 
@@ -133,14 +175,13 @@ Validate a template directory.
 **Usage:**
 
 ```bash
-create-scaffold validate <template-path> [options]
+create-scaffold validate [options]
 ```
 
-**Arguments:**
-- `<template-path>`: Path to the template directory to validate
-
 **Options:**
-- `--json`: Emit JSON-formatted results
+- `--path`: Specify input file path
+- `--suggest`: Show intelligent fix suggestions
+- `--fix`: Auto-apply safe fixes
 
 ## make-template Commands
 
@@ -155,12 +196,12 @@ make-template convert [options]
 ```
 
 **Options:**
-- `--dry-run, -d`: Preview conversion without making changes
-- `--yes, -y`: Skip confirmation prompts
-- `--silent, -s`: Suppress output except errors
-- `--type, -t`: Project type hint
-- `--placeholder-format`: Placeholder format
-- `--sanitize-undo`: Clean undo log of sensitive data
+- `--dry-run`: Preview changes without executing them
+- `--yes`: Skip confirmation prompts
+- `--silent`: Suppress prompts and non-essential output
+- `--type`: Force specific project type detection
+- `--placeholder-format`: Specify placeholder format
+- `--sanitize-undo`: Remove sensitive data from undo log
 
 ### `restore` - Restore Template to Project
 
@@ -174,8 +215,8 @@ make-template restore [options]
 
 **Options:**
 - `--restore-files`: Comma-separated list of files to restore
-- `--restore-placeholders`: Restore placeholder values
-- `--generate-defaults`: Generate default values for missing placeholders
+- `--restore-placeholders`: Restore placeholder values, keep files
+- `--generate-defaults`: Generate .restore-defaults.json configuration
 
 ### `init` - Initialize Template
 
@@ -188,7 +229,7 @@ make-template init [options]
 ```
 
 **Options:**
-- `--init-file`: Output filename for skeleton (default: template.json)
+- `--init-file`: Specify output file path
 
 ### `validate` - Validate Template
 
@@ -201,9 +242,9 @@ make-template validate [options] [template-file]
 ```
 
 **Options:**
-- `--lint-file`: Specific template.json file to validate
-- `--suggest`: Show improvement suggestions
-- `--fix`: Automatically apply fixes where possible
+- `--lint-file`: Specify input file path
+- `--suggest`: Show intelligent fix suggestions
+- `--fix`: Auto-apply safe fixes
 
 ### `hints` - Show Authoring Hints
 
@@ -227,6 +268,7 @@ make-template test [options] <template-path>
 
 **Options:**
 - `--verbose, -v`: Enable verbose test output
+- `--keep-temp`: Preserve temporary test directories
 - `--keep-temp`: Preserve temporary test directories
 
 ## Registry System

@@ -1,3 +1,16 @@
+---
+title: "CLI Framework Architecture"
+description: "Clean separation between reusable CLI framework components and tool-specific definitions"
+type: reference
+audience: "developers"
+estimated_time: "15 minutes"
+prerequisites: []
+related_docs:
+  - "../reference/cli-reference.md"
+  - "../how-to/creating-cli-tools.md"
+last_updated: "2025-11-12"
+---
+
 # CLI Framework Architecture
 
 ## Overview

@@ -13,7 +13,7 @@ import { TERMINOLOGY } from '../../lib/shared/ontology.mjs';
 
 // Import shared CLI components
 import { createCommandRouter } from '../../lib/cli/command-router.mjs';
-import { generateHelp } from '../../lib/cli/help-generator.mjs';
+import { generateHelp, DISCLOSURE_LEVELS } from '../../lib/cli/help-generator.mjs';
 import { MAKE_TEMPLATE_HELP } from './help-definitions.mjs';
 
 // Use centralized help definitions
@@ -79,10 +79,48 @@ const COMMAND_HANDLERS = {
 
     if (subCommand && COMMAND_DEFINITIONS[subCommand]) {
       // Show detailed/advanced help for specific command
-      return await router({ command: subCommand, globalOptions: { 'help-advanced': true }, commandOptions: {}, positionals: [] });
+      return generateHelp({
+        toolName: '@m5nv/make-template',
+        description: 'Convert existing Node.js projects into reusable templates compatible with @m5nv/create-scaffold',
+        commands: COMMAND_DEFINITIONS,
+        globalOptions: GLOBAL_OPTIONS,
+        examples: [
+          'convert --dry-run    # Preview conversion without making changes',
+          'convert --type vite-react --yes    # Convert as Vite React project, skip confirmations',
+          'restore --dry-run    # Preview restoration without making changes',
+          'restore --yes    # Restore template to working state, skip confirmations',
+          'init    # Generate skeleton template.json',
+          'validate    # Validate template.json in current directory',
+          'hints    # Display hints catalog',
+          'help convert    # Show help for convert command'
+        ],
+        disclosureLevel: DISCLOSURE_LEVELS.COMMAND,
+        command: subCommand,
+        commandOptions: {},
+        interactive: false
+      });
     } else {
       // Show global help
-      return await router({ command: null, globalOptions: { help: true }, commandOptions: {}, positionals: [] });
+      return generateHelp({
+        toolName: '@m5nv/make-template',
+        description: 'Convert existing Node.js projects into reusable templates compatible with @m5nv/create-scaffold',
+        commands: COMMAND_DEFINITIONS,
+        globalOptions: GLOBAL_OPTIONS,
+        examples: [
+          'convert --dry-run    # Preview conversion without making changes',
+          'convert --type vite-react --yes    # Convert as Vite React project, skip confirmations',
+          'restore --dry-run    # Preview restoration without making changes',
+          'restore --yes    # Restore template to working state, skip confirmations',
+          'init    # Generate skeleton template.json',
+          'validate    # Validate template.json in current directory',
+          'hints    # Display hints catalog',
+          'help convert    # Show help for convert command'
+        ],
+        disclosureLevel: DISCLOSURE_LEVELS.GLOBAL,
+        command: null,
+        commandOptions: {},
+        interactive: false
+      });
     }
   }
 };

@@ -461,5 +461,4 @@ After successful deployment:
 - [Wrangler CLI Reference](https://developers.cloudflare.com/workers/wrangler/)
 - [PM2 Process Manager](https://pm2.keymetrics.io/)
 - [nginx Documentation](https://nginx.org/en/docs/)
-- [Let's Encrypt Certbot](https://certbot.eff.org/)</content>
-<parameter name="filePath">/Users/vijay/workspaces/ws-million-views/create/docs/how-to/production-deployment.md
+- [Let's Encrypt Certbot](https://certbot.eff.org/)

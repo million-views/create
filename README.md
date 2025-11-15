@@ -84,6 +84,7 @@ npx make-template restore
 - Comprehensive validation with fix suggestions
 - Template testing service for cross-tool integration
 - Undo tracking for safe experimentation
+- Dry-run mode to preview changes
 
 **When to use**: When codifying a project as a reusable template
 
@@ -114,7 +115,7 @@ Configurable aspects of the generated project (database, auth, features, etc.)
 Which options are available on which platforms (e.g., D1 only on Cloudflare)
 
 ### Feature Requirements (needs)
-What capabilities are required by selected features (e.g., "Comments feature needs database")
+What features are required by selected features (e.g., "Comments feature needs database")
 
 ### Hints
 Contextual guidance shown during scaffolding
@@ -190,12 +191,6 @@ create-scaffold new my-app --template basic-react-spa --selection ~/my-selection
     "payments": "stripe",
     "analytics": "plausible"
   },
-  "derived": {
-    "needAuth": true,
-    "needDb": true,
-    "needPayments": true,
-    "needStorage": true
-  },
   "metadata": {
     "name": "my-app",
     "packageManager": "npm",
@@ -218,11 +213,11 @@ This installs both `create-scaffold` and `make-template` commands.
 ### One-Time Usage
 
 ```bash
-# create-scaffold
+# Using npm create (recommended for new projects)
 npm create @m5nv/scaffold my-app -- --template react-vite
 
-# make-template  
-npx make-template convert
+# Using npx (alternative method)
+npx @m5nv/create-scaffold new my-app --template react-vite
 ```
 
 ## Documentation
@@ -318,7 +313,7 @@ Configure template registries in `~/.m5nvrc`:
   },
   "author": {
     "name": "Your Name",
-    "email": "your.email@example.com"
+    "email": "your.email@company.com"
   }
 }
 ```

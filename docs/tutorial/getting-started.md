@@ -35,11 +35,10 @@ You'll verify your development environment is ready for:
 Before starting this tutorial, make sure you have:
 
 - **Node.js v22+** installed ([Download here](https://nodejs.org/))
-  - Verify: `node --version` should show v22 or higher
 - **Git** installed and configured ([Setup guide](https://git-scm.com/book/en/v2/Getting-Started-First-Time-Git-Setup))
-  - Verify: `git --version` should show git version info
-- **15 minutes** available
 - **Basic command line familiarity** (navigating directories, running commands)
+
+**Estimated time**: 15 minutes
 
 ## Step 1: Verify Your Environment
 

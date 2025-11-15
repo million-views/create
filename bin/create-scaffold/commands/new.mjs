@@ -150,7 +150,12 @@ export async function executeNewCommand(args) {
           branchNameResolved,
           cacheManager,
           logger,
-          { ttlHours: args[TERMINOLOGY.OPTION.CACHE_TTL] ? parseInt(args[TERMINOLOGY.OPTION.CACHE_TTL], 10) : undefined }
+          {
+            ttlHours:
+              args[TERMINOLOGY.OPTION.CACHE_TTL]
+                ? parseInt(args[TERMINOLOGY.OPTION.CACHE_TTL], 10)
+                : undefined
+          }
         );
         templatePath = path.join(cachedRepoPath, args[TERMINOLOGY.OPTION.TEMPLATE]);
         templateName = args[TERMINOLOGY.OPTION.TEMPLATE];

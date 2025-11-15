@@ -13,7 +13,7 @@ import { TERMINOLOGY } from '../../lib/shared/ontology.mjs';
 
 // Import shared CLI components
 import { createCommandRouter } from '../../lib/cli/command-router.mjs';
-import { generateHelp } from '../../lib/cli/help-generator.mjs';
+import { generateHelp, DISCLOSURE_LEVELS } from '../../lib/cli/help-generator.mjs';
 import { CREATE_SCAFFOLD_HELP } from './help-definitions.mjs';
 
 // Import command handlers
@@ -53,10 +53,44 @@ const COMMAND_HANDLERS = {
 
     if (subCommand && COMMAND_DEFINITIONS[subCommand]) {
       // Show detailed/advanced help for specific command
-      return await router({ command: subCommand, globalOptions: { 'help-advanced': true }, commandOptions: {}, positionals: [] });
+      return generateHelp({
+        toolName: '@m5nv/create-scaffold',
+        description: 'Project scaffolding tool',
+        commands: COMMAND_DEFINITIONS,
+        globalOptions: GLOBAL_OPTIONS,
+        examples: [
+          'create-scaffold new my-project --template react-app',
+          'npm create @m5nv/scaffold my-project -- --template react-app',
+          'npx @m5nv/create-scaffold new my-project --template react-app',
+          'create-scaffold list --registry official',
+          'create-scaffold validate ./my-template',
+          'create-scaffold help new    # Show help for new command'
+        ],
+        disclosureLevel: DISCLOSURE_LEVELS.COMMAND,
+        command: subCommand,
+        commandOptions: {},
+        interactive: false
+      });
     } else {
       // Show global help
-      return await router({ command: null, globalOptions: { help: true }, commandOptions: {}, positionals: [] });
+      return generateHelp({
+        toolName: '@m5nv/create-scaffold',
+        description: 'Project scaffolding tool',
+        commands: COMMAND_DEFINITIONS,
+        globalOptions: GLOBAL_OPTIONS,
+        examples: [
+          'create-scaffold new my-project --template react-app',
+          'npm create @m5nv/scaffold my-project -- --template react-app',
+          'npx @m5nv/create-scaffold new my-project --template react-app',
+          'create-scaffold list --registry official',
+          'create-scaffold validate ./my-template',
+          'create-scaffold help new    # Show help for new command'
+        ],
+        disclosureLevel: DISCLOSURE_LEVELS.GLOBAL,
+        command: null,
+        commandOptions: {},
+        interactive: false
+      });
     }
   }
 };

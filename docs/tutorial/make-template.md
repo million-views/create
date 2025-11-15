@@ -105,7 +105,7 @@ Let's start by creating a modern React SPA template using Vite - the foundation 
    </html>
    ```
 
-   **package.json (update these fields):**
+   **package.json (add or update these fields):**
    ```json
    {
      "name": "my-awesome-project",
@@ -249,7 +249,7 @@ Let's start by creating a modern React SPA template using Vite - the foundation 
 
    ```bash
    cd ..
-   npx create-scaffold scaffold basic-react-spa --yes
+   npx create-scaffold new basic-react-spa-scaffolded --template ./basic-react-spa --yes
    cd basic-react-spa-scaffolded
    npm install
    npm run dev
@@ -892,5 +892,4 @@ These will be used in the next tutorial to demonstrate scaffolding from template
 1. Review the generated `template.json` for correct metadata
 2. Check that `_setup.mjs` was created properly
 3. Verify all source files are included in the template
-4. Use `make-template validate` to check template integrity</content>
-<parameter name="filePath">/Users/vijay/workspaces/ws-million-views/create/docs/tutorial/make-template.md
+4. Use `make-template validate` to check template integrity
