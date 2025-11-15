@@ -135,8 +135,10 @@ test('restore --help shows help text', async () => {
     const result = execCLI(['restore', '--help'], { cwd: testDir });
 
     assert.strictEqual(result.exitCode, 0, 'Help command should succeed');
-    assert(result.stdout.includes('make-template restore - Restore template back to working project'), 'Should show command description');
-    assert(result.stdout.includes('--dry-run'), 'Should show dry-run option');
+    assert(result.stdout.includes('@m5nv/make-template restore'), 'Should show command name');
+    assert(result.stdout.includes('Restore template to project'), 'Should show command description');
+    assert(result.stdout.includes('USAGE:'), 'Should show usage section');
+    assert(result.stdout.includes('@m5nv/make-template restore [options]'), 'Should show usage example');
     assert(result.stdout.includes('--yes'), 'Should show yes option');
   } finally {
     await rm(baseTestDir, { recursive: true, force: true });

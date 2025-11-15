@@ -54,6 +54,33 @@ const OPTIONS_SCHEMA = {
 };
 
 /**
+ * Execute restore command with pre-parsed arguments
+ * @param {object} args - Pre-parsed command arguments
+ * @returns {Promise<number>} Exit code
+ */
+export async function executeRestoreCommand(args) {
+  // Convert the args object to the format expected by the existing main function
+  const argv = [];
+
+  // Add options
+  if (args['dry-run']) argv.push('--dry-run');
+  if (args.yes) argv.push('--yes');
+  if (args.silent) argv.push('--silent');
+  if (args['restore-files']) {
+    argv.push('--restore-files');
+    argv.push(args['restore-files']);
+  }
+  if (args['restore-placeholders']) argv.push('--restore-placeholders');
+  if (args['generate-defaults']) argv.push('--generate-defaults');
+
+  // Add positional arguments
+  if (args.projectDirectory) argv.push(args.projectDirectory);
+
+  // Call the existing main function
+  return await main(argv);
+}
+
+/**
  * Logger instance for user interactions
  */
 const logger = Logger.getInstance();

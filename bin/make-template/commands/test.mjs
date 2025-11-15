@@ -32,6 +32,26 @@ const OPTIONS_SCHEMA = {
 };
 
 /**
+ * Execute test command with pre-parsed arguments
+ * @param {object} args - Pre-parsed command arguments
+ * @returns {Promise<number>} Exit code
+ */
+export async function executeTestCommand(args) {
+  // Convert the args object to the format expected by the existing main function
+  const argv = [];
+
+  // Add options
+  if (args.verbose) argv.push('--verbose');
+  if (args['keep-temp']) argv.push('--keep-temp');
+
+  // Add positional arguments
+  if (args.templatePath) argv.push(args.templatePath);
+
+  // Call the existing main function
+  return await main(argv);
+}
+
+/**
  * Display help text for test command
  */
 function displayHelp(logger) {

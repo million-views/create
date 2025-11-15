@@ -34,6 +34,30 @@ const OPTIONS_SCHEMA = {
 };
 
 /**
+ * Execute validate command with pre-parsed arguments
+ * @param {object} args - Pre-parsed command arguments
+ * @returns {Promise<number>} Exit code
+ */
+export async function executeValidateCommand(args) {
+  // Convert the args object to the format expected by the existing main function
+  const argv = [];
+
+  // Add options
+  if (args['lint-file']) {
+    argv.push('--lint-file');
+    argv.push(args['lint-file']);
+  }
+  if (args.suggest) argv.push('--suggest');
+  if (args.fix) argv.push('--fix');
+
+  // Add positional arguments
+  if (args.templatePath) argv.push(args.templatePath);
+
+  // Call the existing main function
+  return await main(argv);
+}
+
+/**
  * Display help text for validate command
  */
 function displayHelp(logger) {

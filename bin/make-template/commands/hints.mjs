@@ -22,6 +22,19 @@ const OPTIONS_SCHEMA = {
 };
 
 /**
+ * Execute hints command with pre-parsed arguments
+ * @param {object} args - Pre-parsed command arguments
+ * @returns {Promise<number>} Exit code
+ */
+export async function executeHintsCommand(_args) {
+  // Convert the args object to the format expected by the existing main function
+  const argv = [];
+
+  // Hints command doesn't have additional options, just call main
+  return await main(argv);
+}
+
+/**
  * Display help text for hints command
  */
 function displayHelp(logger) {

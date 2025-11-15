@@ -129,7 +129,10 @@ test('make-template test command', async (t) => {
     const result = execCLI(['test', '--help']);
 
     assert.strictEqual(result.exitCode, 0, 'Help command should succeed');
-    assert(result.stdout.includes('make-template test - Test templates by creating and validating projects'), 'Should show command description');
+    assert(result.stdout.includes('@m5nv/make-template test'), 'Should show command name');
+    assert(result.stdout.includes('Test template functionality'), 'Should show command description');
+    assert(result.stdout.includes('USAGE:'), 'Should show usage section');
+    assert(result.stdout.includes('@m5nv/make-template test [options]'), 'Should show usage example');
     assert(result.stdout.includes('--verbose'), 'Should show verbose option');
     assert(result.stdout.includes('--keep-temp'), 'Should show keep-temp option');
   });

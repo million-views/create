@@ -49,6 +49,36 @@ const OPTIONS_SCHEMA = {
 };
 
 /**
+ * Execute convert command with pre-parsed arguments
+ * @param {object} args - Pre-parsed command arguments
+ * @returns {Promise<number>} Exit code
+ */
+export async function executeConvertCommand(args) {
+  // Convert the args object to the format expected by the existing main function
+  const argv = [];
+
+  // Add options
+  if (args['dry-run']) argv.push('--dry-run');
+  if (args.yes) argv.push('--yes');
+  if (args.silent) argv.push('--silent');
+  if (args.type) {
+    argv.push('--type');
+    argv.push(args.type);
+  }
+  if (args['placeholder-format']) {
+    argv.push('--placeholder-format');
+    argv.push(args['placeholder-format']);
+  }
+  if (args['sanitize-undo']) argv.push('--sanitize-undo');
+
+  // Add positional arguments
+  if (args.projectDirectory) argv.push(args.projectDirectory);
+
+  // Call the existing main function
+  return await main(argv);
+}
+
+/**
  * Display help text for convert command
  */
 function displayHelp(logger) {

@@ -92,8 +92,10 @@ test('make-template hints command', async (t) => {
     const result = execCLI(['hints', '--help'], { cwd: testDir });
 
     assert.strictEqual(result.exitCode, 0, 'Help command should succeed');
-    assert(result.stdout.includes('make-template hints - Display available hints catalog'), 'Should show command description');
-    assert(result.stdout.includes('Display the complete hints catalog'), 'Should show usage example');
+    assert(result.stdout.includes('@m5nv/make-template hints'), 'Should show command name');
+    assert(result.stdout.includes('Show hints catalog'), 'Should show command description');
+    assert(result.stdout.includes('USAGE:'), 'Should show usage section');
+    assert(result.stdout.includes('@m5nv/make-template hints [options]'), 'Should show usage example');
   });
 
   await t.test('hints shows template authoring context', async () => {

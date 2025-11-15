@@ -26,6 +26,28 @@ const OPTIONS_SCHEMA = {
 };
 
 /**
+ * Execute init command with pre-parsed arguments
+ * @param {object} args - Pre-parsed command arguments
+ * @returns {Promise<number>} Exit code
+ */
+export async function executeInitCommand(args) {
+  // Convert the args object to the format expected by the existing main function
+  const argv = [];
+
+  // Add options
+  if (args['init-file']) {
+    argv.push('--init-file');
+    argv.push(args['init-file']);
+  }
+
+  // Add positional arguments
+  if (args.outputFile) argv.push(args.outputFile);
+
+  // Call the existing main function
+  return await main(argv);
+}
+
+/**
  * Display help text for init command
  */
 function displayHelp(logger) {

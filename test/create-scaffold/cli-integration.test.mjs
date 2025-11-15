@@ -922,7 +922,7 @@ runner.test('Error handling works correctly with new CLI flags', async () => {
     throw new Error('Conflicting cache flags should cause error');
   }
 
-  if (!conflictingResult.stderr.includes('cannot use both')) {
+  if (!conflictingResult.stderr.includes('Cannot use both --no-cache and --cache-ttl')) {
     throw new Error('Should show conflicting flags error');
   }
 });

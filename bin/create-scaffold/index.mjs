@@ -3,7 +3,7 @@
 import { realpathSync } from 'node:fs';
 import path from 'path';
 import { fileURLToPath } from 'node:url';
-import { parseArguments, validateArguments } from '../../lib/cli/argument-parser.mjs';
+import { parseArguments, validateArguments, GLOBAL_OPTIONS } from '../../lib/cli/argument-parser.mjs';
 import {
   handleError
 } from '../../lib/shared/utils/error-handler.mjs';
@@ -14,93 +14,15 @@ import { TERMINOLOGY } from '../../lib/shared/ontology.mjs';
 // Import shared CLI components
 import { createCommandRouter } from '../../lib/cli/command-router.mjs';
 import { generateHelp } from '../../lib/cli/help-generator.mjs';
+import { CREATE_SCAFFOLD_HELP } from './help-definitions.mjs';
 
 // Import command handlers
 import { executeNewCommand } from './commands/new.mjs';
 import { executeListCommand } from './commands/list.mjs';
 import { executeValidateCommand } from './commands/validate.mjs';
 
-// Command definitions for shared argument parser
-const COMMAND_DEFINITIONS = {
-  [TERMINOLOGY.COMMAND.NEW]: {
-    description: 'Create a new project from a template',
-    options: {
-      [TERMINOLOGY.OPTION.TEMPLATE]: {
-        type: 'string',
-        short: 'T',
-        description: 'Template to use'
-      },
-      [TERMINOLOGY.OPTION.BRANCH]: {
-        type: 'string',
-        short: 'b',
-        description: 'Git branch to use (default: main/master)'
-      },
-      [TERMINOLOGY.OPTION.LOG_FILE]: {
-        type: 'string',
-        description: 'Enable detailed logging to specified file'
-      },
-      [TERMINOLOGY.OPTION.DRY_RUN]: {
-        type: 'boolean',
-        description: 'Preview operations without executing them'
-      },
-      [TERMINOLOGY.OPTION.NO_CACHE]: {
-        type: 'boolean',
-        description: 'Bypass cache system and clone directly'
-      },
-      [TERMINOLOGY.OPTION.CACHE_TTL]: {
-        type: 'string',
-        description: 'Override default cache TTL in hours'
-      },
-      [TERMINOLOGY.OPTION.PLACEHOLDER]: {
-        type: 'string',
-        multiple: true,
-        description: 'Supply placeholder value in NAME=value form'
-      },
-      [TERMINOLOGY.OPTION.NO_INPUT_PROMPTS]: {
-        type: 'boolean',
-        description: 'Disable interactive placeholder prompting'
-      },
-      [TERMINOLOGY.OPTION.INTERACTIVE]: {
-        type: 'boolean',
-        description: 'Force interactive mode'
-      },
-      [TERMINOLOGY.OPTION.NON_INTERACTIVE]: {
-        type: 'boolean',
-        description: 'Force non-interactive mode'
-      },
-      [TERMINOLOGY.OPTION.NO_CONFIG]: {
-        type: 'boolean',
-        description: 'Skip loading user configuration'
-      }
-    }
-  },
-  [TERMINOLOGY.COMMAND.LIST]: {
-    description: 'List available templates and registries',
-    options: {
-      [TERMINOLOGY.OPTION.REGISTRY]: {
-        type: 'string',
-        description: 'Registry name to list templates from'
-      },
-      [TERMINOLOGY.OPTION.LOG_FILE]: {
-        type: 'string',
-        description: 'Enable detailed logging to specified file'
-      }
-    }
-  },
-  [TERMINOLOGY.COMMAND.VALIDATE]: {
-    description: 'Validate a template directory',
-    options: {
-      [TERMINOLOGY.OPTION.LOG_FILE]: {
-        type: 'string',
-        description: 'Enable detailed logging to specified file'
-      },
-      [TERMINOLOGY.OPTION.JSON]: {
-        type: 'boolean',
-        description: 'Output validation results in JSON format'
-      }
-    }
-  }
-};
+// Use centralized help definitions
+const COMMAND_DEFINITIONS = CREATE_SCAFFOLD_HELP;
 
 // Command handlers for shared router
 const COMMAND_HANDLERS = {
@@ -124,6 +46,18 @@ const COMMAND_HANDLERS = {
       path: positionals[0]
     };
     return await executeValidateCommand(args);
+  },
+  help: async ({ globalOptions: _globalOptions, commandOptions: _commandOptions, positionals }) => {
+    // Handle help command with subcommands
+    const subCommand = positionals[0];
+
+    if (subCommand && COMMAND_DEFINITIONS[subCommand]) {
+      // Show detailed/advanced help for specific command
+      return await router({ command: subCommand, globalOptions: { 'help-advanced': true }, commandOptions: {}, positionals: [] });
+    } else {
+      // Show global help
+      return await router({ command: null, globalOptions: { help: true }, commandOptions: {}, positionals: [] });
+    }
   }
 };
 
@@ -137,15 +71,18 @@ const router = createCommandRouter({
       return 1;
     }
   },
-  toolName: 'create-scaffold',
+  toolName: '@m5nv/create-scaffold',
   version: '0.6.0',
   description: 'Project scaffolding tool',
   commands: COMMAND_DEFINITIONS,
-  globalOptions: {},
+  globalOptions: GLOBAL_OPTIONS,
   examples: [
     'create-scaffold new my-project --template react-app',
+    'npm create @m5nv/scaffold my-project -- --template react-app',
+    'npx @m5nv/create-scaffold new my-project --template react-app',
     'create-scaffold list --registry official',
-    'create-scaffold validate ./my-template'
+    'create-scaffold validate ./my-template',
+    'create-scaffold help new    # Show help for new command'
   ]
 });
 

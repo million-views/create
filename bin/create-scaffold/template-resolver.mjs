@@ -355,7 +355,7 @@ export class TemplateResolver {
           return parsed.subpath ? path.join(shorthandPopulatedPath, parsed.subpath) : shorthandPopulatedPath;
         } catch (error) {
           // Re-throw all errors - no fallback allowed as it masks security validation failures
-          throw new ContextualError('Template not accessible', {
+          throw new ContextualError('Template not accessible (git clone failed)', {
             context: ErrorContext.TEMPLATE,
             severity: ErrorSeverity.HIGH,
             technicalDetails: error.message,
@@ -373,8 +373,22 @@ export class TemplateResolver {
         if (repoCachedPath) {
           return parsed.subpath ? path.join(repoCachedPath, parsed.subpath) : repoCachedPath;
         }
-        const repoPopulatedPath = await this.cacheManager.populateCache(repoUrl, branch);
-        return parsed.subpath ? path.join(repoPopulatedPath, parsed.subpath) : repoPopulatedPath;
+        try {
+          const repoPopulatedPath = await this.cacheManager.populateCache(repoUrl, branch);
+          return parsed.subpath ? path.join(repoPopulatedPath, parsed.subpath) : repoPopulatedPath;
+        } catch (error) {
+          // Re-throw all errors - no fallback allowed as it masks security validation failures
+          throw new ContextualError('Template not accessible (git clone failed)', {
+            context: ErrorContext.TEMPLATE,
+            severity: ErrorSeverity.HIGH,
+            technicalDetails: error.message,
+            suggestions: [
+              'Verify the repository exists and is accessible',
+              'Check that the specified branch exists',
+              'Ensure you have permission to access the repository'
+            ]
+          });
+        }
 
       case 'github-branch':
         const branchUrl = `https://github.com/${parsed.owner}/${parsed.repo}`;
@@ -382,8 +396,22 @@ export class TemplateResolver {
         if (branchCachedPath) {
           return parsed.subpath ? path.join(branchCachedPath, parsed.subpath) : branchCachedPath;
         }
-        const branchPopulatedPath = await this.cacheManager.populateCache(branchUrl, parsed.branch);
-        return parsed.subpath ? path.join(branchPopulatedPath, parsed.subpath) : branchPopulatedPath;
+        try {
+          const branchPopulatedPath = await this.cacheManager.populateCache(branchUrl, parsed.branch);
+          return parsed.subpath ? path.join(branchPopulatedPath, parsed.subpath) : branchPopulatedPath;
+        } catch (error) {
+          // Re-throw all errors - no fallback allowed as it masks security validation failures
+          throw new ContextualError('Template not accessible (git clone failed)', {
+            context: ErrorContext.TEMPLATE,
+            severity: ErrorSeverity.HIGH,
+            technicalDetails: error.message,
+            suggestions: [
+              'Verify the repository exists and is accessible',
+              'Check that the specified branch exists',
+              'Ensure you have permission to access the repository'
+            ]
+          });
+        }
 
       case 'github-archive':
         // For now, treat archives as repositories (future: download and extract)
@@ -446,7 +474,21 @@ export class TemplateResolver {
       return cachedPath;
     }
 
-    return this.cacheManager.populateCache(url, options.branch);
+    try {
+      return this.cacheManager.populateCache(url, options.branch);
+    } catch (error) {
+      // Re-throw all errors - no fallback allowed as it masks security validation failures
+      throw new ContextualError('Template not accessible (git clone failed)', {
+        context: ErrorContext.TEMPLATE,
+        severity: ErrorSeverity.HIGH,
+        technicalDetails: error.message,
+        suggestions: [
+          'Verify the repository exists and is accessible',
+          'Check that the specified branch exists',
+          'Ensure you have permission to access the repository'
+        ]
+      });
+    }
   }
 
   /**

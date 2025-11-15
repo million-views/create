@@ -142,8 +142,10 @@ test('make-template init command', async (t) => {
     const result = execCLI(['init', '--help'], { cwd: testDir });
 
     assert.strictEqual(result.exitCode, 0, 'Help command should succeed');
-    assert(result.stdout.includes('make-template init - Generate skeleton template.json file'), 'Should show command description');
-    assert(result.stdout.includes('Generate skeleton template.json in current directory'), 'Should show usage example');
+    assert(result.stdout.includes('@m5nv/make-template init'), 'Should show command name');
+    assert(result.stdout.includes('Generate skeleton template.json'), 'Should show command description');
+    assert(result.stdout.includes('USAGE:'), 'Should show usage section');
+    assert(result.stdout.includes('@m5nv/make-template init [options]'), 'Should show usage example');
   });
 
   await t.test('init provides next steps guidance', async () => {

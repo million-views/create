@@ -67,6 +67,25 @@ export async function executeNewCommand(args) {
     const cacheManager = new CacheManager();
     const logger = args[TERMINOLOGY.OPTION.LOG_FILE] ? new Logger('file', 'info', args[TERMINOLOGY.OPTION.LOG_FILE]) : Logger.getInstance();
 
+    // Validate project directory early
+    const resolvedProjectDirectory = path.resolve(args.projectDirectory);
+    try {
+      const entries = await fs.readdir(resolvedProjectDirectory);
+      if (entries.length > 0) {
+        // Check if it's just our workflow state file
+        const WORKFLOW_STATE_FILE = '.create-scaffold-workflow.json';
+        const nonStateFiles = entries.filter(file => file !== WORKFLOW_STATE_FILE);
+        if (nonStateFiles.length > 0) {
+          throw new Error(`Project directory is not empty`);
+        }
+      }
+    } catch (error) {
+      if (error.code !== 'ENOENT') {
+        throw error;
+      }
+      // Directory doesn't exist, which is fine - we'll create it
+    }
+
     // Template resolution logic - handle different template input types
     let templatePath, templateName, repoUrl, branchName, metadata, templateResolution;
     let _allowFallback = false;
@@ -131,7 +150,7 @@ export async function executeNewCommand(args) {
           branchNameResolved,
           cacheManager,
           logger,
-          { ttlHours: args[TERMINOLOGY.OPTION.CACHE_TTL] }
+          { ttlHours: args[TERMINOLOGY.OPTION.CACHE_TTL] ? parseInt(args[TERMINOLOGY.OPTION.CACHE_TTL], 10) : undefined }
         );
         templatePath = path.join(cachedRepoPath, args[TERMINOLOGY.OPTION.TEMPLATE]);
         templateName = args[TERMINOLOGY.OPTION.TEMPLATE];

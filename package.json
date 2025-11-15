@@ -93,6 +93,7 @@
     "test:make-template:validate": "node scripts/test-runner.mjs --suite \"Make-Template Validate Tests\"",
     "validate": "npm run schema:check && node ./scripts/comprehensive-validation.mjs",
     "validate:docs": "node ./scripts/validate-docs.mjs",
-    "validate:code": "node ./scripts/comprehensive-validation.mjs --code-only"
+    "validate:code": "node ./scripts/comprehensive-validation.mjs --code-only",
+    "validate:help": "node ./scripts/validate-help.mjs"
   }
 }

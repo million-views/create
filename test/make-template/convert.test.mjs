@@ -202,7 +202,10 @@ test('convert --help shows help text', async () => {
     const result = await execCLI(['convert', '--help'], { cwd: testDir });
 
     assert.strictEqual(result.exitCode, 0, 'Help command should succeed');
-    assert(result.stdout.includes('make-template convert - Convert existing Node.js projects'), 'Should show command description');
+    assert(result.stdout.includes('@m5nv/make-template convert'), 'Should show command name');
+    assert(result.stdout.includes('Convert project to template'), 'Should show command description');
+    assert(result.stdout.includes('USAGE:'), 'Should show usage section');
+    assert(result.stdout.includes('@m5nv/make-template convert [options]'), 'Should show usage example');
     assert(result.stdout.includes('--dry-run'), 'Should show dry-run option');
     assert(result.stdout.includes('--yes'), 'Should show yes option');
   } finally {
