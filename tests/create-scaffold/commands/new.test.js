@@ -133,21 +133,6 @@ describe('NewCommand', () => {
       assert.strictEqual(parsed.optionsFile, 'ui=react,api=express');
     });
 
-    it('handles interactive mode options', () => {
-      const cmd = new NewCommand();
-      const parsed = cmd.parseArgs([
-        'my-app',
-        '--template', 'react-app',
-        '--no-input-prompts',
-        '--interactive'
-      ]);
-
-      assert.strictEqual(parsed.projectName, 'my-app');
-      assert.strictEqual(parsed.template, 'react-app');
-      assert.strictEqual(parsed.inputPrompts, false);
-      assert.strictEqual(parsed.interactive, true);
-    });
-
     it('handles log file option', () => {
       const cmd = new NewCommand();
       const parsed = cmd.parseArgs([

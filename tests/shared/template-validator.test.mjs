@@ -6,8 +6,8 @@ import { strict as assert } from 'node:assert';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
-import { validateTemplateManifest } from '../../bin/create-scaffold/modules/utils/template-validator.mjs';
-import { ValidationError } from '../../bin/create-scaffold/modules/security.mjs';
+import { validateTemplateManifest } from '../../lib/template-manifest-validator.mjs';
+import { ValidationError } from '../../lib/security.mjs';
 import { TemplateValidator } from '../../lib/validation/template-validator.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -242,7 +242,7 @@ test('validateTemplateManifest returns normalized values for valid template', as
 
   assert.equal(result.authoring, 'wysiwyg');
   assert.equal(result.authorAssetsDir, '__scaffold__');
-  assert.equal(result.handoffSteps.length, 1);
+  assert.equal(result.handoff.length, 1);
   assert.equal(result.placeholders.length, manifest.metadata.placeholders.length);
   assert.deepEqual(result.dimensions, {});
   assert.deepEqual(result.canonicalVariables, []);

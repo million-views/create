@@ -3,7 +3,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 
-import { sanitizeErrorMessage } from './security.mjs';
+import { sanitizeErrorMessage } from '../../../../lib/security.mjs';
 import { validateManifest } from './validators/manifest-validator.mjs';
 import { validateSetupScript } from './validators/setup-lint.mjs';
 import { validateRequiredFiles } from './validators/required-files.mjs';

@@ -526,7 +526,7 @@ tags:
         assert.strictEqual(result[0].description, 'Description 1');
         assert.deepStrictEqual(result[0].tags, ['tag1']);
         assert.deepStrictEqual(result[0].canonicalVariables, ['var1']);
-        assert.deepStrictEqual(result[0].handoffSteps, ['step1']);
+        assert.deepStrictEqual(result[0].handoff, ['step1']);
         assert.deepStrictEqual(result[0].placeholders, ['placeholder1']);
 
         assert.strictEqual(result[1].id, 2);
@@ -535,7 +535,7 @@ tags:
         assert.strictEqual(result[1].description, 'Description 2');
         assert.deepStrictEqual(result[1].tags, []);
         assert.deepStrictEqual(result[1].canonicalVariables, []);
-        assert.deepStrictEqual(result[1].handoffSteps, []);
+        assert.deepStrictEqual(result[1].handoff, []);
         assert.deepStrictEqual(result[1].placeholders, []);
       });
 
@@ -552,7 +552,7 @@ tags:
 
         assert.deepStrictEqual(result[0].tags, []);
         assert.deepStrictEqual(result[0].canonicalVariables, []);
-        assert.deepStrictEqual(result[0].handoffSteps, []);
+        assert.deepStrictEqual(result[0].handoff, []);
         assert.deepStrictEqual(result[0].placeholders, []);
       });
     });
@@ -569,7 +569,7 @@ tags:
       assert.strictEqual(result.name, null);
       assert.strictEqual(result.description, null);
       assert.strictEqual(result.version, null);
-      assert.deepStrictEqual(result.handoffSteps, []);
+      assert.deepStrictEqual(result.handoff, []);
       assert.deepStrictEqual(result.placeholders, []);
       assert.deepStrictEqual(result.canonicalVariables, []);
     });

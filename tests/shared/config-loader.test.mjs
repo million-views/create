@@ -5,7 +5,7 @@ import assert from 'node:assert';
 import fs from 'node:fs/promises';
 import os, { tmpdir } from 'node:os';
 import path from 'node:path';
-import { ValidationError } from '../../bin/create-scaffold/modules/security.mjs';
+import { ValidationError } from '../../lib/security.mjs';
 import {
   loadConfig
 } from '../../bin/create-scaffold/modules/config-loader.mjs';

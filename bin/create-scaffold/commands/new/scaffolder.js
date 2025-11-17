@@ -2,23 +2,23 @@ import fs from 'fs/promises';
 import path from 'path';
 import {
   ValidationError
-} from '../../modules/security.mjs';
+} from '../../../../lib/security.mjs';
 import { CacheManager } from '../../modules/cache-manager.mjs';
 import { TemplateResolver } from '../../modules/template-resolver.mjs';
-import { Logger } from '../../modules/utils/logger.mjs';
+import { Logger } from '../../../../lib/logger.mjs';
 import { DryRunEngine } from '../../modules/dry-run-engine.mjs';
-import { execCommand } from '../../modules/utils/command-utils.mjs';
-import { validateDirectoryExists } from '../../modules/utils/fs-utils.mjs';
-import { createTemplateIgnoreSet, stripIgnoredFromTree } from '../../modules/utils/template-ignore.mjs';
-import { loadTemplateMetadataFromPath } from '../../modules/utils/template-discovery.mjs';
+import { execCommand } from '../../../../lib/command-utils.mjs';
+import { validateDirectoryExists } from '../../../../lib/fs-utils.mjs';
+import { createTemplateIgnoreSet, stripIgnoredFromTree } from '../../../../lib/template-ignore.mjs';
+import { loadTemplateMetadataFromPath } from '../../../../lib/template-discovery.mjs';
 import { normalizeOptions } from '../../modules/options-processor.mjs';
-import { resolvePlaceholders } from '../../modules/placeholder-resolver.mjs';
+import { resolvePlaceholders } from '../../../../lib/placeholder-resolver.mjs';
 import { loadConfig } from '../../modules/config-loader.mjs';
 import {
   handleError,
   contextualizeError,
   ErrorContext
-} from '../../modules/utils/error-handler.mjs';
+} from '../../../../lib/error-handler.mjs';
 
 // Import guided setup workflow
 import { GuidedSetupWorkflow } from '../../modules/guided-setup-workflow.mjs';

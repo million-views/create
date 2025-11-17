@@ -6,7 +6,7 @@
  */
 
 import { BaseRegistry } from './base-registry.mjs';
-import { TemplateDiscovery } from '../../utils/template-discovery.mjs';
+import { TemplateDiscovery } from '../../../../lib/template-discovery.mjs';
 
 /**
  * Git repository template registry

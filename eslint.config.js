@@ -89,7 +89,7 @@ export default [
     }
   },
   {
-    files: ['lib/shared/utils/logger.mjs'],
+    files: ['lib/logger.mjs'],
     rules: {
       // Allow console.log in the Logger class as it's the centralized output mechanism
       'no-console-log': 'off'

@@ -28,14 +28,14 @@ export class RestoreCommand extends Command {
     }
   }
 
-  run(parsed) {
+  async run(parsed) {
     // Default to current directory if no project path specified
     if (!parsed.projectPath) {
       parsed.projectPath = '.';
     }
 
     const restorer = new Restorer(parsed);
-    restorer.restore();
+    await restorer.restore();
   }
 }
 

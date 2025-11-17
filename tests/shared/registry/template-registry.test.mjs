@@ -4,10 +4,10 @@
  * Template Registry Tests
  */
 
-import { TemplateRegistry } from '../../../lib/shared/registry/template-registry.mjs';
-import { LocalRegistry } from '../../../lib/shared/registry/registries/local-registry.mjs';
-import { GitRegistry } from '../../../lib/shared/registry/registries/git-registry.mjs';
-import { HttpRegistry } from '../../../lib/shared/registry/registries/http-registry.mjs';
+import { TemplateRegistry } from '../../../lib/registry/template-registry.mjs';
+import { LocalRegistry } from '../../../lib/registry/registries/local-registry.mjs';
+import { GitRegistry } from '../../../lib/registry/registries/git-registry.mjs';
+import { HttpRegistry } from '../../../lib/registry/registries/http-registry.mjs';
 
 /**
  * Test the template registry system

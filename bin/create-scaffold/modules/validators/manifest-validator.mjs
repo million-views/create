@@ -3,8 +3,8 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 
-import { validateTemplateManifest } from '../utils/template-validator.mjs';
-import { sanitizeErrorMessage } from '../security.mjs';
+import { validateTemplateManifest } from '../../../../lib/template-manifest-validator.mjs';
+import { sanitizeErrorMessage } from '../../../../lib/security.mjs';
 
 const NAME = 'manifest';
 

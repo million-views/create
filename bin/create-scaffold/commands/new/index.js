@@ -33,10 +33,6 @@ export class NewCommand extends Command {
       parsed.experimentalPlaceholderPrompts = true;
     } else if (arg === '--no-input-prompts') {
       parsed.inputPrompts = false;
-    } else if (arg === '--interactive') {
-      parsed.interactive = true;
-    } else if (arg === '--no-interactive') {
-      parsed.interactive = false;
     } else if (arg === '--no-config') {
       parsed.config = false;
     } else if (arg === '--options') {

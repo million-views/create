@@ -6,7 +6,7 @@
  */
 
 import { EventEmitter } from 'events';
-import { validateTemplateManifest } from '../utils/template-validator.mjs';
+import { validateTemplateManifest } from '../../../../lib/template-manifest-validator.mjs';
 
 /**
  * Template validation component

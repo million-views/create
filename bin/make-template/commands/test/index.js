@@ -2,7 +2,8 @@ import { Command } from '../../../../lib/cli/command.js';
 import { testHelp } from './help.js';
 import { spawn } from 'child_process';
 import path from 'path';
-import fs from 'fs';
+import { exists, remove } from '../../../../lib/fs-utils.mjs';
+import { ContextualError, ErrorContext, ErrorSeverity, handleError } from '../../../../lib/error-handler.mjs';
 
 export class TestCommand extends Command {
   constructor() {
@@ -22,40 +23,78 @@ export class TestCommand extends Command {
   }
 
   async run(parsed) {
-    if (!parsed.templatePath) {
-      console.error('❌ Template path is required');
-      this.showHelp();
-      process.exit(1);
-    }
-
-    const templatePath = path.resolve(parsed.templatePath);
-
-    // Validate template exists
-    if (!fs.existsSync(templatePath)) {
-      console.error(`❌ Template path does not exist: ${templatePath}`);
-      process.exit(1);
-    }
-
-    // Validate template.json exists
-    const templateJsonPath = path.join(templatePath, 'template.json');
-    if (!fs.existsSync(templateJsonPath)) {
-      console.error(`❌ template.json not found in: ${templatePath}`);
-      process.exit(1);
-    }
-
-    console.log(`🧪 Testing template: ${templatePath}`);
-
-    if (parsed.verbose) {
-      console.log('Running comprehensive template tests...');
-      console.log(`Template path: ${templatePath}`);
-      console.log(`Template JSON: ${templateJsonPath}`);
-    }
-
     try {
+      if (!parsed.templatePath) {
+        throw new ContextualError(
+          'Template path is required',
+          {
+            context: ErrorContext.USER_INPUT,
+            severity: ErrorSeverity.HIGH,
+            operation: 'test',
+            suggestions: [
+              'Provide a template path as the first argument',
+              'Use --help to see usage information'
+            ]
+          }
+        );
+      }
+
+      const templatePath = path.resolve(parsed.templatePath);
+
+      // Validate template exists
+      if (!(await exists(templatePath))) {
+        throw new ContextualError(
+          `Template path does not exist: ${templatePath}`,
+          {
+            context: ErrorContext.FILE_OPERATION,
+            severity: ErrorSeverity.HIGH,
+            operation: 'test',
+            suggestions: [
+              'Check that the template path is correct',
+              'Ensure the template directory exists and is accessible'
+            ]
+          }
+        );
+      }
+
+      // Validate template.json exists
+      const templateJsonPath = path.join(templatePath, 'template.json');
+      if (!(await exists(templateJsonPath))) {
+        throw new ContextualError(
+          `template.json not found in: ${templatePath}`,
+          {
+            context: ErrorContext.FILE_OPERATION,
+            severity: ErrorSeverity.HIGH,
+            operation: 'test',
+            suggestions: [
+              'Ensure template.json exists in the template directory',
+              'Run "make-template init" to create a basic template.json'
+            ]
+          }
+        );
+      }
+
+      console.log(`🧪 Testing template: ${templatePath}`);
+
+      if (parsed.verbose) {
+        console.log('Running comprehensive template tests...');
+        console.log(`Template path: ${templatePath}`);
+        console.log(`Template JSON: ${templateJsonPath}`);
+      }
+
       await this.runTemplateTest(templatePath, parsed);
       console.log('✅ Template test passed');
     } catch (error) {
-      console.error(`❌ Template test failed: ${error.message}`);
+      handleError(error, {
+        context: ErrorContext.USER_INPUT,
+        severity: ErrorSeverity.HIGH,
+        operation: 'test',
+        suggestions: [
+          'Check that the template path exists and contains a valid template.json',
+          'Ensure create-scaffold is properly installed and accessible',
+          'Use --verbose for detailed error information'
+        ]
+      });
       process.exit(1);
     }
   }
@@ -73,13 +112,24 @@ export class TestCommand extends Command {
       console.log('🔍 Validating test project structure...');
 
       // Basic validation - check if project was created
-      if (!fs.existsSync(testProjectPath)) {
-        throw new Error('Test project was not created');
+      if (!(await exists(testProjectPath))) {
+        throw new ContextualError(
+          'Test project was not created',
+          {
+            context: ErrorContext.FILE_OPERATION,
+            severity: ErrorSeverity.HIGH,
+            operation: 'test',
+            suggestions: [
+              'Check create-scaffold output for errors',
+              'Ensure the template is valid and properly structured'
+            ]
+          }
+        );
       }
 
       // Check for basic project files
-      const hasPackageJson = fs.existsSync(path.join(testProjectPath, 'package.json'));
-      const hasReadme = fs.existsSync(path.join(testProjectPath, 'README.md'));
+      const hasPackageJson = await exists(path.join(testProjectPath, 'package.json'));
+      const hasReadme = await exists(path.join(testProjectPath, 'README.md'));
 
       if (options.verbose) {
         console.log(`Package.json found: ${hasPackageJson}`);
@@ -94,9 +144,9 @@ export class TestCommand extends Command {
 
     } finally {
       // Cleanup unless --keep-temp is specified
-      if (!options.keepTemp && fs.existsSync(testProjectPath)) {
+      if (!options.keepTemp && (await exists(testProjectPath))) {
         console.log('🧹 Cleaning up test project...');
-        fs.rmSync(testProjectPath, { recursive: true, force: true });
+        await remove(testProjectPath);
         if (options.verbose) {
           console.log(`Removed: ${testProjectPath}`);
         }

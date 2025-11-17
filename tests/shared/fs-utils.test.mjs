@@ -22,7 +22,7 @@ import {
   validateNodeJsProject,
   validateTemplateRestorable,
   validateFileDoesNotExist
-} from '../../bin/create-scaffold/modules/utils/fs-utils.mjs';
+} from '../../lib/fs-utils.mjs';
 
 test.test.describe('File System Utils', () => {
   let tempDir;

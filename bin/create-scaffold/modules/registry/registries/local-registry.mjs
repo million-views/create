@@ -7,7 +7,7 @@
 
 import path from 'path';
 import { BaseRegistry } from './base-registry.mjs';
-import { TemplateDiscovery, loadTemplateMetadataFromPath } from '../../utils/template-discovery.mjs';
+import { TemplateDiscovery, loadTemplateMetadataFromPath } from '../../../../lib/template-discovery.mjs';
 
 /**
  * Local filesystem template registry

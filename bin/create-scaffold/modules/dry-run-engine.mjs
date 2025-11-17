@@ -2,9 +2,11 @@
 
 import fs from 'fs';
 import path from 'path';
-import { validateDirectoryExists } from './utils/fs-utils.mjs';
-import { shouldIgnoreTemplateEntry, createTemplateIgnoreSet } from './utils/template-ignore.mjs';
-import { loadTemplateMetadataFromPath } from './utils/template-discovery.mjs';
+import { validateDirectoryExists } from '../../../lib/fs-utils.mjs';
+import {
+  shouldIgnoreTemplateEntry, createTemplateIgnoreSet
+} from '../../../lib/template-ignore.mjs';
+import { loadTemplateMetadataFromPath } from '../../../lib/template-discovery.mjs';
 
 /**
  * Dry Run Engine module

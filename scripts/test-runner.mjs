@@ -21,7 +21,6 @@ class TestRunner {
     this.suiteGroups = {
       // Unit tests: Core components and infrastructure
       'unit': [
-        'Interactive Utils Tests',
         'Security Tests',
         'Template Validator Tests',
         'Base Command Tests',
@@ -247,12 +246,6 @@ class TestRunner {
 
   getAllTestDefinitions() {
     return [
-      {
-        name: 'Interactive Utils Tests',
-        command: ['--test', './tests/shared/interactive-utils.test.mjs'],
-        description: 'Interactive trigger heuristics and environment control',
-        homeSuffix: 'interactive-utils'
-      },
       {
         name: 'Security Tests',
         command: ['--test', './tests/shared/security.test.mjs'],

@@ -3,7 +3,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
 import { PassThrough } from 'node:stream';
-import { resolvePlaceholders, PlaceholderResolutionError } from '../../bin/create-scaffold/modules/placeholder-resolver.mjs';
+import { resolvePlaceholders, PlaceholderResolutionError } from '../../lib/placeholder-resolver.mjs';
 
 // Mock prompt adapter for testing
 class MockPromptAdapter {

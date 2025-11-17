@@ -10,6 +10,11 @@
     "id": { "type": "string" },
     "name": { "type": "string" },
     "description": { "type": "string" },
+    "handoff": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Post-scaffold instructions for users"
+    },
 
     "setup": {
       "type": "object",

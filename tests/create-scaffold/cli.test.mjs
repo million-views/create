@@ -1150,7 +1150,7 @@ runner.test('Setup script receives Environment_Object with correct properties', 
     name: 'env-object-test',
     version: '1.0.0',
     description: 'Test template for Environment_Object validation',
-    handoffSteps: [],
+    handoff: [],
     dimensions: {},
     placeholders: [],
     constants: {}

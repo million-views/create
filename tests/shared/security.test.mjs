@@ -6,7 +6,7 @@ import {
   validateOptionsParameter,
   validateAllInputs,
   ValidationError
-} from '../../bin/create-scaffold/modules/security.mjs';
+} from '../../lib/security.mjs';
 
 function expectValidationError(fn, { messageIncludes, label }) {
   assert.throws(

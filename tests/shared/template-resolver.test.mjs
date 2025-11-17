@@ -6,7 +6,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { tmpdir } from 'node:os';
 import { TemplateResolver } from '../../bin/create-scaffold/modules/template-resolver.mjs';
-import { ContextualError } from '../../bin/create-scaffold/modules/utils/error-handler.mjs';
+import { ContextualError } from '../../lib/error-handler.mjs';
 
 // Mock CacheManager for testing
 class MockCacheManager {

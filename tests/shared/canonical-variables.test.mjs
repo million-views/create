@@ -3,7 +3,7 @@
 import test from 'node:test';
 import { strict as assert } from 'node:assert';
 
-import { ValidationError } from '../../bin/create-scaffold/modules/security.mjs';
+import { ValidationError } from '../../lib/security.mjs';
 import {
   normalizeCanonicalVariables,
   mergeCanonicalPlaceholders,

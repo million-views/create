@@ -3,7 +3,7 @@
 import fs from 'fs/promises';
 import path from 'path';
 import vm from 'vm';
-import { shouldIgnoreTemplateEntry } from './utils/template-ignore.mjs';
+import { shouldIgnoreTemplateEntry } from '../../../lib/template-ignore.mjs';
 
 export class SetupSandboxError extends Error {
   constructor(message) {

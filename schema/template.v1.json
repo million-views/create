@@ -52,6 +52,15 @@
       "minLength": 1,
       "description": "License under which the template is distributed."
     },
+    "handoff": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 240
+      },
+      "description": "Post-scaffold instructions displayed to users. Each string becomes a bullet point under 'Next steps'."
+    },
     "setup": {
       "type": "object",
       "additionalProperties": false,

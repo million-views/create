@@ -5,7 +5,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { Logger } from '../../lib/shared/utils/logger.mjs';
+import { Logger } from '../../lib/utils/logger.mjs';
 import { createTempDir } from '../../utils/temp.js';
 
 async function readLogEntries(filePath) {

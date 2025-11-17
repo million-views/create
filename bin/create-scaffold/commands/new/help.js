@@ -76,23 +76,10 @@ export const newHelp = {
           detailed: [
             'Enable advanced interactive prompting for placeholder values'
           ]
-        }
-      ]
-    },
-    {
-      title: 'Interactive Options',
-      options: [
+        },
         {
           long: '--no-input-prompts',
           desc: 'Suppress prompts and non-essential output'
-        },
-        {
-          long: '--interactive',
-          desc: 'Force interactive mode'
-        },
-        {
-          long: '--no-interactive',
-          desc: 'Force non-interactive mode'
         }
       ]
     },

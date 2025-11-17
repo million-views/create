@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { ValidationError } from './security.mjs';
+import { ValidationError } from '../../../lib/security.mjs';
 
 /**
  * Normalize CLI-supplied options against template dimensions.

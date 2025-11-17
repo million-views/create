@@ -3,11 +3,11 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { sanitizeErrorMessage, validateAllInputs } from './security.mjs';
-import { ensureDirectory, safeCleanup } from './utils/fs-utils.mjs';
-import { createTemplateIgnoreSet, shouldIgnoreTemplateEntry } from './utils/template-ignore.mjs';
+import { sanitizeErrorMessage, validateAllInputs } from '../../../lib/security.mjs';
+import { ensureDirectory, safeCleanup } from '../../../lib/fs-utils.mjs';
+import { createTemplateIgnoreSet, shouldIgnoreTemplateEntry } from '../../../lib/template-ignore.mjs';
 import { createSetupTools, loadSetupScript } from './setup-runtime.mjs';
-import { ContextualError, ErrorContext, ErrorSeverity } from './utils/error-handler.mjs';
+import { ContextualError, ErrorContext, ErrorSeverity } from '../../../lib/error-handler.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -137,7 +137,7 @@ export class GuidedSetupWorkflow {
   async #validateLoadedSelections(selections) {
     try {
       // Import SelectionValidator dynamically to avoid circular dependencies
-      const { SelectionValidator } = await import('../../../lib/validation/selection-validator.mjs');
+      const { SelectionValidator } = await import('../../../../lib/validation/selection-validator.mjs');
 
       const validator = new SelectionValidator();
       const result = await validator.validate(selections, this.metadata);
@@ -781,8 +781,8 @@ export class GuidedSetupWorkflow {
       process.stdout.write('\n📂 Next steps:\n');
       process.stdout.write(`  cd ${this.projectDirectory}\n`);
 
-      const resolvedHandoff = (this.metadata?.handoffSteps && this.metadata.handoffSteps.length > 0)
-        ? this.metadata.handoffSteps
+      const resolvedHandoff = (this.metadata?.handoff && this.metadata.handoff.length > 0)
+        ? this.metadata.handoff
         : ['Review README.md for additional instructions'];
 
       for (const step of resolvedHandoff) {
@@ -809,9 +809,9 @@ export class GuidedSetupWorkflow {
     }
 
     // Display next steps from template metadata
-    if (this.metadata?.handoffSteps && this.metadata.handoffSteps.length > 0) {
+    if (this.metadata?.handoff && this.metadata.handoff.length > 0) {
       await this.prompt.write('\n� Next steps:\n');
-      this.metadata.handoffSteps.forEach((step, index) => {
+      this.metadata.handoff.forEach((step, index) => {
         this.prompt.write(`   ${index + 1}. ${step}\n`);
       });
     }

@@ -3,8 +3,10 @@
 import fs from 'fs/promises';
 import path from 'path';
 import os from 'os';
-import { ensureDirectory, safeCleanup, readJsonFile, writeJsonFile } from './utils/fs-utils.mjs';
-import { execCommand } from './utils/command-utils.mjs';
+import {
+  ensureDirectory, safeCleanup, readJsonFile, writeJsonFile
+} from '../../../lib/fs-utils.mjs';
+import { execCommand } from '../../../lib/command-utils.mjs';
 
 /**
  * Cache Manager for template repositories

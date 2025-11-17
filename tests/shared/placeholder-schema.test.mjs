@@ -3,7 +3,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { normalizePlaceholders } from '../../bin/create-scaffold/modules/utils/placeholder-schema.mjs';
-import { ValidationError } from '../../bin/create-scaffold/modules/security.mjs';
+import { ValidationError } from '../../lib/security.mjs';
 
 test('normalizes placeholder entries and strips braces', () => {
   const result = normalizePlaceholders([

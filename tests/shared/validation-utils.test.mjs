@@ -6,8 +6,8 @@ import assert from 'node:assert';
 import {
   handleValidationError,
   validateMultipleFields
-} from '../../bin/create-scaffold/modules/utils/validation-utils.mjs';
-import { ValidationError } from '../../bin/create-scaffold/modules/security.mjs';
+} from '../../lib/validation-utils.mjs';
+import { ValidationError } from '../../lib/security.mjs';
 
 test('Validation Utils', async (t) => {
   await t.test('handleValidationError returns result on success', () => {

@@ -2,8 +2,10 @@
 
 import path from 'node:path';
 import fs from 'node:fs/promises';
-import { ContextualError, ErrorContext, ErrorSeverity } from './utils/error-handler.mjs';
-import { sanitizePath, validateRepoUrl } from './security.mjs';
+import {
+  ContextualError, ErrorContext, ErrorSeverity
+} from '../../../lib/error-handler.mjs';
+import { sanitizePath, validateRepoUrl } from '../../../lib/security.mjs';
 import { CacheManager } from './cache-manager.mjs';
 
 /**

@@ -1,75 +1,90 @@
-import fs from 'fs';
 import path from 'path';
+import { readJsonFile, writeJsonFile, exists } from '../../../../lib/fs-utils.mjs';
+import { ErrorContext, ErrorSeverity, handleError } from '../../../../lib/error-handler.mjs';
 
 export class Converter {
   constructor(options) {
     this.options = options;
   }
 
-  convert() {
-    console.log(`Converting project: ${this.options.projectPath}`);
+  async convert() {
+    try {
+      console.log(`Converting project: ${this.options.projectPath}`);
 
-    // Check for development repository indicators
-    const devIndicators = this.checkDevelopmentIndicators();
-    if (devIndicators.length > 0 && !this.options.yes) {
-      console.error('❌ This appears to be a development repository:');
-      devIndicators.forEach(indicator => console.error(`   • ${indicator}`));
-      console.error("\n💡 Use --yes to proceed anyway, or ensure you're converting a clean project directory.");
+      // Check for development repository indicators
+      const devIndicators = await this.checkDevelopmentIndicators();
+      if (devIndicators.length > 0 && !this.options.yes) {
+        console.error('❌ This appears to be a development repository:');
+        devIndicators.forEach(indicator => console.error(`   • ${indicator}`));
+        console.error("\n💡 Use --yes to proceed anyway, or ensure you're converting a clean project directory.");
+        process.exit(1);
+      }
+
+      if (devIndicators.length > 0 && this.options.yes) {
+        console.log('Proceeding automatically (--yes flag used)');
+      }
+
+      if (this.options.dryRun) {
+        console.log('DRY RUN MODE - No changes will be made');
+        console.log('DRY RUN: Would convert project to template');
+        console.log('No changes were made');
+        return;
+      }
+
+      // Create basic template.json
+      await this.createTemplateJson();
+
+      // Create undo log
+      await this.createUndoLog();
+
+      // TODO: Implement actual conversion logic
+      console.log('✓ Project converted to template successfully');
+    } catch (error) {
+      handleError(error, {
+        context: ErrorContext.USER_INPUT,
+        severity: ErrorSeverity.HIGH,
+        operation: 'convert',
+        suggestions: [
+          'Check that the project path exists and is accessible',
+          'Ensure the project is not a development repository (or use --yes)',
+          'Verify write permissions in the target directory'
+        ]
+      });
       process.exit(1);
     }
-
-    if (devIndicators.length > 0 && this.options.yes) {
-      console.log('Proceeding automatically (--yes flag used)');
-    }
-
-    if (this.options.dryRun) {
-      console.log('DRY RUN MODE - No changes will be made');
-      console.log('DRY RUN: Would convert project to template');
-      console.log('No changes were made');
-      return;
-    }
-
-    // Create basic template.json
-    this.createTemplateJson();
-
-    // Create undo log
-    this.createUndoLog();
-
-    // TODO: Implement actual conversion logic
-    console.log('✓ Project converted to template successfully');
   }
 
-  checkDevelopmentIndicators() {
+  async checkDevelopmentIndicators() {
     const indicators = [];
     const projectPath = path.resolve(this.options.projectPath);
 
     // Check for .git directory
-    if (fs.existsSync(path.join(projectPath, '.git'))) {
+    if (await exists(path.join(projectPath, '.git'))) {
       indicators.push('Git repository (.git directory found)');
     }
 
     // Check for node_modules
-    if (fs.existsSync(path.join(projectPath, 'node_modules'))) {
+    if (await exists(path.join(projectPath, 'node_modules'))) {
       indicators.push('Node modules installed (node_modules directory found)');
     }
 
     // Check for common development files
     const devFiles = ['.gitignore', '.env', 'README.md', '.eslintrc.js', '.prettierrc'];
-    devFiles.forEach(file => {
-      if (fs.existsSync(path.join(projectPath, file))) {
+    for (const file of devFiles) {
+      if (await exists(path.join(projectPath, file))) {
         indicators.push(`Development file found: ${file}`);
       }
-    });
+    }
 
     return indicators;
   }
 
-  createTemplateJson() {
+  async createTemplateJson() {
     const projectPath = path.resolve(this.options.projectPath);
 
-    // Read package.json
+    // Read package.json using shared utility
     const packageJsonPath = path.join(projectPath, 'package.json');
-    const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
+    const packageJson = await readJsonFile(packageJsonPath);
 
     // Create basic template structure
     const template = {
@@ -126,21 +141,21 @@ export class Converter {
       hints: {}
     };
 
-    // Write template.json
+    // Write template.json using shared utility
     const templatePath = path.join(projectPath, 'template.json');
-    fs.writeFileSync(templatePath, JSON.stringify(template, null, 2));
+    await writeJsonFile(templatePath, template);
   }
 
-  createUndoLog() {
+  async createUndoLog() {
     const projectPath = path.resolve(this.options.projectPath);
 
     const undoPath = path.join(projectPath, '.template-undo.json');
     let existingUndo = null;
 
     // Check for existing undo log
-    if (fs.existsSync(undoPath)) {
+    if (await exists(undoPath)) {
       try {
-        existingUndo = JSON.parse(fs.readFileSync(undoPath, 'utf8'));
+        existingUndo = await readJsonFile(undoPath);
         console.log('⚠️  Existing undo log found, existing undo log will be updated');
       } catch (_error) {
         console.log('⚠️  Existing undo log is corrupted, creating new one');
@@ -165,6 +180,6 @@ export class Converter {
     });
 
     // Write undo log
-    fs.writeFileSync(undoPath, JSON.stringify(undoLog, null, 2));
+    await writeJsonFile(undoPath, undoLog);
   }
 }

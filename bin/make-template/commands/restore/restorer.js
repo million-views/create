@@ -1,56 +1,76 @@
 import fs from 'fs';
 import path from 'path';
+import { readJsonFile, exists, remove } from '../../../../lib/fs-utils.mjs';
+import { ContextualError, ErrorContext, ErrorSeverity, handleError } from '../../../../lib/error-handler.mjs';
 
 export class Restorer {
   constructor(options) {
     this.options = options;
   }
 
-  restore() {
-    console.log(`Restoring template: ${this.options.projectPath}`);
-
-    const undoLogPath = path.join(this.options.projectPath, '.template-undo.json');
-
-    // Check if undo log exists
-    if (!fs.existsSync(undoLogPath)) {
-      console.error(`❌ .template-undo.json not found in ${this.options.projectPath}`);
-      console.error("Cannot restore without undo log. Make sure you're in the right directory.");
-      process.exit(1);
-    }
-
-    // Read undo log
-    let undoLog;
+  async restore() {
     try {
-      undoLog = JSON.parse(fs.readFileSync(undoLogPath, 'utf8'));
+      console.log(`Restoring template: ${this.options.projectPath}`);
+
+      const undoLogPath = path.join(this.options.projectPath, '.template-undo.json');
+
+      // Check if undo log exists
+      if (!(await exists(undoLogPath))) {
+        throw new ContextualError(
+          `.template-undo.json not found in ${this.options.projectPath}`,
+          {
+            context: ErrorContext.USER_INPUT,
+            severity: ErrorSeverity.HIGH,
+            operation: 'restore',
+            suggestions: [
+              'Ensure you are in the correct project directory',
+              'Check that a template conversion was performed previously',
+              'Verify the .template-undo.json file was not manually deleted'
+            ]
+          }
+        );
+      }
+
+      // Read undo log
+      const undoLog = await readJsonFile(undoLogPath);
+
+      if (this.options.dryRun) {
+        console.log('DRY RUN MODE - No changes will be made');
+        console.log('DRY RUN: Would restore template to project');
+        console.log('Files that would be restored:');
+        undoLog.fileOperations.forEach(op => {
+          console.log(`  • ${op.path}`);
+        });
+        console.log('No changes were made');
+        return;
+      }
+
+      // Perform restoration
+      await this.performRestoration(undoLog);
+
+      // Clean up undo log unless --keep-undo is specified
+      if (!this.options.keepUndo) {
+        await remove(undoLogPath);
+        console.log('✓ Cleanup: Removed .template-undo.json');
+      }
+
+      console.log('✓ Template restored to project successfully');
     } catch (error) {
-      console.error('❌ Failed to read undo log:', error.message);
+      handleError(error, {
+        context: ErrorContext.FILE_OPERATION,
+        severity: ErrorSeverity.HIGH,
+        operation: 'restore',
+        suggestions: [
+          'Check file permissions in the project directory',
+          'Ensure the undo log is not corrupted',
+          'Verify all files referenced in the undo log still exist'
+        ]
+      });
       process.exit(1);
     }
-
-    if (this.options.dryRun) {
-      console.log('DRY RUN MODE - No changes will be made');
-      console.log('DRY RUN: Would restore template to project');
-      console.log('Files that would be restored:');
-      undoLog.fileOperations.forEach(op => {
-        console.log(`  • ${op.path}`);
-      });
-      console.log('No changes were made');
-      return;
-    }
-
-    // Perform restoration
-    this.performRestoration(undoLog);
-
-    // Clean up undo log unless --keep-undo is specified
-    if (!this.options.keepUndo) {
-      fs.unlinkSync(undoLogPath);
-      console.log('✓ Cleanup: Removed .template-undo.json');
-    }
-
-    console.log('✓ Template restored to project successfully');
   }
 
-  performRestoration(undoLog) {
+  async performRestoration(undoLog) {
     const operations = undoLog.fileOperations || [];
 
     // Filter operations if specific files requested
@@ -64,11 +84,11 @@ export class Restorer {
     }
 
     for (const operation of operationsToProcess) {
-      this.restoreFile(operation);
+      await this.restoreFile(operation);
     }
   }
 
-  restoreFile(operation) {
+  async restoreFile(operation) {
     const filePath = path.join(this.options.projectPath, operation.path);
 
     try {
@@ -78,8 +98,8 @@ export class Restorer {
         console.log(`✓ Restored ${operation.path}`);
       } else if (operation.type === 'created') {
         // Remove created files
-        if (fs.existsSync(filePath)) {
-          fs.unlinkSync(filePath);
+        if (await exists(filePath)) {
+          await remove(filePath);
           console.log(`✓ Removed ${operation.path}`);
         }
       } else if (operation.type === 'deleted') {

@@ -7,7 +7,7 @@ import {
   validateRepoUrl,
   sanitizeBranchName,
   ValidationError
-} from './security.mjs';
+} from '../../../lib/security.mjs';
 
 const CONFIG_FILENAME = '.m5nvrc';
 const ENV_OVERRIDE_KEY = 'CREATE_SCAFFOLD_CONFIG_PATH';

@@ -30,7 +30,7 @@ export class ConvertCommand extends Command {
     }
   }
 
-  run(parsed) {
+  async run(parsed) {
     if (!parsed.projectPath) {
       console.error('Error: <project-path> is required');
       console.error('\n⚠️  Always specify the project path explicitly to avoid accidental conversion');
@@ -45,7 +45,7 @@ export class ConvertCommand extends Command {
     }
 
     const converter = new Converter(parsed);
-    converter.convert();
+    await converter.convert();
   }
 }
 

@@ -11,7 +11,7 @@ import {
   handleError,
   withErrorHandling,
   contextualizeError
-} from '../../bin/create-scaffold/modules/utils/error-handler.mjs';
+} from '../../lib/error-handler.mjs';
 
 describe('Error Handler', () => {
   describe('Constants', () => {

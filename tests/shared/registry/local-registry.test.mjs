@@ -58,7 +58,7 @@ const mockLoadTemplateMetadataFromPath = async (templatePath) => {
     authoringMode: 'wysiwyg',
     authorAssetsDir: null,
     dimensions: {},
-    handoffSteps: [],
+    handoff: [],
     placeholders: [],
     canonicalVariables: [],
     constants: {},
