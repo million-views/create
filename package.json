@@ -61,11 +61,13 @@
     "eslint-plugin-import": "^2.31.0",
     "eslint-plugin-n": "^17.23.1",
     "eslint-plugin-promise": "^7.2.1",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.2.6",
     "typescript": "^5.6.3"
   },
   "scripts": {
     "lint": "eslint .",
-    "prepare": "npm run lint",
+    "prepare": "husky",
     "schema:build": "node ./scripts/build-template-schema.mjs",
     "schema:check": "node ./scripts/build-template-schema.mjs --check && tsc --noEmit --project tsconfig.json",
     "test": "node ./scripts/test-runner.mjs",
@@ -90,5 +92,13 @@
     "validate": "npm run schema:check && node ./scripts/comprehensive-validation.mjs",
     "validate:docs": "node ./scripts/validate-docs.mjs",
     "validate:code": "node ./scripts/comprehensive-validation.mjs --code-only"
+  },
+  "lint-staged": {
+    "*.{js,mjs,cjs,ts,mts,cts}": [
+      "eslint --fix"
+    ],
+    "*.md": [
+      "eslint --fix"
+    ]
   }
 }

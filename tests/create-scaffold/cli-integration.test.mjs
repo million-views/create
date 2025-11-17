@@ -5,8 +5,6 @@
  * True end-to-end tests for CLI functionality
  */
 
-import test from 'node:test';
-import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execCLI as runCLI } from '../utils/cli.js';
@@ -16,12 +14,9 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const CLI_PATH = path.join(__dirname, '..', '..', 'bin', 'create-scaffold', 'index.mjs');
 
-// Test configuration
-const TEST_TIMEOUT = 20000; // 20 seconds for integration tests
-
 // Create test runner instance
 const runner = new TestRunner();
-  tempPaths: [],
+tempPaths: [],
 // Test suite
 runner.createTest('Comprehensive resource management validation', async () => {
   const tempDir = await TestEnvironment.createTempDir();
@@ -127,7 +122,7 @@ runner.createTest('Command patterns validate correct usage', async () => {
 
     // Invalid commands
     [['invalid-command'], 'should reject invalid command'],
-    [['new'], 'should require project directory'],
+    [['new'], 'should require project directory']
   ];
 
   for (const [args, description] of testCases) {

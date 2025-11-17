@@ -5,21 +5,16 @@
  * Tests for error scenarios and cleanup behavior
  */
 
-import test from 'node:test';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execCLI as runCLI } from '../utils/cli.js';
-import { cleanupPaths as cleanupTestPaths, detectResourceLeaks as assertNoLeaks, getResourceSnapshot as snapshotResources } from '../utils/resources.js';
-import { TestEnvironment, TemplateRepository, TestRunner, OutputValidator, ResourceMonitor } from '../shared/cli-test-utils.mjs';
+import { getResourceSnapshot as snapshotResources } from '../utils/resources.js';
+import { TestEnvironment, TemplateRepository, TestRunner, ResourceMonitor } from '../shared/cli-test-utils.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const CLI_PATH = path.join(__dirname, '..', '..', 'bin', 'create-scaffold', 'index.mjs');
-const FIXTURE_ROOT = path.join(__dirname, '..', 'fixtures');
-
-// Test configuration
-const TEST_TIMEOUT = 15000; // 15 seconds for error handling tests
 
 // Create test runner instance
 const runner = new TestRunner();

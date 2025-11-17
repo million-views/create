@@ -7,10 +7,8 @@
 
 import test from 'node:test';
 import fs from 'node:fs/promises';
-import path from 'node:path';
-import os from 'node:os';
+import path, { dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { dirname } from 'node:path';
 import { execCommand as runCommand } from '../utils/cli.js';
 
 /**
@@ -21,26 +19,26 @@ export class TestEnvironment {
     const timestamp = Date.now();
     const random = Math.random().toString(36).slice(2, 8);
     const dirName = `test-cli-${timestamp}-${random}${suffix}`;
-    
+
     // Always create temp directories in project root ./tmp, regardless of cwd
     const __filename = fileURLToPath(import.meta.url);
     const __dirname = dirname(__filename);
     const projectRoot = path.join(__dirname, '../..'); // tests/shared -> tests -> project root
     const tempPath = path.join(projectRoot, 'tmp', dirName);
-    
+
     await fs.mkdir(tempPath, { recursive: true });
     return tempPath;
   }
 
   static async cleanup(paths) {
     if (!Array.isArray(paths)) paths = [paths];
-    
+
     // Get project root path
     const __filename = fileURLToPath(import.meta.url);
     const __dirname = dirname(__filename);
     const projectRoot = path.join(__dirname, '../..');
     const tmpDir = path.join(projectRoot, 'tmp');
-    
+
     for (const p of paths) {
       try {
         // Only remove the specific test directory, not the ./tmp folder itself
@@ -51,7 +49,7 @@ export class TestEnvironment {
           await fs.rm(p, { recursive: true, force: true });
         }
         // Skip cleanup for ./tmp folder itself
-      } catch (error) {
+      } catch {
         // Ignore cleanup errors in tests
       }
     }
@@ -215,7 +213,7 @@ export class ResourceMonitor {
     };
   }
 
-  static async detectResourceLeaks(before, after, context = '') {
+  static async detectResourceLeaks(_before, _after) {
     // Basic leak detection - in a real implementation this would
     // check for files, processes, etc. that weren't cleaned up
     const leaks = [];

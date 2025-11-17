@@ -5,20 +5,15 @@
  * Tests for successful execution paths and normal operation
  */
 
-import test from 'node:test';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execCLI as runCLI } from '../utils/cli.js';
-import { TestEnvironment, TemplateRepository, TestRunner, OutputValidator } from '../shared/cli-test-utils.mjs';
+import { TestEnvironment, TemplateRepository, TestRunner } from '../shared/cli-test-utils.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const CLI_PATH = path.join(__dirname, '..', '..', 'bin', 'create-scaffold', 'index.mjs');
-const FIXTURE_ROOT = path.join(__dirname, '..', 'fixtures');
-
-// Test configuration
-const TEST_TIMEOUT = 10000; // 10 seconds for execution tests
 
 // Create test runner instance
 const runner = new TestRunner();

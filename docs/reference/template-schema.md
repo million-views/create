@@ -56,8 +56,8 @@ The schema supports both legacy templates (without `schemaVersion`) and V1.0.0 t
 
 | Property | Type | Required | Description |
 |----------|------|----------|-------------|
-| `schemaVersion` | `string` | Yes* | Schema version (currently "1.0.0") |
-| `id` | `string` | Yes* | Unique identifier in format `author/template-name` |
+| `schemaVersion` | `string` | Yes*| Schema version (currently "1.0.0") |
+| `id` | `string` | Yes*| Unique identifier in format `author/template-name` |
 | `name` | `string` | Yes | Human-readable template name (1-120 chars) |
 | `description` | `string` | Yes | Detailed description (1-500 chars) |
 | `tags` | `string[]` | No | Categorization tags (lowercase, alphanumeric + hyphens) |

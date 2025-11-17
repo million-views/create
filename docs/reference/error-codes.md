@@ -245,7 +245,7 @@ When using `--log-file <path>`, logs are written as JSON Lines format:
 #### Validation Errors
 Validation errors include structured suggestions:
 
-```
+```text
 ❌ Validation failed:
   • Project directory name contains path separators or traversal attempts
   • Project name contains invalid characters
@@ -257,7 +257,7 @@ Validation errors include structured suggestions:
 #### Filesystem Errors
 Filesystem operations log with path and error details:
 
-```
+```text
 ❌ mkdir operation failed for: /path/to/directory
 ❌ Error: EACCES: permission denied, mkdir '/path/to/directory'
 ```
@@ -265,7 +265,7 @@ Filesystem operations log with path and error details:
 #### Missing Dependencies
 Dependency errors include installation instructions:
 
-```
+```text
 ❌ Missing required dependencies: git, node
 ℹ️ Installation instructions:
   npm install git node

@@ -65,7 +65,7 @@ Each command extends Command and implements:
 Commands follow a structured DSL for expressing their interface:
 
 ### Syntax Pattern
-```
+```bash
 command-name [OPTIONS] <required-arg> [optional-arg]
 ```
 
@@ -94,7 +94,7 @@ restore <project-path> [options]
 ## File Organization
 
 ### Directory Structure
-```
+```text
 bin/
   create-scaffold/
     index.mjs                    # Router entry point
@@ -242,7 +242,7 @@ The codebase implements multiple template validators across different architectu
 
 #### Validator Distribution
 
-```
+```text
 ┌─────────────────┐
 │   CLI Layer     │ ← User-friendly validation + console output
 │   template-validator.js

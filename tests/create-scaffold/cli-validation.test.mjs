@@ -5,10 +5,8 @@
  * Tests for path validation, security checks, and input validation
  */
 
-import test from 'node:test';
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import os from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { execCLI as runCLI } from '../utils/cli.js';
 import { TestEnvironment, OutputValidator, TestRunner } from '../shared/cli-test-utils.mjs';
@@ -16,9 +14,6 @@ import { TestEnvironment, OutputValidator, TestRunner } from '../shared/cli-test
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const CLI_PATH = path.join(__dirname, '..', '..', 'bin', 'create-scaffold', 'index.mjs');
-
-// Test configuration
-const TEST_TIMEOUT = 5000; // 5 seconds for fast failure and iteration
 
 /**
  * Node.js test runner bridge that preserves existing helper semantics.
@@ -241,7 +236,7 @@ runner.createTest('File operations prevent symlink attacks', async () => {
   const symlinkPath = path.join(tempDir, 'evil-link');
   try {
     await fs.symlink('/etc/passwd', symlinkPath);
-  } catch (error) {
+  } catch {
     // Symlinks may not be supported on all systems, skip test
     return;
   }
