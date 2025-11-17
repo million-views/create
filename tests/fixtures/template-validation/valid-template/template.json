@@ -1,7 +1,5 @@
 {
+  "schemaVersion": "1.0.0",
   "name": "validation-demo",
-  "description": "Template for validation success",
-  "metadata": {
-    "placeholders": []
-  }
+  "description": "Template for validation success"
 }
