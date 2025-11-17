@@ -8,7 +8,7 @@ prerequisites: []
 related_docs:
   - "cli-reference.md"
   - "../guides/troubleshooting.md"
-last_updated: "2025-11-12"
+last_updated: "2025-01-15"
 ---
 
 # Error Codes Reference
@@ -22,7 +22,10 @@ Complete reference for exit codes, error messages, and troubleshooting informati
 | Code | Category | Description | Common Causes |
 |------|----------|-------------|---------------|
 | `0` | Success | Operation completed successfully | Normal execution, help displayed, dry run completed |
-| `1` | General Error | Generic error or unhandled exception | Various error conditions, validation failures, unexpected errors |
+| `1` | General Error | Generic error or validation failure | Argument parsing errors, validation failures, template errors, unknown commands |
+| `2` | Preflight Error | Setup/environment issues | Git not installed, Node.js version issues, critical environment problems |
+| `3` | Network Error | Network connectivity issues | Git clone timeouts, repository access failures |
+| `4` | Filesystem Error | File system permission/access issues | Permission denied, disk space issues, path access problems |
 
 ## Error Categories
 
@@ -31,18 +34,19 @@ Complete reference for exit codes, error messages, and troubleshooting informati
 **Exit Code:** `1`
 **Category:** Input Validation
 
-| Error Message | Cause | Resolution |
-|---------------|-------|------------|
-| `Unknown option: --invalid-flag` | User provided an unrecognized command-line flag | Check available options with `--help` |
-| `Invalid option value: --cache-ttl abc` | User provided invalid value for an option | Provide valid value (e.g., numeric for `--cache-ttl`) |
-| `Argument parsing failed: [details]` | General argument parsing failure | Check command syntax and option formats |
+| Error Message Pattern | Cause | Resolution |
+|----------------------|-------|------------|
+| `❌ Validation failed:`<br>`  • <project-name> is required` | Missing required project name argument | Provide project directory name as first argument |
+| `❌ Validation failed:`<br>`  • --template flag is required` | Missing required template flag | Add `--template <template-name>` or `-T <template-name>` |
+| `❌ Error: Invalid arguments`<br><br>`Unknown option: --invalid-flag` | User provided unrecognized command-line flag | Check available options with `--help` |
+| `❌ Error: Unknown command 'invalid'` | Command name not recognized | Use valid commands: `new`, `list`, `validate`, or `help` |
 
 **Example:**
 ```bash
 $ npm create @m5nv/scaffold my-app -- --invalid-flag
 ❌ Error: Invalid arguments
 
-  Unknown option: --invalid-flag
+Unknown option: --invalid-flag
 
 Use --help for usage information.
 ```
@@ -54,126 +58,99 @@ Use --help for usage information.
 
 #### Project Directory Validation
 
-| Error Message | Cause | Resolution |
-|---------------|-------|------------|
-| `Project directory is required as the first argument` | Missing project directory argument | Provide project directory name |
-| `Project directory name contains path separators or traversal attempts` | Directory name contains `/`, `\`, or `..` | Use simple directory name without path separators |
-| `Project directory name cannot start with a dot` | Directory name starts with `.` | Choose name that doesn't start with dot |
-| `Project directory name is reserved and cannot be used` | Using reserved name like `node_modules` | Choose different directory name |
-| `Project directory name contains invalid characters` | Name contains special characters | Use only letters, numbers, hyphens, underscores |
-| `Project directory name is too long (maximum 100 characters)` | Name exceeds length limit | Choose shorter name |
+| Error Message Pattern | Cause | Resolution |
+|----------------------|-------|------------|
+| `❌ Validation failed:`<br>`  • Project directory name contains path separators or traversal attempts` | Directory name contains `/`, `\`, or `..` | Use simple directory name without path separators |
+| `❌ Validation failed:`<br>`  • Project name contains invalid characters` | Name contains special characters like `<>:"\|?*` | Use only letters, numbers, hyphens, underscores |
+| `❌ Validation failed:`<br>`  • Project name is a reserved system name` | Using Windows reserved names like `CON`, `PRN`, `AUX` | Choose different directory name |
+| `❌ Validation failed:`<br>`  • Project name is too long` | Name exceeds 255 characters | Choose shorter name |
 
 #### Template Validation
 
-| Error Message | Cause | Resolution |
-|---------------|-------|------------|
-| `--template flag is required` | Missing required template flag | Add `--template <template-name>` |
-| `Template name contains path traversal attempts` | Template name contains `..` or `/` | Use simple template name |
-| `Template name contains invalid characters` | Name contains special characters | Use only letters, numbers, hyphens, underscores |
-| `Template name is too long (maximum 255 characters)` | Name exceeds length limit | Choose shorter template name |
+| Error Message Pattern | Cause | Resolution |
+|----------------------|-------|------------|
+| `❌ Validation failed:`<br>`  • Template name contains invalid characters` | Template name contains spaces or injection characters | Use simple template name without special characters |
+| `❌ Validation failed:`<br>`  • Template not accessible` | Template path doesn't exist or isn't readable | Check template path and permissions |
+| `❌ Validation failed:`<br>`  • Cannot use both --no-cache and --cache-ttl` | Conflicting cache options provided | Use either `--no-cache` OR `--cache-ttl`, not both |
 
-Run `create-scaffold --validate-template <template-directory>` to lint template repositories directly. The command returns exit code `1` when any manifest, setup-script, or required-file validator fails, surfacing the messages above without copying files.
+#### Branch and Repository Validation
 
-#### Repository Validation
+| Error Message Pattern | Cause | Resolution |
+|----------------------|-------|------------|
+| `❌ Validation failed:`<br>`  • Branch name contains invalid characters` | Branch name has spaces or special chars | Use valid git branch name format |
+| `❌ Validation failed:`<br>`  • Branch name contains path traversal attempts` | Branch name contains `..` or invalid slashes | Use simple branch name |
 
-| Error Message | Cause | Resolution |
-|---------------|-------|------------|
-| `Repository format must be user/repo, a valid URL, or a local path` | Invalid repository format | Use `user/repo`, full URL, or local path |
-| `Unsupported protocol: ftp:` | Using unsupported protocol | Use `http:`, `https:`, `git:`, or `ssh:` |
-| `Private network URLs are not allowed` | Using localhost or private IP | Use public repository URL |
-| `Repository user or name is too long` | GitHub user/repo names too long | Use shorter names |
+#### Cache and Configuration Validation
 
-#### Branch Validation
-
-| Error Message | Cause | Resolution |
-|---------------|-------|------------|
-| `Branch name contains invalid characters` | Branch name has spaces or special chars | Use valid git branch name |
-| `Branch name contains path traversal attempts` | Branch name contains `..` or invalid slashes | Use simple branch name |
-| `Branch name cannot start or end with a dot` | Branch starts/ends with `.` | Choose different branch name |
-| `Branch name cannot end with .lock` | Branch ends with `.lock` | Choose different branch name |
-
-#### IDE and Options Validation
-
-| Error Message | Cause | Resolution |
-|---------------|-------|------------|
-| `Invalid IDE: "invalid". Supported IDEs: kiro, vscode, cursor, windsurf` | Unsupported IDE specified | Use supported IDE or omit flag |
-| `Invalid option name: "invalid@option"` | Option contains invalid characters | Use only letters, numbers, hyphens, underscores |
-| `Option name too long: "very-long-option-name..."` | Option name exceeds 50 characters | Use shorter option names |
-
-#### Cache and Logging Validation
-
-| Error Message | Cause | Resolution |
-|---------------|-------|------------|
-| `Cache TTL must be between 1 and 720 hours` | TTL outside valid range | Use value between 1-720 hours |
-| `Cache TTL must be a valid integer` | Non-numeric TTL value | Provide numeric value |
-| `cannot use both --no-cache and --cache-ttl flags together` | Conflicting cache flags | Use either `--no-cache` OR `--cache-ttl` |
-| `Log file path contains path traversal attempts` | Log path contains `..` | Use safe log file path |
-| `Log file path points to restricted system directory` | Log path in system directory | Use path in user directory |
+| Error Message Pattern | Cause | Resolution |
+|----------------------|-------|------------|
+| `❌ Invalid cache TTL value: abc. Must be a positive integer.` | Non-numeric or invalid TTL value | Provide numeric value between 1-720 hours |
+| `❌ Validation failed:`<br>`  • Cannot use both --no-cache and --cache-ttl` | Conflicting cache flags | Use either `--no-cache` OR `--cache-ttl` |
 
 ### Git Operation Errors
 
-**Exit Code:** `1`
+**Exit Code:** `3` (Network) or `1` (General)
 **Category:** Git Operations
 
-| Error Message | Cause | Resolution |
-|---------------|-------|------------|
-| `Repository not found` | Repository doesn't exist or no access | Check repository URL and permissions |
-| `Branch not found in repository` | Specified branch doesn't exist | Check branch name or omit to use default |
-| `Authentication failed` | Git credentials not configured | Set up SSH keys or personal access token |
-| `Git clone operation timed out` | Network issues or large repository | Check network connection, try again |
-| `Failed to access repository: [details]` | General git access failure | Check repository URL, credentials, network |
+| Error Message Pattern | Cause | Resolution |
+|----------------------|-------|------------|
+| `❌ Repository not found` | Repository doesn't exist or no access | Check repository URL and permissions |
+| `❌ Branch not found in repository` | Specified branch doesn't exist | Check branch name or omit to use default |
+| `❌ Authentication failed` | Git credentials not configured | Set up SSH keys or personal access token |
+| `❌ Git clone operation timed out` | Network issues or large repository | Check network connection, try again |
+| `❌ Failed to access repository: [details]` | General git access failure | Check repository URL, credentials, network |
 
 **Common Git Error Scenarios:**
 
 ```bash
 # Repository not found
-❌ Error: Repository not found.
+❌ Repository not found.
 Please check that:
   1. The repository exists
   2. You have access to it
   3. Your git credentials are configured correctly
 
 # Authentication failed
-❌ Error: Authentication failed.
+❌ Authentication failed.
 Please ensure your git credentials are configured correctly.
 For private repositories, you need to set up:
   - SSH keys: https://docs.github.com/en/authentication/connecting-to-github-with-ssh
   - Personal Access Token: https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token
 
 # Network timeout
-❌ Error: Git clone operation timed out.
-This may be due to:
-  • Network connectivity issues
-  • Large repository size
-  • Repository server being slow or unavailable
-  • Firewall or proxy blocking the connection
+❌ Network error during git clone
+Technical Details: Clone operation timed out
+💡 Suggestions:
+   • Check your internet connection
+   • Try again in a few minutes
+   • Use --no-cache to bypass cached data
 
 Please check your network connection and try again.
 ```
 
 ### File System Errors
 
-**Exit Code:** `1`
+**Exit Code:** `4` (Filesystem) or `1` (General)
 **Category:** File Operations
 
-| Error Message | Cause | Resolution |
-|---------------|-------|------------|
-| `Template not found in the repository` | Template directory doesn't exist | Check template name, use `--list-templates` |
-| `Failed to copy template: [details]` | File copy operation failed | Check permissions, disk space |
-| `Project directory already exists` | Target directory already exists | Choose different name or remove existing directory |
-| `Permission denied` | Insufficient file system permissions | Check directory permissions |
-| `No space left on device` | Insufficient disk space | Free up disk space |
+| Error Message Pattern | Cause | Resolution |
+|----------------------|-------|------------|
+| `❌ Template not found in the repository` | Template directory doesn't exist | Check template name, use `--list-templates` |
+| `❌ Failed to copy template: [details]` | File copy operation failed | Check permissions, disk space |
+| `❌ Project directory already exists` | Target directory exists and is not empty | Choose different name or remove existing directory |
+| `❌ Permission denied` | Insufficient file system permissions | Check directory permissions |
+| `❌ No space left on device` | Insufficient disk space | Free up disk space |
 
 ### Cache System Errors
 
 **Exit Code:** `1`
 **Category:** Cache Operations
 
-| Error Message | Cause | Resolution |
-|---------------|-------|------------|
-| `Cache directory permission denied` | Cannot access cache directory | Check `~/.m5nv/cache` permissions or use `--no-cache` |
-| `Corrupted cache entry` | Cache entry is corrupted | Tool automatically re-clones, or use `--no-cache` |
-| `Cache cleanup failed` | Cannot clean up cache | Check disk space and permissions |
+| Error Message Pattern | Cause | Resolution |
+|----------------------|-------|------------|
+| `❌ Cache directory permission denied` | Cannot access cache directory | Check `~/.m5nv/cache` permissions or use `--no-cache` |
+| `❌ Corrupted cache entry` | Cache entry is corrupted | Tool automatically re-clones, or use `--no-cache` |
+| `❌ Cache cleanup failed` | Cannot clean up cache | Check disk space and permissions |
 
 ### Setup Script Errors
 
@@ -182,11 +159,11 @@ Please check your network connection and try again.
 
 Setup script errors are treated as warnings and don't cause the CLI to exit with error code 1.
 
-| Warning Message | Cause | Resolution |
-|-----------------|-------|------------|
-| `Setup script execution failed: [details]` | Setup script threw an error | Check setup script code, review logs |
-| `Setup script must export a default function` | Setup script has wrong export format | Ensure `export default function setup(env) { ... }` |
-| `Setup script not found` | No `_setup.mjs` file (normal) | No action needed - setup scripts are optional |
+| Warning Message Pattern | Cause | Resolution |
+|------------------------|-------|------------|
+| `⚠️  Warning: Setup script execution failed: [details]` | Setup script threw an error | Check setup script code, review logs |
+| `⚠️  Warning: Setup script must export a default function` | Setup script has wrong export format | Ensure `export default function setup(env) { ... }` |
+| `⚠️  Warning: Setup script not found` | No `_setup.mjs` file (normal) | No action needed - setup scripts are optional |
 
 **Example:**
 ```bash
@@ -198,14 +175,14 @@ Continuing without setup...
 
 ### Preflight Check Errors
 
-**Exit Code:** `1`
+**Exit Code:** `2`
 **Category:** Environment Validation
 
-| Error Message | Cause | Resolution |
-|---------------|-------|------------|
-| `Git is not installed or not in PATH` | Git command not found | Install git and ensure it's in PATH |
-| `Node.js version requirement not met` | Unsupported Node.js version | Upgrade to supported Node.js version |
-| `Project directory already exists` | Target directory exists | Choose different name or remove directory |
+| Error Message Pattern | Cause | Resolution |
+|----------------------|-------|------------|
+| `❌ Git is not installed or not in PATH` | Git command not found | Install git and ensure it's in PATH |
+| `❌ Node.js version requirement not met` | Unsupported Node.js version | Upgrade to supported Node.js version |
+| `❌ Project directory already exists` | Target directory exists | Choose different name or remove directory |
 
 ## Environment Variables
 
@@ -221,47 +198,135 @@ The CLI tool doesn't use environment variables for configuration, but setup scri
 
 ## Logging and Debugging
 
-### Log File Format
+The CLI tool provides comprehensive logging and debugging capabilities through the Logger class. Logging output varies by environment and can be controlled through log levels and output modes.
 
-When using `--log-file`, the CLI creates detailed logs in JSON format:
+### Log Output Formats
+
+#### Console Mode (Default)
+Console logging uses emoji prefixes and structured formatting:
+
+| Log Level | Emoji | Example Output |
+|-----------|-------|----------------|
+| Error | `❌` | `❌ Error: Repository not found` |
+| Warning | `⚠️` | `⚠️ Warning: Setup script execution failed` |
+| Info | `ℹ️` | `ℹ️ Cloning repository: user/repo (branch: main) to /tmp/repo` |
+| Debug | `🔍` | `🔍 Debug: Cache entry found for user/repo:main` |
+| Success | `✅` | `✅ Project created successfully!` |
+| Progress | `🔄` | `🔄 Cloning [1/3] (33%) Starting git clone operation` |
+| Dry Run | `🔍` | `🔍 [DRY RUN] Would clone repository: user/repo` |
+| Confirm | `❓` | `❓ Continue with operation? (y/N)` |
+
+#### File Mode (`--log-file`)
+When using `--log-file <path>`, logs are written as JSON Lines format:
+
+```json
+{"timestamp":"2024-01-15T10:30:00.000Z","level":"error","message":"Repository not found"}
+{"timestamp":"2024-01-15T10:30:01.000Z","level":"info","message":"Starting git clone operation","data":{"repoUrl":"user/repo","branch":"main"}}
+{"timestamp":"2024-01-15T10:30:02.000Z","operation":"git_clone","details":{"repoUrl":"user/repo","branch":"main","destination":"/tmp/repo"}}
+```
+
+### Log Levels
+
+| Level | Description | Environment Default |
+|-------|-------------|-------------------|
+| `error` | Critical errors only | All environments |
+| `warn` | Errors and warnings | All environments |
+| `info` | General information + warnings/errors | Production, CI |
+| `debug` | Detailed debugging + all above | Development, Test |
+
+### Environment-Specific Logging
+
+- **Development/Test**: Console mode with `debug` level (verbose output)
+- **CI**: Console mode with `info` level (moderate output)
+- **Production**: Console mode with `info` level (moderate output)
+
+### Specialized Logging Methods
+
+#### Validation Errors
+Validation errors include structured suggestions:
+
+```
+❌ Validation failed:
+  • Project directory name contains path separators or traversal attempts
+  • Project name contains invalid characters
+ℹ️ Suggestions:
+  • Use simple directory name without path separators
+  • Use only letters, numbers, hyphens, underscores
+```
+
+#### Filesystem Errors
+Filesystem operations log with path and error details:
+
+```
+❌ mkdir operation failed for: /path/to/directory
+❌ Error: EACCES: permission denied, mkdir '/path/to/directory'
+```
+
+#### Missing Dependencies
+Dependency errors include installation instructions:
+
+```
+❌ Missing required dependencies: git, node
+ℹ️ Installation instructions:
+  npm install git node
+Then run the command again.
+```
+
+#### Operation Logging
+Complex operations are logged with structured data:
 
 ```json
 {
   "timestamp": "2024-01-15T10:30:00.000Z",
-  "level": "info",
-  "operation": "git_clone_start",
-  "data": {
+  "operation": "git_clone",
+  "details": {
     "repoUrl": "user/repo",
-    "branchName": "main",
-    "noCache": false
+    "branch": "main",
+    "destination": "/tmp/repo"
   }
 }
 ```
 
+### Data Sanitization
+
+All log data is automatically sanitized to prevent credential exposure:
+
+- **Sensitive fields redacted**: `password`, `token`, `apikey`, `secret`, `auth`, `credential`
+- **Pattern matching**: Fields containing sensitive keywords are replaced with `[REDACTED]`
+- **Recursive sanitization**: Applied to nested objects and arrays
+
 ### Common Log Operations
 
-| Operation | Description | Data Fields |
+| Operation | Description | Logged Data |
 |-----------|-------------|-------------|
-| `cli_start` | CLI execution started | `args`, `timestamp` |
-| `git_clone_start` | Git clone operation started | `repoUrl`, `branchName`, `noCache` |
-| `git_clone_direct` | Direct git clone completed | `repoUrl`, `branchName`, `tempDir` |
-| `cache_hit` | Repository found in cache | `repoUrl`, `branchName`, `cachedPath` |
-| `cache_miss` | Repository not in cache | `repoUrl`, `branchName` |
-| `file_copy_start` | File copy operation started | `templatePath`, `projectDirectory` |
-| `file_copy_complete` | File copy completed | `templatePath`, `projectDirectory` |
-| `setup_script_start` | Setup script execution started | `setupScriptPath`, `ide`, `options` |
-| `setup_script_cleanup` | Setup script cleanup | `setupScriptPath`, `removed` |
-| `error` | Error occurred | `error`, `operation`, `context` |
+| `git_clone` | Git repository cloning | `repoUrl`, `branch`, `destination` |
+| `file_copy` | Template file copying | `source`, `destination` |
+| `setup_script` | Setup script execution | `scriptPath`, `status`, `output` |
+| `error` | Error with context | `message`, `stack`, `context` |
 
 ### Debug Information
 
-For troubleshooting, the following information is useful:
+For troubleshooting, collect the following diagnostic information:
 
 - **Node.js version:** `node --version`
 - **Git version:** `git --version`
 - **CLI version:** `npm list @m5nv/create-scaffold`
+- **Environment:** `NODE_ENV` value
 - **Cache location:** `~/.m5nv/cache/`
-- **Log file:** Specified with `--log-file`
+- **Log file:** Use `--log-file debug.log` for detailed JSON logs
+
+### Enabling Debug Logging
+
+```bash
+# Enable debug logging to console
+NODE_ENV=development npm create @m5nv/scaffold my-app --template basic
+
+# Save detailed logs to file
+npm create @m5nv/scaffold my-app --template basic --log-file debug.log
+
+# Combine with dry run for safe debugging
+npm create @m5nv/scaffold my-app --template basic --dry-run --log-file debug.log
+```
 
 ## Troubleshooting Quick Reference
 

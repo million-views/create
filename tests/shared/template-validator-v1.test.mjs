@@ -18,7 +18,7 @@ const validTemplate = {
   name: 'Example Template',
   description: 'A test template for validation',
   dimensions: {
-    deployment_target: {
+    deployment: {
       values: ['vercel', 'netlify']
     },
     features: {
@@ -29,7 +29,7 @@ const validTemplate = {
     }
   },
   gates: {
-    deployment_target: {
+    deployment: {
       platform: 'node',
       constraint: 'Requires Node.js runtime'
     }

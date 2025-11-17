@@ -8,7 +8,7 @@ prerequisites: []
 related_docs:
   - "../tutorial/getting-started.md"
   - "../how-to/creating-templates.md"
-last_updated: "2025-11-12"
+last_updated: "2025-11-17"
 ---
 
 # Reference Documentation
@@ -34,6 +34,15 @@ Detailed documentation of the Environment passed to template setup scripts.
 - Understand available context in setup scripts
 - Implement IDE-specific or option-based customization
 - Handle security considerations in templates
+
+### [Template Schema Reference](template-schema.md)
+Complete reference for Schema V1.0 (`template.json`). Covers all sections of the template schema including metadata, setup configuration, dimensions, gates, feature specifications, hints, constants, and scaffolding steps.
+
+**Use when you need to:**
+- Understand template.json structure and validation rules
+- Create or validate template manifests
+- Reference dimension definitions and constraints
+- Implement advanced template features
 
 ## Quick Reference Tables
 
@@ -74,7 +83,7 @@ Detailed documentation of the Environment passed to template setup scripts.
 - Check [Error Codes Reference](error-codes.md) for troubleshooting
 
 **Template Authors (creating templates):**
-- Focus on [Environment Reference](environment.md)
+- Focus on [Template Schema Reference](template-schema.md) and [Environment Reference](environment.md)
 - Use [CLI Reference](cli-reference.md) for testing templates
 
 **Maintainers/Contributors:**
@@ -88,8 +97,9 @@ Detailed documentation of the Environment passed to template setup scripts.
 2. [Error Codes Reference](error-codes.md) - If issues arise
 
 **Creating templates:**
-1. [Environment Reference](environment.md) - Setup script context
-2. [CLI Reference](cli-reference.md) - Testing your templates
+1. [Template Schema Reference](template-schema.md) - Schema structure
+2. [Environment Reference](environment.md) - Setup script context
+3. [CLI Reference](cli-reference.md) - Testing your templates
 
 **Troubleshooting:**
 1. [Error Codes Reference](error-codes.md) - Understand error messages

@@ -12,7 +12,7 @@ related_docs:
   - "../how-to/setup-recipes.md"
   - "environment.md"
   - "error-codes.md"
-last_updated: "2025-11-12"
+last_updated: "2025-11-17"
 ---
 
 # CLI Reference
@@ -117,11 +117,10 @@ make-template test <template-path> [options]
 
 Both tools support these global options:
 
-- `--help`: Show basic help
+- `--help, -h`: Print help
+- `--version, -v`: Show version information
+- `--verbose`: Enable verbose output
 - `--json`: Output results in JSON format (supported by: `list`, `validate` commands)
-- `--verbose`: Enable verbose logging
-- `--log-file <file>`: Write logs to specified file
-- `--version`: Show version information
 
 ## create-scaffold Commands
 
@@ -166,7 +165,8 @@ create-scaffold list [options]
 **Options:**
 - `--registry`: Registry to list templates from
 - `--verbose`: Show detailed operation information
-- `--format`: Output format (default: table)
+- `--format`: Output format (table|json, default: table)
+- `--json`: Output results in JSON format
 
 ### `validate` - Validate Template
 
@@ -175,13 +175,13 @@ Validate a template directory.
 **Usage:**
 
 ```bash
-create-scaffold validate [options]
+create-scaffold validate <template-path> [options]
 ```
 
 **Options:**
-- `--path`: Specify input file path
 - `--suggest`: Show intelligent fix suggestions
 - `--fix`: Auto-apply safe fixes
+- `--json`: Output results in JSON format
 
 ## make-template Commands
 
@@ -192,15 +192,15 @@ Convert an existing Node.js project into a reusable template.
 **Usage:**
 
 ```bash
-make-template convert [options]
+make-template convert <project-path> [options]
 ```
 
 **Options:**
-- `--dry-run`: Preview changes without executing them
+- `--type <type>`: Force specific project type detection
+- `--placeholder-format <format>`: Specify placeholder format
+- `--dry-run, -d`: Preview changes without executing them
 - `--yes`: Skip confirmation prompts
 - `--silent`: Suppress prompts and non-essential output
-- `--type`: Force specific project type detection
-- `--placeholder-format`: Specify placeholder format
 - `--sanitize-undo`: Remove sensitive data from undo log
 
 ### `restore` - Restore Template to Project
@@ -210,13 +210,15 @@ Restore a templated project back to its original working state.
 **Usage:**
 
 ```bash
-make-template restore [options]
+make-template restore <project-path> [options]
 ```
 
 **Options:**
-- `--restore-files`: Comma-separated list of files to restore
-- `--restore-placeholders`: Restore placeholder values, keep files
+- `--files <files>`: Restore only specified files (comma-separated)
+- `--placeholders-only`: Restore only placeholder values, keep template structure
 - `--generate-defaults`: Generate .restore-defaults.json configuration
+- `--dry-run, -d`: Preview changes without executing them
+- `--yes`: Skip confirmation prompts
 
 ### `init` - Initialize Template
 
@@ -229,7 +231,7 @@ make-template init [options]
 ```
 
 **Options:**
-- `--init-file`: Specify output file path
+- `--file, -f <path>`: Specify output file path (default: template.json)
 
 ### `validate` - Validate Template
 
@@ -238,13 +240,14 @@ Validate template.json against the schema.
 **Usage:**
 
 ```bash
-make-template validate [options] [template-file]
+make-template validate [options]
 ```
 
 **Options:**
-- `--lint-file`: Specify input file path
+- `--file, -f <path>`: Specify input file path
 - `--suggest`: Show intelligent fix suggestions
 - `--fix`: Auto-apply safe fixes
+- `--json`: Output results in JSON format
 
 ### `hints` - Show Authoring Hints
 
@@ -263,13 +266,12 @@ Test templates by creating projects and validating functionality.
 **Usage:**
 
 ```bash
-make-template test [options] <template-path>
+make-template test <template-path> [options]
 ```
 
 **Options:**
 - `--verbose, -v`: Enable verbose test output
-- `--keep-temp`: Preserve temporary test directories
-- `--keep-temp`: Preserve temporary test directories
+- `--keep-temp`: Preserve temporary directories after testing
 
 ## Registry System
 
@@ -628,6 +630,6 @@ All inputs are validated for security and correctness:
 
 ## Version History
 
-**Current Version**: 0.5.0
+**Current Version**: 0.6.0
 
 See [CHANGELOG.md](../../CHANGELOG.md) for detailed version history.

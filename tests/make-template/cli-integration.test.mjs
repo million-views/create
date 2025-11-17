@@ -84,7 +84,7 @@ const invalidTemplateDomain = {
   name: 'Invalid Domain Template',
   description: 'Template with invalid domain values',
   dimensions: {
-    deployment_target: {
+    deployment: {
       values: ['invalid-platform'], // Invalid enum value
       default: 'invalid-platform'
     }

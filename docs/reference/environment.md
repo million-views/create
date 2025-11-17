@@ -11,7 +11,7 @@ related_docs:
   - "../how-to/creating-templates.md"
   - "../how-to/setup-recipes.md"
   - "cli-reference.md"
-last_updated: "2025-11-12"
+last_updated: "2025-01-13"
 ---
 
 # Environment Reference
@@ -75,26 +75,18 @@ export default async function setup({ ctx, tools }) {
 | `projectDir` | `string` | Absolute path to the project directory. All helper methods already scope operations to this root, so you rarely need it directly. |
 | `projectName` | `string` | Sanitized name chosen by the user (letters, numbers, hyphen, underscore). Use it when updating metadata such as `package.json` or README content. |
 | `cwd` | `string` | Directory where the CLI command was executed. Helpful when you need to compute workspace-relative paths. |
-| `ide` | `string \| null` | IDE specified by user (lowercase: 'vscode', 'kiro', 'cursor', 'windsurf') or null if not specified. |
 | `authoring` | `"wysiwyg" \| "composable"` | Mode declared in `template.json`. WYSIWYG templates mirror a working project; composable templates assemble features via `_setup.mjs`. |
 | `authorAssetsDir` | `string` | Directory name for template assets (configured via `setup.authorAssetsDir`, defaults to `"__scaffold__"`). |
-| `options` | `object` | Normalized user selections with defaults already applied. See breakdown below. |
+| `options` | `object` | Normalized user selections with defaults already applied. Contains `raw` (array of raw option strings) and `byDimension` (object mapping dimension names to selected values). |
 | `inputs` | `Record<string, string \| number \| boolean>` | Placeholder answers collected during template instantiation. Keys omit braces (`PROJECT_NAME`). Values are immutable and type-coerced based on `metadata.placeholders` and any canonical `metadata.variables` entries. |
 | `constants` | `Record<string, any>` | Template-defined constants from `template.json` that are always available regardless of user selections. |
-
-`ctx.options` contains two readonly views:
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `raw` | `string[]` | Ordered list of tokens supplied on the command line. |
-| `byDimension` | `Record<string, string \| string[]>` | Canonical selections drawn from the template's `metadata.dimensions` metadata. Multi-select dimensions return arrays; single-select dimensions return a string or `null`. |
 
 The context object is frozen; attempting to mutate it throws.
 
 ## How template metadata populates the environment
 
-1. **`template.json` declares intent** – Dimensions under `metadata.dimensions` define the option vocabulary, `metadata.placeholders` inventories template-defined `{{TOKEN}}` values, and `metadata.variables` opts into canonical placeholders supplied by the CLI.
-2. **The CLI normalizes user input** – Flags such as `--options "features=auth+logging"` are validated against the declared dimensions and cached in `ctx.options.byDimension` (with defaults pre-applied). Placeholder values are gathered via `--placeholder`, environment variables, defaults, or interactive prompts so `ctx.inputs` is fully populated before `_setup.mjs` executes.
+1. **`template.json` declares intent** – Dimensions under `setup.dimensions` define the option vocabulary. The CLI validates user selections against these declared dimensions and caches results in `ctx.options.byDimension` (with defaults pre-applied).
+2. **The CLI collects inputs** – Placeholder values are gathered via `--placeholder` flags, environment variables, configuration files, or interactive prompts so `ctx.inputs` is fully populated before `_setup.mjs` executes.
 3. **`ctx` and `tools` expose the results** – Setup scripts read `ctx.options` or helper wrappers (`tools.options.*`) to branch on selected features, and they access placeholder answers via `ctx.inputs` or `tools.inputs`. Helper APIs such as `tools.placeholders.applyInputs()` consume these values directly, keeping setup code deterministic.
 
 **Example**
@@ -102,32 +94,73 @@ The context object is frozen; attempting to mutate it throws.
 ```jsonc
 // template.json (excerpt)
 {
+  "schemaVersion": "1.0.0",
+  "name": "My Template",
+  "description": "A template for building web applications",
   "setup": {
+    "authoring": "composable",
+    "policy": "strict",
     "dimensions": {
-      "capabilities": {
+      "deployment": {
+        "type": "single",
+        "values": ["cloudflare-workers", "linode"],
+        "default": "cloudflare-workers"
+      },
+      "features": {
         "type": "multi",
         "values": ["auth", "docs"],
         "default": ["auth"]
+      },
+      "database": {
+        "type": "single",
+        "values": ["d1", "none"],
+        "default": "d1"
+      },
+      "storage": {
+        "type": "single",
+        "values": ["r2", "none"],
+        "default": "r2"
+      },
+      "auth": {
+        "type": "multi",
+        "values": ["google", "github"],
+        "default": []
+      },
+      "payments": {
+        "type": "single",
+        "values": ["stripe", "none"],
+        "default": "none"
+      },
+      "analytics": {
+        "type": "single",
+        "values": ["plausible", "none"],
+        "default": "none"
       }
+    },
+    "gates": {}
+  },
+  "featureSpecs": {
+    "auth": {
+      "label": "Authentication",
+      "description": "Add user authentication features",
+      "needs": {}
+    },
+    "docs": {
+      "label": "Documentation",
+      "description": "Generate documentation files",
+      "needs": {}
     }
   },
-  "metadata": {
-    "placeholders": [
-      { "name": "{{PROJECT_NAME}}", "required": true }
-    ],
-    "variables": [
-      { "name": "author" },
-      { "name": "license" }
-    ]
-  }
+  "constants": {}
 }
 ```
 
-With `--options "capabilities=auth+docs"` and a placeholder answer `AUTHOR="Jane"`, the setup script receives:
+With `--options "features=auth+docs"` and placeholder inputs from `--placeholder AUTHOR="Jane"` and `--placeholder LICENSE="MIT"`, the setup script receives:
 
 ```javascript
-ctx.options.byDimension.capabilities; // ['auth', 'docs']
+ctx.options.byDimension.features; // ['auth', 'docs']
 ctx.inputs.AUTHOR; // 'Jane'
+ctx.inputs.LICENSE; // 'MIT'
 await tools.placeholders.applyInputs(['README.md']);
 await tools.templates.renderFile('README.tpl.mjs', 'README.md', {
   author: ctx.inputs.AUTHOR,
@@ -157,11 +190,11 @@ const author = tools.inputs.get('AUTHOR', 'Unknown');
 
 Placeholder replacement operations.
 
-**applyInputs(selector, extra?)**  
+**applyInputs(selector?, extra?)**  
 Apply values from `ctx.inputs`, `ctx.projectName`, and optional `extra` map to files matching the selector.  
 *Parameters:* `selector?: string | string[], extra?: Record<string, any>`
 
-**replaceAll(replacements, selector)**  
+**replaceAll(replacements, selector?)**  
 Replace `{{TOKEN}}` placeholders in files matching the selector with custom values.  
 *Parameters:* `replacements: Record<string, string>, selector?: string | string[]`
 
@@ -248,25 +281,25 @@ Deep-merge an object into an existing JSON file. Creates file if missing. Arrays
 Provide a function that receives a mutable clone of the JSON data. Return new object or mutate the draft.  
 *Parameters:* `path: string, updater: (data: any) => any`
 
-**set(path, value)**  
+**set(relativePath, pathExpression, value)**  
 Assign a value at a dot-path (e.g. `scripts.dev`). Dots in the path act as property separators, allowing deep object navigation. Property names can contain any valid JavaScript identifier characters, including special characters like `@` in scoped package names. Intermediate objects are created automatically.  
-*Parameters:* `path: string, value: any`  
+*Parameters:* `relativePath: string, pathExpression: string, value: any`  
 *Examples:*  
 - `tools.json.set('package.json', 'scripts.dev', 'node index.js')`  
 - `tools.json.set('package.json', 'dependencies.@m5nv/auth-lib', '^1.0.0')`  
 - `tools.json.set('package.json', 'config.database.host', 'localhost')`
 
-**remove(path)**  
+**remove(relativePath, pathExpression)**  
 Remove a property or array entry at the dot-path. Dots act as property separators for deep navigation.  
-*Parameters:* `path: string`
+*Parameters:* `relativePath: string, pathExpression: string`
 
-**addToArray(path, value, options?)**  
+**addToArray(relativePath, pathExpression, value, options?)**  
 Push a value into an array at the dot-path, optionally enforcing uniqueness. Dots act as property separators for deep navigation.  
-*Parameters:* `path: string, value: any, options?: { unique?: boolean }`
+*Parameters:* `relativePath: string, pathExpression: string, value: any, options?: { unique?: boolean }`
 
-**mergeArray(path, items, options?)**  
+**mergeArray(relativePath, pathExpression, items, options?)**  
 Merge multiple values into an array at the dot-path, optionally enforcing uniqueness. Dots act as property separators for deep navigation.  
-*Parameters:* `path: string, items: any[], options?: { unique?: boolean }`
+*Parameters:* `relativePath: string, pathExpression: string, items: any[], options?: { unique?: boolean }`
 
 ### `tools.templates`
 
@@ -401,46 +434,69 @@ export default async function setup({ ctx, tools }) {
 
 ## Template Metadata Essentials
 
-`template.json` is the authoritative contract that create-scaffold reads before copying files or executing `_setup.mjs`. The `setup` block defines three critical aspects:
+`template.json` is the authoritative contract that create-scaffold reads before copying files or executing `_setup.mjs`. The schema requires three critical sections:
 
 ```json
 {
+  "schemaVersion": "1.0.0",
+  "name": "My Template",
   "setup": {
     "authoring": "composable",
-    "authorAssetsDir": "__scaffold__",
+    "policy": "strict",
     "dimensions": {
-      "capabilities": {
-        "type": "multi",
-        "values": ["logging", "testing", "docs"],
-        "default": ["logging"],
-        "requires": {
-          "testing": ["logging"]
-        },
-        "conflicts": {
-          "docs": ["testing"]
-        },
-        "policy": "strict"
-      },
       "deployment": {
         "type": "single",
-        "values": ["none", "cloudflare-d1", "cloudflare-turso"],
+        "values": ["cloudflare-workers", "linode"],
+        "default": "cloudflare-workers"
+      },
+      "features": {
+        "type": "multi",
+        "values": ["auth", "docs"],
+        "default": ["auth"]
+      },
+      "database": {
+        "type": "single",
+        "values": ["d1", "none"],
+        "default": "d1"
+      },
+      "storage": {
+        "type": "single",
+        "values": ["r2", "none"],
+        "default": "r2"
+      },
+      "auth": {
+        "type": "multi",
+        "values": ["google", "github"],
+        "default": []
+      },
+      "payments": {
+        "type": "single",
+        "values": ["stripe", "none"],
+        "default": "none"
+      },
+      "analytics": {
+        "type": "single",
+        "values": ["plausible", "none"],
         "default": "none"
       }
+    },
+    "gates": {}
+  },
+  "featureSpecs": {
+    "auth": {
+      "label": "Authentication",
+      "description": "Add user authentication features",
+      "needs": {}
     }
-  }
+  },
+  "constants": {}
 }
 ```
 
-- **`authoring`** distinguishes WYSIWYG (`"wysiwyg"`) templates from composable ones (`"composable"`). The runtime exposes this value as `ctx.authoring` so setup scripts can tailor behaviour.
-- **`authorAssetsDir`** names the directory that stores author-only snippets (defaults to `__scaffold__`). The CLI stages it before setup runs and deletes it afterwards.
-- **`dimensions`** enumerate the option vocabulary. Each entry supports:
-  - `type`: `"single"` or `"multi"`.
-  - `values`: allowed tokens.
-  - `default`: optional default selection(s).
-  - `requires`: map of dependencies (value → required selections in the same dimension).
-  - `conflicts`: map of conflicts (value → incompatible selections in the same dimension).
-  - `policy`: `"strict"` (reject unknown values) or `"warn"` (allow but warn). Defaults to `"strict"`.
-  - `ui`: optional UI configuration object.
+- **`setup.authoring`** distinguishes WYSIWYG (`"fixed"`) templates from composable ones (`"composable"`). The runtime exposes this value as `ctx.authoring` so setup scripts can tailor behaviour.
+- **`setup.dimensions`** enumerate the option vocabulary. Schema V1.0 requires exactly 7 dimensions (deployment, features, database, storage, auth, payments, analytics) with specific types and validation rules.
+- **`featureSpecs`** define available features with labels, descriptions, and compatibility requirements.
+- **`constants`** provide fixed template values available in `ctx.constants`.
 
 ## Additional Reading
 

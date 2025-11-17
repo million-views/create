@@ -83,7 +83,7 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "deployment_target": {
+        "deployment": {
           "type": "object",
           "additionalProperties": false,
           "properties": {
@@ -164,7 +164,7 @@
             }
           }
         },
-        "auth_providers": {
+        "auth": {
           "type": "object",
           "additionalProperties": false,
           "properties": {

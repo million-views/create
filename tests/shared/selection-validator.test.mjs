@@ -16,7 +16,7 @@ const validTemplate = {
   name: 'Example Template',
   description: 'A test template for validation',
   dimensions: {
-    deployment_target: {
+    deployment: {
       values: ['vercel', 'netlify']
     },
     features: {
@@ -27,7 +27,7 @@ const validTemplate = {
     }
   },
   gates: {
-    deployment_target: {
+    deployment: {
       platform: 'node',
       constraint: 'Requires Node.js runtime'
     }
@@ -56,7 +56,7 @@ const validSelection = {
   templateId: 'test/example-template',
   version: '1.0.0',
   selections: {
-    deployment_target: 'vercel',
+    deployment: 'vercel',
     features: ['auth', 'database'],
     database: 'postgresql'
   }
@@ -66,7 +66,7 @@ const invalidSelection = {
   schemaVersion: '1.0.0',
   // Missing templateId
   selections: {
-    deployment_target: 'vercel',
+    deployment: 'vercel',
     features: ['auth']
   }
 };
@@ -125,7 +125,7 @@ test('SelectionValidator validates dimension values exist', async () => {
     ...validSelection,
     selections: {
       ...validSelection.selections,
-      deployment_target: 'invalid-target' // Not in template dimensions
+      deployment: 'invalid-target' // Not in template dimensions
     }
   };
 
@@ -141,7 +141,7 @@ test('SelectionValidator enforces gates constraints', async () => {
   const gatedTemplate = {
     ...validTemplate,
     gates: {
-      deployment_target: {
+      deployment: {
         platform: 'node',
         constraint: 'Only Vercel allowed',
         allowed: ['vercel'],
@@ -155,7 +155,7 @@ test('SelectionValidator enforces gates constraints', async () => {
     ...validSelection,
     selections: {
       ...validSelection.selections,
-      deployment_target: 'netlify' // Forbidden by gate
+      deployment: 'netlify' // Forbidden by gate
     }
   };
 

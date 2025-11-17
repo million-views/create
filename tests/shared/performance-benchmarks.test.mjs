@@ -30,7 +30,7 @@ const validTemplateV1 = {
       values: ['auth', 'database', 'api'],
       default: []
     },
-    deployment_target: {
+    deployment: {
       values: ['vercel', 'netlify', 'aws'],
       default: 'vercel'
     }
@@ -44,7 +44,7 @@ const validSelectionV1 = {
   version: '1.0.0',
   selections: {
     features: ['auth', 'database'],
-    deployment_target: 'vercel'
+    deployment: 'vercel'
   },
   project: {
     name: 'test-project',
@@ -65,7 +65,7 @@ const invalidSelection = {
   version: '1.0.0',
   selections: {
     features: ['invalid-feature'], // Invalid feature
-    deployment_target: 'vercel'
+    deployment: 'vercel'
   }
 };
 

@@ -4,11 +4,11 @@ This directory stores the authoritative JSON schemas shipped with `@m5nv/create-
 
 ## Template Schema
 - `template.v1.json` contains the immutable v1 template schema definition.
-- `template.json` is a convenience copy pointing to the latest stable template schema consumed by the CLI.
+- `template.json` is a symlink pointing to the latest stable template schema consumed by the CLI.
 
 ## Selection Schema
 - `selection.v1.json` contains the schema for selection.json files that store user choices and derived metadata during scaffolding.
-- `selection.json` is a convenience copy pointing to the latest stable selection schema consumed by the CLI.
+- `selection.json` is a symlink pointing to the latest stable selection schema consumed by the CLI.
 
 ## Versioning Policy
 
