@@ -87,7 +87,7 @@ Define your placeholders in `template.json`:
    Now convert your manually templatized project:
 
    ```bash
-   npx make-template convert --yes
+   npx make-template convert . --yes
    ```
 
    This creates the `.template-undo.json` file with the reverse mappings for restoration.
@@ -101,7 +101,7 @@ Define your placeholders in `template.json`:
    npx make-template restore --yes 2>/dev/null || echo "No template to restore"
    
    # Now convert with auto-detection
-   npx make-template convert --placeholder-format "{{NAME}}" --yes
+   npx make-template convert . --placeholder-format "{{NAME}}" --yes
    ```
 
    This creates a template with auto-detected placeholders. Let's see what was detected:
@@ -192,7 +192,7 @@ Define your placeholders in `template.json`:
    Now convert this Cloudflare project:
 
    ```bash
-   npx make-template convert --type cf-d1 --yes
+   npx make-template convert . --type cf-d1 --yes
    ```
 
    The auto-templatization should detect:
@@ -253,7 +253,7 @@ npm install @m5nv/stl
 
 **Convert to template:**
 ```bash
-npx make-template convert --yes
+npx make-template convert . --yes
 ```
 
 ## Step 3: Create Full-Stack Portfolio Template
@@ -287,8 +287,8 @@ npm create react-router@latest . -- --template basic --yes
 
 **Convert both to templates:**
 ```bash
-cd portfolio-api && npx make-template convert --yes
-cd ../portfolio-client && npx make-template convert --yes
+cd portfolio-api && npx make-template convert . --yes
+cd ../portfolio-client && npx make-template convert . --yes
 ```
 
 ## What You Accomplished

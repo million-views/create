@@ -299,5 +299,4 @@ This design is ready for approval when:
 - [ ] Risk mitigation strategies are comprehensive
 - [ ] Success metrics are measurable
 - [ ] Code reuse opportunities are identified
-- [ ] Quality assurance approach is defined</content>
-<parameter name="filePath">/Users/vijay/workspaces/ws-million-views/create/.kiro/specs/make-template-authoring-sprint/design.md
+- [ ] Quality assurance approach is defined

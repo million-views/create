@@ -234,6 +234,81 @@ describe("Command", () => {
 });
 ```
 
+## Architectural Trade-offs
+
+### Layered Validation Architecture
+
+The codebase implements multiple template validators across different architectural layers, each serving distinct purposes while maintaining similar naming patterns. This design reflects the inherent trade-offs between specialization and consistency in layered architectures.
+
+#### Validator Distribution
+
+```
+┌─────────────────┐
+│   CLI Layer     │ ← User-friendly validation + console output
+│   template-validator.js
+├─────────────────┤
+│ Registry Layer  │ ← Async discovery validation + events
+│   template-validator.mjs
+├─────────────────┤
+│ Pipeline Layer  │ ← File I/O validation + processing results
+│   manifest-validator.mjs
+├─────────────────┤
+│ Core Library    │ ← Pure validation logic + data transformation
+│   template-manifest-validator.mjs
+│   authoring-template-validator.mjs
+└─────────────────┘
+```
+
+#### Architectural Justification
+
+**Why Multiple Validators?**
+- **Different Contracts**: Each layer has unique input/output requirements
+  - CLI: File paths → console messages
+  - Registry: Template objects → events + validation results
+  - Pipeline: Directory paths → structured pipeline data
+  - Core: Parsed JSON → normalized data structures
+- **Different Error Handling**: Layers require different error presentation
+  - CLI: User-friendly messages with suggestions
+  - Core: Structured errors for programmatic handling
+- **Performance Characteristics**: Sync vs async processing needs
+- **Dependency Injection**: Layer-specific service dependencies
+
+#### Naming Challenges
+
+The similar naming (`template-validator.*`) creates developer confusion:
+
+```javascript
+// Confusing - which validator does what?
+import { TemplateValidator } from './commands/validate/template-validator.js';
+import { TemplateValidator } from './modules/registry/template-validator.mjs';
+import { TemplateValidator } from './lib/validation/template-validator.mjs';
+```
+
+#### Recommended Resolution
+
+**Proposed Naming Convention:**
+```javascript
+import { CliTemplateValidator } from './commands/validate/cli-template-validator.js';
+import { RegistryTemplateValidator } from './modules/registry/registry-template-validator.mjs';
+import { PipelineManifestValidator } from './modules/validators/pipeline-manifest-validator.mjs';
+import { CoreManifestValidator } from './lib/core-manifest-validator.mjs';
+import { AuthoringTemplateValidator } from './lib/authoring-template-validator.mjs';
+```
+
+#### Assessment
+
+**Verdict**: Acceptable layered specialization, but naming confusion should be addressed during next major refactoring. The architectural separation is sound - the naming is the primary issue.
+
+**Benefits**:
+- ✅ Clear separation of concerns
+- ✅ Layer-appropriate contracts
+- ✅ Optimized for specific use cases
+
+**Drawbacks**:
+- ❌ Naming confusion for developers
+- ❌ Potential code duplication
+- ❌ Maintenance coordination across layers
+
 ## Future Extensions
 
 ### Adding New Commands

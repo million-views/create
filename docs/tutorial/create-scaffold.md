@@ -57,7 +57,7 @@ npx @m5nv/create-scaffold list --registry workshop
 cd ..
 mkdir scaffolded-projects
 cd scaffolded-projects
-npx @m5nv/create-scaffold my-react-spa --template basic-react-spa --registry workshop
+npx @m5nv/create-scaffold new my-react-spa --template basic-react-spa --registry workshop
 cd my-react-spa
 npm install && npm run dev
 ```
@@ -66,7 +66,7 @@ npm install && npm run dev
 
 ```bash
 cd ..
-npx @m5nv/create-scaffold my-portfolio --template ssr-portfolio-app --registry workshop
+npx @m5nv/create-scaffold new my-portfolio --template ssr-portfolio-app --registry workshop
 cd my-portfolio
 npm install
 npx wrangler d1 create my-portfolio-db
@@ -83,7 +83,7 @@ curl http://localhost:8787/api/projects
 
 **API Server:**
 ```bash
-npx @m5nv/create-scaffold portfolio-api --template portfolio-api --registry workshop
+npx @m5nv/create-scaffold new portfolio-api --template portfolio-api --registry workshop
 cd portfolio-api
 npm install
 npx wrangler d1 create portfolio-db
@@ -93,7 +93,7 @@ npm run dev
 **Client App (new terminal):**
 ```bash
 cd ..
-npx @m5nv/create-scaffold portfolio-client --template portfolio-client --registry workshop
+npx @m5nv/create-scaffold new portfolio-client --template portfolio-client --registry workshop
 cd portfolio-client
 npm install && npm run dev
 ```
@@ -102,7 +102,7 @@ npm install && npm run dev
 
 ### CLI Flags
 ```bash
-npx @m5nv/create-scaffold custom-app --template basic-react-spa --registry workshop \
+npx @m5nv/create-scaffold new custom-app --template basic-react-spa --registry workshop \
   --placeholder projectName=MyApp \
   --placeholder authorName="Your Name"
 ```
@@ -121,7 +121,7 @@ npx @m5nv/create-scaffold custom-app --template basic-react-spa --registry works
 ### Environment Variables
 ```bash
 CREATE_SCAFFOLD_PLACEHOLDER_projectName=MyProject \
-npx @m5nv/create-scaffold env-test --template basic-react-spa --registry workshop
+npx @m5nv/create-scaffold new env-test --template basic-react-spa --registry workshop
 ```
 
 ## Selection Files for Variants
@@ -130,11 +130,11 @@ Use `selection.json` for predefined template configurations:
 
 ```bash
 # Use existing selection
-npx @m5nv/create-scaffold my-project --template portfolio-api --registry workshop \
+npx @m5nv/create-scaffold new my-project --template portfolio-api --registry workshop \
   --selection ./portfolio-api.selection.json
 
 # Skip prompts with defaults
-npx @m5nv/create-scaffold quick-start --template basic-react-spa --registry workshop \
+npx @m5nv/create-scaffold new quick-start --template basic-react-spa --registry workshop \
   --selection '{}'
 ```
 

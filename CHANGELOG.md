@@ -130,5 +130,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Initial Release**: Basic project scaffolding functionality
 - **Template Support**: Support for JSON-based template definitions
 - **Node.js ESM**: Modern JavaScript module system
-- **Basic CLI**: Command-line interface for project creation</content>
-<parameter name="filePath">/Users/vijay/workspaces/ws-million-views/create/CHANGELOG.md
+- **Basic CLI**: Command-line interface for project creation

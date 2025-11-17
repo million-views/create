@@ -415,5 +415,4 @@ Tasks will be tracked using the following status indicators:
 - 🔄 Documentation updated
 - 🔄 Integration tests added
 
-The core functionality is complete and tested. The remaining work focuses on polish, optimization, and user experience improvements.</content>
-<parameter name="filePath">/Users/vijay/workspaces/ws-million-views/create/.kiro/specs/make-template-authoring-sprint/tasks.md
+The core functionality is complete and tested. The remaining work focuses on polish, optimization, and user experience improvements.

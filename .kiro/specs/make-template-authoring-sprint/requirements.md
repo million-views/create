@@ -198,5 +198,4 @@ This requirements document is ready for approval when:
 - [ ] Success criteria are measurable
 - [ ] Technical constraints are realistic
 - [ ] Risk mitigation strategies are in place
-- [ ] Dependencies are identified and available</content>
-<parameter name="filePath">/Users/vijay/workspaces/ws-million-views/create/.kiro/specs/make-template-authoring-sprint/requirements.md
+- [ ] Dependencies are identified and available

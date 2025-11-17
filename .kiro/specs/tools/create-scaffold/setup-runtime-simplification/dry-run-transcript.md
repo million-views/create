@@ -16,9 +16,9 @@ Output:
 🔍 DRY RUN MODE - Preview of planned operations (no changes will be made)
 
 📦 Template: react-vite
-🌐 Repository: /Users/vijay/workspaces/ws-million-views/create/tmp/local-templates
+🌐 Repository: /path/to/local-templates
 📁 Target Directory: preview-project
-🗂️ Template Path: /Users/vijay/workspaces/ws-million-views/create/tmp/home/.m5nv/cache/9ee6c9fb6c249b31/react-vite
+🗂️ Template Path: /path/to/cache/templates/react-vite
 
 📄 Summary:
    • Directories: 1
@@ -39,7 +39,7 @@ Output:
 💡 Dry run only – no changes will be made.
 
 🌲 Template structure (depth 2):
-/Users/vijay/workspaces/ws-million-views/create/tmp/home/.m5nv/cache/9ee6c9fb6c249b31/react-vite
+/path/to/cache/templates/react-vite
 ├── README.md
 ├── _setup.mjs
 ├── index.js
