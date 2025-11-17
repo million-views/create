@@ -346,3 +346,122 @@ test('validateTemplateManifest rejects unknown canonical variables', () => {
     (error) => error instanceof ValidationError && error.field === 'metadata.variables'
   );
 });
+
+test('TemplateValidator consumption mode validation', async (t) => {
+  const validator = new TemplateValidator();
+
+  await t.test('validates basic template for consumption', async () => {
+    const template = {
+      schemaVersion: '1.0.0',
+      id: 'test/basic-template',
+      name: 'Basic Template',
+      description: 'A basic template for consumption'
+    };
+
+    const result = await validator.validate(template, 'strict', { mode: 'consumption' });
+    assert(result.valid, 'Basic template should be valid for consumption');
+    assert(result.errors.length === 0, 'Should have no errors');
+  });
+
+  await t.test('rejects template missing required fields in consumption mode', async () => {
+    const template = {
+      name: 'Incomplete Template',
+      description: 'Missing required fields'
+    };
+
+    const result = await validator.validate(template, 'strict', { mode: 'consumption' });
+    assert(!result.valid, 'Template with missing fields should be invalid');
+    assert(result.errors.length > 0, 'Should have errors');
+    assert(result.errors.includes('Missing required field: schemaVersion'), 'Should report missing schemaVersion');
+    assert(result.errors.includes('Missing required field: id'), 'Should report missing id');
+  });
+
+  await t.test('validates template with optional fields in consumption mode', async () => {
+    const template = {
+      schemaVersion: '1.0.0',
+      id: 'test/optional-template',
+      name: 'Template with Optionals',
+      description: 'Template with optional fields',
+      placeholders: [
+        { name: 'projectName', type: 'string', default: 'my-project' }
+      ],
+      files: {
+        include: ['src/**/*'],
+        exclude: ['*.log']
+      }
+    };
+
+    const result = await validator.validate(template, 'strict', { mode: 'consumption' });
+    assert(result.valid, 'Template with optional fields should be valid');
+  });
+
+  await t.test('rejects invalid placeholders structure in consumption mode', async () => {
+    const template = {
+      schemaVersion: '1.0.0',
+      id: 'test/invalid-template',
+      name: 'Invalid Template',
+      description: 'Template with invalid placeholders',
+      placeholders: 'not-an-array'
+    };
+
+    const result = await validator.validate(template, 'strict', { mode: 'consumption' });
+    assert(!result.valid, 'Template with invalid placeholders should be invalid');
+    assert(result.errors.includes('placeholders must be an array'), 'Should report invalid placeholders');
+  });
+
+  await t.test('rejects invalid files structure in consumption mode', async () => {
+    const template = {
+      schemaVersion: '1.0.0',
+      id: 'test/invalid-files-template',
+      name: 'Invalid Files Template',
+      description: 'Template with invalid files structure',
+      files: {
+        include: 'not-an-array'
+      }
+    };
+
+    const result = await validator.validate(template, 'strict', { mode: 'consumption' });
+    assert(!result.valid, 'Template with invalid files should be invalid');
+    assert(result.errors.includes('files.include must be an array'), 'Should report invalid files.include');
+  });
+});
+
+test('TemplateValidator output modes', async (t) => {
+  const validator = new TemplateValidator();
+
+  await t.test('structured output returns result object', async () => {
+    const template = {
+      schemaVersion: '1.0.0',
+      id: 'test/output-template',
+      name: 'Output Test Template',
+      description: 'Template for testing output modes'
+    };
+
+    const result = await validator.validate(template, 'strict', {
+      mode: 'consumption',
+      output: 'structured'
+    });
+
+    assert(typeof result === 'object', 'Should return object');
+    assert('valid' in result, 'Should have valid property');
+    assert('errors' in result, 'Should have errors property');
+    assert('warnings' in result, 'Should have warnings property');
+  });
+
+  await t.test('console output does not affect return value', async () => {
+    const template = {
+      schemaVersion: '1.0.0',
+      id: 'test/console-template',
+      name: 'Console Output Template',
+      description: 'Template for testing console output'
+    };
+
+    const result = await validator.validate(template, 'strict', {
+      mode: 'consumption',
+      output: 'console'
+    });
+
+    assert(typeof result === 'object', 'Should still return result object');
+    assert(result.valid === true, 'Should be valid');
+  });
+});

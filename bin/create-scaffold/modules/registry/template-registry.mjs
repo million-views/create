@@ -8,7 +8,7 @@
 import { EventEmitter } from 'events';
 import { RegistryManager } from './registry-manager.mjs';
 import { TemplateValidator } from './template-validator.mjs';
-import { CacheManager } from './cache-manager.mjs';
+import { RegistryCacheManager } from './cache-manager.mjs';
 
 /**
  * Main Template Registry interface
@@ -28,7 +28,7 @@ export class TemplateRegistry extends EventEmitter {
     // Initialize components
     this.registryManager = new RegistryManager(this);
     this.validator = new TemplateValidator(this);
-    this.cacheManager = new CacheManager(this);
+    this.cacheManager = new RegistryCacheManager(this);
 
     // Bind event handlers
     this.setupEventHandlers();

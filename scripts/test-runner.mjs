@@ -254,7 +254,7 @@ class TestRunner {
       },
       {
         name: 'Functional Tests',
-        command: ['--test', './tests/create-scaffold/cli.test.mjs'],
+        command: ['--test', './tests/create-scaffold/cli-validation.test.mjs', './tests/create-scaffold/cli-execution.test.mjs', './tests/create-scaffold/cli-error-handling.test.mjs', './tests/create-scaffold/cli-integration.test.mjs'],
         description: 'Comprehensive end-to-end CLI behavior validation',
         homeSuffix: 'functional'
       },

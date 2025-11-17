@@ -9,8 +9,16 @@ import {
 import { execCommand } from '../../../lib/command-utils.mjs';
 
 /**
- * Cache Manager for template repositories
- * Manages local caching of template repositories with TTL support
+ * Git Repository Cache Manager
+ * Manages local caching of Git repositories for template scaffolding
+ *
+ * This CacheManager handles:
+ * - Cloning and caching Git repositories locally
+ * - Repository URL normalization (GitHub shorthand, SSH, HTTPS)
+ * - TTL-based cache expiration
+ * - Authentication checking before cloning
+ *
+ * DIFFERENT from RegistryCacheManager which caches template metadata.
  */
 export class CacheManager {
   constructor(cacheDir = path.join(os.homedir(), '.m5nv', 'cache')) {

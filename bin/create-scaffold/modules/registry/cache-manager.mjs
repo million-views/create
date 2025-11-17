@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * Cache Manager
+ * Registry Cache Manager
  * Manages caching for template registry operations
  */
 
@@ -11,9 +11,18 @@ import path from 'path';
 import crypto from 'crypto';
 
 /**
- * Cache manager for template registry
+ * Registry Cache Manager for template metadata
+ * Manages in-memory and disk caching of template registry information
+ *
+ * This RegistryCacheManager handles:
+ * - Caching template metadata and validation results
+ * - TTL-based expiration with LRU eviction
+ * - Disk persistence for cache entries
+ * - Event-driven cache operations
+ *
+ * DIFFERENT from CacheManager which caches Git repositories.
  */
-export class CacheManager extends EventEmitter {
+export class RegistryCacheManager extends EventEmitter {
   constructor(templateRegistry) {
     super();
     this.templateRegistry = templateRegistry;
