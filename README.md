@@ -35,18 +35,27 @@ npx @m5nv/create-scaffold new my-app --template basic-react-spa
 # Navigate to your project
 cd my-awesome-project
 
-# Convert to template
-npx make-template convert
-
-# Template is ready - share it or publish it!
+# Convert to template (requires explicit path for safety)
+npx @m5nv/make-template convert .
 ```
 
 ### Restore Template Back to Working Project
 
 ```bash
 # When developing/testing templates
-npx make-template restore
+npx @m5nv/make-template restore .
 ```
+
+## Architecture
+
+This project implements the **Command Dispatch Pattern with Template Method** design:
+
+- **BaseCommand**: Abstract base class defining command execution flow (parse → validate → run)
+- **Router**: Central dispatch mechanism with global option handling
+- **Command Classes**: Self-contained command implementations with integrated help
+- **Two-Tier Help System**: Quick help (`--help`) and detailed help (`help <command>`)
+
+See [ARCHITECTURE.md](ARCHITECTURE.md) for complete technical documentation.
 
 ## Why Use This Ecosystem?
 
@@ -276,8 +285,8 @@ create-scaffold new my-app --template basic-react-spa --dry-run
 ### Authoring Templates
 
 ```bash
-# Convert your project
-make-template convert
+# Convert your project (requires explicit path for safety)
+make-template convert ./my-project
 
 # Generate template.json skeleton
 make-template init
@@ -289,6 +298,7 @@ make-template validate
 make-template test ./my-template
 
 # Restore to working project
+make-template restore ./my-template
 make-template restore
 
 # Show authoring hints

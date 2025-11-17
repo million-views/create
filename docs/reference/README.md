@@ -35,15 +35,6 @@ Detailed documentation of the Environment passed to template setup scripts.
 - Implement IDE-specific or option-based customization
 - Handle security considerations in templates
 
-### [Testing Reference](testing.md)
-Complete reference for running and understanding the test suite, including all test suites, commands, and debugging workflows.
-
-**Use when you need to:**
-- Run specific test suites in isolation
-- Understand test coverage and architecture
-- Debug failing tests during development
-- Set up testing in CI/CD pipelines
-
 ## Quick Reference Tables
 
 ### Most Common CLI Parameters

@@ -75,7 +75,7 @@ ls -la | grep -E "pnpm-workspace\.yaml"
 
 ### Permanent Repository Structure
 - **Code**: Core source code stays in appropriate directories (`bin/`, `lib/`, `src/`, etc.)
-- **Tests**: Test files belong in `test/` directory
+- **Tests**: Test files belong in `tests/` directory
 - **Documentation**: Documentation goes in `docs/` directory
 - **Configuration**: Configuration files stay at appropriate levels
 
@@ -300,6 +300,44 @@ function routeCommand(args) {
   // ... other commands
 }
 ```
+
+### 🚫 FORBIDDEN: Incorrect Lint Error Fixes That Break Code
+**NEVER** attempt to "fix" lint errors by prefixing unused imports with `_`. This approach ONLY works for unused variables, NOT for ES module imports. Attempting this will cause import errors and break your code.
+
+```javascript
+// ❌ WRONG: This BREAKS ES module imports
+import { unusedFunction as _unusedFunction } from './module.mjs';
+import _unusedVariable from './other-module.mjs';
+
+// ❌ WRONG: This causes "Cannot resolve module" errors
+import { TemplateResolver as _TemplateResolver } from '../../modules/template-resolver.mjs';
+```
+
+**✅ CORRECT**: Remove unused imports entirely:
+```javascript
+// ✅ CORRECT: Remove unused imports completely
+// import { unusedFunction } from './module.mjs'; // REMOVED
+// import unusedVariable from './other-module.mjs'; // REMOVED
+import { usedFunction } from './module.mjs'; // Keep only what's actually used
+```
+
+**✅ CORRECT**: For unused variables, remove them entirely:
+```javascript
+// ✅ CORRECT: Remove unused variables entirely
+function processData(data) {
+  // const unusedVar = data.unused; // REMOVED
+  return data.used;
+}
+```
+
+**MANDATORY LINT FIX PROTOCOL**:
+1. **Identify the actual problem**: Read the lint error message carefully
+2. **Understand the language/module system**: ES modules ≠ CommonJS ≠ variables
+3. **Apply the correct fix**: Remove unused imports, not rename them
+4. **Test immediately**: Run tests to ensure the fix doesn't break functionality
+5. **Verify with linter**: Confirm the error is actually resolved
+
+**WHY THIS MATTERS**: Incorrect lint fixes introduce runtime errors, break builds, and waste debugging time. Always fix lint errors properly on the first attempt.
 
 ### Security Validation Checklist (MANDATORY)
 Before implementing ANY input processing:

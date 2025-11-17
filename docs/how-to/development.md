@@ -21,22 +21,22 @@ Complete guide for developing and testing @m5nv/create-scaffold locally.
 ## Quick Start
 
 ```bash
-# Clone the repository
+#Clone the repository
 git clone https://github.com/million-views/create.git
 cd create
 
-# Install development dependencies
+#Install development dependencies
 npm install
 
-# Run tests to verify setup
+#Run tests to verify setup
 npm test
 
-# Test CLI locally (package is not published yet)
-node bin/index.mjs --help
-node bin/index.mjs --interactive
+#Test CLI locally (package is not published yet)
+node bin/create-scaffold/index.mjs --help
+node bin/create-scaffold/index.mjs --interactive
 npx . new test-project react-vite
 
-# Optional: expose the create-scaffold binary globally
+#Optional: expose the create-scaffold binary globally
 npm link
 create-scaffold new scratch-app react-vite
 npm unlink -g @m5nv/create-scaffold
@@ -52,24 +52,32 @@ The codebase follows a modular architecture with clear separation of concerns:
 
 ```console
 create/
-├── bin/                           # Core CLI modules
-│   ├── index.mjs                 # Main entry point and CLI orchestration
-│   ├── argumentParser.mjs        # Native argument parsing with util.parseArgs
-│   ├── preflightChecks.mjs       # Validation and system checks
-│   ├── security.mjs              # Input validation and security controls
-│   ├── cacheManager.mjs          # Template repository caching system
-│   ├── logger.mjs                # Structured logging with file output
-│   ├── templateDiscovery.mjs     # Template listing and metadata parsing
-│   ├── interactiveSession.mjs    # Guided interactive prompts and catalog flow
-│   ├── dryRunEngine.mjs          # Preview mode for planned operations
-│   ├── environmentFactory.mjs    # Environment_Object creation and validation
-│   └── utils/                    # Shared utility modules
-│       ├── commandUtils.mjs      # Git command execution utilities
-│       ├── fsUtils.mjs           # File system operation utilities
-│       ├── validationUtils.mjs   # Input validation and sanitization
-│       └── interactiveUtils.mjs  # Interactive mode detection helpers
+├── bin/                           # CLI command entry points
+│   ├── create-scaffold/          # Create-scaffold command implementation
+│   │   ├── index.mjs             # Main create-scaffold entry point
+│   │   ├── commands/             # Individual create-scaffold subcommands
+│   │   │   ├── new/              # Project creation command
+│   │   │   ├── list/             # Template listing command
+│   │   │   └── validate/         # Template validation command
+│   │   └── modules/              # Shared create-scaffold modules
+│   │       ├── cache-manager.mjs # Template repository caching
+│   │       ├── config-loader.mjs # Configuration file loading
+│   │       ├── dry-run-engine.mjs # Preview mode operations
+│   │       ├── guided-setup-workflow.mjs # Interactive setup flow
+│   │       ├── options-processor.mjs # CLI argument processing
+│   │       ├── placeholder-resolver.mjs # Template variable substitution
+│   │       ├── registry/         # Template registry management
+│   │       ├── security.mjs      # Input validation and security
+│   │       ├── setup-runtime.mjs # Template setup script execution
+│   │       ├── template-resolver.mjs # Template discovery and loading
+│   │       ├── template-validation.mjs # Template manifest validation
+│   │       ├── utils/            # Shared utility functions
+│   │       └── validators/       # Input validation utilities
+│   └── make-template/            # Make-template command implementation
+│       ├── index.mjs             # Main make-template entry point
+│       └── commands/             # Make-template subcommands
 ├── docs/                         # User and developer documentation
-├── test/                         # Comprehensive test suites
+├── tests/                        # Comprehensive test suites
 ├── scripts/                      # Development and testing utilities
 └── .kiro/specs/                  # Feature specifications and design docs
 ```
@@ -86,53 +94,54 @@ create/
 
 ### Key Modules
 
-#### CLI Entry Point (`bin/index.mjs`)
+#### CLI Entry Points
 
-- Orchestrates the entire CLI workflow
-- Handles argument parsing and validation
-- Coordinates between all other modules
+**Create-Scaffold (`bin/create-scaffold/index.mjs`)**:
+- Main entry point for the create-scaffold command
+- Orchestrates argument parsing, validation, and command dispatch
+- Coordinates between subcommands and shared modules
 - Manages error handling and user feedback
 
-#### Argument Parser (`bin/argumentParser.mjs`)
+**Make-Template (`bin/make-template/index.mjs`)**:
+- Main entry point for the make-template command
+- Handles template authoring and conversion workflows
+- Manages template validation and project-to-template operations
 
-- Uses native `util.parseArgs` for robust CLI argument handling
-- Supports all CLI options: `--help`, `--log-file`, `--dry-run`, `--no-cache`,
-  `--interactive`, `--no-interactive`, `--cache-ttl`
+#### Core Modules
+
+**Options Processor (`bin/create-scaffold/modules/options-processor.mjs`)**:
+- Processes and validates CLI arguments using native `util.parseArgs`
+- Supports all CLI options: `--help`, `--log-file`, `--dry-run`, `--no-cache`, `--interactive`, `--no-interactive`, `--cache-ttl`
 - Provides comprehensive help text and usage information
 
-#### Interactive Session (`bin/interactiveSession.mjs`)
-
-- Drives the guided prompt workflow for template selection and input capture
+**Guided Setup Workflow (`bin/create-scaffold/modules/guided-setup-workflow.mjs`)**:
+- Drives the interactive prompt workflow for template selection and input capture
 - Coordinates repository caching, catalog formatting, and placeholder prompts
-- Returns normalized arguments that continue through the main CLI pipeline
+- Returns normalized arguments that continue through the CLI pipeline
 
-#### Interactive Utilities (`bin/utils/interactiveUtils.mjs`)
-
-- Determines whether interactive mode should launch based on flags, env vars,
-  TTY state, and missing positional arguments
-- Encapsulates environment toggles (`CREATE_SCAFFOLD_FORCE_INTERACTIVE`,
-  `CREATE_SCAFFOLD_NO_INTERACTIVE`) for use by both the CLI and tests
-
-#### Security Module (`bin/security.mjs`)
-
+**Security Module (`bin/create-scaffold/modules/security.mjs`)**:
 - Validates all user inputs for security compliance
 - Prevents path traversal attacks (`../` sequences)
 - Blocks command injection in repository URLs and branch names
 - Sanitizes error messages to prevent information disclosure
 
-#### Cache Manager (`bin/cacheManager.mjs`)
-
+**Cache Manager (`bin/create-scaffold/modules/cache-manager.mjs`)**:
 - Manages local template repository caching in `~/.m5nv/cache`
 - Implements TTL-based cache expiration (24-hour default)
 - Provides cache bypass with `--no-cache` flag
 - Handles cache corruption recovery automatically
 
-#### Logger (`bin/logger.mjs`)
+**Template Resolver (`bin/create-scaffold/modules/template-resolver.mjs`)**:
+- Handles template discovery and loading from various sources
+- Supports local paths, git repositories, and registry lookups
+- Manages template metadata parsing and validation
+- Coordinates with cache manager for performance optimization
 
-- Structured logging with timestamps and operation tracking
-- Async file writing for performance
-- Logs git operations, file copying, and setup script execution
-- Sanitizes log data to prevent information disclosure
+**Setup Runtime (`bin/create-scaffold/modules/setup-runtime.mjs`)**:
+- Executes template setup scripts in isolated environments
+- Manages environment variable injection and script sandboxing
+- Handles setup script failures gracefully with user feedback
+- Ensures cleanup of temporary resources and artifacts
 
 ## Configuration Defaults
 
@@ -180,44 +189,83 @@ Validation errors reference the offending path and instruct you to re-run with
 
 ## Testing Strategy
 
-The project follows a comprehensive testing strategy with multiple specialized test suites. See the [Testing Reference](../reference/testing.md) for complete information about:
+The project follows a **testing pyramid** architecture that provides maximum confidence with optimal efficiency. Each level validates specific aspects of the system without redundancy.
 
-- Test suite architecture and coverage
-- Running individual test suites
-- Development workflows and debugging
-- Performance characteristics and troubleshooting
+### Testing Pyramid Structure
 
-### Test Suites
+| Level | Command | Purpose | Confidence Level | Speed |
+|-------|---------|---------|------------------|-------|
+| **Unit** | `npm run test:unit` | Core components & infrastructure | **Foundation** - Ensures basic functionality works | ⚡ Fast |
+| **Integration** | `npm run test:integration` | Command-level functionality | **Feature** - Validates individual commands work | 🚀 Medium |
+| **Acceptance** | `npm run test:acceptance` | Requirements compliance | **Contract** - Verifies spec requirements met | 🐌 Slow |
+| **System** | `npm run test:system` | Full end-to-end + resources | **Production** - Validates complete system behavior | 🐌 Slow |
 
-#### 3. Resource Leak Tests (`test/resource-leak-test.mjs`)
+### Test Level Details
 
-- Resource management validation tests
-- Temporary directory cleanup verification
-- Memory and file handle leak detection
-- Process cleanup and error recovery testing
+#### Unit Tests (`npm run test:unit`)
+**Purpose**: Validate core components and infrastructure work correctly in isolation.
 
-#### 4. Smoke Tests (`scripts/smoke-test.mjs`)
+**Covers**:
+- Interactive Utils: Environment detection and interactive mode logic
+- Security Tests: Input validation and attack prevention
+- Template Validator: Schema validation and manifest processing
+- Base Command: Command framework and argument parsing
+- Router: Command dispatch and routing logic
+- Template Schema Build: TypeScript artifact generation
 
-- Production readiness validation tests
-- End-to-end integration with real repositories
-- Performance and reliability under realistic conditions
-- User experience validation with actual workflows
+**When to run**: During active development, after any infrastructure changes.
+
+#### Integration Tests (`npm run test:integration`)
+**Purpose**: Validate that individual CLI commands work end-to-end with file system operations.
+
+**Covers**:
+- Create-Scaffold New: Project creation with templates
+- Create-Scaffold List: Template listing and discovery
+- Create-Scaffold Validate: Template validation commands
+- Make-Template Init: Template skeleton generation
+- Make-Template Hints: Authoring guidance display
+- Make-Template Convert: Project-to-template conversion
+- Make-Template Restore: Template-to-project restoration
+- Make-Template Test: Template testing integration
+- Make-Template Validate: Template validation and compliance
+
+**When to run**: After command changes, during feature development.
+
+#### Acceptance Tests (`npm run test:acceptance`)
+**Purpose**: Verify that all specification requirements are met and contractual obligations fulfilled.
+
+**Covers**:
+- Spec Compliance: Comprehensive requirements validation
+- Argument parsing standards, security requirements, error handling, help text, setup script execution, resource management, dependency constraints, package standards
+
+**When to run**: Before releases, after specification changes, for compliance verification.
+
+#### System Tests (`npm run test:system`)
+**Purpose**: Validate complete system behavior under realistic conditions with resource management.
+
+**Covers**:
+- Functional Tests: Comprehensive end-to-end CLI behavior
+- Resource Leak Tests: Memory, file handle, and temporary directory cleanup
+
+**When to run**: Before releases, for production readiness validation.
 
 ### Testing Methodology
 
-**Test-First Development**: All functionality is developed using strict TDD:
+**Test-First Development**: All functionality developed using strict TDD:
 
 1. Write failing tests that define expected behavior
 2. Implement minimal code to make tests pass
 3. Refactor while maintaining green tests
-4. Validate with comprehensive test suites
+4. Validate with appropriate test pyramid level
 
-**Security Testing**: Every security feature is thoroughly tested:
+**Security Testing**: Every security feature thoroughly tested:
 
 - Path traversal prevention with malicious inputs
 - Command injection blocking with crafted payloads
 - Input validation with edge cases and boundary conditions
 - Error message sanitization to prevent information disclosure
+
+**Performance Testing**: System tests include performance validation and resource leak detection.
 
 ## Testing the CLI Locally
 
@@ -226,97 +274,139 @@ The project follows a comprehensive testing strategy with multiple specialized t
 Test changes immediately without installation:
 
 ```bash
-# Test CLI directly during development
-node bin/index.mjs --help
-node bin/index.mjs new my-test-app react-vite
-node bin/index.mjs new test-project myorg/templates --template custom
+#Test CLI directly during development
+node bin/create-scaffold/index.mjs --help
+node bin/create-scaffold/index.mjs new my-test-app react-vite
+node bin/create-scaffold/index.mjs new test-project myorg/templates --template custom
 
-# Test specific scenarios
-node bin/index.mjs list myorg/templates
-node bin/index.mjs new test-app express --dry-run
+#Test specific scenarios
+node bin/create-scaffold/index.mjs list myorg/templates
+node bin/create-scaffold/index.mjs new test-app express --dry-run
+
+#Test make-template commands
+node bin/make-template/index.mjs --help
+node bin/make-template/index.mjs init
 ```
 
 ### 2. npm link (Global Binary)
 
-Creates a global symlink for the `create-scaffold` binary. **Note:** `npm create @m5nv/scaffold` still attempts to download from npm and will fail until the package is published. Use the `create-scaffold` binary instead.
+Creates global symlinks for the `create-scaffold` and `make-template` binaries. **Note:** `npm create @m5nv/scaffold` still attempts to download from npm and will fail until the package is published. Use the `create-scaffold` and `make-template` binaries instead.
 
-> **Linux Note**: On some Linux systems, `npm link` may not properly set executable permissions on the symlinked binary. If you encounter "permission denied" errors, run: `chmod +x $(npm root -g)/.bin/create-scaffold`
+> **Linux Note**: On some Linux systems, `npm link` may not properly set executable permissions on the symlinked binary. If you encounter "permission denied" errors, run: `chmod +x $(npm root -g)/.bin/create-scaffold $(npm root -g)/.bin/make-template`
 
 ```bash
-# Link your local package globally
+#Link your local package globally
 npm link
 
-# Run the CLI via the linked binary
+#Run the CLI via the linked binaries
 create-scaffold new my-test-app react-vite
 create-scaffold new my-api myorg/templates --template express
+make-template init
+make-template convert my-project
 
-# Test new features
+#Test new features
 create-scaffold new test-project react --log-file ./build.log
 create-scaffold new preview-app vue --dry-run
 
-# Cleanup when done
+#Cleanup when done
 npm unlink -g @m5nv/create-scaffold
 ```
 
 ### 3. Local Installation (Production Simulation)
 
-Install your local version globally to simulate a published install. The entry point is still the `create-scaffold` binary.
+Install your local version globally to simulate a published install. The entry points are the `create-scaffold` and `make-template` binaries.
 
 ```bash
-# Install from current directory
+#Install from current directory
 npm install -g .
 
-# Use normally
+#Use normally
 create-scaffold new my-app some-template
+make-template init
 
-# Uninstall when done
+#Uninstall when done
 npm uninstall -g @m5nv/create-scaffold
 ```
 
 ## Running Tests
 
-### Complete Test Suite
+### Testing Pyramid Commands
 
 ```bash
-# Run all test suites with unified reporting
+#Complete test suite (all pyramid levels)
 npm test
 
-# Run all test suites (same as above)
-npm run test:all
+#Individual pyramid levels
+npm run test:unit         # Foundation: Core components & infrastructure
+npm run test:integration  # Feature: Command-level functionality
+npm run test:acceptance   # Contract: Requirements compliance
+npm run test:system       # Production: Full end-to-end + resources
 
-# Run quick validation (functional + smoke tests only)
-npm run test:quick
+#Legacy commands (maintained for backward compatibility)
+npm run test:smoke        # Same as test:integration
+npm run test:e2e          # Same as test:system
 
-# Lint code (zero warnings required)
-npm run lint
+#Code quality
+npm run lint              # Zero warnings required
 ```
-
-See the [Testing Reference](../reference/testing.md) for complete testing commands, individual test suites, and debugging workflows.
-
 
 ### Development Testing Workflow
 
+**During Active Development** (Fast feedback loop):
 ```bash
-# Quick validation during development
-npm run test:quick
+npm run test:unit         # Quick validation of core changes
+npm run test:integration  # Validate command functionality
+```
 
-# Lint code (zero warnings required)
-npm run lint
+**Before Commits** (Feature validation):
+```bash
+npm run test:integration  # Ensure commands work end-to-end
+npm run lint              # Code quality check
+```
 
-# Run specific test suites for focused debugging
-npm run test:smoke         # Fast feedback on core functionality
-npm run test:functional    # Debug end-to-end issues
-npm run test:integration   # Debug CLI flag interactions
+**Before Releases** (Production readiness):
+```bash
+npm run test:acceptance   # Verify spec compliance
+npm run test:system       # Full system validation
+npm test                  # Complete suite
+```
 
-# Run individual test files for deep debugging
-node test/create-scaffold/cli.test.mjs
-node test/shared/security.test.mjs
-node test/create-scaffold/spec-compliance-verification.mjs
+**Debugging Specific Issues**:
+```bash
+#Test pyramid level by level to isolate problems
+npm run test:unit         # Check infrastructure
+npm run test:integration  # Check command functionality
+npm run test:acceptance   # Check requirements compliance
+npm run test:system       # Check full system behavior
 
-# Test specific functionality
-node test/cache-manager.test.mjs
-node test/logger.test.mjs
-node test/template-discovery.test.mjs
+#Run individual test suites for deep debugging
+npm run test:suite "Security Tests"        # Debug security issues
+npm run test:suite "Create-Scaffold New Tests"  # Debug specific commands
+npm run test:suite "Spec Compliance Tests"      # Debug spec violations
+```
+
+### Test Execution Strategy
+
+**Confidence Building Approach**:
+1. **Unit tests** catch implementation bugs early
+2. **Integration tests** validate feature functionality
+3. **Acceptance tests** ensure contractual requirements
+4. **System tests** confirm production readiness
+
+**Performance-Optimized Workflow**:
+- Use `test:unit` + `test:integration` during development (fast feedback)
+- Use `test:acceptance` + `test:system` for final validation (comprehensive)
+- Use `npm test` for complete validation before releases
+
+### Test specific functionality
+```bash
+node tests/create-scaffold/cli.test.mjs
+node tests/shared/security.test.mjs
+...
+node tests/shared/cache-manager.test.mjs
+node tests/shared/logger.test.mjs
+node tests/shared/template-discovery.test.mjs
+...
 ```
 
 ### Test Output Interpretation
@@ -360,32 +450,36 @@ Before any release, the following validation must pass:
 # 1. Code quality validation
 npm run lint                    # Must show zero warnings
 
-# 2. Complete test suite validation
-npm test                       # Complete test suite must pass
+# 2. Testing pyramid validation (bottom-up confidence building)
+npm run test:unit               # Foundation: Core components work
+npm run test:integration        # Feature: Commands work end-to-end
+npm run test:acceptance         # Contract: Requirements met
+npm run test:system             # Production: Full system validation
 
-# 3. Specification compliance validation
-npm run test:spec              # 100% spec compliance required
+# 3. Complete suite validation
+npm test                        # All tests pass together
 
 # 4. Manual CLI validation (local execution)
-node bin/index.mjs --help
+node bin/create-scaffold/index.mjs --help
 npx . new test-release react-vite
 npm link
 create-scaffold new test-release react-vite
+make-template --help
 npm unlink -g @m5nv/create-scaffold
 ```
 
 ### Version Management
 
 ```bash
-# Update version (automatically updates package.json and creates git tag)
+#Update version (automatically updates package.json and creates git tag)
 npm version patch              # Bug fixes: 1.0.0 → 1.0.1
 npm version minor              # New features: 1.0.0 → 1.1.0
 npm version major              # Breaking changes: 1.0.0 → 2.0.0
 
-# Push release to repository
+#Push release to repository
 git push origin main --tags
 
-# Publish to npm (if applicable)
+#Publish to npm (if applicable)
 npm publish
 ```
 
@@ -393,7 +487,7 @@ npm publish
 
 - [ ] All tests pass (`npm test`)
 - [ ] Zero lint warnings (`npm run lint`)
-- [ ] 100% spec compliance (`npm run test:spec`)
+- [ ] 100% spec compliance (`npm run test:acceptance`)
 - [ ] Manual CLI testing completed
 - [ ] Documentation updated for new features
 - [ ] CHANGELOG.md updated with changes
@@ -405,10 +499,10 @@ npm publish
 ### Linting and Formatting
 
 ```bash
-# Check for lint issues (must show zero warnings)
+#Check for lint issues (must show zero warnings)
 npm run lint
 
-# The project maintains strict code quality:
+#The project maintains strict code quality:
 # - ESLint with comprehensive rules
 # - ES Modules only (no CommonJS)
 # - Modern JavaScript patterns
@@ -570,21 +664,21 @@ This project follows a rigorous spec-driven development methodology. See [Kiro M
 #### 1. Test-First Development (Mandatory)
 
 ```bash
-# ALWAYS write tests first
+#ALWAYS write tests first
 # 1. Search existing codebase for similar functionality
-grep -r "similar_function" bin/ test/
+grep -r "similar_function" bin/ tests/
 
 # 2. Write failing tests that define expected behavior
-# Edit appropriate test file in test/
+# Edit appropriate test file in tests/
 
 # 3. Run tests to confirm they fail (RED)
-npm run test:functional
+npm run test:integration
 
 # 4. Implement minimal code to make tests pass (GREEN)
 # Edit implementation files in bin/
 
 # 5. Run tests to confirm they pass
-npm run test:functional
+npm run test:integration
 
 # 6. Refactor if needed while keeping tests green
 ```
@@ -594,8 +688,8 @@ npm run test:functional
 ```bash
 # Full development workflow
 npm run lint          # Check code quality first
-npm run test:quick    # Quick validation during development
-node bin/index.mjs --help  # Test CLI directly
+npm run test:unit     # Quick validation of core changes
+node bin/create-scaffold/index.mjs --help  # Test CLI directly
 
 # After changes
 npm test             # Run complete test suite
@@ -615,7 +709,7 @@ mkdir -p .kiro/specs/feature-name
 # Mark tasks complete as you go
 
 # 3. Validate implementation
-npm run test:spec    # Verify spec compliance
+npm run test:acceptance    # Verify spec compliance
 ```
 
 ### Debugging and Troubleshooting
@@ -624,12 +718,12 @@ npm run test:spec    # Verify spec compliance
 
 ```bash
 # Test specific scenarios during development
-node bin/index.mjs new test-debug nonexistent  # Error handling
-node bin/index.mjs new ../test hack            # Security validation
-node bin/index.mjs new valid-project react --dry-run  # Preview mode
+node bin/create-scaffold/index.mjs new test-debug nonexistent  # Error handling
+node bin/create-scaffold/index.mjs new ../test hack            # Security validation
+node bin/create-scaffold/index.mjs new valid-project react --dry-run  # Preview mode
 
 # Test with logging enabled
-node bin/index.mjs new my-app react --log-file debug.log
+node bin/create-scaffold/index.mjs new my-app react --log-file debug.log
 cat debug.log  # Review detailed operation logs
 ```
 
@@ -637,15 +731,15 @@ cat debug.log  # Review detailed operation logs
 
 ```bash
 # Run specific test suites for focused debugging (much better than grep!)
-npm run test:smoke         # Fast feedback on core functionality
-npm run test:functional    # Debug end-to-end issues
-npm run test:integration   # Debug CLI flag interactions
+npm run test:unit          # Debug infrastructure issues
+npm run test:integration   # Debug command functionality
+npm run test:system        # Debug end-to-end issues
 npm run test:suite "Security Tests"  # Debug specific security issues
 
 # Run individual test files for deep debugging
-node test/create-scaffold/cli.test.mjs
-node test/shared/security.test.mjs
-node test/create-scaffold/cache-manager.test.mjs
+node tests/create-scaffold/cli.test.mjs
+node tests/shared/security.test.mjs
+node tests/create-scaffold/cache-manager.test.mjs
 ```
 
 #### Common Development Issues
@@ -665,7 +759,7 @@ node test/create-scaffold/cache-manager.test.mjs
   ```bash
   chmod +x $(npm root -g)/.bin/create-scaffold
   ```
-- Verify bin file permissions: `chmod +x bin/index.mjs`
+### Verify bin file permissions: `chmod +x bin/create-scaffold/index.mjs bin/make-template/index.mjs`
 
 **Permission issues during testing**:
 
@@ -686,14 +780,14 @@ node test/create-scaffold/cache-manager.test.mjs
 
 ```bash
 # Test performance with large repositories
-time node bin/index.mjs new perf-test large-template
+time node bin/create-scaffold/index.mjs new perf-test large-template
 
 # Test cache performance
-node bin/index.mjs new test1 react  # First run (clone)
-time node bin/index.mjs new test2 react  # Second run (cached)
+node bin/create-scaffold/index.mjs new test1 react  # First run (clone)
+time node bin/create-scaffold/index.mjs new test2 react  # Second run (cached)
 
 # Test with multiple templates
-npm run test:smoke  # Includes performance validation
+npm run test:integration  # Includes performance validation
 ```
 
 ## Contributing to the Project
@@ -709,7 +803,7 @@ See [CONTRIBUTING.md](../../CONTRIBUTING.md) for complete contribution guideline
 3. Follow test-first development: write tests, then implementation
 4. Ensure all tests pass: `npm test`
 5. Verify code quality: `npm run lint`
-6. Test locally: `node bin/index.mjs`, `npx .`, or `create-scaffold` via `npm link`
+6. Test locally: `node bin/create-scaffold/index.mjs`, `npx .`, or `create-scaffold` via `npm link`
 7. Submit pull request with clear description
 
 ### Contribution Standards
@@ -727,7 +821,7 @@ See [CONTRIBUTING.md](../../CONTRIBUTING.md) for complete contribution guideline
 - Complete test suite must pass
 - New functionality must include tests
 - Security tests must not be compromised
-- Manual CLI testing required
+- Manual CLI testing required with both `create-scaffold` and `make-template` commands with both `create-scaffold` and `make-template` commands
 
 ### Development Environment Setup
 
@@ -740,11 +834,12 @@ npm install
 # Verify setup
 npm test                       # Should pass all tests
 npm run lint                   # Should show zero warnings
-node bin/index.mjs --help      # Should display help
+node bin/create-scaffold/index.mjs --help      # Should display help
 
 # Test contribution workflow
 npm link
 create-scaffold new test-contrib react-vite
+make-template init
 npm unlink -g @m5nv/create-scaffold
 ```
 
@@ -756,15 +851,14 @@ npm unlink -g @m5nv/create-scaffold
 
 ```bash
 # Quick diagnosis
-npm run test:quick              # Faster feedback loop
-npm run test:functional         # Focus on CLI behavior
-node test/security.test.mjs     # Verify security isn't compromised
+npm run test:unit               # Check infrastructure
+npm run test:integration        # Check command functionality
+npm run test:system             # Focus on CLI behavior
+node tests/shared/security.test.mjs  # Verify security isn't compromised
 
 # Check specific failures
 npm test 2>&1 | grep -A 5 "FAILED"
 ```
-
-**CLI not working with npm link**:
 
 ```bash
 # Fix linking issues (remember to invoke the CLI via `create-scaffold`)
@@ -781,10 +875,11 @@ create-scaffold new my-app react
 
 ```bash
 # Fix bin file permissions
-chmod +x bin/index.mjs
+chmod +x bin/create-scaffold/index.mjs
+chmod +x bin/make-template/index.mjs
 
 # Check test directory permissions
-ls -la test/
+ls -la tests/
 ls -la bin/
 
 # Verify git configuration
@@ -817,23 +912,23 @@ npm run test:leaks              # Check for resource leaks
 
 ```bash
 # Profile memory usage
-node --inspect bin/index.mjs new my-app react
+node --inspect bin/create-scaffold/index.mjs new my-app react
 # Open chrome://inspect in Chrome
 
 # Check for memory leaks
 npm run test:leaks
 
 # Performance profiling
-time npm run test:smoke
+time npm run test:system
 ```
 
 **Security Testing**:
 
 ```bash
 # Test security validations
-node bin/index.mjs new "../evil" hack     # Should be blocked
-node bin/index.mjs new "test; rm -rf /tmp" safe  # Should be blocked
-node bin/index.mjs new test "hack; evil"  # Should be blocked
+node bin/create-scaffold/index.mjs new "../evil" hack     # Should be blocked
+node bin/create-scaffold/index.mjs new "test; rm -rf /tmp" safe  # Should be blocked
+node bin/create-scaffold/index.mjs new test "hack; evil"  # Should be blocked
 ```
 
 **Cache Debugging**:
@@ -847,9 +942,9 @@ cat ~/.m5nv/cache/*/metadata.json
 rm -rf ~/.m5nv/cache/*
 
 # Test cache functionality
-node bin/index.mjs new test1 react        # Should clone
-node bin/index.mjs new test2 react        # Should use cache
-node bin/index.mjs new test3 react --no-cache  # Should clone
+node bin/create-scaffold/index.mjs new test1 react        # Should clone
+node bin/create-scaffold/index.mjs new test2 react        # Should use cache
+node bin/create-scaffold/index.mjs new test3 react --no-cache  # Should clone
 ```
 
 ## Additional Resources

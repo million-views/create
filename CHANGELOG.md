@@ -24,11 +24,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **make-template Command**: New `make-template` command available alongside `create-scaffold`
 - **Unified Package Management**: Single npm package now provides both template creation and consumption tools
 - **Consolidated Utilities**: Merged duplicate utility implementations between tools for better maintainability
+- **Command Dispatch Pattern**: Complete CLI architecture refactoring implementing Command Dispatch Pattern with Template Method design
+- **BaseCommand Framework**: Abstract base class providing consistent command execution flow (parse → validate → run)
+- **Router Architecture**: Central dispatch mechanism with global option handling and command routing
+- **Modular Command Classes**: Self-contained command implementations with integrated help systems
 
 ### Changed
 - **Package Description**: Updated to reflect dual-tool nature: "Project scaffolding tools: create-scaffold for using templates, make-template for creating them"
 - **Bin Exports**: Added `make-template` to package.json bin field and exports
 - **Documentation**: Updated README and help text to document both CLI tools
+- **CLI Architecture**: Migrated from monolithic CLI implementation to Command Dispatch Pattern with Template Method
+- **Code Organization**: Reorganized CLI code into modular command classes under `bin/create-scaffold/commands/`
+- **Legacy Cleanup**: Archived 18+ obsolete monolithic .mjs files to `tmp/legacy-archive/bin-create-scaffold/`
 
 ### Technical Details
 - **Code Consolidation**: Reduced code duplication by >50% through utility consolidation
@@ -36,6 +43,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Performance**: Maintained or improved performance across both tools
 - **Security**: Comprehensive security audit passed for consolidated codebase
 - **Cross-Platform**: Validated compatibility across macOS, Linux, and Windows
+- **Architecture Migration**: Successfully migrated from custom CLI implementation to shared framework, eliminating ~600 lines of duplicated code
+- **Test Suite**: Updated test runner configuration and removed obsolete test files (5+ files)
+- **Build Processes**: Verified linting and schema building functionality post-refactoring
 
 ## [0.6.0] - 2025-11-11
 

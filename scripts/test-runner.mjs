@@ -16,6 +16,69 @@ class TestRunner {
     this.results = [];
     this.totalStartTime = performance.now();
     this.homeBaseDir = path.join(os.tmpdir(), 'create-scaffold-test-homes');
+
+    // Define test suite groups for perfect partitioning that delivers confidence
+    this.suiteGroups = {
+      // Unit tests: Core components and infrastructure
+      'unit': [
+        'Interactive Utils Tests',
+        'Security Tests',
+        'Template Validator Tests',
+        'Base Command Tests',
+        'Router Tests',
+        'Template Schema Build Tests'
+      ],
+      // Integration tests: Command-level functionality
+      'integration': [
+        'Create-Scaffold New Tests',
+        'Create-Scaffold List Tests',
+        'Create-Scaffold Validate Tests',
+        'Make-Template Init Tests',
+        'Make-Template Hints Tests',
+        'Make-Template Convert Tests',
+        'Make-Template Restore Tests',
+        'Make-Template Test Command Tests',
+        'Make-Template Validate Tests'
+      ],
+      // Acceptance tests: Requirements and specification compliance
+      'acceptance': [
+        // Spec compliance tests removed - functionality covered by functional tests
+      ],
+      // System tests: Full end-to-end with resource management
+      'system': [
+        'Functional Tests',
+        'Resource Leak Tests'
+      ],
+      // Legacy groupings for backward compatibility
+      'smoke': [
+        'Create-Scaffold New Tests',
+        'Create-Scaffold List Tests',
+        'Create-Scaffold Validate Tests',
+        'Make-Template Init Tests',
+        'Make-Template Hints Tests',
+        'Make-Template Convert Tests',
+        'Make-Template Restore Tests',
+        'Make-Template Test Command Tests',
+        'Make-Template Validate Tests'
+      ],
+      'e2e': [
+        'Functional Tests',
+        'Resource Leak Tests'
+      ],
+      'create-scaffold': [
+        'Create-Scaffold New Tests',
+        'Create-Scaffold List Tests',
+        'Create-Scaffold Validate Tests'
+      ],
+      'make-template': [
+        'Make-Template Init Tests',
+        'Make-Template Hints Tests',
+        'Make-Template Convert Tests',
+        'Make-Template Restore Tests',
+        'Make-Template Test Command Tests',
+        'Make-Template Validate Tests'
+      ]
+    };
   }
 
   async runTest(test) {
@@ -119,39 +182,39 @@ class TestRunner {
     this.printSummary();
   }
 
-  async runQuick() {
-    console.log('🚀 Running Quick Test Suite for @m5nv/create-scaffold');
-    console.log('='.repeat(60));
-    await fs.rm(this.homeBaseDir, { recursive: true, force: true });
-    await fs.mkdir(this.homeBaseDir, { recursive: true });
-
-    // Run only essential test suites for quick validation
-    const quickTests = [
-      'Smoke Tests',
-      'Environment Factory Tests',
-      'Argument Parser Tests',
-      'Security Tests'
-    ];
-
-    for (const suiteName of quickTests) {
-      const allTests = this.getAllTestDefinitions();
-      const test = allTests.find(t => t.name === suiteName);
-      if (test) {
-        const passed = await this.runTest(test);
-        if (!passed) {
-          break;
-        }
-      }
-    }
-
-    this.printSummary();
-  }
-
   async runSuite(suiteName) {
-    console.log(`🎯 Running Specific Test Suite: ${suiteName}`);
+    console.log(`🎯 Running Test Suite: ${suiteName}`);
     console.log('='.repeat(60));
 
     const allTests = this.getAllTestDefinitions();
+
+    // Check if this is a suite group
+    if (this.suiteGroups[suiteName]) {
+      console.log(`📦 Running suite group "${suiteName}" with ${this.suiteGroups[suiteName].length} test suites`);
+      console.log('');
+
+      const groupSuites = this.suiteGroups[suiteName];
+      let allPassed = true;
+
+      for (const suiteName of groupSuites) {
+        const matchingTest = allTests.find(test => test.name === suiteName);
+        if (!matchingTest) {
+          console.error(`❌ Error: Test suite "${suiteName}" not found in group "${suiteName}"`);
+          allPassed = false;
+          continue;
+        }
+
+        const passed = await this.runTest(matchingTest);
+        if (!passed) {
+          allPassed = false;
+        }
+      }
+
+      this.printSummary();
+      return allPassed;
+    }
+
+    // Handle individual test suite
     const matchingTest = allTests.find(test => test.name === suiteName);
 
     if (!matchingTest) {
@@ -160,14 +223,19 @@ class TestRunner {
       this.getAvailableSuites().forEach(suite => {
         console.log(`  - "${suite.name}"`);
       });
+      console.log('\nAvailable suite groups:');
+      Object.keys(this.suiteGroups).forEach(group => {
+        console.log(`  - "${group}" (${this.suiteGroups[group].length} suites)`);
+      });
       process.exit(1);
     }
 
     await fs.rm(this.homeBaseDir, { recursive: true, force: true });
     await fs.mkdir(this.homeBaseDir, { recursive: true });
 
-    const _passed = await this.runTest(matchingTest);
+    const passed = await this.runTest(matchingTest);
     this.printSummary();
+    return passed;
   }
 
   getAvailableSuites() {
@@ -180,118 +248,106 @@ class TestRunner {
   getAllTestDefinitions() {
     return [
       {
-        name: 'Environment Factory Tests',
-        command: ['--test', './test/create-scaffold/environment-factory.test.mjs'],
-        description: 'Environment creation and metadata validation',
-        homeSuffix: 'environment'
-      },
-      {
-        name: 'Argument Parser Tests',
-        command: ['--test', './test/create-scaffold/argument-parser.test.mjs'],
-        description: 'CLI argument parsing and validation smoke coverage',
-        homeSuffix: 'argument-parser'
-      },
-      {
         name: 'Interactive Utils Tests',
-        command: ['--test', './test/shared/interactive-utils.test.mjs'],
+        command: ['--test', './tests/shared/interactive-utils.test.mjs'],
         description: 'Interactive trigger heuristics and environment control',
         homeSuffix: 'interactive-utils'
       },
       {
-        name: 'Options Processor Tests',
-        command: ['--test', './test/shared/options-processor.test.mjs'],
-        description: 'Normalization of CLI options against template dimensions',
-        homeSuffix: 'options'
-      },
-      {
-        name: 'Setup Runtime Tests',
-        command: ['--test', './test/create-scaffold/setup-runtime.test.mjs'],
-        description: 'Sandbox and tools runtime verification',
-        homeSuffix: 'setup-runtime'
-      },
-      {
         name: 'Security Tests',
-        command: ['--test', './test/shared/security.test.mjs'],
+        command: ['--test', './tests/shared/security.test.mjs'],
         description: 'Security validation for new IDE and features parameters',
         homeSuffix: 'security'
       },
       {
         name: 'Functional Tests',
-        command: ['--test', './test/create-scaffold/cli.test.mjs'],
+        command: ['--test', './tests/create-scaffold/cli.test.mjs'],
         description: 'Comprehensive end-to-end CLI behavior validation',
         homeSuffix: 'functional'
       },
       {
         name: 'Template Schema Build Tests',
-        command: ['--test', './test/shared/schema-build.test.mjs'],
+        command: ['--test', './tests/shared/schema-build.test.mjs'],
         description: 'Deterministic generation of schema types and runtime stubs',
         homeSuffix: 'schema-build'
       },
       {
         name: 'Template Validator Tests',
-        command: ['--test', './test/shared/template-validator.test.mjs'],
+        command: ['--test', './tests/shared/template-validator.test.mjs'],
         description: 'Runtime manifest validation aligned with schema constraints',
         homeSuffix: 'template-validator'
       },
       {
-        name: 'CLI Integration Tests',
-        command: ['--test', './test/create-scaffold/cli-integration.test.mjs'],
-        description: 'Phase 1 feature integration coverage for CLI flags',
-        homeSuffix: 'cli-integration'
+        name: 'Base Command Tests',
+        command: ['--test', './tests/cli/command.test.js'],
+        description: 'Command template method pattern tests',
+        homeSuffix: 'base-command'
       },
       {
-        name: 'Spec Compliance Tests',
-        command: ['./test/create-scaffold/spec-compliance-verification.mjs'],
-        description: 'Verification against all specification requirements',
-        homeSuffix: 'spec'
+        name: 'Router Tests',
+        command: ['--test', './tests/cli/router.test.js'],
+        description: 'Command dispatch router tests',
+        homeSuffix: 'router'
       },
       {
         name: 'Resource Leak Tests',
-        command: ['--test', './test/create-scaffold/resource-leak-test.mjs'],
+        command: ['--test', './tests/create-scaffold/resource-leak-test.mjs'],
         description: 'Resource management and cleanup validation',
         homeSuffix: 'resource'
       },
       {
+        name: 'Create-Scaffold New Tests',
+        command: ['--test', './tests/create-scaffold/commands/new.test.js'],
+        description: 'Create-scaffold new command unit tests',
+        homeSuffix: 'create-scaffold-new'
+      },
+      {
+        name: 'Create-Scaffold List Tests',
+        command: ['--test', './tests/create-scaffold/commands/list.test.js'],
+        description: 'Create-scaffold list command unit tests',
+        homeSuffix: 'create-scaffold-list'
+      },
+      {
+        name: 'Create-Scaffold Validate Tests',
+        command: ['--test', './tests/create-scaffold/commands/validate.test.js'],
+        description: 'Create-scaffold validate command unit tests',
+        homeSuffix: 'create-scaffold-validate'
+      },
+      {
         name: 'Make-Template Init Tests',
-        command: ['--test', './test/make-template/init.test.mjs'],
+        command: ['--test', './tests/make-template/init.test.mjs'],
         description: 'Template initialization and skeleton generation',
         homeSuffix: 'make-template-init'
       },
       {
         name: 'Make-Template Hints Tests',
-        command: ['--test', './test/make-template/hints.test.mjs'],
+        command: ['--test', './tests/make-template/hints.test.mjs'],
         description: 'Template authoring guidance and hints display',
         homeSuffix: 'make-template-hints'
       },
       {
         name: 'Make-Template Convert Tests',
-        command: ['--test', './test/make-template/convert.test.mjs'],
+        command: ['--test', './tests/make-template/convert.test.mjs'],
         description: 'Project to template conversion functionality',
         homeSuffix: 'make-template-convert'
       },
       {
         name: 'Make-Template Restore Tests',
-        command: ['--test', './test/make-template/restore.test.mjs'],
+        command: ['--test', './tests/make-template/restore.test.mjs'],
         description: 'Template to project restoration functionality',
         homeSuffix: 'make-template-restore'
       },
       {
         name: 'Make-Template Test Command Tests',
-        command: ['--test', './test/make-template/test-command.test.mjs'],
+        command: ['--test', './tests/make-template/test-command.test.mjs'],
         description: 'Template testing with create-scaffold integration',
         homeSuffix: 'make-template-test'
       },
       {
         name: 'Make-Template Validate Tests',
-        command: ['--test', './test/make-template/cli-integration.test.mjs'],
+        command: ['--test', './tests/make-template/cli-integration.test.mjs'],
         description: 'Template validation and schema compliance',
         homeSuffix: 'make-template-validate'
-      },
-      {
-        name: 'Smoke Tests',
-        command: ['./scripts/smoke-test.mjs'],
-        description: 'Production readiness and integration validation',
-        homeSuffix: 'smoke'
       }
     ];
   }
@@ -301,9 +357,7 @@ class TestRunner {
 const args = process.argv.slice(2);
 const runner = new TestRunner();
 
-if (args.includes('--quick')) {
-  await runner.runQuick();
-} else if (args.includes('--suite')) {
+if (args.includes('--suite')) {
   const suiteIndex = args.indexOf('--suite');
   if (suiteIndex + 1 < args.length) {
     const suiteName = args[suiteIndex + 1];

@@ -70,7 +70,7 @@ See [docs/how-to/development.md](docs/how-to/development.md) for complete detail
 
 ### Testing Requirements
 
-All contributions must maintain comprehensive test coverage. See the [Testing Reference](../docs/reference/testing.md) for complete testing commands and suite information.
+All contributions must maintain comprehensive test coverage. See the [Development Guide](../docs/how-to/development.md#testing-strategy) for complete testing commands and suite information.
 
 ```bash
 # Quick validation (recommended for development)
