@@ -16,8 +16,10 @@ export class ListCommand extends Command {
       return i + 1;
     } else if (arg === '--verbose') {
       parsed.verbose = true;
+      return i;
     } else if (arg === '--no-config') {
       parsed.config = false;
+      return i;
     }
   }
 

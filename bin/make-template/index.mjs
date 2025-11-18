@@ -6,6 +6,8 @@ import { InitCommand } from './commands/init/index.js';
 import { ValidateCommand } from './commands/validate/index.js';
 import { HintsCommand } from './commands/hints/index.js';
 import { TestCommand } from './commands/test/index.js';
+import { ConfigInitCommand } from './commands/config/init/index.js';
+import { ConfigValidateCommand } from './commands/config/validate/index.js';
 
 class MakeTemplateRouter extends Router {
   constructor() {
@@ -20,6 +22,12 @@ class MakeTemplateRouter extends Router {
       hints: new HintsCommand(),
       test: new TestCommand()
     };
+    this.subcommands = {
+      config: {
+        init: new ConfigInitCommand(),
+        validate: new ConfigValidateCommand()
+      }
+    };
     this.version = '1.0.0';
     this.examples = [
       'convert ./my-project',
@@ -27,7 +35,9 @@ class MakeTemplateRouter extends Router {
       'init',
       'validate',
       'hints',
-      'test ./my-template'
+      'test ./my-template',
+      'config init',
+      'config validate'
     ];
   }
 }

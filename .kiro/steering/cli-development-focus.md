@@ -54,25 +54,162 @@ inclusion: always
 - Detailed help: all options with descriptions
 - Help integrates with command validation (shows valid options)
 
-### Dry-Run & Preview Patterns
+## CLI Architecture: Command Pattern & Separation of Concerns
 
-**Safe Experimentation**
-- `--dry-run` shows exactly what would happen without making changes
-- Clear indication of preview mode in output headers
-- Tree view for directory operations when available
-- Detailed logging of planned operations
+### How to Catch Poor Architectural Choices Before Implementation
 
-**Preview-First Workflow**
-- Dry-run is the default mental model for complex operations
-- Users should feel confident running commands after seeing dry-run output
-- Clear distinction between preview and actual execution
-- Easy transition from dry-run to real execution
+**Red Flags During Design Phase**
+- **Flag Proliferation**: When a single command needs more than 3-4 flags, consider subcommands
+- **Mode Switching**: Commands that fundamentally change behavior based on flags (convert vs init vs validate)
+- **Mixed Responsibilities**: Single command handling multiple distinct operations
+- **Complex Parsing Logic**: Argument parsing that requires extensive conditional logic
 
-**Comprehensive Preview Information**
-- File operations: shows copy/move/delete operations
-- Git operations: shows clone, checkout, commit plans
-- Setup scripts: shows execution plan and environment
-- Resource usage: temporary directories, cleanup plans
+**Architecture Review Checklist**
+- [ ] Does each command have a single, clear responsibility?
+- [ ] Are commands discoverable without reading documentation?
+- [ ] Does the command structure follow consistent patterns?
+- [ ] Can users intuitively guess command names and usage?
+- [ ] Are there fewer than 5 flags per command?
+- [ ] Does help text fit on a single screen?
+
+**Early Warning Signs**
+- Command classes with complex conditional logic in `run()` method
+- Help text that needs extensive examples to explain usage
+- Users asking "how do I just do X" when X is buried in flags
+- Difficulty explaining what a command does in one sentence
+
+### What Good CLI Architecture Looks and Feels Like
+
+**Command Cohesion & Clarity**
+- **Single Purpose Commands**: Each command does one thing exceptionally well
+- **Intuitive Naming**: Command names match user mental models (`init`, `validate`, `convert`)
+- **Consistent Structure**: All commands follow identical patterns (parse → validate → run)
+- **Discoverable**: Users can explore functionality through `--help` without documentation
+
+**Subcommand Organization**
+```bash
+# Good: Clear hierarchy with related functionality grouped
+tool config init        # Initialize configuration
+tool config validate    # Validate configuration
+tool template convert   # Convert to template
+tool template restore   # Restore from template
+
+# Poor: Flags hiding multiple commands
+tool convert --init-config    # What does convert mean here?
+tool convert --validate-config # Confusing and hard to discover
+```
+
+**Help System Integration**
+- **Progressive Disclosure**: Basic help shows essentials, detailed help provides depth
+- **Context-Aware**: Help shows command-specific options, not global options
+- **Usage-Driven**: Help text matches actual usage patterns, not generic templates
+- **Examples First**: Real usage examples before detailed option explanations
+
+**User Experience Flow**
+```bash
+# Intuitive discovery flow
+$ tool --help                    # See available commands
+$ tool config --help            # See config subcommands
+$ tool config init --help       # See specific command help
+$ tool config init              # Execute with confidence
+```
+
+### When CLI Architecture is Sound
+
+**Single Responsibility Principle**
+- ✅ Each command class handles exactly one operation
+- ✅ Command logic fits in < 100 lines without complex conditionals
+- ✅ No command changes fundamental behavior based on flags
+- ✅ Commands can be described in one clear sentence
+
+**Command Pattern Implementation**
+- ✅ All commands extend base Command class
+- ✅ Consistent `parseArg()` → `run()` flow
+- ✅ Help configuration separated from business logic
+- ✅ Error handling follows consistent patterns
+
+**User-Centric Design**
+- ✅ Commands match user workflows and mental models
+- ✅ Functionality is discoverable through exploration
+- ✅ Help system provides appropriate information depth
+- ✅ Error messages include actionable next steps
+
+**Maintainability Indicators**
+- ✅ New commands follow existing patterns without modification
+- ✅ Testing is straightforward (one behavior per command)
+- ✅ Documentation stays current with implementation
+- ✅ Code reviews focus on business logic, not architecture
+
+### Real-World Example: Config Management Refactor
+
+**Before: Poor Architecture**
+```javascript
+// Single command with multiple modes
+class ConvertCommand {
+  async run(parsed) {
+    if (parsed.initConfig) {
+      // Initialize config and exit
+    } else if (parsed.validateConfig) {
+      // Validate config and exit  
+    } else {
+      // Do conversion
+    }
+  }
+}
+```
+
+**After: Sound Architecture**
+```javascript
+// Separate commands with single responsibilities
+class ConfigInitCommand {
+  async run(parsed) {
+    // Only initializes config
+  }
+}
+
+class ConfigValidateCommand {
+  async run(parsed) {
+    // Only validates config
+  }
+}
+
+class ConvertCommand {
+  async run(parsed) {
+    // Only does conversion
+  }
+}
+```
+
+**User Experience Impact**
+```bash
+# Before: Hard to discover, confusing
+$ tool convert --help  # Shows 8+ options, unclear what convert means
+
+# After: Clear, discoverable
+$ tool --help          # Shows "config" and "convert" commands
+$ tool config --help   # Shows "init" and "validate" subcommands
+$ tool config init     # Obvious what this does
+```
+
+### Architecture Decision Framework
+
+**When to Use Subcommands**
+- Related operations that users think of as a group (`config init`, `config validate`)
+- Operations that need similar but distinct option sets
+- When flag-based commands would exceed 3-4 flags
+- When operations have different success/failure modes
+
+**When to Use Flags**
+- Simple boolean options that modify command behavior
+- Options that don't change the fundamental operation
+- When the command stays focused on its core responsibility
+- When users naturally think of the variation as "command with option"
+
+**When to Split into Separate Commands**
+- Operations with completely different inputs/outputs
+- Commands that users would never run with the same flags
+- When conditional logic in `run()` exceeds 10-15 lines
+- When help text needs extensive examples to explain usage
 
 ## CLI Development Guidelines
 

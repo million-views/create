@@ -17,6 +17,7 @@ export class NewCommand extends Command {
       return i + 1;
     } else if (arg === '--no-cache') {
       parsed.cache = false;
+      return i;
     } else if (arg === '--cache-ttl') {
       const ttlValue = parseInt(args[i + 1]);
       if (isNaN(ttlValue) || ttlValue <= 0) {
@@ -31,15 +32,19 @@ export class NewCommand extends Command {
       return i + 1;
     } else if (arg === '--experimental-placeholder-prompts') {
       parsed.experimentalPlaceholderPrompts = true;
+      return i;
     } else if (arg === '--no-input-prompts') {
       parsed.inputPrompts = false;
+      return i;
     } else if (arg === '--no-config') {
       parsed.config = false;
+      return i;
     } else if (arg === '--options') {
       parsed.optionsFile = args[i + 1];
       return i + 1;
     } else if (arg === '--dry-run' || arg === '-d') {
       parsed.dryRun = true;
+      return i;
     } else if (arg === '--log-file') {
       parsed.logFile = args[i + 1];
       return i + 1;
@@ -48,6 +53,7 @@ export class NewCommand extends Command {
       if (!parsed.projectName) {
         parsed.projectName = arg;
       }
+      return i;
     }
   }
 

@@ -434,59 +434,23 @@ function normalizeRegistries(value, filePath) {
       );
     }
 
-    if (typeof templates !== 'object' || Array.isArray(templates)) {
+    // Registries are direct URL strings
+    if (typeof templates !== 'string') {
       throw wrapValidationError(
-        `Configuration file ${filePath} registry "${registryName}" must be an object mapping template names to URLs`,
+        `Configuration file ${filePath} registry "${registryName}" must be a repository URL string`,
         'config.registries'
       );
     }
 
-    const normalizedTemplates = Object.create(null);
-
-    for (const [templateName, url] of Object.entries(templates)) {
-      if (typeof templateName !== 'string') {
-        throw wrapValidationError(
-          `Configuration file ${filePath} template name in registry "${registryName}" must be a string`,
-          'config.registries'
-        );
-      }
-
-      const trimmedTemplateName = templateName.trim();
-      if (!trimmedTemplateName) {
-        throw wrapValidationError(
-          `Configuration file ${filePath} template name in registry "${registryName}" cannot be empty`,
-          'config.registries'
-        );
-      }
-
-      if (typeof url !== 'string') {
-        throw wrapValidationError(
-          `Configuration file ${filePath} template "${templateName}" in registry "${registryName}" value must be a string`,
-          'config.registries'
-        );
-      }
-
-      const trimmedUrl = url.trim();
-      if (!trimmedUrl) {
-        throw wrapValidationError(
-          `Configuration file ${filePath} template "${templateName}" in registry "${registryName}" value cannot be empty`,
-          'config.registries'
-        );
-      }
-
-      // Basic validation - should be a valid template URL format
-      try {
-        // Allow any string for now - validation will happen during resolution
-        normalizedTemplates[trimmedTemplateName] = trimmedUrl;
-      } catch (error) {
-        throw wrapValidationError(
-          `Configuration file ${filePath} template "${templateName}" in registry "${registryName}" contains invalid URL: ${error.message}`,
-          'config.registries'
-        );
-      }
+    const trimmedUrl = templates.trim();
+    if (!trimmedUrl) {
+      throw wrapValidationError(
+        `Configuration file ${filePath} registry "${registryName}" URL cannot be empty`,
+        'config.registries'
+      );
     }
 
-    registries[trimmedRegistryName] = Object.freeze(normalizedTemplates);
+    registries[trimmedRegistryName] = trimmedUrl;
   }
 
   return Object.freeze(registries);

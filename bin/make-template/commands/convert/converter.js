@@ -5,6 +5,7 @@ import { processJSONFile } from '../../../../lib/templatize-json.mjs';
 import { processMarkdownFile } from '../../../../lib/templatize-markdown.mjs';
 import { processJSXFile } from '../../../../lib/templatize-jsx.mjs';
 import { processHTMLFile } from '../../../../lib/templatize-html.mjs';
+import { loadConfig, loadConfigFromFile, getPatternsForFile } from '../../../../lib/templatize-config.mjs';
 
 export class Converter {
   constructor(options) {
@@ -92,7 +93,7 @@ export class Converter {
 
     // Read package.json using shared utility
     const packageJsonPath = path.join(projectPath, 'package.json');
-    const packageJson = await readJsonFile(packageJsonPath);
+    const packageJson = await readJsonFile(packageJsonPath) || {};
 
     // Generate author name from package.json or use default
     const author = packageJson.author || 'my-org';
@@ -155,45 +156,38 @@ export class Converter {
     const detectedPlaceholders = {};
     const placeholderFormat = this.options.placeholderFormat || '{{NAME}}';
 
-    // Define common templatization patterns
-    const commonPatterns = [
-      // Project name patterns
-      { selector: '$.name', type: 'string-literal', context: 'json-value', placeholder: 'PROJECT_NAME', allowMultiple: false },
-      { selector: 'h1', type: 'string-literal', context: 'markdown', placeholder: 'PROJECT_NAME', allowMultiple: false },
-      { selector: 'title', type: 'string-literal', context: 'html', placeholder: 'PROJECT_NAME', allowMultiple: false },
-      { selector: 'h1', type: 'string-literal', context: 'jsx-text', placeholder: 'PROJECT_NAME', allowMultiple: false },
+    // Load templatization configuration
+    console.log('📋 Loading templatization configuration...');
+    let config;
+    try {
+      if (this.options.config) {
+        // Load from custom config file
+        config = loadConfigFromFile(this.options.config);
+      } else {
+        // Load from project directory
+        config = loadConfig(projectPath);
+      }
+      console.log(`✓ Loaded configuration with ${Object.keys(config.rules).length} file pattern(s)`);
+    } catch (error) {
+      console.error(`❌ Configuration error: ${error.message}`);
+      console.error('\n💡 To create a configuration file, run: npx make-template init');
+      console.error('   Or specify a custom config with: --config <path>');
+      throw error;
+    }
 
-      // Description patterns
-      { selector: '$.description', type: 'string-literal', context: 'json-value', placeholder: 'DESCRIPTION', allowMultiple: false },
-      { selector: 'p:first-of-type', type: 'string-literal', context: 'markdown', placeholder: 'DESCRIPTION', allowMultiple: false },
-      { selector: '.description, [data-description]', type: 'string-literal', context: 'html', placeholder: 'DESCRIPTION', allowMultiple: false },
-
-      // Author patterns
-      { selector: '$.author', type: 'string-literal', context: 'json-value', placeholder: 'AUTHOR', allowMultiple: false },
-
-      // Version patterns
-      { selector: '$.version', type: 'string-literal', context: 'json-value', placeholder: 'VERSION', allowMultiple: false }
-    ];
-
-    // Files to scan for placeholders with their appropriate processors
-    const filesToProcess = [
-      { path: 'package.json', processor: processJSONFile, patterns: commonPatterns.filter(p => p.context === 'json-value') },
-      { path: 'README.md', processor: processMarkdownFile, patterns: commonPatterns.filter(p => p.context === 'markdown') },
-      { path: 'index.html', processor: processHTMLFile, patterns: commonPatterns.filter(p => p.context === 'html') },
-      { path: 'src/index.html', processor: processHTMLFile, patterns: commonPatterns.filter(p => p.context === 'html') },
-      { path: 'public/index.html', processor: processHTMLFile, patterns: commonPatterns.filter(p => p.context === 'html') },
-      { path: 'src/App.jsx', processor: processJSXFile, patterns: commonPatterns.filter(p => p.context === 'jsx-text') },
-      { path: 'src/App.tsx', processor: processJSXFile, patterns: commonPatterns.filter(p => p.context === 'jsx-text') },
-      { path: 'src/App.js', processor: processJSXFile, patterns: commonPatterns.filter(p => p.context === 'jsx-text') },
-      { path: 'src/App.ts', processor: processJSXFile, patterns: commonPatterns.filter(p => p.context === 'jsx-text') }
-    ];
+    // Find all files that match configuration rules
+    const filesToProcess = await this.discoverFilesToProcess(projectPath, config);
+    console.log(`📁 Discovered ${filesToProcess.length} file(s) to process`);
 
     for (const fileConfig of filesToProcess) {
       const filePath = path.join(projectPath, fileConfig.path);
       if (await exists(filePath)) {
         try {
+          // Translate design patterns to processor format
+          const processorPatterns = this.translatePatternsForProcessor(fileConfig.patterns, fileConfig.processorType);
+
           const result = await this.processFileWithProcessor(
-            filePath, fileConfig.processor, fileConfig.patterns,
+            filePath, fileConfig.processor, processorPatterns,
             placeholderFormat);
           Object.assign(detectedPlaceholders, result.placeholders);
         } catch (error) {
@@ -204,6 +198,203 @@ export class Converter {
     }
 
     return detectedPlaceholders;
+  }
+
+  async discoverFilesToProcess(projectPath, config) {
+    const filesToProcess = [];
+    const processedFiles = new Set();
+
+    // Get all file patterns from config rules
+    const filePatterns = Object.keys(config.rules);
+
+    // Scan project directory for files matching patterns
+    const matchingFiles = await this.scanProjectForMatchingFiles(projectPath, filePatterns);
+
+    // Process each matching file
+    for (const filePath of matchingFiles) {
+      if (processedFiles.has(filePath)) continue;
+
+      const patterns = getPatternsForFile(filePath, config);
+      if (patterns.length > 0) {
+        const processorType = this.getProcessorTypeForFile(filePath);
+        if (processorType) {
+          filesToProcess.push({
+            path: filePath,
+            processor: this.getProcessorForType(processorType),
+            processorType,
+            patterns
+          });
+          processedFiles.add(filePath);
+        }
+      }
+    }
+
+    return filesToProcess;
+  }
+
+  async scanProjectForMatchingFiles(projectPath, filePatterns) {
+    const matchingFiles = [];
+    const fs = await import('fs/promises');
+    const pathModule = await import('path');
+
+    // Recursive function to scan directories
+    const scanDirectory = async (dirPath) => {
+      try {
+        const entries = await fs.readdir(dirPath, { withFileTypes: true });
+
+        for (const entry of entries) {
+          const fullPath = pathModule.join(dirPath, entry.name);
+          const relativePath = pathModule.relative(projectPath, fullPath);
+
+          // Skip certain directories
+          if (entry.isDirectory()) {
+            if (entry.name === 'node_modules' || entry.name === '.git' || entry.name.startsWith('.')) {
+              continue;
+            }
+            await scanDirectory(fullPath);
+          } else if (entry.isFile()) {
+            // Check if file matches any pattern
+            if (this.matchesAnyPattern(relativePath, filePatterns)) {
+              matchingFiles.push(relativePath);
+            }
+          }
+        }
+      } catch (error) {
+        // Skip directories we can't read
+        console.warn(`Warning: Could not scan directory ${dirPath}: ${error.message}`);
+      }
+    };
+
+    await scanDirectory(projectPath);
+    return matchingFiles;
+  }
+
+  matchesAnyPattern(filePath, patterns) {
+    const fileName = path.basename(filePath);
+
+    for (const pattern of patterns) {
+      // Exact filename match
+      if (pattern === fileName) {
+        return true;
+      }
+
+      // Extension match (e.g., ".jsx" matches "App.jsx")
+      if (pattern.startsWith('.') && filePath.endsWith(pattern)) {
+        return true;
+      }
+
+      // Could add glob pattern matching here if needed in the future
+    }
+
+    return false;
+  }
+
+  getProcessorTypeForFile(filePath) {
+    const ext = path.extname(filePath).toLowerCase();
+    const fileName = path.basename(filePath).toLowerCase();
+
+    if (fileName === 'package.json' || ext === '.json') return 'json';
+    if (ext === '.md') return 'markdown';
+    if (ext === '.html' || ext === '.htm') return 'html';
+    if (ext === '.jsx' || ext === '.tsx' || ext === '.js' || ext === '.ts') return 'jsx';
+
+    return null;
+  }
+
+  getProcessorForType(type) {
+    switch (type) {
+      case 'json': return processJSONFile;
+      case 'markdown': return processMarkdownFile;
+      case 'html': return processHTMLFile;
+      case 'jsx': return processJSXFile;
+      default: return null;
+    }
+  }
+
+  translatePatternsForProcessor(patterns, processorType) {
+    return patterns.map(pattern => {
+      // Handle malformed patterns gracefully
+      if (!pattern || typeof pattern !== 'object' || !pattern.type) {
+        console.warn(`Warning: Invalid pattern encountered: ${JSON.stringify(pattern)}`);
+        return pattern;
+      }
+
+      // Convert design format to processor format
+      switch (processorType) {
+        case 'json':
+          if (pattern.type === 'json-value') {
+            const { path, ...rest } = pattern; // Extract path, spread the rest
+            return {
+              ...rest, // Preserve additional fields
+              selector: pattern.path,
+              type: 'string-literal',
+              context: 'json-value',
+              allowMultiple: pattern.allowMultiple || false
+            };
+          }
+          break;
+
+        case 'markdown':
+          if (pattern.type === 'markdown-heading') {
+            const { level, ...rest } = pattern; // Extract level, spread the rest
+            return {
+              ...rest, // Preserve additional fields
+              selector: `h${pattern.level}`,
+              type: 'string-literal',
+              context: 'markdown',
+              allowMultiple: pattern.allowMultiple || false
+            };
+          } else if (pattern.type === 'markdown-paragraph') {
+            const { position, ...rest } = pattern; // Extract position, spread the rest
+            return {
+              ...rest, // Preserve additional fields
+              selector: pattern.position === 'first' ? 'p:first-of-type' : 'p',
+              type: 'string-literal',
+              context: 'markdown',
+              allowMultiple: pattern.allowMultiple || false
+            };
+          }
+          break;
+
+        case 'html':
+          if (pattern.type === 'html-text') {
+            return {
+              ...pattern, // Preserve additional fields
+              selector: pattern.selector,
+              type: 'string-literal',
+              context: 'html',
+              allowMultiple: pattern.allowMultiple || false
+            };
+          } else if (pattern.type === 'html-attribute') {
+            return {
+              ...pattern, // Preserve additional fields
+              selector: pattern.selector,
+              type: 'string-literal',
+              context: 'html-attribute',
+              attribute: pattern.attribute,
+              allowMultiple: pattern.allowMultiple || false
+            };
+          }
+          break;
+
+        case 'jsx':
+          if (pattern.type === 'string-literal') {
+            return {
+              ...pattern, // Preserve additional fields
+              selector: pattern.selector,
+              type: 'string-literal',
+              context: pattern.context,
+              allowMultiple: pattern.allowMultiple || false,
+              ...(pattern.attribute && { attribute: pattern.attribute })
+            };
+          }
+          break;
+      }
+
+      // If no translation found, return pattern as-is (for forwards compatibility)
+      console.warn(`Warning: Could not translate pattern type '${pattern.type}' for ${processorType} processor`);
+      return pattern;
+    });
   }
 
   async processFileWithProcessor(filePath, processor, patterns, placeholderFormat) {

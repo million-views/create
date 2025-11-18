@@ -118,11 +118,11 @@ describe('Command', () => {
     assert(result.includes('"custom":"test"'), 'Should return result from run method');
   });
 
-  it('should handle unknown arguments gracefully', () => {
+  it('should reject unknown arguments with error', () => {
     const cmd = new TestCommand();
-    const parsed = cmd.parseArgs(['--unknown', 'value']);
-    // Command.parseArgs should handle unknown args without error
-    assert(parsed !== null, 'Should return parsed object');
+    assert.throws(() => {
+      cmd.parseArgs(['--unknown', 'value']);
+    }, /Unknown option: --unknown/, 'Should throw error for unknown options');
   });
 
   it('should format option flags correctly', () => {

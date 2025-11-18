@@ -8,7 +8,7 @@ describe('ListCommand', () => {
     const cmd = new ListCommand();
     const { logs } = captureOutput(() => cmd.execute(['--help']));
     const output = logs.join('\n');
-    assert.match(output, /List available templates/);
+    assert.match(output, /List templates from a registry repository/);
     assert.match(output, /--registry/);
   });
 

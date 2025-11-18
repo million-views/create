@@ -33,8 +33,8 @@ test('temp directory cleanup on invalid template', async () => {
 test('temp directory cleanup on invalid repository', async () => {
   await runLeakScenario({
     name: 'invalid repository test',
-    args: ['new', 'test-invalid-repo', '--template', 'invalid-repo-format!'],
-    expectedMessage: /Template name contains invalid characters/i
+    args: ['new', 'test-invalid-repo', '--template', 'invalid/repo\nname'],
+    expectedMessage: /Invalid template URL format/i
   });
 });
 
@@ -50,13 +50,13 @@ test('resource cleanup across multiple failure scenarios', async () => {
   const before = await getResourceSnapshot();
   const scenarios = [
     ['new', 'test-multi-1', '--template', '../invalid'],
-    ['new', 'test-multi-2', '--template', 'basic', '--repo', 'invalid!'],
-    ['new', 'test-multi-3', '--template', 'basic', '--branch', 'invalid; branch']
+    ['new', 'test-multi-2', '--template', 'invalid;chars'],
+    ['new', 'test-multi-3', '--template', 'basic', '--branch', 'invalid;branch']
   ];
 
   for (const args of scenarios) {
     const result = await execCLI(CLI_PATH, args);
-    assert.equal(result.exitCode, 1, `Scenario ${args[0]} should exit with code 1`);
+    assert.equal(result.exitCode, 1, `Scenario ${args.join(' ')} should exit with code 1`);
   }
 
   const after = await getResourceSnapshot();

@@ -10,21 +10,27 @@ export class RestoreCommand extends Command {
   parseArg(arg, args, i, parsed) {
     if (arg === '--dry-run' || arg === '-d') {
       parsed.dryRun = true;
+      return i;
     } else if (arg === '--yes') {
       parsed.yes = true;
+      return i;
     } else if (arg === '--restore-files') {
       parsed.files = args[i + 1].split(',');
       return i + 1;
     } else if (arg === '--placeholders-only') {
       parsed.placeholdersOnly = true;
+      return i;
     } else if (arg === '--generate-defaults') {
       parsed.generateDefaults = true;
+      return i;
     } else if (arg === '--keep-undo') {
       parsed.keepUndo = true;
+      return i;
     } else if (!arg.startsWith('-')) {
       if (!parsed.projectPath) {
         parsed.projectPath = arg;
       }
+      return i;
     }
   }
 

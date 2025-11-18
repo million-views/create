@@ -12,14 +12,18 @@ export class ValidateCommand extends Command {
   parseArg(arg, args, i, parsed) {
     if (arg === '--suggest') {
       parsed.suggest = true;
+      return i;
     } else if (arg === '--fix') {
       parsed.fix = true;
+      return i;
     } else if (arg === '--json') {
       parsed.json = true;
+      return i;
     } else if (!arg.startsWith('-')) {
       if (!parsed.templatePath) {
         parsed.templatePath = arg;
       }
+      return i;
     }
   }
 

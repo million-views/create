@@ -1,15 +1,8 @@
 {
   "registries": {
-    "favorites": {
-      "express-api": "./test-project",
-      "react-spa": "./test-project2"
-    },
-    "company": {
-      "backend": "./test-project",
-      "frontend": "./test-project2"
-    },
-    "community": {
-      "vue-app": "./test-project"
-    }
+    "official": "git@github.com:million-views/templates.git",
+    "favorites": "https://github.com/user/favorite-templates.git",
+    "company": "https://github.com/company/templates.git",
+    "community": "https://github.com/community/templates.git"
   }
 }

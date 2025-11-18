@@ -67,6 +67,40 @@ async function createTestProject(projectDir) {
 
   writeFileSync(join(projectDir, 'package.json'), JSON.stringify(packageJson, null, 2));
 
+  // Create .templatize.json config
+  const config = {
+    version: '1.0',
+    autoDetect: true,
+    rules: {
+      'package.json': [
+        {
+          type: 'json-value',
+          path: '$.name',
+          placeholder: 'PACKAGE_NAME'
+        },
+        {
+          type: 'json-value',
+          path: '$.description',
+          placeholder: 'PACKAGE_DESCRIPTION'
+        },
+        {
+          type: 'json-value',
+          path: '$.author',
+          placeholder: 'PACKAGE_AUTHOR'
+        }
+      ],
+      'README.md': [
+        {
+          type: 'markdown-heading',
+          level: 1,
+          placeholder: 'PROJECT_TITLE'
+        }
+      ]
+    }
+  };
+
+  writeFileSync(join(projectDir, '.templatize.json'), JSON.stringify(config, null, 2));
+
   // Create index.js
   const indexJs = `
 const express = require('express');

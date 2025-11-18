@@ -52,7 +52,7 @@ export default [
       'eqeqeq': 'error',
       'curly': ['error', 'multi-line'],
       'brace-style': ['error', '1tbs', { allowSingleLine: true }],
-      'comma-dangle': ['error', 'never'],
+      'comma-dangle': ['error', 'only-multiline'],
       'quotes': ['error', 'single', { avoidEscape: true, allowTemplateLiterals: true }],
       'semi': ['error', 'always'],
       'indent': ['error', 2, { SwitchCase: 1, ignoreComments: true }],

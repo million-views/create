@@ -1,109 +1,107 @@
+import { CacheManager } from '../../modules/cache-manager.mjs';
+import { TemplateDiscovery } from '../../../../lib/template-discovery.mjs';
 import { loadConfig } from '../../modules/config-loader.mjs';
 
 export class RegistryFetcher {
   constructor(options) {
     this.options = options;
+    this.cacheManager = new CacheManager();
+    this.templateDiscovery = new TemplateDiscovery(this.cacheManager);
+    this.defaultRegistry = 'git@github.com:million-views/templates.git';
   }
 
   async list() {
-    const registries = await this.getRegistries();
-
-    if (this.options.registry) {
-      const registry = registries.find(r => r.name === this.options.registry);
-      if (!registry) {
-        console.error(`❌ Registry '${this.options.registry}' not found`);
-        console.log('Available registries:');
-        registries.forEach(r => console.log(`  • ${r.name}`));
-        process.exit(1);
-      }
-
-      this.displayRegistry(registry);
-    } else {
-      console.log('ℹ️ 📋 Available template registries:');
-      console.log('ℹ️ ');
-      registries.forEach(registry => {
-        console.log(`ℹ️ • ${registry.name}`);
-        console.log(`ℹ️   ${registry.description}`);
-        console.log(`ℹ️   ${registry.templates.length} templates`);
-        console.log('ℹ️ ');
-      });
-    }
-  }
-
-  async getRegistries() {
     try {
-      // Load configuration to get registries
-      const configResult = await loadConfig({
-        cwd: process.cwd(),
-        env: process.env,
-        skip: Boolean(this.options.config === false)
-      });
+      const registryUrl = await this.resolveRegistryUrl(this.options.registry);
 
-      if (!configResult) {
-        // Return default registries if no config found
-        return [
-          {
-            name: 'favorites',
-            description: 'User-defined registry',
-            templates: ['template1', 'template2']
-          },
-          {
-            name: 'company',
-            description: 'User-defined registry',
-            templates: ['template3', 'template4']
-          },
-          {
-            name: 'community',
-            description: 'User-defined registry',
-            templates: ['template5']
+      console.log(`ℹ️ 📋 Listing templates from registry: ${registryUrl}`);
+      console.log('ℹ️ ');
+
+      const templates = await this.templateDiscovery.listTemplates(registryUrl);
+
+      if (templates.length === 0) {
+        console.log('ℹ️ No templates found in this registry.');
+        console.log('ℹ️ 💡 Templates are identified by containing: package.json, template.json, _setup.mjs, src/, lib/, etc.');
+        return;
+      }
+
+      if (this.options.format === 'json') {
+        console.log(JSON.stringify({
+          registry: registryUrl,
+          templates
+        }, null, 2));
+      } else {
+        console.log(`� Templates (${templates.length}):`);
+        console.log('');
+
+        templates.forEach((template, index) => {
+          console.log(`  ${index + 1}. ${template.name || 'Unnamed Template'}`);
+          if (template.description && template.description !== 'No description available') {
+            console.log(`     ${template.description}`);
           }
-        ];
-      }
-
-      // If config exists but has no registries, that's an error
-      if (!configResult.defaults.registries) {
-        console.error('❌ Configuration error: registries configuration is missing or invalid');
-        process.exit(1);
-      }
-
-      // Validate that configResult.defaults.registries is valid
-      if (typeof configResult.defaults.registries !== 'object') {
-        console.error('❌ Configuration error: registries must be an object');
-        process.exit(1);
-      }
-
-      // Convert config registries to the expected format
-      const registries = [];
-      for (const [name, templates] of Object.entries(configResult.defaults.registries)) {
-        if (!Array.isArray(templates) && typeof templates !== 'object') {
-          console.error(`❌ Configuration error: registry '${name}' must be an array or object`);
-          process.exit(1);
-        }
-        const templateNames = Array.isArray(templates) ? templates : Object.keys(templates);
-        registries.push({
-          name,
-          description: `Registry: ${name}`,
-          templates: templateNames
+          if (this.options.verbose && template.version) {
+            console.log(`     Version: ${template.version}`);
+          }
+          if (this.options.verbose && template.author) {
+            console.log(`     Author: ${template.author}`);
+          }
+          if (this.options.verbose && template.tags && template.tags.length > 0) {
+            console.log(`     Tags: ${template.tags.join(', ')}`);
+          }
+          console.log('');
         });
       }
-
-      return registries;
     } catch (error) {
-      console.error(`❌ Configuration error: ${error.message}`);
+      console.error(`❌ Failed to list templates: ${error.message}`);
+      if (this.options.verbose) {
+        console.error(`❌ Error details: ${error.stack}`);
+      }
       process.exit(1);
     }
   }
 
-  displayRegistry(registry) {
-    if (this.options.format === 'json') {
-      console.log(JSON.stringify(registry, null, 2));
-    } else {
-      console.log(`Registry: ${registry.name}`);
-      console.log(`Description: ${registry.description}`);
-      console.log(`Templates (${registry.templates.length}):`);
-      registry.templates.forEach(template => {
-        console.log(`  • ${template} (from registry "${registry.name}")`);
-      });
+  async resolveRegistryUrl(registryArg) {
+    // If no registry specified, use default
+    if (!registryArg) {
+      return this.defaultRegistry;
     }
+
+    // If it looks like a URL, treat it as a direct repository URL
+    if (this.isRepositoryUrl(registryArg)) {
+      return registryArg;
+    }
+
+    // Otherwise, treat it as a registry name and look it up in config
+    const configResult = await loadConfig({
+      cwd: process.cwd(),
+      env: process.env,
+      skip: Boolean(this.options.config === false)
+    });
+
+    if (!configResult || !configResult.defaults.registries) {
+      throw new Error(`Registry '${registryArg}' not found in configuration. Available registries: none configured`);
+    }
+
+    const registries = configResult.defaults.registries;
+    if (!registries[registryArg]) {
+      const available = Object.keys(registries).join(', ');
+      throw new Error(`Registry '${registryArg}' not found in configuration. Available registries: ${available}`);
+    }
+
+    const registryUrl = registries[registryArg];
+    if (typeof registryUrl !== 'string') {
+      throw new Error(`Registry '${registryArg}' is not configured with a valid repository URL`);
+    }
+
+    return registryUrl;
   }
+
+  isRepositoryUrl(str) {
+    // Check if it looks like a repository URL
+    return str.includes('://') ||
+           str.includes('@') && str.includes(':') || // SSH format like git@github.com:user/repo.git
+           str.includes('/') && !str.includes(' ') && str.split('/').length >= 2; // user/repo format
+  }
+
+
 }

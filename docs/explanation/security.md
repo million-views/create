@@ -17,20 +17,19 @@ last_updated: "2025-11-12"
 
 Security features and best practices for @m5nv/create-scaffold.
 
-## Built-in Security Features
+## Minimal Dependencies
+- Carefully selected external dependencies for robust parsing
+- Tree-sitter for accurate JSX/TSX AST analysis
+- JSDOM for HTML parsing and CSS selector support
+- JSONPath for precise JSON value extraction
 
-### Zero Dependencies
-- No external runtime dependencies
-- Eliminates supply chain attack vectors
-- Uses only Node.js built-in modules
-
-### Input Validation
+## Input Validation
 - All user inputs are validated and sanitized
 - Path traversal prevention (`../` attacks blocked)
 - Repository URL validation prevents malicious redirects
 - Branch name validation prevents command injection
 
-### Secure Operations
+## Secure Operations
 - Temporary directories use secure creation with proper cleanup
 - File operations are bounded to project directories
 - Error messages are sanitized to prevent information disclosure

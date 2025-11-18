@@ -37,7 +37,7 @@ We built a git-native template system that leverages existing developer workflow
 
 ### Key Principles
 
-1. **Git-Native**: Templates are standard git repositories, no special packaging required
+1. **Git-Native**: Templates can be standard git repositories with no special packaging required, or local directories for development
 2. **Convention over Configuration**: Sensible defaults with opt-in customization
 3. **Environment Awareness**: Templates can adapt to different IDEs and development contexts
 4. **Composable**: Templates can include multiple variants and options
@@ -66,7 +66,7 @@ User Input → Validation → Source Detection → Repository Access → Templat
 - **Named Templates**: Templates in subdirectories (e.g., `basic/`, `advanced/`)
 - **Nested Templates**: Multi-level template organization
 
-### Repository Processing Pipeline
+### Repository Processing Pipeline (for Git-based Templates)
 
 ```text
 Repository → Clone/Cache → Template Discovery → Validation → Processing → Cleanup
@@ -78,6 +78,19 @@ Repository → Clone/Cache → Template Discovery → Validation → Processing 
 4. **File Processing**: Copy and process template files
 5. **Setup Execution**: Run optional setup scripts with user consent
 6. **Cleanup**: Remove temporary files and caches as needed
+
+### Local Template Processing (for Local Directories)
+
+```text
+Local Path → Validation → Template Discovery → Structure Validation → Processing → Cleanup
+```
+
+1. **Path Validation**: Verify local path exists and is accessible
+2. **Template Discovery**: Use directory as template root
+3. **Structure Validation**: Verify template has required structure
+4. **File Processing**: Copy and process template files
+5. **Setup Execution**: Run optional setup scripts with user consent
+6. **Cleanup**: Remove temporary setup script files
 
 ### Template Structure
 
@@ -138,10 +151,10 @@ Setup scripts run in a resource-restricted sandbox and rely exclusively on the c
 
 ### Decision 1: Git-Native Template Storage
 
-**Why we chose this:** Git repositories are already familiar to developers and provide built-in versioning, branching, and distribution.
+**Why we chose this:** Git repositories are already familiar to developers and provide built-in versioning, branching, and distribution. Local directories are supported for development and testing workflows.
 
 **Trade-offs:**
-- **Gained**: Familiar workflow, built-in versioning, easy sharing, branch-based variants
+- **Gained**: Familiar workflow, built-in versioning, easy sharing, branch-based variants, local development support
 - **Given up**: Some performance optimizations possible with custom formats
 
 **Alternatives considered:**
@@ -239,7 +252,7 @@ Setup scripts run in a resource-restricted sandbox and rely exclusively on the c
 
 ### For Users
 
-- **Familiar Sources**: Use any git repository as a template source
+- **Multiple Sources**: Use git repositories, GitHub shorthand, full URLs, registry aliases, or local directories as template sources
 - **Branch Support**: Access different template versions via git branches
 - **Caching Benefits**: Repeated operations are fast due to intelligent caching
 - **Security Assurance**: Template processing respects security boundaries
@@ -256,7 +269,7 @@ Setup scripts run in a resource-restricted sandbox and rely exclusively on the c
 
 Current architectural limitations that users should understand:
 
-1. **Git Dependency**: Requires git to be installed and accessible
+1. **Git Dependency**: Remote git repositories require git to be installed and accessible (local directories work without git)
 2. **Network Requirements**: Remote templates require network access (unless cached)
 3. **Setup Script Language**: Setup scripts must be written in JavaScript/Node.js
 4. **File-Based Templates**: Cannot generate files dynamically during scaffolding

@@ -17,7 +17,7 @@ last_updated: "2025-11-18"
 
 ## Overview
 
-This reference guide documents all available templatization patterns, their configuration options, and usage examples. Use this guide to customize templatization behavior for your templates.
+This reference guide documents all available templatization pattern types, their configuration options, and usage examples. The templatization system uses a configurable `.templatize.json` file to define patterns for different file types.
 
 ## Configuration Structure
 
@@ -25,417 +25,566 @@ This reference guide documents all available templatization patterns, their conf
 
 ```json
 {
-  "version": "1.0.0",
-  "patterns": {
-    "jsx": [...],
-    "json": [...],
-    "markdown": [...],
-    "html": [...]
+  "version": "1.0",
+  "autoDetect": true,
+  "rules": {
+    "package.json": [...],
+    "README.md": [...],
+    ".jsx": [...],
+    ".html": [...]
   }
 }
 ```
 
-## JSX/TSX Patterns
+### Pattern Structure
 
-### Basic Element Text Content
+All patterns share common properties:
 
 ```json
 {
-  "selector": "h1, h2, h3, h4, h5, h6",
-  "attribute": null,
-  "placeholder": "CONTENT_TITLE"
+  "type": "pattern-type",
+  "placeholder": "PLACEHOLDER_NAME",
+  "allowMultiple": false
 }
 ```
 
-**Matches**: Text content of heading elements
-**Example**:
-```jsx
-<h1>Welcome to My App</h1> → <h1>{CONTENT_TITLE}</h1>
-```
+- **`type`** (required): The pattern type identifier
+- **`placeholder`** (required): The placeholder name to use for replacement
+- **`allowMultiple`** (optional): Whether this pattern can match multiple occurrences (default: `false`)
 
-### Element Attributes
+## Pattern Types
 
+### JSON Value Patterns (`json-value`)
+
+Extracts values from JSON files using JSONPath expressions.
+
+**Configuration:**
 ```json
 {
-  "selector": "[title], [alt]",
-  "attribute": "title",
-  "placeholder": "CONTENT_TITLE"
-}
-```
-
-**Matches**: Specific attributes on elements
-**Example**:
-```jsx
-<div title="My App"> → <div title="{CONTENT_TITLE}">
-```
-
-### Component Props
-
-```json
-{
-  "selector": "MyComponent",
-  "attribute": "title",
-  "placeholder": "COMPONENT_TITLE"
-}
-```
-
-**Matches**: Props on custom components
-
-### Advanced Selectors
-
-```json
-{
-  "selector": ".header > h1:first-child",
-  "attribute": null,
-  "placeholder": "MAIN_TITLE"
-}
-```
-
-**Matches**: Complex CSS selector patterns
-
-## JSON Patterns
-
-### Simple Property Paths
-
-```json
-{
+  "type": "json-value",
   "path": "$.name",
   "placeholder": "PACKAGE_NAME"
 }
 ```
 
-**Matches**: Top-level name property
-**Example**:
-```json
-{"name": "my-app"} → {"name": "{PACKAGE_NAME}"}
-```
+**Properties:**
+- **`path`** (required): JSONPath expression to locate the value
 
-### Nested Properties
+**Examples:**
 
 ```json
+// package.json
 {
-  "path": "$.config.title",
-  "placeholder": "APP_TITLE"
+  "name": "my-app",
+  "description": "My application",
+  "author": "John Doe"
 }
 ```
 
-**Matches**: Nested configuration properties
-
-### Array Elements
-
 ```json
+// .templatize.json rules for package.json
 {
-  "path": "$.dependencies.*",
-  "placeholder": "DEPENDENCY_NAME"
+  "package.json": [
+    {
+      "type": "json-value",
+      "path": "$.name",
+      "placeholder": "PACKAGE_NAME"
+    },
+    {
+      "type": "json-value",
+      "path": "$.description",
+      "placeholder": "PACKAGE_DESCRIPTION"
+    },
+    {
+      "type": "json-value",
+      "path": "$.author",
+      "placeholder": "PACKAGE_AUTHOR"
+    }
+  ]
 }
 ```
 
-**Matches**: All dependency names (wildcard)
-
-### Specific Array Indices
-
+**Result:**
 ```json
 {
-  "path": "$.scripts[0]",
-  "placeholder": "MAIN_SCRIPT"
+  "name": "{PACKAGE_NAME}",
+  "description": "{PACKAGE_DESCRIPTION}",
+  "author": "{PACKAGE_AUTHOR}"
 }
 ```
 
-**Matches**: First script in array
+### Markdown Heading Patterns (`markdown-heading`)
 
-## Markdown Patterns
+Extracts text from markdown headings by level.
 
-### Heading Patterns
-
+**Configuration:**
 ```json
 {
-  "pattern": "^#{1,6}\\s+(.+)$",
-  "placeholder": "CONTENT_TITLE",
-  "flags": "gm"
-}
-```
-
-**Matches**: All heading levels
-**Example**:
-```markdown
-# My Title → # {CONTENT_TITLE}
-## Subtitle → ## {CONTENT_TITLE}
-```
-
-### Frontmatter Fields
-
-```json
-{
-  "pattern": "^title:\\s*(.+)$",
-  "placeholder": "DOCUMENT_TITLE",
-  "flags": "m"
-}
-```
-
-**Matches**: YAML frontmatter title field
-
-### Link Patterns
-
-```json
-{
-  "pattern": "\\[([^\\]]+)\\]\\(([^\\)]+)\\)",
-  "placeholder": "LINK_TEXT",
-  "captureGroup": 1
-}
-```
-
-**Matches**: Link text (capture group 1)
-
-### Code Block Languages
-
-```json
-{
-  "pattern": "```(\\w+)",
-  "placeholder": "CODE_LANGUAGE"
-}
-```
-
-**Matches**: Code block language specifiers
-
-## HTML Patterns
-
-### Element Text Content
-
-```json
-{
-  "selector": "h1, h2, title",
-  "attribute": null,
+  "type": "markdown-heading",
+  "level": 1,
   "placeholder": "CONTENT_TITLE"
 }
 ```
 
-**Matches**: Text content of elements
+**Properties:**
+- **`level`** (required): Heading level (1-6)
 
-### Attribute Values
+**Examples:**
+
+```markdown
+# My Project Title
+## Subtitle
+### Section Header
+```
 
 ```json
+// .templatize.json rules for README.md
 {
-  "selector": "meta[name=\"description\"]",
+  "README.md": [
+    {
+      "type": "markdown-heading",
+      "level": 1,
+      "placeholder": "CONTENT_TITLE"
+    },
+    {
+      "type": "markdown-heading",
+      "level": 2,
+      "placeholder": "CONTENT_SUBTITLE"
+    }
+  ]
+}
+```
+
+**Result:**
+```markdown
+# {CONTENT_TITLE}
+## {CONTENT_SUBTITLE}
+### Section Header
+```
+
+### Markdown Paragraph Patterns (`markdown-paragraph`)
+
+Extracts text from markdown paragraphs by position.
+
+**Configuration:**
+```json
+{
+  "type": "markdown-paragraph",
+  "position": "first",
+  "placeholder": "CONTENT_DESCRIPTION"
+}
+```
+
+**Properties:**
+- **`position`** (required): Position identifier (`"first"`, `"last"`, or numeric index)
+
+**Examples:**
+
+```markdown
+# Title
+
+This is the first paragraph with a description.
+
+This is the second paragraph.
+
+## Section
+
+Another paragraph here.
+```
+
+```json
+// .templatize.json rules for README.md
+{
+  "README.md": [
+    {
+      "type": "markdown-paragraph",
+      "position": "first",
+      "placeholder": "CONTENT_DESCRIPTION"
+    }
+  ]
+}
+```
+
+**Result:**
+```markdown
+# Title
+
+{CONTENT_DESCRIPTION}
+
+This is the second paragraph.
+
+## Section
+
+Another paragraph here.
+```
+
+### String Literal Patterns (`string-literal`)
+
+Extracts string literals from source code files with context-specific matching.
+
+**Configuration:**
+```json
+{
+  "type": "string-literal",
+  "context": "jsx-text",
+  "selector": "h1:first-child",
+  "placeholder": "CONTENT_TITLE"
+}
+```
+
+**Properties:**
+- **`context`** (required): Context type (`"jsx-text"`, `"jsx-attribute"`)
+- **`selector`** (required): CSS selector to locate elements
+- **`attribute`** (required for `jsx-attribute` context): Attribute name to extract
+
+**Examples for JSX/TSX:**
+
+```jsx
+function App() {
+  return (
+    <div>
+      <h1>Welcome to My App</h1>
+      <p className="description">This is my app description</p>
+      <button title="Click me">Button</button>
+    </div>
+  );
+}
+```
+
+```json
+// .templatize.json rules for .jsx files
+{
+  ".jsx": [
+    {
+      "type": "string-literal",
+      "context": "jsx-text",
+      "selector": "h1:first-child",
+      "placeholder": "CONTENT_TITLE"
+    },
+    {
+      "type": "string-literal",
+      "context": "jsx-text",
+      "selector": ".description",
+      "placeholder": "CONTENT_DESCRIPTION"
+    },
+    {
+      "type": "string-literal",
+      "context": "jsx-attribute",
+      "selector": "[title]",
+      "attribute": "title",
+      "placeholder": "BUTTON_TITLE"
+    }
+  ]
+}
+```
+
+**Result:**
+```jsx
+function App() {
+  return (
+    <div>
+      <h1>{CONTENT_TITLE}</h1>
+      <p className="description">{CONTENT_DESCRIPTION}</p>
+      <button title="{BUTTON_TITLE}">Button</button>
+    </div>
+  );
+}
+```
+
+### HTML Text Patterns (`html-text`)
+
+Extracts text content from HTML elements.
+
+**Configuration:**
+```json
+{
+  "type": "html-text",
+  "selector": "title",
+  "placeholder": "PAGE_TITLE"
+}
+```
+
+**Properties:**
+- **`selector`** (required): CSS selector to locate elements
+
+**Examples:**
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+  <title>My Website</title>
+</head>
+<body>
+  <h1>Welcome</h1>
+  <p>This is the description</p>
+</body>
+</html>
+```
+
+```json
+// .templatize.json rules for .html files
+{
+  ".html": [
+    {
+      "type": "html-text",
+      "selector": "title",
+      "placeholder": "PAGE_TITLE"
+    },
+    {
+      "type": "html-text",
+      "selector": "h1:first-child",
+      "placeholder": "CONTENT_TITLE"
+    },
+    {
+      "type": "html-text",
+      "selector": "p:first-of-type",
+      "placeholder": "CONTENT_DESCRIPTION"
+    }
+  ]
+}
+```
+
+**Result:**
+```html
+<!DOCTYPE html>
+<html>
+<head>
+  <title>{PAGE_TITLE}</title>
+</head>
+<body>
+  <h1>{CONTENT_TITLE}</h1>
+  <p>{CONTENT_DESCRIPTION}</p>
+</body>
+</html>
+```
+
+### HTML Attribute Patterns (`html-attribute`)
+
+Extracts attribute values from HTML elements.
+
+**Configuration:**
+```json
+{
+  "type": "html-attribute",
+  "selector": "meta[name='description']",
   "attribute": "content",
   "placeholder": "META_DESCRIPTION"
 }
 ```
 
-**Matches**: Specific attribute values
+**Properties:**
+- **`selector`** (required): CSS selector to locate elements
+- **`attribute`** (required): Attribute name to extract
 
-### Form Attributes
-
-```json
-{
-  "selector": "input, textarea",
-  "attribute": "placeholder",
-  "placeholder": "FORM_PLACEHOLDER"
-}
-```
-
-**Matches**: Form input placeholders
-
-## Advanced Configuration
-
-### Pattern Options
-
-#### allowMultiple (boolean)
-Controls whether pattern can match multiple instances:
-
-```json
-{
-  "selector": "p",
-  "attribute": null,
-  "placeholder": "PARAGRAPH_CONTENT",
-  "allowMultiple": true
-}
-```
-
-#### caseSensitive (boolean)
-Controls case sensitivity for text matching:
-
-```json
-{
-  "pattern": "error|Error|ERROR",
-  "placeholder": "ERROR_MESSAGE",
-  "caseSensitive": false
-}
-```
-
-### Skip Regions
-
-Exclude content from templatization:
-
-```javascript
-/* @template-skip */
-const hardcodedValue = "This stays as-is";
-/* @template-end-skip */
-```
+**Examples:**
 
 ```html
-<!-- @template-skip -->
-<div>This content is preserved</div>
-<!-- @template-end-skip -->
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="description" content="My website description">
+  <link rel="icon" href="favicon.ico">
+</head>
+<body>
+  <img src="logo.png" alt="Company Logo">
+</body>
+</html>
 ```
 
-## Built-in Placeholder Types
+```json
+// .templatize.json rules for .html files
+{
+  ".html": [
+    {
+      "type": "html-attribute",
+      "selector": "meta[name='description']",
+      "attribute": "content",
+      "placeholder": "META_DESCRIPTION"
+    },
+    {
+      "type": "html-attribute",
+      "selector": "link[rel='icon']",
+      "attribute": "href",
+      "placeholder": "FAVICON_PATH"
+    },
+    {
+      "type": "html-attribute",
+      "selector": "img",
+      "attribute": "alt",
+      "placeholder": "IMAGE_ALT"
+    }
+  ]
+}
+```
 
-### Content Placeholders
-- `CONTENT_TITLE` - Page/component titles
-- `CONTENT_DESCRIPTION` - Descriptions and summaries
-- `CONTENT_SUBTITLE` - Secondary headings
-- `CONTENT_BODY` - Main content text
+**Result:**
+```html
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="description" content="{META_DESCRIPTION}">
+  <link rel="icon" href="{FAVICON_PATH}">
+</head>
+<body>
+  <img src="logo.png" alt="{IMAGE_ALT}">
+</body>
+</html>
+```
 
-### Package Placeholders
-- `PACKAGE_NAME` - Package/project name
-- `PACKAGE_DESCRIPTION` - Package description
-- `PACKAGE_VERSION` - Version numbers
-- `PACKAGE_AUTHOR` - Author information
+## File Pattern Matching
 
-### Application Placeholders
-- `APP_NAME` - Application display name
-- `APP_TITLE` - Application title
-- `APP_DESCRIPTION` - Application description
+### Specific Files
 
-### UI/UX Placeholders
-- `UI_BUTTON_TEXT` - Button labels
-- `UI_PLACEHOLDER_TEXT` - Input placeholders
-- `UI_ERROR_MESSAGE` - Error messages
-- `UI_SUCCESS_MESSAGE` - Success messages
-
-## Custom Placeholder Naming
-
-### Naming Conventions
-
-1. **UPPER_SNAKE_CASE** - Standard placeholder format
-2. **Descriptive names** - Indicate content type and purpose
-3. **Consistent prefixes** - Group related placeholders
-4. **Avoid conflicts** - Don't override built-in placeholders
-
-### Examples
+Use exact filenames to target specific files:
 
 ```json
 {
-  "patterns": {
-    "jsx": [
-      {
-        "selector": "button",
-        "attribute": null,
-        "placeholder": "PRIMARY_BUTTON_TEXT"
-      }
-    ],
-    "json": [
-      {
-        "path": "$.api.endpoint",
-        "placeholder": "API_BASE_URL"
-      }
-    ]
+  "rules": {
+    "package.json": [...],
+    "README.md": [...],
+    "index.html": [...]
   }
 }
 ```
 
-## Pattern Validation
+### File Extensions
 
-### Syntax Validation
+Use extension patterns to target all files with that extension:
 
-The system validates patterns at configuration load time:
+```json
+{
+  "rules": {
+    ".jsx": [...],
+    ".html": [...],
+    ".md": [...]
+  }
+}
+```
 
-- **CSS Selectors**: Valid CSS selector syntax
-- **JSONPath**: Valid JSONPath expressions
-- **Regular Expressions**: Valid regex patterns with flags
+## Advanced Configuration
 
-### Runtime Validation
+### Multiple Patterns per File
 
-During templatization:
+You can define multiple patterns for the same file:
 
-- **File parsing**: Validates file syntax before processing
-- **Match validation**: Ensures matches are reasonable
-- **Position safety**: Validates replacement positions
+```json
+{
+  "README.md": [
+    {
+      "type": "markdown-heading",
+      "level": 1,
+      "placeholder": "TITLE"
+    },
+    {
+      "type": "markdown-heading",
+      "level": 2,
+      "placeholder": "SUBTITLE"
+    },
+    {
+      "type": "markdown-paragraph",
+      "position": "first",
+      "placeholder": "DESCRIPTION"
+    }
+  ]
+}
+```
 
-## Debugging Patterns
+### Allow Multiple Matches
 
-### Enable Debug Logging
+Set `allowMultiple: true` to replace all occurrences of a pattern:
+
+```json
+{
+  "type": "string-literal",
+  "context": "jsx-text",
+  "selector": ".description",
+  "placeholder": "DESCRIPTION",
+  "allowMultiple": true
+}
+```
+
+### Custom Placeholders
+
+Use descriptive placeholder names that match your template's needs:
+
+```json
+{
+  "type": "json-value",
+  "path": "$.name",
+  "placeholder": "PROJECT_NAME"
+}
+```
+
+## Default Configuration
+
+The system provides a comprehensive default configuration that covers common templatization needs. You can generate this configuration using:
 
 ```bash
-DEBUG=templatize:* npx @m5nv/make-template convert .
+npx make-template init
 ```
 
-### Test Patterns
+This creates a `.templatize.json` file with patterns for:
+- **package.json**: Name, description, author
+- **README.md**: Title, description
+- **JSX files**: Headings, descriptions, attributes
+- **HTML files**: Title, meta description, headings
 
-Use the `--dry-run` flag to preview pattern matches:
+## Validation and Error Handling
 
-```bash
-npx @m5nv/make-template convert --dry-run
-```
+The configuration system validates your `.templatize.json` file and provides helpful error messages:
 
-### Pattern Testing Tools
+- **Missing required fields**: Clear messages about what's missing
+- **Invalid pattern types**: Lists supported pattern types
+- **Malformed JSON**: Points to syntax errors
+- **Unknown properties**: Warns about unrecognized properties (forwards compatibility)
 
-Test patterns against sample content:
+## Best Practices
 
-```javascript
-// Test JSONPath
-const jsonpath = require('jsonpath-plus');
-const result = jsonpath({path: '$.name', json: {name: 'test'}});
+### Pattern Organization
+- Group related patterns together
+- Use consistent placeholder naming conventions
+- Start with the default configuration and customize as needed
 
-// Test CSS selectors
-const { JSDOM } = require('jsdom');
-const dom = new JSDOM('<h1>Test</h1>');
-const matches = dom.window.document.querySelectorAll('h1');
-```
+### Performance Considerations
+- More specific selectors perform better than broad ones
+- Limit `allowMultiple: true` to necessary cases
+- Test your configuration with representative content
 
-## Performance Considerations
-
-### Pattern Efficiency
-
-1. **Specific selectors** - Prefer specific selectors over wildcards
-2. **Limited matches** - Use `allowMultiple: false` when possible
-3. **Simple patterns** - Avoid complex regex when simple string matching works
-
-### File Size Limits
-
-- **Default limit**: 1MB per file
-- **Configurable**: Adjust in `.templatize.json`
-- **Performance**: Larger files take proportionally longer
-
-## Migration Guide
-
-### From Manual Placeholders
-
-When migrating from manual placeholder systems:
-
-1. **Identify patterns** - Find common placeholder usage
-2. **Create patterns** - Convert to automatic detection rules
-3. **Test migration** - Ensure no functionality loss
-4. **Gradual rollout** - Test with subset of templates first
-
-### Version Compatibility
-
-- **v1.0.0**: Initial templatization system
-- **Backwards compatible**: Existing templates continue working
-- **Opt-in feature**: Templatization is enabled by default but can be disabled
+### Maintenance
+- Keep your `.templatize.json` version controlled
+- Document custom patterns for team members
+- Review and update patterns as your templates evolve
 
 ## Troubleshooting
 
 ### Common Issues
 
-**Pattern not matching expected content**
-- Verify selector/regex syntax
-- Check file encoding and format
-- Test pattern against sample content
+**Pattern not matching:**
+- Verify the selector/path syntax
+- Check that the file content matches your expectations
+- Use more specific selectors if needed
 
-**Performance issues with large files**
-- Reduce pattern complexity
-- Use more specific selectors
-- Consider file size limits
+**Invalid configuration:**
+- Run `npx make-template config validate` to check your config
+- Check the error messages for specific validation failures
+- Compare with the examples in this reference
 
-**Conflicts with manual placeholders**
-- Manual placeholders take precedence
-- Use skip regions for complex cases
-- Review pattern specificity
+**Unexpected replacements:**
+- Review `allowMultiple` settings
+- Check for overlapping selectors
+- Test with sample content first
 
-### Getting Help
+### Debug Mode
 
-1. **Check logs** - Enable debug logging for detailed information
-2. **Validate config** - Use `make-template validate` to check configuration
-3. **Test patterns** - Use `--dry-run` to preview matches
-4. **Review examples** - Compare with working template configurations
+Enable debug logging to see pattern matching details:
+
+```bash
+DEBUG=templatize npx make-template convert
+```
+
+This will show:
+- Which patterns are loaded
+- Files being processed
+- Pattern matches and replacements
+- Any errors or warnings

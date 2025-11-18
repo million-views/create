@@ -11,10 +11,13 @@ export class ConvertCommand extends Command {
   parseArg(arg, args, i, parsed) {
     if (arg === '--dry-run' || arg === '-d') {
       parsed.dryRun = true;
+      return i;
     } else if (arg === '--yes') {
       parsed.yes = true;
+      return i;
     } else if (arg === '--silent') {
       parsed.silent = true;
+      return i;
     } else if (arg === '--type') {
       parsed.type = args[i + 1];
       return i + 1;
@@ -23,10 +26,15 @@ export class ConvertCommand extends Command {
       return i + 1;
     } else if (arg === '--sanitize-undo') {
       parsed.sanitizeUndo = true;
+      return i;
+    } else if (arg === '--config') {
+      parsed.config = args[i + 1];
+      return i + 1;
     } else if (!arg.startsWith('-')) {
       if (!parsed.projectPath) {
         parsed.projectPath = arg;
       }
+      return i;
     }
   }
 

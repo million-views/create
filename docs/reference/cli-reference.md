@@ -65,6 +65,12 @@ make-template init [options]
 # Validate template
 make-template validate [options]
 
+# Initialize configuration
+make-template config init [options]
+
+# Validate configuration
+make-template config validate [config-file]
+
 # Show authoring hints
 make-template hints
 
@@ -232,34 +238,52 @@ make-template test <template-path> [options]
 - `--verbose, -v`: Enable verbose test output
 - `--keep-temp`: Preserve temporary directories after testing
 
+## make-template config Commands
+
+### `config init` - Initialize Configuration
+
+Generate a skeleton .templatize.json configuration file.
+
+**Usage:**
+
+```bash
+make-template config init [options]
+```
+
+**Options:**
+- `--file, -f <path>`: Specify output file path (default: .templatize.json)
+
+### `config validate` - Validate Configuration
+
+Validate .templatize.json configuration file.
+
+**Usage:**
+
+```bash
+make-template config validate [config-file]
+```
+
+**Arguments:**
+- `<config-file>`: Path to configuration file (default: .templatize.json)
+
 ## Registry System
 
 The CLI supports a decentralized registry system for template discovery and organization. Unlike centralized registries that act as gatekeepers, this system allows users to define their own registries locally.
 
 ### How Registries Work
 
-Registries are collections of templates organized by name. Each registry can contain multiple templates, and users can define multiple registries in their configuration.
-
-**Registry Types:**
-- **Local registries**: Templates stored on the local filesystem
-- **Git registries**: Templates hosted in Git repositories  
-- **HTTP registries**: Templates served via HTTP endpoints
+Registries are Git repositories containing template directories. Each registry can contain multiple templates, and users can define multiple registries in their configuration.
 
 ### Registry Configuration
 
-Registries are configured in `.m5nvrc` configuration files:
+Registries are configured in `.m5nvrc` configuration files as shortcuts to repository URLs:
 
 ```json
 {
   "registries": {
-    "company": {
-      "type": "git",
-      "url": "https://github.com/company/templates.git"
-    },
-    "personal": {
-      "type": "local", 
-      "path": "~/my-templates"
-    }
+    "official": "git@github.com:million-views/templates.git",
+    "company": "https://github.com/company/templates.git",
+    "personal": "git@github.com:user/my-templates.git"
   }
 }
 ```
@@ -269,31 +293,42 @@ Registries are configured in `.m5nvrc` configuration files:
 Once configured, registries enable shorthand template references:
 
 ```bash
-# List all templates in a registry
+# List all templates in the default registry
+create-scaffold list
+
+# List all templates in a specific registry
 create-scaffold list --registry company
 
 # Use a template from a registry
 create-scaffold new my-app --template react-app --registry company
 
-# Get info about a template in a registry
-create-scaffold info react-app --registry company
+# Use a template directly from a repository URL
+create-scaffold new my-app --template react-app --registry https://github.com/user/repo.git
 ```
 
-### Built-in Registries
+### Default Registry
 
-The CLI includes built-in registry support that doesn't require configuration:
+The default registry is `git@github.com:million-views/templates.git` (private). This contains the official templates maintained by the million-views team.
 
-- **Git URLs**: Direct Git repository references work automatically
-- **Local paths**: File system paths work automatically
-- **HTTP URLs**: Web-hosted templates work automatically
+### Registry Types
 
-### Registry Discovery Order
+**Repository URLs**: Any Git repository URL can be used as a registry:
+- `https://github.com/user/repo.git`
+- `git@github.com:user/repo.git`
+- `github.com/user/repo` (shorthand)
 
-When resolving templates, the CLI searches in this order:
+**Configured Shortcuts**: Named registries defined in `.m5nvrc`:
+- Reference by name: `--registry my-templates`
+- Maps to configured repository URL
 
-1. Explicit `--registry` option
-2. Default registry from configuration
-3. Built-in registries (git URLs, local paths, HTTP URLs)
+### Template Discovery
+
+When listing templates from a registry:
+- Scans the repository for directories containing template indicators
+- Template indicators: `package.json`, `template.json`, `_setup.mjs`, `src/`, `lib/`, etc.
+- Returns metadata from `template.json` or `package.json`
+- Single-template repos don't require `--template` when using
+- Multi-template repos require `--template <directory-name>`
 
 ## Template manifest schema
 

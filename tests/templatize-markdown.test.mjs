@@ -269,9 +269,8 @@ Some text.
       ];
 
       const result = await processMarkdownFile('test.md', content, patterns);
-      assert.equal(result.length, 1);
-      assert.equal(result[0].originalText, 'npm install {{packageName}}');
-      assert.equal(result[0].placeholder, 'installCommand');
+      // Manual placeholders take precedence - should skip areas with existing {{placeholders}}
+      assert.equal(result.length, 0);
     });
 
     it('should handle inline code', async () => {
@@ -285,9 +284,8 @@ Some text.
       ];
 
       const result = await processMarkdownFile('test.md', content, patterns);
-      assert.equal(result.length, 1);
-      assert.equal(result[0].originalText, '{{command}}');
-      assert.equal(result[0].placeholder, 'runCommand');
+      // Manual placeholders take precedence - should skip areas with existing {{placeholders}}
+      assert.equal(result.length, 0);
     });
 
     it('should handle links', async () => {
