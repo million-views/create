@@ -1,6 +1,10 @@
 import path from 'path';
 import { readJsonFile, writeJsonFile, exists } from '../../../../lib/fs-utils.mjs';
 import { ErrorContext, ErrorSeverity, handleError } from '../../../../lib/error-handler.mjs';
+import { processJSONFile } from '../../../../lib/templatize-json.mjs';
+import { processMarkdownFile } from '../../../../lib/templatize-markdown.mjs';
+import { processJSXFile } from '../../../../lib/templatize-jsx.mjs';
+import { processHTMLFile } from '../../../../lib/templatize-html.mjs';
 
 export class Converter {
   constructor(options) {
@@ -151,130 +155,166 @@ export class Converter {
     const detectedPlaceholders = {};
     const placeholderFormat = this.options.placeholderFormat || '{{NAME}}';
 
-    // Files to scan for placeholders
-    const filesToScan = [
-      'package.json',
-      'README.md',
-      'index.html',
-      'src/index.html',
-      'public/index.html',
-      'vite.config.js',
-      'vite.config.ts',
-      'src/main.js',
-      'src/main.ts',
-      'src/App.jsx',
-      'src/App.tsx',
-      'src/App.js',
-      'src/App.ts'
+    // Define common templatization patterns
+    const commonPatterns = [
+      // Project name patterns
+      { selector: '$.name', type: 'string-literal', context: 'json-value', placeholder: 'PROJECT_NAME', allowMultiple: false },
+      { selector: 'h1', type: 'string-literal', context: 'markdown', placeholder: 'PROJECT_NAME', allowMultiple: false },
+      { selector: 'title', type: 'string-literal', context: 'html', placeholder: 'PROJECT_NAME', allowMultiple: false },
+      { selector: 'h1', type: 'string-literal', context: 'jsx-text', placeholder: 'PROJECT_NAME', allowMultiple: false },
+
+      // Description patterns
+      { selector: '$.description', type: 'string-literal', context: 'json-value', placeholder: 'DESCRIPTION', allowMultiple: false },
+      { selector: 'p:first-of-type', type: 'string-literal', context: 'markdown', placeholder: 'DESCRIPTION', allowMultiple: false },
+      { selector: '.description, [data-description]', type: 'string-literal', context: 'html', placeholder: 'DESCRIPTION', allowMultiple: false },
+
+      // Author patterns
+      { selector: '$.author', type: 'string-literal', context: 'json-value', placeholder: 'AUTHOR', allowMultiple: false },
+
+      // Version patterns
+      { selector: '$.version', type: 'string-literal', context: 'json-value', placeholder: 'VERSION', allowMultiple: false }
     ];
 
-    for (const file of filesToScan) {
-      const filePath = path.join(projectPath, file);
+    // Files to scan for placeholders with their appropriate processors
+    const filesToProcess = [
+      { path: 'package.json', processor: processJSONFile, patterns: commonPatterns.filter(p => p.context === 'json-value') },
+      { path: 'README.md', processor: processMarkdownFile, patterns: commonPatterns.filter(p => p.context === 'markdown') },
+      { path: 'index.html', processor: processHTMLFile, patterns: commonPatterns.filter(p => p.context === 'html') },
+      { path: 'src/index.html', processor: processHTMLFile, patterns: commonPatterns.filter(p => p.context === 'html') },
+      { path: 'public/index.html', processor: processHTMLFile, patterns: commonPatterns.filter(p => p.context === 'html') },
+      { path: 'src/App.jsx', processor: processJSXFile, patterns: commonPatterns.filter(p => p.context === 'jsx-text') },
+      { path: 'src/App.tsx', processor: processJSXFile, patterns: commonPatterns.filter(p => p.context === 'jsx-text') },
+      { path: 'src/App.js', processor: processJSXFile, patterns: commonPatterns.filter(p => p.context === 'jsx-text') },
+      { path: 'src/App.ts', processor: processJSXFile, patterns: commonPatterns.filter(p => p.context === 'jsx-text') }
+    ];
+
+    for (const fileConfig of filesToProcess) {
+      const filePath = path.join(projectPath, fileConfig.path);
       if (await exists(filePath)) {
-        const result = await this.processFileForPlaceholders(filePath, placeholderFormat);
-        Object.assign(detectedPlaceholders, result.placeholders);
+        try {
+          const result = await this.processFileWithProcessor(
+            filePath, fileConfig.processor, fileConfig.patterns,
+            placeholderFormat);
+          Object.assign(detectedPlaceholders, result.placeholders);
+        } catch (error) {
+          // Skip files that can't be processed
+          console.warn(`Warning: Could not process ${fileConfig.path}: ${error.message}`);
+        }
       }
     }
 
     return detectedPlaceholders;
   }
 
-  async processFileForPlaceholders(filePath, format) {
-    const fileExt = path.extname(filePath);
-    let content;
-
-    if (fileExt === '.json') {
-      content = await readJsonFile(filePath, null, 'utf8');
-    } else {
-      // For non-JSON files, read as text
-      const fs = await import('fs/promises');
-      content = await fs.readFile(filePath, 'utf8');
-    }
-
+  async processFileWithProcessor(filePath, processor, patterns, placeholderFormat) {
     const placeholders = {};
-    let modifiedContent = content;
 
-    // Detect common placeholders based on file type
-    const basename = path.basename(filePath, fileExt);
+    try {
+      // Read file content as string for all processors
+      const fs = await import('fs/promises');
+      let content = await fs.readFile(filePath, 'utf8');
+      const fileExt = path.extname(filePath);
 
-    if (basename === 'package' && fileExt === '.json') {
-      // Package.json placeholders
-      const packageData = content; // content is already parsed from readJsonFile
-      if (packageData.name && packageData.name !== 'my-template') {
-        const placeholderName = 'PROJECT_NAME';
-        const placeholder = this.formatPlaceholder(placeholderName, format);
-        placeholders[placeholderName] = {
-          default: packageData.name,
-          description: 'Project name'
-        };
-        packageData.name = placeholder;
+      // Validate content is not empty
+      if (!content || content.trim().length === 0) {
+        console.warn(`Warning: ${filePath} is empty, skipping`);
+        return { placeholders };
       }
-      if (packageData.description) {
-        const placeholderName = 'DESCRIPTION';
-        const placeholder = this.formatPlaceholder(placeholderName, format);
-        placeholders[placeholderName] = {
-          default: packageData.description,
-          description: 'Project description'
-        };
-        packageData.description = placeholder;
-      }
-      if (packageData.author) {
-        const placeholderName = 'AUTHOR';
-        const placeholder = this.formatPlaceholder(placeholderName, format);
-        placeholders[placeholderName] = {
-          default: packageData.author,
-          description: 'Author information'
-        };
-        packageData.author = placeholder;
-      }
-      modifiedContent = JSON.stringify(packageData, null, 2);
-    } else if (basename === 'README' && fileExt === '.md') {
-      // README.md placeholders
-      const titleMatch = content.match(/^# (.+)$/m);
-      if (titleMatch) {
-        const placeholderName = 'README_TITLE';
-        const placeholder = this.formatPlaceholder(placeholderName, format);
-        placeholders[placeholderName] = {
-          default: titleMatch[1],
-          description: 'README title'
-        };
-        modifiedContent = modifiedContent.replace(
-          titleMatch[0],
-          `# ${placeholder}`
-        );
-      }
-    } else if (basename === 'index' && fileExt === '.html') {
-      // HTML title placeholder
-      const titleMatch = content.match(/<title>([^<]+)<\/title>/);
-      if (titleMatch) {
-        const placeholderName = 'HTML_TITLE';
-        const placeholder = this.formatPlaceholder(placeholderName, format);
-        placeholders[placeholderName] = {
-          default: titleMatch[1],
-          description: 'HTML page title'
-        };
-        modifiedContent = modifiedContent.replace(
-          titleMatch[0],
-          `<title>${placeholder}</title>`
-        );
-      }
-    }
 
-    // Write back modified content if changed
-    if (modifiedContent !== content) {
-      if (fileExt === '.json') {
-        // For JSON files, write the modified object back
-        await writeJsonFile(filePath, JSON.parse(modifiedContent));
-      } else {
-        const fs = await import('fs/promises');
-        await fs.writeFile(filePath, modifiedContent, 'utf8');
+      // Use the templatization processor to find matches
+      const matches = await processor(filePath, content, patterns);
+
+      // Validate matches
+      if (!Array.isArray(matches)) {
+        throw new Error(`Processor returned invalid result: ${typeof matches}`);
       }
+
+      // Process matches and create placeholders
+      // Sort matches by startIndex in reverse order to avoid position shifts
+      const sortedMatches = matches.sort(
+        (a, b) => b.startIndex - a.startIndex
+      );
+
+      for (const match of sortedMatches) {
+        // Validate match structure
+        if (!match || typeof match !== 'object') {
+          console.warn(`Warning: Invalid match object, skipping`);
+          continue;
+        }
+
+        if (!match.placeholder || typeof match.placeholder !== 'string') {
+          console.warn(`Warning: Match missing valid placeholder, skipping`);
+          continue;
+        }
+
+        if (typeof match.startIndex !== 'number' || typeof match.endIndex !== 'number') {
+          console.warn(`Warning: Match missing valid position indices, skipping`);
+          continue;
+        }
+
+        if (match.startIndex < 0 || match.endIndex <= match.startIndex || match.endIndex > content.length) {
+          console.warn(`Warning: Match has invalid position indices, skipping`);
+          continue;
+        }
+
+        const placeholderName = match.placeholder;
+
+        // Skip if we already have this placeholder
+        if (placeholders[placeholderName]) {
+          continue;
+        }
+
+        // Validate placeholder format
+        if (!/^[A-Z][A-Z0-9_]*$/.test(placeholderName)) {
+          console.warn(`Warning: Invalid placeholder name '${placeholderName}', must be uppercase letters, numbers, and underscores, starting with a letter`);
+          continue;
+        }
+
+        // Create placeholder definition
+        placeholders[placeholderName] = {
+          default: match.originalText || '',
+          description: `${placeholderName.toLowerCase().replace(/_/g, ' ')}`
+        };
+
+        // Replace the content in the file
+        const placeholderValue = this.formatPlaceholder(placeholderName, placeholderFormat);
+        const beforeMatch = content.substring(0, match.startIndex);
+        const afterMatch = content.substring(match.endIndex);
+        content = beforeMatch + placeholderValue + afterMatch;
+      }
+
+      // Write back modified content if any replacements were made
+      if (Object.keys(placeholders).length > 0) {
+        // Validate that the content is still valid after modifications
+        if (fileExt === '.json') {
+          try {
+            JSON.parse(content);
+          } catch (error) {
+            throw new Error(`Modified JSON content is invalid: ${error.message}`);
+          }
+        }
+
+        await fs.writeFile(filePath, content, 'utf8');
+      }
+
+    } catch (error) {
+      // Re-throw with more context
+      throw new Error(`Failed to process ${filePath}: ${error.message}`);
     }
 
     return { placeholders };
   }
 
   formatPlaceholder(name, format) {
+    if (!name || typeof name !== 'string') {
+      throw new Error(`Invalid placeholder name: ${name}`);
+    }
+    if (!format || typeof format !== 'string') {
+      throw new Error(`Invalid placeholder format: ${format}`);
+    }
+    if (!format.includes('NAME')) {
+      throw new Error(`Placeholder format must contain 'NAME' placeholder: ${format}`);
+    }
     return format.replace('NAME', name);
   }
 
@@ -282,11 +322,45 @@ export class Converter {
     const projectPath = path.resolve(this.options.projectPath);
     const templatePath = path.join(projectPath, 'template.json');
 
-    const template = await readJsonFile(templatePath);
+    let template;
+    try {
+      template = await readJsonFile(templatePath);
+    } catch (error) {
+      throw new Error(`Failed to read template.json: ${error.message}`);
+    }
+
+    // Validate template structure
+    if (!template || typeof template !== 'object') {
+      throw new Error('Invalid template.json structure');
+    }
+
+    if (!template.placeholders || typeof template.placeholders !== 'object') {
+      template.placeholders = {};
+    }
 
     // Add detected placeholders to template
     template.placeholders = { ...template.placeholders, ...detectedPlaceholders };
 
-    await writeJsonFile(templatePath, template);
+    // Validate placeholder definitions
+    for (const [name, def] of Object.entries(template.placeholders)) {
+      if (!def || typeof def !== 'object') {
+        console.warn(`Warning: Invalid placeholder definition for ${name}, skipping`);
+        delete template.placeholders[name];
+        continue;
+      }
+      if (typeof def.default !== 'string') {
+        console.warn(`Warning: Placeholder ${name} missing valid default value, setting to empty string`);
+        def.default = '';
+      }
+      if (!def.description || typeof def.description !== 'string') {
+        def.description = `${name.toLowerCase().replace(/_/g, ' ')}`;
+      }
+    }
+
+    try {
+      await writeJsonFile(templatePath, template);
+    } catch (error) {
+      throw new Error(`Failed to write template.json: ${error.message}`);
+    }
   }
 }

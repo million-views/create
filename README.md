@@ -72,6 +72,49 @@ Unlike other scaffolding tools, this ecosystem focuses on **round-trip workflows
 - **Progressive Enhancement**: Start simple, add complexity as needed
 - **Platform Awareness**: Smart validation based on deployment targets
 
+## Intelligent Templatization
+
+**Automatically detect and replace project-specific content with reusable placeholders.**
+
+The templatization system intelligently analyzes your code and automatically identifies content that should be parameterized:
+
+### Supported File Types
+- **JSX/TSX**: Component text, attributes, and titles
+- **JSON**: Configuration values and metadata
+- **Markdown**: Headings, frontmatter, and content
+- **HTML**: Page titles, meta descriptions, and content
+
+### Smart Detection Examples
+```javascript
+// Before: Hard-coded values
+<h1>Welcome to My App</h1>
+<title>My App</title>
+
+// After: Templated placeholders
+<h1>{CONTENT_TITLE}</h1>
+<title>{CONTENT_TITLE}</title>
+```
+
+```json
+{
+  "name": "my-app",
+  "description": "My awesome app"
+}
+```
+
+Becomes:
+```json
+{
+  "name": "{PACKAGE_NAME}",
+  "description": "{PACKAGE_DESCRIPTION}"
+}
+```
+
+### Control & Customization
+- **Skip Regions**: Use `/* @template-skip */` to exclude content from templatization
+- **Manual Placeholders**: Existing `{MANUAL_PLACEHOLDER}` syntax takes precedence
+- **Configuration**: Customize detection patterns in `.templatize.json`
+
 ## Installation
 
 ```bash
@@ -99,13 +142,25 @@ npm create @m5nv/scaffold onboarding-app -- --template company/react-fullstack
 
 ### Template Authoring
 ```bash
-# You built an awesome project
+# You built an awesome project with custom content
 cd my-awesome-fullstack-app
 npx @m5nv/make-template convert .
 
+# The system automatically detects and templatizes:
+# • JSX component titles and text → {CONTENT_TITLE}
+# • Package.json name/description → {PACKAGE_NAME}
+# • README headings → {CONTENT_TITLE}
+# • HTML page titles → {CONTENT_TITLE}
+
+# Preview changes before applying
+npx @m5nv/make-template convert --dry-run
+
+# Skip auto-templatization for manual control
+npx @m5nv/make-template convert --no-auto-detect
+
 # Now share it with the world
 git add .
-git commit -m "Add fullstack template"
+git commit -m "Add fullstack template with smart templatization"
 git push origin main
 ```
 
@@ -139,14 +194,21 @@ npm create @m5nv/scaffold my-app -- --template complex-app --selection ./choices
 ```
 
 ### `make-template` - Template Authoring
-**Turn projects into templates effortlessly.**
+**Turn projects into templates effortlessly with intelligent content detection.**
 
-Converts any Node.js project into a reusable template. Automatically detects placeholders, generates schema, and creates restoration files.
+Converts any Node.js project into a reusable template. Automatically detects and replaces project-specific content (JSX, JSON, Markdown, HTML) with placeholders, generates schema, and creates restoration files.
 
 ```bash
-# Convert your project
+# Convert your project with automatic templatization
 cd my-project
 npx @m5nv/make-template convert .
+
+# Preview changes before applying
+npx @m5nv/make-template convert --dry-run
+
+# Skip automatic templatization if preferred
+npx @m5nv/make-template convert --no-auto-detect
+```
 
 # Or start from scratch
 npx @m5nv/make-template init
@@ -159,6 +221,7 @@ Ready to dive deeper? Our tutorials will get you productive in minutes:
 - **[Getting Started](docs/tutorial/getting-started.md)** - Installation and basic usage
 - **[Template Tutorial](docs/tutorial/make-template.md)** - Convert projects to templates
 - **[Scaffolding Tutorial](docs/tutorial/create-scaffold.md)** - Create projects from templates
+- **[Intelligent Templatization](docs/explanation/templatization.md)** - Auto-detection and placeholder replacement
 - **[Template Authoring Guide](docs/how-to/creating-templates.md)** - Advanced template creation
 
 ## Technical Details
@@ -241,7 +304,7 @@ npx @m5nv/create-scaffold --help
 **Version**: 0.6.0  
 **Status**: Production-ready, pre-publication
 
-Built with ❤️ using only Node.js built-ins. Zero external dependencies.
+Built with ❤️ using Node.js and carefully selected dependencies for optimal performance and reliability.
 
 ---
 

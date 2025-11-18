@@ -2,6 +2,7 @@ import { Command } from '../../../../lib/cli/command.js';
 import { initHelp } from './help.js';
 import fs from 'fs';
 import { join } from 'path';
+import { generateConfigFile } from '../../../../lib/templatize-config.mjs';
 
 export class InitCommand extends Command {
   constructor() {
@@ -43,12 +44,17 @@ export class InitCommand extends Command {
     fs.writeFileSync(outputPath, JSON.stringify(skeleton, null, 2));
     console.log(`Skeleton template.json generated successfully`);
 
+    // Generate .templatize.json configuration
+    console.log(`Generating .templatize.json configuration file`);
+    generateConfigFile(process.cwd());
+
     // Next steps guidance
     console.log(`
 Next steps:
-1. Edit template.json to customize your template
-2. Add your project files to the template
-3. Run 'make-template validate' to check your template
-4. Use 'make-template convert' to create a template from an existing project`);
+1. Edit template.json to customize your template metadata
+2. Edit .templatize.json to customize templatization rules (optional)
+3. Add your project files to the template
+4. Run 'make-template validate' to check your template
+5. Use 'make-template convert' to create a template from an existing project`);
   }
 }

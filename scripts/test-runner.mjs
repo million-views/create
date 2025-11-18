@@ -25,7 +25,11 @@ class TestRunner {
         'Template Validator Tests',
         'Base Command Tests',
         'Router Tests',
-        'Template Schema Build Tests'
+        'Template Schema Build Tests',
+        'Templatize JSX Tests',
+        'Templatize JSON Tests',
+        'Templatize Markdown Tests',
+        'Templatize HTML Tests'
       ],
       // Integration tests: Command-level functionality
       'integration': [
@@ -341,6 +345,30 @@ class TestRunner {
         command: ['--test', './tests/make-template/cli-integration.test.mjs'],
         description: 'Template validation and schema compliance',
         homeSuffix: 'make-template-validate'
+      },
+      {
+        name: 'Templatize JSX Tests',
+        command: ['--test', './tests/templatize-jsx.test.mjs'],
+        description: 'JSX/TSX file templatization with AST parsing',
+        homeSuffix: 'templatize-jsx'
+      },
+      {
+        name: 'Templatize JSON Tests',
+        command: ['--test', './tests/templatize-json.test.mjs'],
+        description: 'JSON file templatization with JSONPath support',
+        homeSuffix: 'templatize-json'
+      },
+      {
+        name: 'Templatize Markdown Tests',
+        command: ['--test', './tests/templatize-markdown.test.mjs'],
+        description: 'Markdown file templatization with regex patterns',
+        homeSuffix: 'templatize-markdown'
+      },
+      {
+        name: 'Templatize HTML Tests',
+        command: ['--test', './tests/templatize-html.test.mjs'],
+        description: 'HTML file templatization with DOM parsing',
+        homeSuffix: 'templatize-html'
       }
     ];
   }
