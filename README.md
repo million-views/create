@@ -42,21 +42,21 @@ npx @m5nv/make-template convert .
 npm create @m5nv/scaffold my-app -- --template basic-react-spa --selection ./previous-choices.json
 ```
 
-## Why Teams Love This
+## Key Benefits
 
-### For Developers
+### For Individual Developers
 - **Zero setup time**: Start coding immediately with pre-configured projects
-- **Consistent quality**: Every project includes your team's best practices
+- **Consistent quality**: Every project includes battle-tested configurations
 - **Guided decisions**: Interactive prompts help you make the right choices
 - **Reproducible builds**: Recreate exact project setups anytime
 
-### For Teams
+### For Teams & Organizations
 - **Codify standards**: Turn tribal knowledge into shareable templates
 - **Faster onboarding**: New developers get productive instantly
 - **Evolving practices**: Update templates as your standards improve
 - **Cross-project consistency**: Same setup, same quality, everywhere
 
-### For Template Authors
+### For Template Creators
 - **One-command conversion**: Turn any project into a template
 - **Smart placeholder detection**: Automatically finds project-specific values
 - **Round-trip workflow**: Convert ↔ restore with full fidelity
