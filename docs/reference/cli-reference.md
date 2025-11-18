@@ -72,47 +72,6 @@ make-template hints
 make-template test <template-path> [options]
 ```
 
-## Tools
-
-### create-scaffold
-
-Scaffolds new projects from git-based templates.
-
-```bash
-# Using npm create (recommended)
-npm create @m5nv/scaffold <project-directory> -- --template <template-name> [options]
-
-# Using npx with command syntax
-npx @m5nv/create-scaffold new <project-directory> --template <template-name> [options]
-
-# Global installation
-create-scaffold new <project-directory> --template <template-name> [options]
-```
-
-### make-template
-
-Converts existing Node.js projects into reusable templates.
-
-```bash
-# Convert project to template
-make-template convert [options]
-
-# Restore templated project
-make-template restore [options]
-
-# Initialize template.json
-make-template init [options]
-
-# Validate template
-make-template validate [options]
-
-# Show authoring hints
-make-template hints
-
-# Test template end-to-end
-make-template test <template-path> [options]
-```
-
 ## Global Options
 
 Both tools support these global options:

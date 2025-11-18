@@ -347,8 +347,6 @@ class RollbackEngine {
 
 ## CLI Integration
 
-## CLI Integration
-
 ### Enhanced New Command
 The existing `create-scaffold new` command is enhanced to support template dependencies and composition:
 

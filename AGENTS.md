@@ -382,8 +382,6 @@ For ANY error handling code:
 - **Read `steering-hierarchy.md` first** to understand which standards apply to your context.
 
 ## 7. Dependencies & Environment
-
-## 7. Dependencies & Environment
 - Node.js ESM only; prefer built-in modules.
 - No external dependencies unless documented.
 

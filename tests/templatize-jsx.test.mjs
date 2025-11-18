@@ -303,4 +303,63 @@ function App() {
     const descriptionReplacements = replacements.filter(r => r.placeholder === 'CONTENT_DESCRIPTION');
     assert.strictEqual(descriptionReplacements.length, 2, 'Should match both class and data attribute selectors');
   });
+
+  await t.test('should skip content within @template-skip regions', async () => {
+    const skipRegionJSX = `
+function App() {
+  return (
+    <div>
+      {/* @template-skip */}
+      <h1>Don't templatize this</h1>
+      <h2>This should be skipped too</h2>
+      {/* @end-template-skip */}
+      <h1>This should be templatized</h1>
+      <h2>This subtitle should also be templatized</h2>
+    </div>
+  );
+}
+`;
+
+    const replacements = await processJSXFile('test.jsx', skipRegionJSX, testPatterns);
+
+    const titleReplacements = replacements.filter(r => r.placeholder === 'CONTENT_TITLE');
+    const subtitleReplacements = replacements.filter(r => r.placeholder === 'CONTENT_SUBTITLE');
+
+    assert.strictEqual(titleReplacements.length, 1, 'Should skip h1 in skip region');
+    assert.strictEqual(subtitleReplacements.length, 1, 'Should skip h2 in skip region');
+
+    assert.strictEqual(titleReplacements[0].originalText, 'This should be templatized');
+    assert.strictEqual(subtitleReplacements[0].originalText, 'This subtitle should also be templatized');
+  });
+
+  await t.test('should handle // @template-skip comments in JS files', async () => {
+    const skipRegionJS = `
+function App() {
+  // @template-skip
+  const title = "Don't templatize this";
+  const subtitle = "This should be skipped too";
+  // @end-template-skip
+
+  return (
+    <div>
+      <h1>{title}</h1>
+      <h2>{subtitle}</h2>
+      <h1>This should be templatized</h1>
+      <h2>This subtitle should also be templatized</h2>
+    </div>
+  );
+}
+`;
+
+    const replacements = await processJSXFile('test.js', skipRegionJS, testPatterns);
+
+    const titleReplacements = replacements.filter(r => r.placeholder === 'CONTENT_TITLE');
+    const subtitleReplacements = replacements.filter(r => r.placeholder === 'CONTENT_SUBTITLE');
+
+    assert.strictEqual(titleReplacements.length, 1, 'Should skip h1 in skip region');
+    assert.strictEqual(subtitleReplacements.length, 1, 'Should skip h2 in skip region');
+
+    assert.strictEqual(titleReplacements[0].originalText, 'This should be templatized');
+    assert.strictEqual(subtitleReplacements[0].originalText, 'This subtitle should also be templatized');
+  });
 });

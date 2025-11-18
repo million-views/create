@@ -281,5 +281,4 @@ DEBUG=templatize:* npx @m5nv/make-template convert .
 ### Extension Points
 - **Plugin system** for additional file types
 - **Custom parsers** for domain-specific formats
-- **Pattern libraries** for common use cases</content>
-<parameter name="filePath">/Users/vijay/workspaces/ws-million-views/create/docs/explanation/templatization.md
+- **Pattern libraries** for common use cases

@@ -218,5 +218,4 @@ Implement an intelligent templatization system that automatically detects and re
 1. Projects without `.templatize.json`
 2. Old convert command usage
 3. Mixed manual/auto templatization
-4. Different project structures</content>
-<parameter name="filePath">/Users/vijay/workspaces/ws-million-views/create/.kiro/specs/templatization-system/requirements.md
+4. Different project structures

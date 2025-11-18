@@ -438,5 +438,4 @@ When migrating from manual placeholder systems:
 1. **Check logs** - Enable debug logging for detailed information
 2. **Validate config** - Use `make-template validate` to check configuration
 3. **Test patterns** - Use `--dry-run` to preview matches
-4. **Review examples** - Compare with working template configurations</content>
-<parameter name="filePath">/Users/vijay/workspaces/ws-million-views/create/docs/reference/templatization-patterns.md
+4. **Review examples** - Compare with working template configurations

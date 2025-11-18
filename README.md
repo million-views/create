@@ -70,7 +70,7 @@ Unlike other scaffolding tools, this ecosystem focuses on **round-trip workflows
 - **Selection Files**: Capture and reuse your configuration choices
 - **Registry Support**: Share templates across teams and organizations
 - **Progressive Enhancement**: Start simple, add complexity as needed
-- **Platform Awareness**: Smart validation based on deployment targets
+- **Platform Awareness**: Smart validation based on deployment platforms
 
 ## Intelligent Templatization
 
@@ -85,7 +85,7 @@ The templatization system intelligently analyzes your code and automatically ide
 - **HTML**: Page titles, meta descriptions, and content
 
 ### Smart Detection Examples
-```javascript
+```jsx
 // Before: Hard-coded values
 <h1>Welcome to My App</h1>
 <title>My App</title>
@@ -208,7 +208,6 @@ npx @m5nv/make-template convert --dry-run
 
 # Skip automatic templatization if preferred
 npx @m5nv/make-template convert --no-auto-detect
-```
 
 # Or start from scratch
 npx @m5nv/make-template init
@@ -230,7 +229,9 @@ Ready to dive deeper? Our tutorials will get you productive in minutes:
 
 Templates use a declarative JSON format supporting progressive enhancement:
 
-**Minimal Template** (just the basics):
+#### Minimal Template
+Just the basics:
+
 ```json
 {
   "schemaVersion": "1.0.0",
@@ -243,7 +244,9 @@ Templates use a declarative JSON format supporting progressive enhancement:
 }
 ```
 
-**Advanced Template** (with full features):
+#### Advanced Template
+With full features:
+
 ```json
 {
   "schemaVersion": "1.0.0",
@@ -257,6 +260,8 @@ Templates use a declarative JSON format supporting progressive enhancement:
   "featureSpecs": { /* feature definitions */ }
 }
 ```
+
+## Advanced Features
 
 ### Selection Files
 
@@ -306,6 +311,3 @@ npx @m5nv/create-scaffold --help
 
 Built with ❤️ using Node.js and carefully selected dependencies for optimal performance and reliability.
 
----
-
-**Ready to eliminate setup friction?** Start with our [Getting Started tutorial](docs/tutorial/getting-started.md).

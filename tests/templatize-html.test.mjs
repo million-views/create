@@ -266,4 +266,50 @@ test('HTML Processor - Selector validation', async (t) => {
     // Should work with valid selectors
     assert(Array.isArray(result));
   });
+
+  await t.test('should skip content within <!-- @template-skip --> regions', async () => {
+    const skipRegionHTML = `
+<!DOCTYPE html>
+<html>
+<body>
+  <div>
+    <!-- @template-skip -->
+    <h1>Don't templatize this</h1>
+    <p>This should be skipped too</p>
+    <!-- @end-template-skip -->
+    <h1>This should be templatized</h1>
+    <p>This paragraph should also be templatized</p>
+  </div>
+</body>
+</html>
+`;
+
+    const patterns = [
+      {
+        type: 'string-literal',
+        context: 'html',
+        selector: 'h1',
+        placeholder: 'HEADING',
+        allowMultiple: true
+      },
+      {
+        type: 'string-literal',
+        context: 'html',
+        selector: 'p',
+        placeholder: 'PARAGRAPH',
+        allowMultiple: true
+      }
+    ];
+
+    const replacements = await processHTMLFile('test.html', skipRegionHTML, patterns);
+
+    const headingReplacements = replacements.filter(r => r.placeholder === 'HEADING');
+    const paragraphReplacements = replacements.filter(r => r.placeholder === 'PARAGRAPH');
+
+    assert.strictEqual(headingReplacements.length, 1, 'Should skip h1 in skip region');
+    assert.strictEqual(paragraphReplacements.length, 1, 'Should skip p in skip region');
+
+    assert.strictEqual(headingReplacements[0].originalText, 'This should be templatized');
+    assert.strictEqual(paragraphReplacements[0].originalText, 'This paragraph should also be templatized');
+  });
 });

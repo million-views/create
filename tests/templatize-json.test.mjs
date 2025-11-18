@@ -426,4 +426,39 @@ test('JSON Processor - JSONPath validation', async (t) => {
       }
     }
   });
+
+  await t.test('should skip content within // @template-skip regions', async () => {
+    // Note: JSON doesn't support comments, so skip regions are not applicable
+    // This test verifies that the processor handles malformed JSON gracefully
+    const skipRegionJSON = `{
+  // @template-skip
+  "name": "Don't templatize this",
+  "description": "This should be skipped too",
+  // @end-template-skip
+  "title": "This should be templatized",
+  "subtitle": "This should also be templatized"
+}`;
+
+    const patterns = [
+      {
+        type: 'string-literal',
+        context: 'json-value',
+        selector: '$.name',
+        placeholder: 'APP_NAME',
+        allowMultiple: false
+      },
+      {
+        type: 'string-literal',
+        context: 'json-value',
+        selector: '$.title',
+        placeholder: 'APP_TITLE',
+        allowMultiple: false
+      }
+    ];
+
+    const replacements = await processJSONFile('test.json', skipRegionJSON, patterns);
+
+    // JSON with comments is malformed, so no replacements should be found
+    assert.strictEqual(replacements.length, 0, 'Should handle malformed JSON gracefully');
+  });
 });

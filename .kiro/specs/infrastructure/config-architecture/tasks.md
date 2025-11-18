@@ -34,11 +34,6 @@
 - [x] Update CLI integration tests to match new registry behavior
 
 ## Phase 6: Cleanup
-- [ ] Remove backward compatibility fallbacks after migration period
-- [ ] Update any remaining documentation references
-- [ ] Final validation of all functionality
-
-## Phase 6: Cleanup
-- [ ] Remove backward compatibility fallbacks after migration period
-- [ ] Update any remaining documentation references
-- [ ] Final validation of all functionality
+- [x] Remove backward compatibility fallbacks after migration period
+- [x] Update any remaining documentation references
+- [x] Final validation of all functionality

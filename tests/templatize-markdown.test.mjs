@@ -103,14 +103,14 @@ Content here.
       // Check title
       assert.equal(result[0].originalText, 'My Project');
       assert.equal(result[0].placeholder, 'projectName');
-      assert.equal(result[0].startIndex, 10);
-      assert.equal(result[0].endIndex, 21);
+      assert.equal(result[0].startIndex, 12);
+      assert.equal(result[0].endIndex, 22);
 
       // Check description
       assert.equal(result[1].originalText, 'A cool project');
       assert.equal(result[1].placeholder, 'projectDescription');
-      assert.equal(result[1].startIndex, 34);
-      assert.equal(result[1].endIndex, 49);
+      assert.equal(result[1].startIndex, 38);
+      assert.equal(result[1].endIndex, 52);
     });
 
     it('should respect allowMultiple flag', async () => {
@@ -137,9 +137,9 @@ More content.
     });
 
     it('should handle skip comments', async () => {
-      const content = `# <!-- templatize:skip --> Skipped Heading
-
-Some content.
+      const content = `<!-- @template-skip -->
+# Skipped Heading
+<!-- @end-template-skip -->
 
 # Normal Heading
 
@@ -355,6 +355,44 @@ title: "Test"
 
       const result = await processMarkdownFile('test.md', content, patterns);
       assert.equal(result.length, 0);
+    });
+
+    it('should skip content within <!-- @template-skip --> regions', async () => {
+      const content = `# Main Title
+
+<!-- @template-skip -->
+## Don't templatize this
+
+This paragraph should also be skipped.
+<!-- @end-template-skip -->
+
+## This should be templatized
+
+This paragraph should also be templatized.
+`;
+
+      const patterns = [
+        {
+          selector: 'h1,h2',
+          placeholder: 'heading'
+        },
+        {
+          selector: 'p',
+          placeholder: 'paragraph'
+        }
+      ];
+
+      const result = await processMarkdownFile('test.md', content, patterns);
+
+      const headingReplacements = result.filter(r => r.placeholder === 'heading');
+      const paragraphReplacements = result.filter(r => r.placeholder === 'paragraph');
+
+      assert.equal(headingReplacements.length, 2, 'Should skip h2 in skip region');
+      assert.equal(paragraphReplacements.length, 1, 'Should skip p in skip region');
+
+      assert.equal(headingReplacements[0].originalText, 'Main Title');
+      assert.equal(headingReplacements[1].originalText, 'This should be templatized');
+      assert.equal(paragraphReplacements[0].originalText, 'This paragraph should also be templatized.');
     });
   });
 });
