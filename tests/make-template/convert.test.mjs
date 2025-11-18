@@ -232,9 +232,9 @@ test('convert creates template.json', async () => {
     const content = await readFile(templatePath, 'utf8');
     const template = JSON.parse(content);
 
-    assert(template.metadata, 'Should have metadata');
-    assert(template.metadata.version, 'Should have version in metadata');
+    assert(template.id, 'Should have template id');
     assert(template.name, 'Should have template name');
+    assert(template.placeholders, 'Should have placeholders');
   } finally {
     await rm(baseTestDir, { recursive: true, force: true });
   }

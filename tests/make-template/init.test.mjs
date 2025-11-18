@@ -82,8 +82,8 @@ test('make-template init command', async (t) => {
     const content = await readFile(templatePath, 'utf8');
     const template = JSON.parse(content);
 
-    // Verify required keys exist (remove placeholders since it's not in the generated template)
-    const requiredKeys = ['schemaVersion', 'id', 'name', 'description', 'tags', 'author', 'license', 'setup', 'featureSpecs', 'constants', 'hints'];
+    // Verify required keys exist
+    const requiredKeys = ['schemaVersion', 'id', 'name', 'description', 'placeholders'];
     for (const key of requiredKeys) {
       assert(template.hasOwnProperty(key), `Template should have ${key} property`);
     }
@@ -91,11 +91,14 @@ test('make-template init command', async (t) => {
     // Verify schema version
     assert.strictEqual(template.schemaVersion, '1.0.0', 'Should use correct schema version');
 
-    // Verify setup structure
-    assert(template.setup, 'Should have setup section');
-    assert(template.setup.dimensions, 'Should have dimensions in setup');
-    assert(template.setup.dimensions.deployment, 'Should have deployment dimension');
-    assert(Array.isArray(template.setup.dimensions.deployment.values), 'deployment should have values array');
+    // Verify id format
+    assert.strictEqual(template.id, 'my-org/my-template', 'Should have default id');
+
+    // Verify placeholders structure
+    assert(template.placeholders, 'Should have placeholders section');
+    assert(template.placeholders.PROJECT_NAME, 'Should have PROJECT_NAME placeholder');
+    assert.strictEqual(template.placeholders.PROJECT_NAME.default, 'my-awesome-project', 'Should have correct default');
+    assert.strictEqual(template.placeholders.PROJECT_NAME.description, 'Name of the generated project', 'Should have correct description');
   });
 
   await t.test('init with custom filename works', async () => {

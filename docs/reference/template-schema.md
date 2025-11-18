@@ -52,20 +52,46 @@ The schema supports both legacy templates (without `schemaVersion`) and V1.0.0 t
 }
 ```
 
+## Minimal Template
+
+The simplest valid template requires 5 fields:
+
+```json
+{
+  "schemaVersion": "1.0.0",
+  "id": "author/minimal-template",
+  "name": "Minimal Template",
+  "description": "A minimal template example",
+  "placeholders": {
+    "PROJECT_NAME": {
+      "default": "my-project",
+      "description": "The project name"
+    }
+  }
+}
+```
+
+This minimal template:
+- Can be scaffolded immediately with `create-scaffold new`
+- Has one basic placeholder for customization
+- Contains no setup scripts or advanced features
+- Serves as a foundation for progressive enhancement
+
 ## Top-Level Properties
 
 | Property | Type | Required | Description |
 |----------|------|----------|-------------|
-| `schemaVersion` | `string` | Yes*| Schema version (currently "1.0.0") |
-| `id` | `string` | Yes*| Unique identifier in format `author/template-name` |
+| `schemaVersion` | `string` | Yes | Schema version (currently "1.0.0") |
+| `id` | `string` | Yes | Unique identifier in format `author/template-name` |
 | `name` | `string` | Yes | Human-readable template name (1-120 chars) |
 | `description` | `string` | Yes | Detailed description (1-500 chars) |
+| `placeholders` | `object` | Yes | Placeholder definitions with defaults and descriptions |
 | `tags` | `string[]` | No | Categorization tags (lowercase, alphanumeric + hyphens) |
 | `author` | `string` | No | Template author or organization name |
 | `license` | `string` | No | License under which template is distributed |
 | `handoff` | `string[]` | No | Post-scaffold instructions (max 240 chars each) |
 
-*Required for V1.0.0 schema. Legacy templates (without `schemaVersion`) only require `name` and `description`.
+All templates now require `schemaVersion`, `id`, `name`, `description`, and `placeholders`. The minimal valid template contains these five required fields.
 
 ## Setup Section
 

@@ -34,6 +34,49 @@ Use this guide when you need to:
 
 > **Note:** This guide builds on the templates created in the [make-template tutorial](../tutorial/make-template.md), which creates `basic-react-spa`, `ssr-portfolio-app`, and `portfolio-api` templates. This guide shows advanced templating features like composable templates with dimensions, conditional asset inclusion, and complex setup scripts that go beyond the basic WYSIWYG approach covered in the tutorial.
 
+## Progressive Enhancement Approach
+
+Start with a minimal template and add features as needed:
+
+### Level 1: Minimal Template
+```json
+{
+  "schemaVersion": "1.0.0",
+  "id": "author/minimal-template",
+  "name": "Minimal Template",
+  "description": "A minimal template example",
+  "placeholders": {
+    "PROJECT_NAME": {
+      "default": "my-project",
+      "description": "The project name"
+    }
+  }
+}
+```
+
+### Level 2: Add Auto-Templatization
+Use `make-template convert` to automatically detect and replace placeholders in existing projects.
+
+### Level 3: Add Setup Scripts
+```json
+{
+  "setup": {
+    "script": "_setup.mjs",
+    "environment": {
+      "NODE_ENV": "development"
+    }
+  }
+}
+```
+
+### Level 4: Add Template Files
+Create `templates/` directory with `.tpl` files for complex file generation.
+
+### Level 5: Add Dimensions & Features
+Add user-selectable options and conditional features for advanced templates.
+
+This approach lets beginners start simple and add complexity as they learn.
+
 ## Prerequisites
 
 Before following this guide, ensure you have:

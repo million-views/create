@@ -250,7 +250,7 @@ test('validateTemplateManifest returns normalized values for valid template', as
 
 test('validateTemplateManifest throws when name is missing', () => {
   assert.throws(
-    () => validateTemplateManifest({ schemaVersion: '1.0.0', description: 'Missing name' }),
+    () => validateTemplateManifest({ schemaVersion: '1.0.0', id: 'test/test', description: 'Missing name' }),
     (error) => error instanceof ValidationError && error.field === 'name'
   );
 });
@@ -258,6 +258,7 @@ test('validateTemplateManifest throws when name is missing', () => {
 test('validateTemplateManifest enforces placeholder pattern', () => {
   const manifest = {
     schemaVersion: '1.0.0',
+    id: 'test/test',
     name: 'broken',
     description: 'broken template',
     placeholders: {
@@ -277,6 +278,7 @@ test('validateTemplateManifest enforces placeholder pattern', () => {
 test('validateTemplateManifest rejects invalid placeholder structure', () => {
   const manifest = {
     schemaVersion: '1.0.0',
+    id: 'test/test',
     name: 'invalid',
     description: 'invalid placeholders',
     placeholders: 'not-an-object'
@@ -291,6 +293,7 @@ test('validateTemplateManifest rejects invalid placeholder structure', () => {
 test('validateTemplateManifest adds canonical placeholders without duplication', () => {
   const manifest = {
     schemaVersion: '1.0.0',
+    id: 'test/test',
     name: 'canonical-test',
     description: 'manifest with canonical variable'
   };
@@ -304,6 +307,7 @@ test('validateTemplateManifest adds canonical placeholders without duplication',
 test('validateTemplateManifest merges canonical and template placeholder metadata', () => {
   const manifest = {
     schemaVersion: '1.0.0',
+    id: 'test/test',
     name: 'merge-test',
     description: 'manifest with overrides',
     placeholders: {
@@ -329,6 +333,7 @@ test('validateTemplateManifest rejects unknown canonical variables', () => {
   // The test would be for invalid placeholder configurations instead
   const manifest = {
     schemaVersion: '1.0.0',
+    id: 'test/test',
     name: 'bad-placeholders',
     description: 'invalid placeholders',
     placeholders: 'not-an-object'

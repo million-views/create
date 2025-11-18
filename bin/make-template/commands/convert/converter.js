@@ -90,59 +90,18 @@ export class Converter {
     const packageJsonPath = path.join(projectPath, 'package.json');
     const packageJson = await readJsonFile(packageJsonPath);
 
-    // Create basic template structure
+    // Generate author name from package.json or use default
+    const author = packageJson.author || 'my-org';
+    const authorSlug = author.toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
+    const projectSlug = (packageJson.name || 'my-template').toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
+
+    // Create minimal template structure
     const template = {
       schemaVersion: '1.0.0',
-      metadata: {
-        version: '1.0.0',
-        created: new Date().toISOString()
-      },
-      name: packageJson.name || 'my-template',
-      description: packageJson.description || '',
-      author: packageJson.author || '',
-      license: packageJson.license || '',
-      setup: {
-        dimensions: {
-          deployment: {
-            type: 'single',
-            values: ['cloudflare-workers'],
-            default: 'cloudflare-workers'
-          },
-          features: {
-            type: 'multi',
-            values: [],
-            default: []
-          },
-          database: {
-            type: 'single',
-            values: ['none'],
-            default: 'none'
-          },
-          storage: {
-            type: 'single',
-            values: ['none'],
-            default: 'none'
-          },
-          auth: {
-            type: 'multi',
-            values: [],
-            default: []
-          },
-          payments: {
-            type: 'single',
-            values: ['none'],
-            default: 'none'
-          },
-          analytics: {
-            type: 'single',
-            values: ['none'],
-            default: 'none'
-          }
-        }
-      },
-      featureSpecs: [],
-      constants: {},
-      hints: {}
+      id: `${authorSlug}/${projectSlug}`,
+      name: packageJson.name || 'My Template',
+      description: packageJson.description || 'A template generated from a project',
+      placeholders: {}
     };
 
     // Write template.json using shared utility

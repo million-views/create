@@ -1,9 +1,9 @@
 ---
 title: "make-template Tutorial"
-description: "Learn to create templates using make-template, building a progressive modern stack from React SPA to full-stack Cloudflare applications"
+description: "Learn to create templates using make-template, starting with minimal templates and progressively adding features"
 type: tutorial
-audience: "intermediate"
-estimated_time: "30 minutes"
+audience: "beginner"
+estimated_time: "20 minutes"
 prerequisites:
   - "Node.js v22+ installed"
   - "Git installed and configured"
@@ -21,17 +21,17 @@ last_updated: "2025-11-12"
 
 ## What you'll learn
 
-In this tutorial, you'll learn how to create three templates that demonstrate a progressive modern stack for Cloudflare deployment. You'll start by learning the make-template workflow (manual → auto-templatization) while creating your first template, then build up complexity from a simple React SPA to a full-stack application with edge computing and databases, focusing on auto-templatization for subsequent projects.
+In this tutorial, you'll learn how to create templates using make-template's progressive enhancement approach. You'll start with a minimal template that beginners can understand, then learn how to add advanced features like auto-templatization, setup scripts, and complex placeholder systems.
 
 ## What you'll build
 
-You'll create three templates that showcase a progressive modern stack for Cloudflare deployment:
+You'll create templates that demonstrate progressive complexity:
 
-1. **Basic React SPA** - Modern frontend foundation with Vite + React (learn manual → auto templatization workflow)
-2. **SSR Portfolio App** - React Router v7 with SSR and direct D1 database access (auto-templatization demo)
-3. **Full-Stack Portfolio** - Split architecture with API server (Workers + D1) and client app (auto-templatization demo)
+1. **Minimal Template** - Basic template with required fields only (learn the foundation)
+2. **Enhanced Template** - Add auto-templatization and setup scripts (learn automation)
+3. **Advanced Template** - Full-featured template with custom placeholders (learn customization)
 
-Each template demonstrates different levels of complexity and Cloudflare integration, building toward a complete portfolio management system.
+Each step builds on the previous one, showing how to start simple and add complexity as needed.
 
 ## Prerequisites
 
@@ -41,284 +41,232 @@ Before starting this tutorial, make sure you have:
   - Verify: `node --version` should show v22 or higher
 - **Git** installed and configured ([Setup guide](https://git-scm.com/book/en/v2/Getting-Started-First-Time-Git-Setup))
   - Verify: `git --version` should show git version info
-- **30 minutes** available
+- **20 minutes** available
 - **Basic command line familiarity** (navigating directories, running commands)
 - **Completed the [getting-started tutorial](getting-started.md)**
 
-## Step 1: Create Basic React SPA Template
+## Step 1: Create Minimal Template
 
-Learn the make-template workflow by creating a modern React SPA template.
+Start with the simplest possible template to understand the foundation.
 
 ### Quick Setup
 
 ```bash
 mkdir template-workshop && cd template-workshop
-mkdir basic-react-spa && cd basic-react-spa
-npm create vite@latest . -- --template react --no-interactive --immediate
 ```
 
-### Manual Templatization
+### Create a Minimal Template
 
-Replace hardcoded values with placeholders:
+The minimal template requires only 5 fields and can be created automatically:
 
 ```bash
-# Edit files to replace specific values with {{PLACEHOLDER}} syntax
-# Example: "My Awesome Project" → "{{PROJECT_NAME}}"
+npx make-template init my-minimal-template
 ```
 
-### Create template.json
-
-Define your placeholders in `template.json` using the V1.0.0 schema:
+This creates a `template.json` file with the required fields:
 
 ```json
 {
   "schemaVersion": "1.0.0",
-  "id": "my-org/basic-react-spa",
-  "name": "Basic React SPA Template",
-  "description": "A basic React single-page application template",
+  "id": "your-org/my-minimal-template",
+  "name": "My Minimal Template",
+  "description": "A minimal template example",
   "placeholders": {
-    "PROJECT_NAME": { "default": "my-awesome-project", "description": "Project name" },
-    "AUTHOR": { "default": "John Doe", "description": "Author info" }
+    "PROJECT_NAME": {
+      "default": "my-project",
+      "description": "The project name"
+    }
   }
 }
 ```
 
-   **Why this matters:** The `template.json` file defines your placeholders and their default values. During scaffolding, users can override these defaults. The `.template-undo.json` (created during conversion) uses these defaults for the restore functionality.
+**Why this matters:** The minimal template gives you a working starting point. The `id` field uniquely identifies your template, and the `placeholders` define what users can customize.
 
-6. **Convert to template:**
+### Test the Minimal Template
 
-   Now convert your manually templatized project:
+Let's test that this minimal template works:
 
-   ```bash
-   npx make-template convert . --yes
-   ```
+```bash
+# Create a test project using the template
+npx create-scaffold new test-project --template ./my-minimal-template --yes
+cd test-project
+ls -la
+```
 
-   This creates the `.template-undo.json` file with the reverse mappings for restoration.
-
-7. **Auto-Templatization (Recommended):**
-
-   Instead of manually replacing all strings, let's use make-template's auto-detection feature:
-
-   ```bash
-   # Convert with auto-detection (this will detect and replace common placeholders)
-   npx make-template convert . --placeholder-format "{{NAME}}" --yes
-   ```
-
-   This creates a complete template with auto-detected placeholders. Let's see what was detected:
-
-   ```bash
-   cat .template-undo.json | head -20
-   ```
-
-8. **Compare Manual vs Auto Results:**
-
-   The auto-templatization should have detected placeholders like:
-   - `{{PROJECT_NAME}}` for "my-awesome-project"
-   - `{{AUTHOR}}` for "John Doe <john@example.com>"
-   - `{{README_TITLE}}` for the README title
-   - `{{HTML_TITLE}}` for the HTML page title
-   - `{{TEXT_CONTENT_0}}`, `{{TEXT_CONTENT_1}}`, etc. for text content blocks
-   - `{{TAGLINE}}` for "Built with Vite + React"
-   - `{{IMAGE_URL_0}}`, `{{IMAGE_URL_1}}`, etc. for image sources
-   - `{{ALT_TEXT_0}}`, `{{ALT_TEXT_1}}`, etc. for image alt text
-   - `{{LINK_URL_0}}`, `{{LINK_URL_1}}`, etc. for link URLs
-
-   **Note:** The system now supports up to 10 placeholders per type (images, links, alt text, text content, quotes). If your project has more templatable elements than this limit, only the first 10 of each type will be converted to placeholders.
-
-9. **Test the Template:**
-
-   Let's test that the template works by scaffolding a new project:
-
-   ```bash
-   cd ..
-   npx create-scaffold new basic-react-spa-scaffolded --template ./basic-react-spa --yes
-   cd basic-react-spa-scaffolded
-   npm install
-   npm run dev
-   ```
-
-   You should see the template working with placeholder values.
-
-10. **Undo Feature - Restore the original project:**
-
-   Now let's demonstrate the undo feature to restore the original project:
-
-   ```bash
-   cd ../basic-react-spa
-   npx make-template restore --yes
-   ```
-
-   This restores all the original values from the `.template-undo.json` file.
-
-11. **Verify Restoration:**
-
-   Check that your original values are back:
-
-   ```bash
-   grep "My Awesome Project" src/App.jsx
-   grep "John Doe" package.json
-   ```
-
-12. **Advanced Auto-Templatization:**
-
-   Let's try a different project type to see more auto-detection features. Create a Cloudflare Worker project:
-
-   ```bash
-   cd ..
-   mkdir cf-worker-demo
-   cd cf-worker-demo
-   npm create cloudflare@latest . -- --template hello-world --yes
-   ```
-
-   Add a wrangler.jsonc with specific values:
-
-   **wrangler.jsonc:**
-   ```jsonc
-   {
-     "name": "my-special-worker",
-     "main": "src/index.ts",
-     "compatibility_date": "2024-01-01",
-     "account_id": "1234567890abcdef",
-     "d1_databases": [
-       {
-         "binding": "MY_DATABASE",
-         "database_name": "my_special_db",
-         "database_id": "abcdef1234567890"
-       }
-     ]
-   }
-   ```
-
-   Now convert this Cloudflare project:
-
-   ```bash
-   npx make-template convert . --type cf-d1 --yes
-   ```
-
-   The auto-templatization should detect:
-   - `{{WORKER_NAME}}` for "my-special-worker"
-   - `{{CLOUDFLARE_ACCOUNT_ID}}` for the account ID
-   - `{{D1_DATABASE_BINDING_0}}` for "MY_DATABASE"
-   - `{{D1_DATABASE_ID_0}}` for the database ID
-
-13. **Clean up and continue:**
-
-    ```bash
-    cd ..
-    rm -rf cf-worker-demo *-scaffolded
-    ```
+You should see the basic project structure created from your minimal template.
 
 ### What You Learned
 
-- **Manual Templatization**: Editing files directly to replace project-specific values with placeholders
-- **Auto-Detection**: make-template automatically finds project-specific values in:
-  - package.json (name, description, author, repository)
-  - README.md titles
-  - HTML titles and content
-  - JSX text content, images, links, and alt text
-  - Cloudflare wrangler.jsonc configurations
-- **Undo Feature**: `restore` command reverses templatization using `.template-undo.json`
-- **Project Types**: Different auto-detection rules for different project types (`vite-react`, `cf-d1`, `cf-turso`)
+- **Minimal Template**: Start with just the required fields (schemaVersion, id, name, description, placeholders)
+- **Template ID**: Unique identifier in `org/name` format
+- **Basic Placeholders**: Simple customization points for users
+- **Quick Start**: `init` command creates a working template instantly
 
-### Expected Result
+## Step 2: Enhance with Auto-Templatization
 
-You should see:
-```text
-🔄 Converting project to template...
-📄 Generated template.json
-⚙️  Generated _setup.mjs
-🔄 Generated .template-undo.json
-✅ Conversion complete!
-```
+Now let's enhance our minimal template by converting an existing project with auto-templatization.
 
-The template is now ready and demonstrates modern React development with Vite, plus you've learned the complete make-template workflow!
-
-## Step 2: Create SSR Portfolio App Template
-
-Create a React Router v7 SSR application with direct D1 database access:
+### Create a Sample Project
 
 ```bash
 cd ..
-mkdir ssr-portfolio-app
-cd ssr-portfolio-app
-npm create react-router@latest . -- --template cloudflare --yes
-npm install @m5nv/stl
+mkdir sample-project && cd sample-project
+npm init -y
+echo "# {{PROJECT_NAME}}" > README.md
+echo "console.log('Hello from {{AUTHOR}}');" > index.js
 ```
 
-**Key files to create:**
-- `app/db/schema.sql` - D1 database schema
-- `app/db/client.ts` - Database client with SQL templating
-- `app/routes/_index.tsx` - SSR route with database queries
-- `wrangler.toml` - Cloudflare configuration
+### Convert to Template with Auto-Detection
 
-**Convert to template:**
+Use the `convert` command to automatically detect and replace placeholders:
+
 ```bash
 npx make-template convert . --yes
 ```
 
-## Step 3: Create Full-Stack Portfolio Template
+This creates an enhanced `template.json` with auto-detected placeholders:
 
-Build a split-architecture app: Cloudflare Worker API + React Router client.
-
-**API Server:**
-```bash
-mkdir portfolio-api
-cd portfolio-api
-npm create cloudflare@latest . -- --template hello-world --yes
-npm install @m5nv/stl itty-router
+```json
+{
+  "schemaVersion": "1.0.0",
+  "id": "your-org/sample-project",
+  "name": "Sample Project Template",
+  "description": "A sample project with auto-detected placeholders",
+  "placeholders": {
+    "PROJECT_NAME": {
+      "default": "sample-project",
+      "description": "The project name"
+    },
+    "AUTHOR": {
+      "default": "Your Name",
+      "description": "Author information"
+    }
+  }
+}
 ```
 
-**Key files:**
-- `src/db/schema.sql` - Database schema
-- `src/routes/projects.ts` - API routes with CRUD operations
-- `src/index.ts` - Worker entry point
-- `wrangler.toml` - Worker config
+**Why this matters:** Auto-templatization automatically finds project-specific values in package.json, README files, and source code, making template creation much faster.
 
-**Client App:**
+### Test the Enhanced Template
+
 ```bash
 cd ..
-mkdir portfolio-client
-cd portfolio-client
-npm create react-router@latest . -- --template basic --yes
+npx create-scaffold new enhanced-test --template ./sample-project --yes
+cd enhanced-test
+cat README.md
+cat index.js
 ```
 
-**Key files:**
-- `app/routes/_index.tsx` - Client route fetching from API
+You should see the placeholders have been replaced with values.
 
-**Convert both to templates:**
+### What You Learned
+
+- **Auto-Templatization**: `convert` command automatically detects placeholders
+- **Enhanced Template**: Builds on minimal template with auto-detected values
+- **Faster Creation**: No manual placeholder replacement needed
+
+## Step 3: Advanced Customization
+
+Let's create a fully customized template with setup scripts and advanced features.
+
+### Create an Advanced Template
+
 ```bash
-cd portfolio-api && npx make-template convert . --yes
-cd ../portfolio-client && npx make-template convert . --yes
+cd ..
+npx make-template init advanced-template
 ```
+
+### Add Setup Scripts
+
+Edit the generated `template.json` to add a setup script:
+
+```json
+{
+  "schemaVersion": "1.0.0",
+  "id": "your-org/advanced-template",
+  "name": "Advanced Template",
+  "description": "A template with setup scripts and advanced features",
+  "placeholders": {
+    "PROJECT_NAME": {
+      "default": "advanced-project",
+      "description": "The project name"
+    }
+  },
+  "setup": {
+    "script": "_setup.mjs",
+    "environment": {
+      "NODE_ENV": "development"
+    }
+  }
+}
+```
+
+Create the setup script `_setup.mjs`:
+
+```javascript
+#!/usr/bin/env node
+
+console.log('🚀 Setting up {{PROJECT_NAME}}...');
+
+// Install dependencies
+console.log('📦 Installing dependencies...');
+// Your setup logic here
+
+console.log('✅ Setup complete!');
+```
+
+### Add Template Files
+
+Create a `templates/` directory with template files:
+
+```bash
+mkdir templates
+echo "console.log('Hello from {{PROJECT_NAME}}!');" > templates/index.js.tpl
+```
+
+### Test the Advanced Template
+
+```bash
+npx create-scaffold new advanced-test --template ./advanced-template --yes
+cd advanced-test
+ls -la
+```
+
+You should see the setup script ran and template files were processed.
+
+### What You Learned
+
+- **Setup Scripts**: Automate post-scaffolding tasks with `_setup.mjs`
+- **Template Files**: Use `.tpl` files for complex file generation
+- **Advanced Features**: Add environment variables, custom logic, and automation
+- **Progressive Enhancement**: Start minimal, add features as needed
 
 ## What You Accomplished
 
-You created three templates demonstrating progressive complexity:
+You created three templates demonstrating progressive enhancement:
 
-1. **Basic React SPA** - Modern frontend with Vite + React
-2. **SSR Portfolio App** - React Router v7 with direct D1 access
-3. **Full-Stack Portfolio** - Split architecture (API server + client)
+1. **Minimal Template** - Basic template with required fields only
+2. **Enhanced Template** - Auto-templatization with detected placeholders
+3. **Advanced Template** - Full-featured template with setup scripts and custom files
 
-Each template includes:
-- Auto-detected placeholders from package.json, configs
-- Database integration with D1 and SQL templating
-- Cloudflare deployment configurations
-- Template metadata and setup scripts
+Each step builds on the previous one, showing how to start simple and add complexity as needed.
 
 ## Next Steps
 
 - **[Create Scaffold Tutorial](create-scaffold.md)** - Use these templates to scaffold new projects
 - [Template Validation](../reference/cli-reference.md#make-template-commands) - Ensure template quality
+- [Progressive Enhancement](../how-to/creating-templates.md#progressive-enhancement) - Learn advanced template features
 
 ## Template Locations
 
 Your templates are ready in `template-workshop/`:
-- `basic-react-spa/` - React SPA foundation
-- `ssr-portfolio-app/` - SSR with D1 database
-- `portfolio-api/` & `portfolio-client/` - Split architecture
+- `my-minimal-template/` - Minimal template foundation
+- `sample-project/` - Enhanced with auto-templatization
+- `advanced-template/` - Full-featured with setup scripts
 
 ## Troubleshooting
 
+**Init fails:** Ensure you're in an empty directory, check Node.js version
 **Conversion fails:** Ensure Node.js project with package.json, run `npm install` first
 **Missing placeholders:** Use double braces `{{VARIABLE}}`, verify template.json
-**Structure issues:** Check generated template.json and _setup.mjs
+**Setup script issues:** Check `_setup.mjs` syntax and permissions

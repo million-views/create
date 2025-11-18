@@ -29,58 +29,15 @@ export class InitCommand extends Command {
 
     const skeleton = {
       schemaVersion: '1.0.0',
-      id: '',
-      name: '',
-      description: '',
-      tags: [],
-      author: '',
-      license: '',
-      setup: {
-        dimensions: {
-          deployment: {
-            type: 'single',
-            values: ['cloudflare-workers', 'linode', 'droplet', 'deno-deploy'],
-            default: 'cloudflare-workers'
-          },
-          features: {
-            type: 'multi',
-            values: [],
-            default: []
-          },
-          database: {
-            type: 'single',
-            values: ['d1', 'tursodb', 'sqlite3', 'none'],
-            default: 'none'
-          },
-          storage: {
-            type: 'single',
-            values: ['r2', 's3', 'file', 'none'],
-            default: 'none'
-          },
-          auth: {
-            type: 'multi',
-            values: ['google', 'github'],
-            default: []
-          },
-          payments: {
-            type: 'single',
-            values: ['stripe', 'hyperswitch', 'none'],
-            default: 'none'
-          },
-          analytics: {
-            type: 'single',
-            values: ['umami', 'plausible', 'none'],
-            default: 'none'
-          }
-        },
-        gates: {
-          deployment: {}
-        },
-        policy: 'strict'
-      },
-      featureSpecs: [],
-      constants: {},
-      hints: {}
+      id: 'my-org/my-template',
+      name: 'My Template',
+      description: 'A template generated with make-template init',
+      placeholders: {
+        PROJECT_NAME: {
+          default: 'my-awesome-project',
+          description: 'Name of the generated project'
+        }
+      }
     };
 
     fs.writeFileSync(outputPath, JSON.stringify(skeleton, null, 2));
