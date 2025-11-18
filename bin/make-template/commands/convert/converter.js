@@ -34,10 +34,14 @@ export class Converter {
       // Create basic template.json
       await this.createTemplateJson();
 
+      // Detect and replace placeholders in files
+      const detectedPlaceholders = await this.detectAndReplacePlaceholders();
+
+      // Update template.json with detected placeholders
+      await this.updateTemplateJsonWithPlaceholders(detectedPlaceholders);
+
       // Create undo log
       await this.createUndoLog();
-
-      // TODO: Implement actual conversion logic
       console.log('✓ Project converted to template successfully');
     } catch (error) {
       handleError(error, {
@@ -181,5 +185,149 @@ export class Converter {
 
     // Write undo log
     await writeJsonFile(undoPath, undoLog);
+  }
+
+  async detectAndReplacePlaceholders() {
+    const projectPath = path.resolve(this.options.projectPath);
+    const detectedPlaceholders = {};
+    const placeholderFormat = this.options.placeholderFormat || '{{NAME}}';
+
+    // Files to scan for placeholders
+    const filesToScan = [
+      'package.json',
+      'README.md',
+      'index.html',
+      'src/index.html',
+      'public/index.html',
+      'vite.config.js',
+      'vite.config.ts',
+      'src/main.js',
+      'src/main.ts',
+      'src/App.jsx',
+      'src/App.tsx',
+      'src/App.js',
+      'src/App.ts'
+    ];
+
+    for (const file of filesToScan) {
+      const filePath = path.join(projectPath, file);
+      if (await exists(filePath)) {
+        const result = await this.processFileForPlaceholders(filePath, placeholderFormat);
+        Object.assign(detectedPlaceholders, result.placeholders);
+      }
+    }
+
+    return detectedPlaceholders;
+  }
+
+  async processFileForPlaceholders(filePath, format) {
+    const fileExt = path.extname(filePath);
+    let content;
+
+    if (fileExt === '.json') {
+      content = await readJsonFile(filePath, null, 'utf8');
+    } else {
+      // For non-JSON files, read as text
+      const fs = await import('fs/promises');
+      content = await fs.readFile(filePath, 'utf8');
+    }
+
+    const placeholders = {};
+    let modifiedContent = content;
+
+    // Detect common placeholders based on file type
+    const basename = path.basename(filePath, fileExt);
+
+    if (basename === 'package' && fileExt === '.json') {
+      // Package.json placeholders
+      const packageData = content; // content is already parsed from readJsonFile
+      if (packageData.name && packageData.name !== 'my-template') {
+        const placeholderName = 'PROJECT_NAME';
+        const placeholder = this.formatPlaceholder(placeholderName, format);
+        placeholders[placeholderName] = {
+          default: packageData.name,
+          description: 'Project name'
+        };
+        packageData.name = placeholder;
+      }
+      if (packageData.description) {
+        const placeholderName = 'DESCRIPTION';
+        const placeholder = this.formatPlaceholder(placeholderName, format);
+        placeholders[placeholderName] = {
+          default: packageData.description,
+          description: 'Project description'
+        };
+        packageData.description = placeholder;
+      }
+      if (packageData.author) {
+        const placeholderName = 'AUTHOR';
+        const placeholder = this.formatPlaceholder(placeholderName, format);
+        placeholders[placeholderName] = {
+          default: packageData.author,
+          description: 'Author information'
+        };
+        packageData.author = placeholder;
+      }
+      modifiedContent = JSON.stringify(packageData, null, 2);
+    } else if (basename === 'README' && fileExt === '.md') {
+      // README.md placeholders
+      const titleMatch = content.match(/^# (.+)$/m);
+      if (titleMatch) {
+        const placeholderName = 'README_TITLE';
+        const placeholder = this.formatPlaceholder(placeholderName, format);
+        placeholders[placeholderName] = {
+          default: titleMatch[1],
+          description: 'README title'
+        };
+        modifiedContent = modifiedContent.replace(
+          titleMatch[0],
+          `# ${placeholder}`
+        );
+      }
+    } else if (basename === 'index' && fileExt === '.html') {
+      // HTML title placeholder
+      const titleMatch = content.match(/<title>([^<]+)<\/title>/);
+      if (titleMatch) {
+        const placeholderName = 'HTML_TITLE';
+        const placeholder = this.formatPlaceholder(placeholderName, format);
+        placeholders[placeholderName] = {
+          default: titleMatch[1],
+          description: 'HTML page title'
+        };
+        modifiedContent = modifiedContent.replace(
+          titleMatch[0],
+          `<title>${placeholder}</title>`
+        );
+      }
+    }
+
+    // Write back modified content if changed
+    if (modifiedContent !== content) {
+      if (fileExt === '.json') {
+        // For JSON files, write the modified object back
+        await writeJsonFile(filePath, JSON.parse(modifiedContent));
+      } else {
+        const fs = await import('fs/promises');
+        await fs.writeFile(filePath, modifiedContent, 'utf8');
+      }
+    }
+
+    return { placeholders };
+  }
+
+  formatPlaceholder(name, format) {
+    return format.replace('NAME', name);
+  }
+
+  async updateTemplateJsonWithPlaceholders(detectedPlaceholders) {
+    const projectPath = path.resolve(this.options.projectPath);
+    const templatePath = path.join(projectPath, 'template.json');
+
+    const template = await readJsonFile(templatePath);
+
+    // Add detected placeholders to template
+    template.placeholders = { ...template.placeholders, ...detectedPlaceholders };
+
+    await writeJsonFile(templatePath, template);
   }
 }

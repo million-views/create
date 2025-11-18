@@ -1014,6 +1014,56 @@ export class GuidedSetupWorkflow {
   }
 
   /**
+   * Apply placeholders to all files in a directory recursively
+   */
+  async #applyPlaceholdersToFiles(directory, placeholders) {
+    const entries = await fs.readdir(directory, { withFileTypes: true });
+
+    for (const entry of entries) {
+      const fullPath = path.join(directory, entry.name);
+
+      // Skip certain files and directories
+      if (entry.name === '.git' ||
+          entry.name === 'node_modules' ||
+          entry.name === '.create-scaffold-workflow.json' ||
+          entry.name.startsWith('.')) {
+        continue;
+      }
+
+      if (entry.isDirectory()) {
+        await this.#applyPlaceholdersToFiles(fullPath, placeholders);
+      } else {
+        await this.#applyPlaceholdersToFile(fullPath, placeholders);
+      }
+    }
+  }
+
+  /**
+   * Apply placeholders to a single file
+   */
+  async #applyPlaceholdersToFile(filePath, placeholders) {
+    try {
+      const content = await fs.readFile(filePath, 'utf8');
+      let modifiedContent = content;
+
+      // Replace each placeholder
+      for (const [key, value] of Object.entries(placeholders)) {
+        const placeholderPattern = new RegExp(`{{${key}}}`, 'g');
+        modifiedContent = modifiedContent.replace(placeholderPattern, value);
+      }
+
+      // Only write back if content changed
+      if (modifiedContent !== content) {
+        await fs.writeFile(filePath, modifiedContent, 'utf8');
+        this.logger.debug(`Applied placeholders to ${filePath}`);
+      }
+    } catch (error) {
+      // Skip files that can't be read or written (binary files, permission issues, etc.)
+      this.logger.debug(`Skipping placeholder application for ${filePath}: ${error.message}`);
+    }
+  }
+
+  /**
    * Execute placeholder resolution step
    */
   async #executePlaceholderResolution() {
@@ -1027,10 +1077,8 @@ export class GuidedSetupWorkflow {
       await this.prompt.write(`   Resolving ${Object.keys(this.placeholders).length} placeholders...\n`);
     }
 
-    // Simulate placeholder resolution (skip delay in test mode)
-    if (process.env.NODE_ENV !== 'test') {
-      await new Promise(resolve => setTimeout(resolve, 300));
-    }
+    // Apply placeholders to all files in the project directory
+    await this.#applyPlaceholdersToFiles(this.resolvedProjectDirectory, this.placeholders);
 
     this.logger.debug('Placeholder resolution completed');
     return { success: true, message: 'Placeholders resolved successfully' };

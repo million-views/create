@@ -68,11 +68,14 @@ Replace hardcoded values with placeholders:
 
 ### Create template.json
 
-Define your placeholders in `template.json`:
+Define your placeholders in `template.json` using the V1.0.0 schema:
 
 ```json
 {
+  "schemaVersion": "1.0.0",
+  "id": "my-org/basic-react-spa",
   "name": "Basic React SPA Template",
+  "description": "A basic React single-page application template",
   "placeholders": {
     "PROJECT_NAME": { "default": "my-awesome-project", "description": "Project name" },
     "AUTHOR": { "default": "John Doe", "description": "Author info" }
@@ -92,19 +95,16 @@ Define your placeholders in `template.json`:
 
    This creates the `.template-undo.json` file with the reverse mappings for restoration.
 
-7. **Now let's see Auto-Templatization:**
+7. **Auto-Templatization (Recommended):**
 
-   Instead of manually replacing all strings, let's start fresh and let make-template automatically detect placeholders:
+   Instead of manually replacing all strings, let's use make-template's auto-detection feature:
 
    ```bash
-   # Restore the original project first
-   npx make-template restore --yes 2>/dev/null || echo "No template to restore"
-   
-   # Now convert with auto-detection
+   # Convert with auto-detection (this will detect and replace common placeholders)
    npx make-template convert . --placeholder-format "{{NAME}}" --yes
    ```
 
-   This creates a template with auto-detected placeholders. Let's see what was detected:
+   This creates a complete template with auto-detected placeholders. Let's see what was detected:
 
    ```bash
    cat .template-undo.json | head -20
@@ -116,7 +116,7 @@ Define your placeholders in `template.json`:
    - `{{PROJECT_NAME}}` for "my-awesome-project"
    - `{{AUTHOR}}` for "John Doe <john@example.com>"
    - `{{README_TITLE}}` for the README title
-   - `{{HTML_TITLE}}` for the HTML title
+   - `{{HTML_TITLE}}` for the HTML page title
    - `{{TEXT_CONTENT_0}}`, `{{TEXT_CONTENT_1}}`, etc. for text content blocks
    - `{{TAGLINE}}` for "Built with Vite + React"
    - `{{IMAGE_URL_0}}`, `{{IMAGE_URL_1}}`, etc. for image sources

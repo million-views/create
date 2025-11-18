@@ -3,7 +3,7 @@ import markdown from '@eslint/markdown';
 
 export default [
   {
-    ignores: ['tmp/**'],
+    ignores: ['tmp/**', 'test-*/**'],
     files: ['**/*.mjs', '**/*.js'],
     languageOptions: {
       ecmaVersion: 'latest',
@@ -98,7 +98,7 @@ export default [
   // Include the markdown recommended config
   ...markdown.configs.recommended.map(config => ({
     ...config,
-    ignores: ['tmp/**'],
+    ignores: ['tmp/**', 'test-*/**'],
     rules: {
       ...config.rules,
       // Adjust some rules for our documentation style

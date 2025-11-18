@@ -21,9 +21,10 @@ coverage/
 *.swp
 *.swo
 
-# OS generated files
-Thumbs.db
-*.tmp
+# Test artifacts and generated directories
+test-*/
+.tmp-*/
+*.tmp/
 
 # Build artifacts
 *.tgz

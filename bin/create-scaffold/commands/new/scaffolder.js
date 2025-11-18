@@ -198,18 +198,24 @@ export class Scaffolder {
         options = normalizedOptionResult.byDimension;
       }
 
-      if (this.options.placeholders && this.options.experimentalPlaceholderPrompts && metadata) {
+      // Resolve placeholders if we have explicit values OR template has placeholder definitions
+      if ((this.options.placeholders || (metadata && metadata.placeholders)) && metadata) {
+        console.log('DEBUG: Attempting placeholder resolution');
+        console.log('DEBUG: this.options.placeholders:', this.options.placeholders);
+        console.log('DEBUG: metadata.placeholders:', metadata.placeholders);
         const placeholderDefinitions = Array.isArray(metadata.placeholders) ? metadata.placeholders : [];
+        console.log('DEBUG: placeholderDefinitions:', placeholderDefinitions);
         if (placeholderDefinitions.length > 0) {
           const resolution = await resolvePlaceholders({
             definitions: placeholderDefinitions,
-            flagInputs: this.options.placeholders,
+            flagInputs: this.options.placeholders || [],
             configDefaults: configMetadata?.placeholders ?? [],
             env: process.env,
             interactive: false,
             noInputPrompts: this.options.inputPrompts === false
           });
           placeholders = resolution.values;
+          console.log('DEBUG: Resolved placeholders:', placeholders);
         }
       }
 

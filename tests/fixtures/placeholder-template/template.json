@@ -1,28 +1,27 @@
 {
+  "schemaVersion": "1.0.0",
+  "id": "test/placeholder-template",
   "name": "Placeholder Template",
   "description": "Fixture demonstrating placeholder resolution",
   "setup": {
-    "authoring": "wysiwyg"
+    "authoringMode": "wysiwyg"
   },
-  "metadata": {
-    "placeholders": [
-      {
-        "name": "{{PROJECT_NAME}}",
-        "description": "Name of the generated project",
-        "required": true
-      },
-      {
-        "name": "{{API_TOKEN}}",
-        "description": "API token used for configuration",
-        "required": true,
-        "sensitive": true
-      },
-      {
-        "name": "{{MAX_WORKERS}}",
-        "type": "number",
-        "default": 4
-      }
-    ]
+  "placeholders": {
+    "PROJECT_NAME": {
+      "default": "my-project",
+      "description": "Name of the generated project",
+      "required": true
+    },
+    "API_TOKEN": {
+      "default": "",
+      "description": "API token used for configuration",
+      "required": true,
+      "sensitive": true
+    },
+    "MAX_WORKERS": {
+      "default": "4",
+      "description": "Maximum number of workers"
+    }
   },
   "handoff": [
     "Review README.md for token replacements"
