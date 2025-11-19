@@ -1,6 +1,8 @@
 ---
 title: "make-template Tutorial"
-description: "Learn to create templates using make-template, building a progressive modern stack from React SPA to full-stack Cloudflare applications"
+description:
+  "Learn to create templates using make-template, building a progressive modern
+  stack from React SPA to full-stack Cloudflare applications"
 type: tutorial
 audience: "intermediate"
 estimated_time: "30 minutes"
@@ -21,17 +23,26 @@ last_updated: "2025-11-12"
 
 ## What you'll learn
 
-In this tutorial, you'll learn how to create three templates that demonstrate a progressive modern stack for Cloudflare deployment. You'll start by learning the make-template workflow using automated initialization and templatization while creating your first template, then build up complexity from a simple React SPA to a full-stack application with edge computing and databases.
+In this tutorial, you'll learn how to create three templates that demonstrate a
+progressive modern stack for Cloudflare deployment. You'll start by learning the
+make-template workflow using automated initialization and templatization while
+creating your first template, then build up complexity from a simple React SPA
+to a full-stack application with edge computing and databases.
 
 ## What you'll build
 
-You'll create three templates that showcase a progressive modern stack for Cloudflare deployment:
+You'll create three templates that showcase a progressive modern stack for
+Cloudflare deployment:
 
-1. **Basic React SPA** - Modern frontend foundation with Vite + React (learn automated templatization workflow)
-2. **SSR Portfolio App** - React Router v7 with SSR and direct D1 database access (auto-templatization demo)
-3. **Full-Stack Portfolio** - Split architecture with API server (Workers + D1) and client app (auto-templatization demo)
+1. **Basic React SPA** - Modern frontend foundation with Vite + React (learn
+   automated templatization workflow)
+2. **SSR Portfolio App** - React Router v7 with SSR and direct D1 database
+   access (auto-templatization demo)
+3. **Full-Stack Portfolio** - Split architecture with API server (Workers + D1)
+   and client app (auto-templatization demo)
 
-Each template demonstrates different levels of complexity and Cloudflare integration, building toward a complete portfolio management system.
+Each template demonstrates different levels of complexity and Cloudflare
+integration, building toward a complete portfolio management system.
 
 ## Prerequisites
 
@@ -39,7 +50,8 @@ Before starting this tutorial, make sure you have:
 
 - **Node.js v22+** installed ([Download here](https://nodejs.org/))
   - Verify: `node --version` should show v22 or higher
-- **Git** installed and configured ([Setup guide](https://git-scm.com/book/en/v2/Getting-Started-First-Time-Git-Setup))
+- **Git** installed and configured
+  ([Setup guide](https://git-scm.com/book/en/v2/Getting-Started-First-Time-Git-Setup))
   - Verify: `git --version` should show git version info
 - **30 minutes** available
 - **Basic command line familiarity** (navigating directories, running commands)
@@ -47,7 +59,8 @@ Before starting this tutorial, make sure you have:
 
 ## Step 1: Create Basic React SPA Template
 
-Learn the make-template workflow by creating a modern React SPA template.
+Learn the make-template workflow by understanding what templates really are:
+plain text files with placeholders. Nothing magical.
 
 ### Quick Setup
 
@@ -57,198 +70,523 @@ mkdir basic-react-spa && cd basic-react-spa
 npm create vite@latest . -- --template react --no-interactive --immediate
 ```
 
+You now have a working React app. Let's turn it into a template.
+
+### Understanding Templates (Manual First)
+
+Before using automation, let's see what templatization actually means. Open
+`package.json` and look at the `name` field:
+
+```json
+{
+  "name": "basic-react-spa",
+  "version": "0.0.0"
+}
+```
+
+To make this a template, you'd manually replace the specific value with a
+placeholder:
+
+```json
+{
+  "name": "⦃PROJECT_NAME⦄",
+  "version": "0.0.0"
+}
+```
+
+That's it. Templates are just files with `⦃PLACEHOLDERS⦄` instead of specific
+values. When someone uses your template, those placeholders get replaced with
+their values.
+
+**Why unicode delimiters?** We use `⦃⦄` instead of `{{}}` because mustache
+braces conflict with JSX syntax. This lets you keep your React app running even
+while it's being templatized.
+
+**Don't actually edit the file yet.** We're about to use automation, but now
+you understand what's happening under the hood.
+
 ### Initialize Template Configuration
 
-Instead of manually creating configuration files, use the `init` command to generate them automatically:
+Now let's use the automation to do this for us:
 
 ```bash
 npx make-template init
 ```
 
 This creates:
+
 - `template.json` - Template metadata and placeholder definitions
 - `.templatize.json` - Configuration for what content to templatize
 
 **What gets auto-detected:**
+
 - Project name, author, and description from `package.json`
-- Common placeholders like `{{PROJECT_NAME}}`, `{{AUTHOR}}`, etc.
+- Common placeholders like `⦃PROJECT_NAME⦄`, `⦃AUTHOR⦄`, etc.
 - File patterns for different content types (JSX, JSON, Markdown, HTML)
 
-### Customize Configuration (Optional)
+### Review What Was Generated
 
-Review and customize the generated `.templatize.json`:
+Look at the generated `template.json`:
 
 ```bash
-cat .templatize.json
+cat template.json
 ```
 
-You can:
-- Add custom placeholders
-- Modify file patterns
-- Adjust placeholder formats
-- Exclude specific files or content
+You'll see placeholder definitions like:
+
+```json
+{
+  "placeholders": {
+    "PROJECT_NAME": {
+      "default": "basic-react-spa",
+      "description": "Project name"
+    }
+  }
+}
+```
+
+This tells the system: "Replace 'basic-react-spa' with `⦃PROJECT_NAME⦄`
+everywhere it appears."
 
 ### Convert to Template
 
-Now convert your project to a template:
+Now apply the transformations:
 
 ```bash
 npx make-template convert . --yes
 ```
 
-This creates:
-- `.template-undo.json` - Reverse mappings for restoration
-- Updates files with placeholders according to your configuration
+This creates `.template-undo.json` with reverse mappings and updates your files
+with placeholders.
+
+### See What Changed
+
+Check `package.json` now:
+
+```bash
+grep "name" package.json
+```
+
+You should see `"name": "⦃PROJECT_NAME⦄"` - exactly what we described
+manually earlier.
 
 ### Test the Template
 
-Let's test that the template works by scaffolding a new project:
+Scaffold a new project to verify the placeholders work:
 
 ```bash
 cd ..
-npx create-scaffold new basic-react-spa-scaffolded --template ./basic-react-spa --yes
-cd basic-react-spa-scaffolded
-npm install
-npm run dev
+npx create-scaffold new test-spa --template ./basic-react-spa --yes
+cd test-spa
+cat package.json | grep name
 ```
 
-You should see the template working with placeholder values.
+You should see `"name": "test-spa"` - the placeholder was replaced!
 
-### Undo Feature - Restore the Original Project
+### Restore Original Project
 
-Now let's demonstrate the undo feature to restore the original project:
+Return to the template directory and undo the conversion:
 
 ```bash
 cd ../basic-react-spa
 npx make-template restore --yes
+cat package.json | grep name
 ```
 
-This restores all the original values from the `.template-undo.json` file.
-
-### Verify Restoration
-
-Check that your original values are back:
-
-```bash
-grep "my-awesome-project" package.json
-grep "John Doe" package.json
-```
+Back to `"name": "basic-react-spa"`. The `.template-undo.json` file stored the
+original values.
 
 ### What You Learned
 
-- **`make-template init`**: Automatically generates `template.json` and `.templatize.json` with smart defaults
-- **Configuration Customization**: How to review and modify the generated configuration files
-- **Auto-Templatization**: make-template automatically finds project-specific values in:
-  - package.json (name, description, author, repository)
-  - README.md titles and content
-  - HTML titles and content
-  - JSX text content, images, links, and alt text
-  - JSON configuration files
-- **Undo Feature**: `restore` command reverses templatization using `.template-undo.json`
-- **Round-trip Workflow**: Convert ↔ restore with full fidelity
-- **Template Testing**: How to scaffold and test your templates immediately
+- **Templates are just text files** with `⦃PLACEHOLDERS⦄` replacing specific
+  values
+- **Unicode delimiters**: `⦃⦄` avoid JSX conflicts, keeping React apps runnable
+  during templatization
+- **Manual vs Automated**: You could edit files by hand, but `make-template`
+  automates the detection and replacement
+- **Bidirectional**: `convert` creates templates, `restore` undoes it
+- **Nothing magical**: The tool just does find-and-replace based on rules you
+  define
 
-### Expected Result
+### Clean Up Test Scaffold
 
-You should see:
-```text
-🔄 Converting project to template...
-📄 Generated template.json
-⚙️  Generated _setup.mjs
-🔄 Generated .template-undo.json
-✅ Conversion complete!
+```bash
+cd .. && rm -rf test-spa
+cd basic-react-spa
 ```
 
-The template is now ready and demonstrates modern React development with Vite, plus you've learned the complete make-template workflow!
+## Step 2: Organize Placeholders by Feature
 
-## Step 2: Create SSR Portfolio App Template
+Now let's create a more sophisticated template to understand composability.
+We'll build a lawn-mowing SaaS service with distinct features.
 
-Create a React Router v7 SSR application with direct D1 database access:
+### Setup Project
 
 ```bash
 cd ..
-mkdir ssr-portfolio-app
-cd ssr-portfolio-app
-npm create react-router@latest . -- --template cloudflare --yes
-npm install @m5nv/stl
+mkdir lawnmow-saas && cd lawnmow-saas
+npm create vite@latest . -- --template react --no-interactive --immediate
+npm install
 ```
 
-**Key files to create:**
-- `app/db/schema.sql` - D1 database schema
-- `app/db/client.ts` - Database client with SQL templating
-- `app/routes/_index.tsx` - SSR route with database queries
-- `wrangler.toml` - Cloudflare configuration
+### Add Feature-Specific Code
 
-**Convert to template:**
+Create files for different features:
+
+**src/features/scheduling/ScheduleView.jsx:**
+
+```jsx
+export default function ScheduleView() {
+  return (
+    <div>
+      <h2>LawnMow Pro - Scheduling</h2>
+      <p>Book your next mowing appointment</p>
+      <a href="mailto:support@lawnmow.io">Contact Support</a>
+    </div>
+  );
+}
+```
+
+**src/features/payments/BillingView.jsx:**
+
+```jsx
+export default function BillingView() {
+  return (
+    <div>
+      <h2>LawnMow Pro - Billing</h2>
+      <p>Manage your subscription</p>
+      <a href="mailto:billing@lawnmow.io">Billing Support</a>
+    </div>
+  );
+}
+```
+
+**src/features/customers/CustomerList.jsx:**
+
+```jsx
+export default function CustomerList() {
+  return (
+    <div>
+      <h2>LawnMow Pro - Customers</h2>
+      <p>Manage your customer base</p>
+      <a href="mailto:hello@lawnmow.io">Get Help</a>
+    </div>
+  );
+}
+```
+
+### Create Feature-Organized Configuration
+
+Now create `.templatize.json` manually to organize placeholders by feature:
+
+```json
+{
+  "version": "1.0",
+  "autoDetect": true,
+  "rules": {
+    "package.json": [
+      {
+        "type": "json-value",
+        "path": "$.name",
+        "placeholder": "PROJECT_NAME"
+      }
+    ],
+    "src/features/scheduling/*.jsx": [
+      {
+        "type": "jsx-text",
+        "placeholder": "SCHEDULING_APP_NAME"
+      },
+      {
+        "type": "jsx-attribute",
+        "attribute": "href",
+        "placeholder": "SCHEDULING_SUPPORT_EMAIL"
+      }
+    ],
+    "src/features/payments/*.jsx": [
+      {
+        "type": "jsx-text",
+        "placeholder": "PAYMENTS_APP_NAME"
+      },
+      {
+        "type": "jsx-attribute",
+        "attribute": "href",
+        "placeholder": "PAYMENTS_SUPPORT_EMAIL"
+      }
+    ],
+    "src/features/customers/*.jsx": [
+      {
+        "type": "jsx-text",
+        "placeholder": "CUSTOMERS_APP_NAME"
+      },
+      {
+        "type": "jsx-attribute",
+        "attribute": "href",
+        "placeholder": "CUSTOMERS_SUPPORT_EMAIL"
+      }
+    ]
+  }
+}
+```
+
+### Create template.json with Feature Organization
+
+```json
+{
+  "schemaVersion": "1.0.0",
+  "id": "yourname/lawnmow-saas",
+  "name": "LawnMow SaaS Template",
+  "description": "Multi-feature SaaS template with organized placeholders",
+  "placeholders": {
+    "PROJECT_NAME": {
+      "default": "my-lawnmow-service",
+      "description": "Overall project name"
+    },
+    "SCHEDULING_APP_NAME": {
+      "default": "MyMow Pro",
+      "description": "Brand name shown in scheduling feature"
+    },
+    "SCHEDULING_SUPPORT_EMAIL": {
+      "default": "support@mymow.io",
+      "description": "Support email for scheduling"
+    },
+    "PAYMENTS_APP_NAME": {
+      "default": "MyMow Pro",
+      "description": "Brand name shown in billing feature"
+    },
+    "PAYMENTS_SUPPORT_EMAIL": {
+      "default": "billing@mymow.io",
+      "description": "Billing support email"
+    },
+    "CUSTOMERS_APP_NAME": {
+      "default": "MyMow Pro",
+      "description": "Brand name shown in customer management"
+    },
+    "CUSTOMERS_SUPPORT_EMAIL": {
+      "default": "hello@mymow.io",
+      "description": "General support email"
+    }
+  }
+}
+```
+
+### Convert and Inspect
+
 ```bash
 npx make-template convert . --yes
 ```
 
-## Step 3: Create Full-Stack Portfolio Template
+Now look at one of the feature files:
 
-Build a split-architecture app: Cloudflare Worker API + React Router client.
-
-**API Server:**
 ```bash
-mkdir portfolio-api
-cd portfolio-api
-npm create cloudflare@latest . -- --template hello-world --yes
-npm install @m5nv/stl itty-router
+cat src/features/scheduling/ScheduleView.jsx
 ```
 
-**Key files:**
-- `src/db/schema.sql` - Database schema
-- `src/routes/projects.ts` - API routes with CRUD operations
-- `src/index.ts` - Worker entry point
-- `wrangler.toml` - Worker config
+You should see:
 
-**Client App:**
+```jsx
+<h2>⦃SCHEDULING_APP_NAME⦄ - Scheduling</h2>
+<a href="mailto:⦃SCHEDULING_SUPPORT_EMAIL⦄">Contact Support</a>
+```
+
+Each feature has its own namespaced placeholders, making the template
+composable. Notice how the unicode delimiters work perfectly in JSX without
+breaking syntax highlighting or React's parser.
+
+### Understanding Placeholder-to-Feature Mapping
+
+Look at the generated `template.json`:
+
+```bash
+cat template.json
+```
+
+The placeholder names tell you which feature they belong to:
+
+```json
+{
+  "placeholders": {
+    "SCHEDULING_APP_NAME": { ... },      // ← SCHEDULING_ prefix = scheduling feature
+    "SCHEDULING_SUPPORT_EMAIL": { ... }, // ← SCHEDULING_ prefix = scheduling feature
+    "PAYMENTS_APP_NAME": { ... },        // ← PAYMENTS_ prefix = payments feature
+    "PAYMENTS_SUPPORT_EMAIL": { ... },   // ← PAYMENTS_ prefix = payments feature
+    "CUSTOMERS_APP_NAME": { ... },       // ← CUSTOMERS_ prefix = customers feature
+    "CUSTOMERS_SUPPORT_EMAIL": { ... }   // ← CUSTOMERS_ prefix = customers feature
+  }
+}
+```
+
+The naming convention (`FEATURE_PLACEHOLDER_NAME`) creates a clear visual
+hierarchy. Users scaffolding from this template can immediately see which
+placeholders affect which features.
+
+### Why This Matters
+
+When scaffolding from this template, users can:
+
+1. Customize branding per-feature (different names in different modules)
+2. Set different support emails per feature
+3. Enable/disable features independently in `_setup.mjs`
+4. Understand which placeholders belong to which feature by reading the prefix
+
+This is **composability** - organizing your template so features can be mixed
+and matched.
+
+### What You Learned
+
+- **Feature organization**: Group placeholders by functional area
+- **Namespace conventions**: Use prefixes like `SCHEDULING_`, `PAYMENTS_` to
+  avoid collisions
+- **Composable templates**: Structure that allows features to be
+  enabled/disabled independently
+- **Manual configuration**: Sometimes auto-detection needs guidance for complex
+  structures
+
+### Clean Up
+
 ```bash
 cd ..
-mkdir portfolio-client
-cd portfolio-client
-npm create react-router@latest . -- --template basic --yes
 ```
 
-**Key files:**
-- `app/routes/_index.tsx` - Client route fetching from API
+## Step 3: Advanced - Cloudflare Portfolio with Auto-Detection
 
-**Convert both to templates:**
+Now apply what you learned to a real-world Cloudflare application.
+
+### Create SSR App with D1 Database
+
 ```bash
-cd portfolio-api && npx make-template convert . --yes
-cd ../portfolio-client && npx make-template convert . --yes
+mkdir portfolio-app && cd portfolio-app
+npm create react-router@latest . -- --template cloudflare --yes
+npm install @m5nv/stl
+```
+
+### Add Database Configuration
+
+Edit `wrangler.toml` to add D1 configuration:
+
+```toml
+name = "my-portfolio-app"
+compatibility_date = "2024-01-01"
+account_id = "abc123def456"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "portfolio_db"
+database_id = "xyz789abc123"
+```
+
+### Create Database Schema
+
+**app/db/schema.sql:**
+
+```sql
+CREATE TABLE projects (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  title TEXT NOT NULL,
+  description TEXT,
+  url TEXT
+);
+
+INSERT INTO projects (title, description, url) VALUES
+  ('My Portfolio Site', 'Personal portfolio built with React', 'https://mysite.dev');
+```
+
+### Convert with Auto-Detection
+
+```bash
+npx make-template init
+npx make-template convert . --yes
+```
+
+The auto-detection will find:
+
+- `{{PROJECT_NAME}}` from package.json and wrangler.toml
+- `{{CLOUDFLARE_ACCOUNT_ID}}` from wrangler.toml
+- `{{D1_DATABASE_BINDING}}` from wrangler.toml
+- `{{D1_DATABASE_NAME}}` from wrangler.toml
+- `{{D1_DATABASE_ID}}` from wrangler.toml
+
+### Verify Cloudflare-Specific Placeholders
+
+```bash
+cat wrangler.toml
+```
+
+You should see:
+
+```toml
+name = "⦃PROJECT_NAME⦄"
+account_id = "⦃CLOUDFLARE_ACCOUNT_ID⦄"
+
+[[d1_databases]]
+binding = "⦃D1_DATABASE_BINDING⦄"
+database_name = "⦃D1_DATABASE_NAME⦄"
+database_id = "⦃D1_DATABASE_ID⦄"
+```
+
+### What You Learned
+
+- **Context-aware detection**: make-template recognizes Cloudflare-specific
+  configuration patterns
+- **Cross-file consistency**: The same placeholder can appear in multiple files
+  (package.json, wrangler.toml)
+- **Platform patterns**: Different project types have different placeholder
+  patterns
+
+### Clean Up
+
+```bash
+cd ..
 ```
 
 ## What You Accomplished
 
-You created three templates demonstrating progressive complexity:
+You created three templates demonstrating progressive learning:
 
-1. **Basic React SPA** - Modern frontend with Vite + React
-2. **SSR Portfolio App** - React Router v7 with direct D1 access
-3. **Full-Stack Portfolio** - Split architecture (API server + client)
+1. **Basic React SPA** - Learned templates are just files with placeholders;
+   manual → automated workflow
+2. **LawnMow SaaS** - Organized placeholders by feature; understood
+   composability and namespacing
+3. **Cloudflare Portfolio** - Applied learning to real-world platform with
+   context-aware detection
 
-Each template includes:
-- Auto-detected placeholders from package.json, configs
-- Database integration with D1 and SQL templating
-- Cloudflare deployment configurations
-- Template metadata and setup scripts
+Key insights:
+
+- **No magic**: Templates are text files with `⦃PLACEHOLDERS⦄`
+- **Unicode delimiters**: Keep your app running during templatization by avoiding
+  JSX conflicts
+- **Automation helps**: `make-template` automates detection and replacement
+- **Organization matters**: Feature-based placeholder namespacing enables
+  composability
+- **Context-aware**: Different platforms need different placeholder patterns
 
 ## Next Steps
 
-- **[Create Scaffold Tutorial](create-scaffold.md)** - Use these templates to scaffold new projects
-- [Template Validation](../reference/cli-reference.md#make-template-commands) - Ensure template quality
+- **[Create Scaffold Tutorial](create-scaffold.md)** - Use these templates to
+  scaffold new projects
+- [Template Validation](../reference/cli-reference.md#make-template-commands) -
+  Ensure template quality
 
 ## Template Locations
 
 Your templates are ready in `template-workshop/`:
-- `basic-react-spa/` - React SPA foundation
-- `ssr-portfolio-app/` - SSR with D1 database
-- `portfolio-api/` & `portfolio-client/` - Split architecture
+
+- `basic-react-spa/` - React SPA with basic templatization
+- `lawnmow-saas/` - Feature-organized composable template
+- `portfolio-app/` - Cloudflare SSR with D1 database
 
 ## Troubleshooting
 
+**"Nothing was replaced"**: Check that your `.templatize.json` rules match your
+file structure. Remember, you can always edit files manually with
+`⦃PLACEHOLDERS⦄` first to understand what should happen.
+
 **Init fails:** Ensure you're in a Node.js project directory with package.json
-**Conversion fails:** Run `npm install` first, ensure .templatize.json exists (run `make-template init` if missing)
-**Missing placeholders:** Check .templatize.json configuration and placeholder format settings
-**Structure issues:** Verify generated template.json and _setup.mjs are valid
-**Restore fails:** Ensure .template-undo.json exists from a previous conversion
+
+**Conversion fails:** Run `npm install` first, ensure .templatize.json exists
+(run `make-template init` if missing)
+
+**Placeholders not detected:** Review `.templatize.json` rules and adjust
+patterns to match your file structure
+
+**Restore fails:** Ensure `.template-undo.json` exists from a previous
+conversion
