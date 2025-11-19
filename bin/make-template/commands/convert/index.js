@@ -18,9 +18,6 @@ export class ConvertCommand extends Command {
     } else if (arg === '--silent') {
       parsed.silent = true;
       return i;
-    } else if (arg === '--type') {
-      parsed.type = args[i + 1];
-      return i + 1;
     } else if (arg === '--placeholder-format') {
       parsed.placeholderFormat = args[i + 1];
       return i + 1;

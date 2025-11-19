@@ -33,7 +33,7 @@ npm test
 
 #Test CLI locally (package is not published yet)
 node bin/create-scaffold/index.mjs --help
-node bin/create-scaffold/index.mjs --interactive
+node bin/create-scaffold/index.mjs --experimental-placeholder-prompts
 npx . new test-project react-vite
 
 #Optional: expose the create-scaffold binary globally
@@ -111,7 +111,7 @@ create/
 
 **Options Processor (`bin/create-scaffold/modules/options-processor.mjs`)**:
 - Processes and validates CLI arguments using native `util.parseArgs`
-- Supports all CLI options: `--help`, `--log-file`, `--dry-run`, `--no-cache`, `--interactive`, `--no-interactive`, `--cache-ttl`
+- Supports all CLI options: `--help`, `--log-file`, `--dry-run`, `--no-cache`, `--experimental-placeholder-prompts`, `--no-input-prompts`, `--cache-ttl`
 - Provides comprehensive help text and usage information
 
 **Guided Setup Workflow (`bin/create-scaffold/modules/guided-setup-workflow.mjs`)**:

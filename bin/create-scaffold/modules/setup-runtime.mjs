@@ -1135,7 +1135,8 @@ export async function createSetupTools(options) {
     projectName,
     logger,
     templateContext,
-    dimensions = {}
+    dimensions = {},
+    options: userOptions = { raw: [], byDimension: {} }
   } = options;
   const root = path.resolve(projectDirectory);
   const placeholderInputs = templateContext?.inputs ?? Object.freeze({});
@@ -1159,7 +1160,7 @@ export async function createSetupTools(options) {
     text: buildTextApi(root),
     logger: createLoggerApi(logger),
     options: createOptionsApi({
-      options: { raw: [], byDimension: {} },
+      options: userOptions,
       dimensions
     })
   });

@@ -162,7 +162,7 @@ function normalizeConfigPayload(payload, filePath) {
   }
 
   // Allow known top-level keys plus product-specific sections
-  const knownKeys = new Set(['repo', 'branch', 'author', 'placeholders', 'registries']);
+  const knownKeys = new Set(['repo', 'branch', 'author', 'placeholders', 'registries', 'templates']);
   for (const key of Object.keys(payload)) {
     // Allow any key that could be a product name (kebab-case, camelCase, etc.)
     // Only reject obviously invalid keys
@@ -210,6 +210,24 @@ function normalizeConfigPayload(payload, filePath) {
 
   if (registries) {
     defaults.registries = normalizeRegistries(registries, filePath);
+  }
+
+  // Handle templates (template aliases for new command)
+  let templates = null;
+
+  // Check top-level templates
+  if (Object.prototype.hasOwnProperty.call(payload, 'templates')) {
+    templates = payload.templates;
+  }
+
+  // Check product-specific templates
+  if (payload[productName] && typeof payload[productName] === 'object' &&
+      payload[productName].templates) {
+    templates = payload[productName].templates;
+  }
+
+  if (templates) {
+    defaults.templates = normalizeTemplates(templates, filePath);
   }
 
   return Object.freeze(defaults);
@@ -434,26 +452,140 @@ function normalizeRegistries(value, filePath) {
       );
     }
 
-    // Registries are direct URL strings
-    if (typeof templates !== 'string') {
+    // Registries can be either:
+    // 1. Typed registry objects (for list command) - { type: "git", url: "..." } or { type: "local", path: "..." }
+    // 2. Objects mapping template names to URLs/paths (for new command aliases)
+    if (typeof templates === 'object' && templates !== null && !Array.isArray(templates)) {
+      // Check if this is a typed registry object
+      if (templates.type && (templates.url || templates.path)) {
+        // Typed registry format
+        const { type, url, path } = templates;
+        if (type !== 'git' && type !== 'local') {
+          throw wrapValidationError(
+            `Configuration file ${filePath} registry "${registryName}" type must be "git" or "local"`,
+            'config.registries'
+          );
+        }
+        if (type === 'git' && !url) {
+          throw wrapValidationError(
+            `Configuration file ${filePath} registry "${registryName}" git type requires "url" field`,
+            'config.registries'
+          );
+        }
+        if (type === 'local' && !path) {
+          throw wrapValidationError(
+            `Configuration file ${filePath} registry "${registryName}" local type requires "path" field`,
+            'config.registries'
+          );
+        }
+        registries[trimmedRegistryName] = Object.freeze({
+          type,
+          url: url?.trim(),
+          path: path?.trim()
+        });
+      } else {
+        // Template mapping object format (legacy support)
+        const templateMappings = Object.create(null);
+        for (const [templateName, templateUrl] of Object.entries(templates)) {
+          if (typeof templateName !== 'string') {
+            throw wrapValidationError(
+              `Configuration file ${filePath} registry "${registryName}" template name must be a string`,
+              'config.registries'
+            );
+          }
+          if (typeof templateUrl !== 'string') {
+            throw wrapValidationError(
+              `Configuration file ${filePath} registry "${registryName}" template "${templateName}" must be a URL/path string`,
+              'config.registries'
+            );
+          }
+          const trimmedTemplateName = templateName.trim();
+          const trimmedTemplateUrl = templateUrl.trim();
+          if (!trimmedTemplateName || !trimmedTemplateUrl) {
+            throw wrapValidationError(
+              `Configuration file ${filePath} registry "${registryName}" template "${templateName}" cannot be empty`,
+              'config.registries'
+            );
+          }
+          templateMappings[trimmedTemplateName] = trimmedTemplateUrl;
+        }
+        registries[trimmedRegistryName] = Object.freeze(templateMappings);
+      }
+    } else {
       throw wrapValidationError(
-        `Configuration file ${filePath} registry "${registryName}" must be a repository URL string`,
+        `Configuration file ${filePath} registry "${registryName}" must be a typed registry object or an object mapping template names to URLs/paths`,
         'config.registries'
       );
     }
-
-    const trimmedUrl = templates.trim();
-    if (!trimmedUrl) {
-      throw wrapValidationError(
-        `Configuration file ${filePath} registry "${registryName}" URL cannot be empty`,
-        'config.registries'
-      );
-    }
-
-    registries[trimmedRegistryName] = trimmedUrl;
   }
 
   return Object.freeze(registries);
+}
+
+function normalizeTemplates(value, filePath) {
+  if (typeof value !== 'object' || Array.isArray(value)) {
+    throw wrapValidationError(
+      `Configuration file ${filePath} templates must be an object`,
+      'config.templates'
+    );
+  }
+
+  const templates = Object.create(null);
+
+  for (const [templateAlias, templateConfig] of Object.entries(value)) {
+    if (typeof templateAlias !== 'string') {
+      throw wrapValidationError(
+        `Configuration file ${filePath} template alias must be a string`,
+        'config.templates'
+      );
+    }
+
+    const trimmedAlias = templateAlias.trim();
+    if (!trimmedAlias) {
+      throw wrapValidationError(
+        `Configuration file ${filePath} template alias cannot be empty`,
+        'config.templates'
+      );
+    }
+
+    if (typeof templateConfig !== 'object' || Array.isArray(templateConfig) || templateConfig === null) {
+      throw wrapValidationError(
+        `Configuration file ${filePath} template "${templateAlias}" must be an object`,
+        'config.templates'
+      );
+    }
+
+    // Template config should have template name to URL/path mappings
+    const normalizedMappings = Object.create(null);
+    for (const [templateName, templatePath] of Object.entries(templateConfig)) {
+      if (typeof templateName !== 'string') {
+        throw wrapValidationError(
+          `Configuration file ${filePath} template "${templateAlias}" template name must be a string`,
+          'config.templates'
+        );
+      }
+      if (typeof templatePath !== 'string') {
+        throw wrapValidationError(
+          `Configuration file ${filePath} template "${templateAlias}" template "${templateName}" must be a URL/path string`,
+          'config.templates'
+        );
+      }
+
+      const trimmedName = templateName.trim();
+      const trimmedPath = templatePath.trim();
+      if (!trimmedName || !trimmedPath) {
+        throw wrapValidationError(
+          `Configuration file ${filePath} template "${templateAlias}" template "${templateName}" cannot be empty`,
+          'config.templates'
+        );
+      }
+      normalizedMappings[trimmedName] = trimmedPath;
+    }
+
+    templates[trimmedAlias] = Object.freeze(normalizedMappings);
+  }
+
+  return Object.freeze(templates);
 }
 
 function wrapValidationError(message, field) {

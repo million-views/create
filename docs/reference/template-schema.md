@@ -1,6 +1,7 @@
 ---
 title: "Template Schema Reference"
-description: "Complete reference for Schema V1.0 (template.json) structure and validation"
+description:
+  "Complete reference for Schema V1.0 (template.json) structure and validation"
 type: reference
 audience: "template-authors"
 estimated_time: "10 minutes"
@@ -11,21 +12,27 @@ related_docs:
   - "../how-to/creating-templates.md"
   - "environment.md"
   - "../how-to/author-workflow.md"
-last_updated: "2025-01-15"
+last_updated: "2025-11-19"
 ---
 
 # Template Schema Reference
 
-Complete reference for Schema V1.0 (`template.json`). This document covers all sections of the template schema including metadata, setup configuration, dimensions, gates, feature specifications, hints, constants, and scaffolding steps.
+Complete reference for Schema V1.0 (`template.json`). This document covers all
+sections of the template schema including metadata, setup configuration,
+dimensions, gates, feature specifications, hints, constants, and scaffolding
+steps.
 
 ## Overview
 
-Schema V1.0 defines the structure for `template.json` files. Templates are validated against this schema during:
+Schema V1.0.0 defines the structure for `template.json` files. Templates are
+validated against this schema during:
+
 - Template creation (`create-scaffold new`)
 - Template validation (`make-template validate`)
 - Runtime setup execution
 
-The schema supports both legacy templates (without `schemaVersion`) and V1.0.0 templates with full schema validation.
+**NO BACKWARD COMPATIBILITY**: Only Schema V1.0.0 is supported. Legacy templates
+without `schemaVersion` are rejected.
 
 ## Schema Structure
 
@@ -43,55 +50,62 @@ The schema supports both legacy templates (without `schemaVersion`) and V1.0.0 t
     "policy": "strict",
     "authoringMode": "composable"
   },
-  "dimensions": { /* user-selectable options */ },
-  "gates": { /* compatibility constraints */ },
-  "featureSpecs": { /* feature definitions */ },
-  "hints": { /* advisory catalog */ },
-  "constants": { /* fixed values */ },
-  "scaffold": { /* scaffolding steps */ }
+  "dimensions": {
+    /* user-selectable options */
+  },
+  "gates": {
+    /* compatibility constraints */
+  },
+  "featureSpecs": {
+    /* feature definitions */
+  },
+  "hints": {
+    /* advisory catalog */
+  },
+  "constants": {
+    /* fixed values */
+  },
+  "scaffold": {
+    /* scaffolding steps */
+  }
 }
 ```
 
 ## Minimal Template
 
-The simplest valid template requires 5 fields:
+The simplest valid template requires 4 fields:
 
 ```json
 {
   "schemaVersion": "1.0.0",
   "id": "author/minimal-template",
   "name": "Minimal Template",
-  "description": "A minimal template example",
-  "placeholders": {
-    "PROJECT_NAME": {
-      "default": "my-project",
-      "description": "The project name"
-    }
-  }
+  "description": "A minimal template example"
 }
 ```
 
 This minimal template:
+
 - Can be scaffolded immediately with `create-scaffold new`
-- Has one basic placeholder for customization
-- Contains no setup scripts or advanced features
+- Contains no placeholders or advanced features
 - Serves as a foundation for progressive enhancement
 
 ## Top-Level Properties
 
-| Property | Type | Required | Description |
-|----------|------|----------|-------------|
-| `schemaVersion` | `string` | Yes | Schema version (currently "1.0.0") |
-| `id` | `string` | Yes | Unique identifier in format `author/template-name` |
-| `name` | `string` | Yes | Human-readable template name (1-120 chars) |
-| `description` | `string` | Yes | Detailed description (1-500 chars) |
-| `placeholders` | `object` | Yes | Placeholder definitions with defaults and descriptions |
-| `tags` | `string[]` | No | Categorization tags (lowercase, alphanumeric + hyphens) |
-| `author` | `string` | No | Template author or organization name |
-| `license` | `string` | No | License under which template is distributed |
-| `handoff` | `string[]` | No | Post-scaffold instructions (max 240 chars each) |
+| Property        | Type       | Required | Description                                             |
+| --------------- | ---------- | -------- | ------------------------------------------------------- |
+| `schemaVersion` | `string`   | Yes      | Schema version (currently "1.0.0")                      |
+| `id`            | `string`   | Yes      | Unique identifier in format `author/template-name`      |
+| `name`          | `string`   | Yes      | Human-readable template name (1-120 chars)              |
+| `description`   | `string`   | Yes      | Detailed description (1-500 chars)                      |
+| `placeholders`  | `object`   | No       | Placeholder definitions with defaults and descriptions  |
+| `tags`          | `string[]` | No       | Categorization tags (lowercase, alphanumeric + hyphens) |
+| `author`        | `string`   | No       | Template author or organization name                    |
+| `license`       | `string`   | No       | License under which template is distributed             |
+| `handoff`       | `string[]` | No       | Post-scaffold instructions (max 240 chars each)         |
 
-All templates now require `schemaVersion`, `id`, `name`, `description`, and `placeholders`. The minimal valid template contains these five required fields.
+All templates require `schemaVersion`, `id`, `name`, and `description`. The
+`placeholders` field is optional.
 
 ## Setup Section
 
@@ -99,10 +113,10 @@ The `setup` section configures template behavior and validation policies.
 
 ### Setup Properties
 
-| Property | Type | Required | Description |
-|----------|------|----------|-------------|
-| `policy` | `string` | No | `"strict"` or `"lenient"` validation (default: `"strict"`) |
-| `authoringMode` | `string` | No | `"wysiwyg"` or `"composable"` (default: `"composable"`) |
+| Property        | Type     | Required | Description                                                |
+| --------------- | -------- | -------- | ---------------------------------------------------------- |
+| `policy`        | `string` | No       | `"strict"` or `"lenient"` validation (default: `"strict"`) |
+| `authoringMode` | `string` | No       | `"wysiwyg"` or `"composable"` (default: `"composable"`)    |
 
 ### Validation Policies
 
@@ -116,13 +130,15 @@ The `setup` section configures template behavior and validation policies.
 
 ## Dimensions
 
-Dimensions define user-selectable options. The schema supports flexible dimension definitions with validation.
+Dimensions define user-selectable options. The schema supports flexible
+dimension definitions with validation.
 
 ### Dimension Types
 
 Dimensions can be defined in two formats:
 
 #### Simple Format (Legacy)
+
 ```json
 {
   "dimension_name": {
@@ -133,6 +149,7 @@ Dimensions can be defined in two formats:
 ```
 
 #### Structured Format (V1.0.0)
+
 ```json
 {
   "dimension_name": {
@@ -154,15 +171,15 @@ Dimensions can be defined in two formats:
 
 Schema V1.0.0 defines 7 standard dimensions:
 
-| Name | Type | Purpose |
-|------|------|---------|
-| `deployment` | `single` | Deployment platform |
-| `features` | `multi` | Custom feature toggles |
-| `database` | `single` | Database technology choice |
-| `storage` | `single` | Storage solution |
-| `auth` | `multi` | Authentication providers |
-| `payments` | `single` | Payment processor |
-| `analytics` | `single` | Analytics service |
+| Name         | Type     | Purpose                    |
+| ------------ | -------- | -------------------------- |
+| `deployment` | `single` | Deployment platform        |
+| `features`   | `multi`  | Custom feature toggles     |
+| `database`   | `single` | Database technology choice |
+| `storage`    | `single` | Storage solution           |
+| `auth`       | `multi`  | Authentication providers   |
+| `payments`   | `single` | Payment processor          |
+| `analytics`  | `single` | Analytics service          |
 
 ### Dimension Details
 
@@ -173,6 +190,7 @@ Schema V1.0.0 defines 7 standard dimensions:
 **Purpose:** Specifies the deployment platform and infrastructure target.
 
 **Allowed Values:**
+
 - `vercel` - Vercel platform
 - `netlify` - Netlify platform
 - `railway` - Railway platform
@@ -185,6 +203,7 @@ Schema V1.0.0 defines 7 standard dimensions:
 - `local` - Local development
 
 **Schema Example:**
+
 ```json
 {
   "deployment": {
@@ -200,9 +219,11 @@ Schema V1.0.0 defines 7 standard dimensions:
 
 **Purpose:** Custom feature toggles specific to your template.
 
-**Allowed Values:** Any string values following pattern `^[a-z][a-z0-9_-]*$` (1-50 chars)
+**Allowed Values:** Any string values following pattern `^[a-z][a-z0-9_-]*$`
+(1-50 chars)
 
 **Schema Example:**
+
 ```json
 {
   "features": {
@@ -219,6 +240,7 @@ Schema V1.0.0 defines 7 standard dimensions:
 **Purpose:** Database technology choice.
 
 **Allowed Values:**
+
 - `postgres` - PostgreSQL
 - `mysql` - MySQL
 - `sqlite` - SQLite
@@ -227,6 +249,7 @@ Schema V1.0.0 defines 7 standard dimensions:
 - `none` - No database
 
 **Schema Example:**
+
 ```json
 {
   "database": {
@@ -243,6 +266,7 @@ Schema V1.0.0 defines 7 standard dimensions:
 **Purpose:** Storage solution for files and assets.
 
 **Allowed Values:**
+
 - `local` - Local file system
 - `s3` - Amazon S3
 - `cloudflare` - Cloudflare R2
@@ -250,6 +274,7 @@ Schema V1.0.0 defines 7 standard dimensions:
 - `none` - No storage
 
 **Schema Example:**
+
 ```json
 {
   "storage": {
@@ -266,6 +291,7 @@ Schema V1.0.0 defines 7 standard dimensions:
 **Purpose:** Authentication providers for user login.
 
 **Allowed Values:**
+
 - `auth0` - Auth0
 - `clerk` - Clerk
 - `firebase` - Firebase Auth
@@ -274,6 +300,7 @@ Schema V1.0.0 defines 7 standard dimensions:
 - `none` - No authentication
 
 **Schema Example:**
+
 ```json
 {
   "auth": {
@@ -290,6 +317,7 @@ Schema V1.0.0 defines 7 standard dimensions:
 **Purpose:** Payment processor for monetization.
 
 **Allowed Values:**
+
 - `stripe` - Stripe payments
 - `paypal` - PayPal
 - `lemonsqueezy` - Lemon Squeezy
@@ -297,6 +325,7 @@ Schema V1.0.0 defines 7 standard dimensions:
 - `none` - No payments
 
 **Schema Example:**
+
 ```json
 {
   "payments": {
@@ -313,6 +342,7 @@ Schema V1.0.0 defines 7 standard dimensions:
 **Purpose:** Analytics service for tracking.
 
 **Allowed Values:**
+
 - `google-analytics` - Google Analytics
 - `mixpanel` - Mixpanel
 - `posthog` - PostHog
@@ -321,6 +351,7 @@ Schema V1.0.0 defines 7 standard dimensions:
 - `none` - No analytics
 
 **Schema Example:**
+
 ```json
 {
   "analytics": {
@@ -332,7 +363,8 @@ Schema V1.0.0 defines 7 standard dimensions:
 
 ## Gates
 
-Gates define compatibility constraints between dimension values. They prevent invalid combinations during template creation.
+Gates define compatibility constraints between dimension values. They prevent
+invalid combinations during template creation.
 
 ### Gate Schema
 
@@ -379,7 +411,8 @@ Gates define compatibility constraints between dimension values. They prevent in
 
 ## FeatureSpecs
 
-FeatureSpecs define available features and their requirements. Each feature specifies what capabilities it needs from the selected dimensions.
+FeatureSpecs define available features and their requirements. Each feature
+specifies what capabilities it needs from the selected dimensions.
 
 ### FeatureSpec Schema
 
@@ -436,7 +469,8 @@ FeatureSpecs define available features and their requirements. Each feature spec
 
 ## Hints
 
-Hints provide an advisory catalog of recommended features for different use cases. They're used by the CLI to suggest features during template creation.
+Hints provide an advisory catalog of recommended features for different use
+cases. They're used by the CLI to suggest features during template creation.
 
 ### Hints Schema
 
@@ -463,7 +497,8 @@ Hints provide an advisory catalog of recommended features for different use case
 
 ### Hints Properties
 
-- **`id`**: Unique feature identifier (2-64 chars, lowercase with underscores/hyphens/colons)
+- **`id`**: Unique feature identifier (2-64 chars, lowercase with
+  underscores/hyphens/colons)
 - **`label`**: Human-readable display name
 - **`description`**: Detailed feature description
 - **`examples`** (optional): Array of example use cases
@@ -506,7 +541,8 @@ Hints provide an advisory catalog of recommended features for different use case
 
 ## Constants
 
-Constants define fixed values that define the template's identity and cannot be changed by users.
+Constants define fixed values that define the template's identity and cannot be
+changed by users.
 
 ### Constants Schema
 
@@ -528,14 +564,14 @@ Constants define fixed values that define the template's identity and cannot be 
 
 The schema recognizes these common constants:
 
-| Constant | Type | Description |
-|----------|------|-------------|
-| `language` | `string` | Programming language |
-| `framework` | `string` | Primary framework or library |
-| `styling` | `string` | CSS framework or styling approach |
-| `ci_cd` | `string` | CI/CD platform |
-| `runtime` | `string` | Runtime environment |
-| `code_quality` | `string` | Code quality tools and standards |
+| Constant               | Type     | Description                            |
+| ---------------------- | -------- | -------------------------------------- |
+| `language`             | `string` | Programming language                   |
+| `framework`            | `string` | Primary framework or library           |
+| `styling`              | `string` | CSS framework or styling approach      |
+| `ci_cd`                | `string` | CI/CD platform                         |
+| `runtime`              | `string` | Runtime environment                    |
+| `code_quality`         | `string` | Code quality tools and standards       |
 | `transactional_emails` | `string` | Email service for transactional emails |
 
 ### Custom Constants
@@ -602,6 +638,7 @@ The `scaffold` section defines the steps to create the project structure.
 ### Step Types
 
 #### copy
+
 Copies a file from source to target.
 
 ```json
@@ -614,6 +651,7 @@ Copies a file from source to target.
 ```
 
 #### render
+
 Renders a template file with placeholders.
 
 ```json
@@ -626,6 +664,7 @@ Renders a template file with placeholders.
 ```
 
 #### json-edit
+
 Modifies JSON files with patch operations.
 
 ```json
@@ -644,6 +683,7 @@ Modifies JSON files with patch operations.
 ```
 
 #### shell
+
 Executes shell commands.
 
 ```json
@@ -657,12 +697,15 @@ Executes shell commands.
 
 ### Conditions
 
-Conditions are JavaScript expressions that evaluate to true/false. They have access to:
+Conditions are JavaScript expressions that evaluate to true/false. They have
+access to:
+
 - Dimension values (e.g., `database`, `features`)
 - Template constants
 - User selections
 
 Examples:
+
 - `"database === 'postgres'"`
 - `"features.includes('auth')"`
 - `"deployment_target === 'vercel'"`
@@ -713,7 +756,13 @@ Examples:
       "default": "stripe"
     },
     "analytics": {
-      "values": ["google-analytics", "mixpanel", "posthog", "plausible", "none"],
+      "values": [
+        "google-analytics",
+        "mixpanel",
+        "posthog",
+        "plausible",
+        "none"
+      ],
       "default": "google-analytics"
     }
   },
@@ -826,17 +875,6 @@ Examples:
 }
 ```
 
-## Migration from Legacy Templates
-
-Legacy templates (without `schemaVersion`) are supported but deprecated. To migrate:
-
-1. Add `"schemaVersion": "1.0.0"` and `"id"` fields
-2. Move `metadata.placeholders` to top-level `placeholders` array
-3. Move `metadata.variables` to top-level `canonicalVariables` array  
-4. Convert `setup.dimensions` to the new `dimensions` format
-5. Add `constants` object for fixed template values
-6. Optionally add `gates`, `featureSpecs`, `hints`, and `scaffold` sections
-
 ## Validation
 
 Templates are validated using `TemplateValidator` which performs:
@@ -846,11 +884,14 @@ Templates are validated using `TemplateValidator` which performs:
 3. **Consumption Validation**: Runtime compatibility checks
 
 Validation policies:
+
 - **Strict**: Schema + domain errors are fatal
 - **Lenient**: Schema + domain errors become warnings
 
 ## See Also
 
-- [Creating Templates Guide](../how-to/creating-templates.md) - Step-by-step template creation
-- [Template Validation](template-validation.md) - Validation rules and error messages
+- [Creating Templates Guide](../how-to/creating-templates.md) - Step-by-step
+  template creation
+- [Template Validation](template-validation.md) - Validation rules and error
+  messages
 - [Environment Reference](environment.md) - Runtime environment variables

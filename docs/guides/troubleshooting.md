@@ -451,6 +451,121 @@ cp -r temp-manual/template-name my-project
 rm -rf temp-manual
 ```
 
+## 🛠️ Make-Template Issues
+
+### How to Fix "Round-trip Conversion Fails" Error
+
+**When this happens:** `make-template restore` fails or produces incorrect results after `make-template convert`
+
+**Diagnostic commands:**
+```bash
+# Check if undo log exists
+ls -la .template-undo.json
+
+# Validate undo log structure
+cat .template-undo.json | jq '.fileOperations | length'
+```
+
+**Common causes and fixes:**
+
+**Problem: Missing undo log**
+```text
+Error: .template-undo.json not found
+```
+**Solution:** Always run `convert` before `restore`. The undo log is created during conversion.
+
+**Problem: Corrupted undo log**
+```text
+Error: Cannot read undo log
+```
+**Solution:** Delete the corrupted undo log and re-run conversion:
+```bash
+rm .template-undo.json
+npx make-template convert . --yes
+```
+
+**Problem: Files modified after conversion**
+```text
+Warning: File has been modified since conversion
+```
+**Solution:** Revert manual changes or re-run conversion on a clean project.
+
+### How to Fix "Placeholder Syntax Conflicts with JSX" Error
+
+**When this happens:** React components break after templatization due to placeholder syntax conflicts
+
+**Solution:** The default unicode format ⦃TOKEN⦄ is designed to avoid JSX conflicts. If you need a different format:
+```bash
+# Use a specific format if unicode doesn't work for your use case
+npx make-template convert . --placeholder-format percent --yes
+
+# This produces %TOKEN% instead of the default ⦃TOKEN⦄
+```
+
+**Available formats:**
+- `unicode` - ⦃TOKEN⦄ (default: delimiters with no special meaning in any programming language)
+- `percent` - %TOKEN% (safe for most contexts, but may conflict with shell scripts)
+- `dollar` - $TOKEN$ (consistent enclosure, but may conflict with shell variables)
+- `mustache` - {{TOKEN}} (works everywhere, but conflicts with JSX and template literals)
+
+### How to Fix "Init Command Fails" Error
+
+**When this happens:** `make-template init` fails or creates files in wrong location
+
+**Diagnostic check:**
+```bash
+# Must be run inside project directory
+pwd
+ls -la package.json
+```
+
+**Solution:** Always run `init` inside the project you want to templatize:
+```bash
+cd /path/to/your/project
+npx make-template init
+```
+
+**Problem: Wrong directory**
+```text
+Error: No package.json found
+```
+**Solution:** Navigate to your project directory first.
+
+### How to Fix "Configuration File Not Found" Error
+
+**When this happens:** `make-template convert` shows configuration errors
+
+**Solution:** Initialize configuration first:
+```bash
+# In your project directory
+npx make-template init
+npx make-template convert . --yes
+```
+
+**Problem: Custom config path**
+```text
+Error: Cannot find config file
+```
+**Solution:** Specify correct path:
+```bash
+npx make-template convert . --config path/to/.templatize.json --yes
+```
+
+### How to Fix "Development Repository Warning" Error
+
+**When this happens:** Convert refuses to run on development repositories
+
+**Solution:** Use `--yes` flag for development repos:
+```bash
+npx make-template convert . --yes
+```
+
+**Problem: Accidental conversion**
+```console
+Warning: This appears to be a development repository
+```
+**Solution:** The warning prevents accidental conversion. Use `--yes` only when intentional.
+
 **See also:**
 - 📖 [Error Codes Reference](../reference/error-codes.md) - Complete error code documentation
 - 📖 [CLI Reference](../reference/cli-reference.md) - All command-line options

@@ -125,19 +125,18 @@ export class Scaffolder {
           // Template URL, URL with branch syntax, or repo/template shorthand - use TemplateResolver
           const templateResolver = new TemplateResolver(this.cacheManager, configMetadata);
           templateResolution = await templateResolver.resolveTemplate(resolvedTemplate, {
-            branch: this.options.branch,
             logger: this.logger
           });
           templatePath = templateResolution.templatePath;
           templateName = path.basename(templatePath);
           repoUrl = resolvedTemplate;
-          branchName = this.options.branch;
+          branchName = null; // Branch will be determined by TemplateResolver from URL
           _allowFallback = false; // URLs and repo/template specs should not fallback
         } else {
           console.error('DEBUG: Taking repository shorthand branch');
           // Repository shorthand - assume it's a template name in default repo
           const repoUrlResolved = DEFAULT_REPO;
-          const branchNameResolved = this.options.branch;
+          const branchNameResolved = 'main'; // Default branch
           const cachedRepoPath = await this.ensureRepositoryCached(
             repoUrlResolved,
             branchNameResolved,
@@ -156,7 +155,7 @@ export class Scaffolder {
         templatePath = null;
         templateName = null;
         repoUrl = DEFAULT_REPO;
-        branchName = this.options.branch;
+        branchName = 'main'; // Default branch
         _allowFallback = true; // No template specified should allow fallback
       }
 

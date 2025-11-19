@@ -296,8 +296,8 @@ describe('Setup Runtime', () => {
   });
 
   describe('createSetupTools()', () => {
-    it('should create tools object with all APIs', async () => {
-      const tempDir = path.join(tmpdir(), 'tools-test-' + Date.now());
+    it('should create frozen tools object with complete API shape', async () => {
+      const tempDir = path.join(tmpdir(), 'tools-shape-test-' + Date.now());
       await fs.mkdir(tempDir, { recursive: true });
 
       try {
@@ -308,23 +308,320 @@ describe('Setup Runtime', () => {
           logger,
           templateContext: {
             inputs: { TEST_VAR: 'test-value' },
-            authoring: 'test'
-          }
+            authoring: 'wysiwyg',
+            constants: {},
+            authorAssetsDir: '__scaffold__'
+          },
+          dimensions: {
+            features: { type: 'multi', values: ['api', 'auth'], default: [] }
+          },
+          options: { raw: ['features=api'], byDimension: { features: ['api'] } }
         };
 
         const tools = await createSetupTools(options);
 
-        assert.ok(tools.placeholders);
-        assert.ok(tools.inputs);
-        assert.ok(tools.files);
-        assert.ok(tools.json);
-        assert.ok(tools.templates);
-        assert.ok(tools.text);
-        assert.ok(tools.logger);
-        assert.ok(tools.options);
+        // Test that tools object is frozen
+        assert(Object.isFrozen(tools), 'tools object should be frozen');
+        assert.throws(() => { tools.newProp = 'test'; }, 'should not allow adding properties to frozen object');
 
-        // Test that tools are frozen
-        assert.throws(() => { tools.newProp = 'test'; });
+        // Test complete API shape
+        const expectedAPIs = ['placeholders', 'inputs', 'files', 'json', 'templates', 'text', 'logger', 'options'];
+        for (const api of expectedAPIs) {
+          assert.ok(tools[api], `tools.${api} should exist`);
+          assert(Object.isFrozen(tools[api]), `tools.${api} should be frozen`);
+        }
+
+        // Test placeholders API shape
+        assert.strictEqual(typeof tools.placeholders.replaceAll, 'function');
+        assert.strictEqual(typeof tools.placeholders.replaceInFile, 'function');
+        assert.strictEqual(typeof tools.placeholders.applyInputs, 'function');
+
+        // Test inputs API shape
+        assert.strictEqual(typeof tools.inputs.get, 'function');
+        assert.strictEqual(typeof tools.inputs.all, 'function');
+
+        // Test files API shape
+        assert.strictEqual(typeof tools.files.ensureDirs, 'function');
+        assert.strictEqual(typeof tools.files.copy, 'function');
+        assert.strictEqual(typeof tools.files.move, 'function');
+        assert.strictEqual(typeof tools.files.remove, 'function');
+        assert.strictEqual(typeof tools.files.write, 'function');
+
+        // Test json API shape
+        assert.strictEqual(typeof tools.json.read, 'function');
+        assert.strictEqual(typeof tools.json.merge, 'function');
+        assert.strictEqual(typeof tools.json.update, 'function');
+        assert.strictEqual(typeof tools.json.set, 'function');
+        assert.strictEqual(typeof tools.json.remove, 'function');
+        assert.strictEqual(typeof tools.json.addToArray, 'function');
+        assert.strictEqual(typeof tools.json.mergeArray, 'function');
+
+        // Test templates API shape
+        assert.strictEqual(typeof tools.templates.renderString, 'function');
+        assert.strictEqual(typeof tools.templates.renderFile, 'function');
+        assert.strictEqual(typeof tools.templates.copy, 'function');
+
+        // Test text API shape
+        assert.strictEqual(typeof tools.text.insertAfter, 'function');
+        assert.strictEqual(typeof tools.text.ensureBlock, 'function');
+        assert.strictEqual(typeof tools.text.replaceBetween, 'function');
+        assert.strictEqual(typeof tools.text.appendLines, 'function');
+        assert.strictEqual(typeof tools.text.replace, 'function');
+
+        // Test logger API shape
+        assert.strictEqual(typeof tools.logger.info, 'function');
+        assert.strictEqual(typeof tools.logger.warn, 'function');
+        assert.strictEqual(typeof tools.logger.table, 'function');
+
+        // Test options API shape
+        assert.strictEqual(typeof tools.options.has, 'function');
+        assert.strictEqual(typeof tools.options.when, 'function');
+        assert.strictEqual(typeof tools.options.list, 'function');
+        assert.strictEqual(typeof tools.options.in, 'function');
+        assert.strictEqual(typeof tools.options.require, 'function');
+        assert.strictEqual(typeof tools.options.dimensions, 'function');
+        assert.strictEqual(typeof tools.options.raw, 'function');
+
+      } finally {
+        await fs.rm(tempDir, { recursive: true, force: true });
+      }
+    });
+
+    it('should handle options API with real user selections', async () => {
+      const tempDir = path.join(tmpdir(), 'options-test-' + Date.now());
+      await fs.mkdir(tempDir, { recursive: true });
+
+      try {
+        const logger = new MockLogger();
+        const options = {
+          projectDirectory: tempDir,
+          projectName: 'test-project',
+          logger,
+          templateContext: {
+            inputs: {},
+            authoring: 'wysiwyg',
+            constants: {},
+            authorAssetsDir: '__scaffold__'
+          },
+          dimensions: {
+            features: { type: 'multi', values: ['api', 'auth'], default: [] }
+          },
+          options: { raw: ['features=api'], byDimension: { features: ['api'] } }
+        };
+
+        const tools = await createSetupTools(options);
+
+        // Test options API with real selections
+        assert.strictEqual(tools.options.in('features', 'api'), true);
+        assert.strictEqual(tools.options.in('features', 'auth'), false);
+        assert.strictEqual(tools.options.has('api'), true); // default dimension
+        assert.strictEqual(tools.options.has('auth'), false);
+
+        assert.deepStrictEqual(tools.options.list('features'), ['api']);
+        assert.deepStrictEqual(tools.options.dimensions(), { features: ['api'] });
+        assert.deepStrictEqual(tools.options.raw(), ['features=api']);
+
+        // Test when() with selected feature
+        let callbackExecuted = false;
+        await tools.options.when('api', async () => {
+          callbackExecuted = true;
+        });
+        assert.strictEqual(callbackExecuted, true);
+
+        // Test when() with unselected feature
+        callbackExecuted = false;
+        await tools.options.when('auth', async () => {
+          callbackExecuted = true;
+        });
+        assert.strictEqual(callbackExecuted, false);
+
+      } finally {
+        await fs.rm(tempDir, { recursive: true, force: true });
+      }
+    });
+
+    it('should handle empty options gracefully', async () => {
+      const tempDir = path.join(tmpdir(), 'empty-options-test-' + Date.now());
+      await fs.mkdir(tempDir, { recursive: true });
+
+      try {
+        const logger = new MockLogger();
+        const options = {
+          projectDirectory: tempDir,
+          projectName: 'test-project',
+          logger,
+          templateContext: {
+            inputs: {},
+            authoring: 'wysiwyg',
+            constants: {},
+            authorAssetsDir: '__scaffold__'
+          },
+          dimensions: {
+            features: { type: 'multi', values: ['api', 'auth'], default: [] }
+          },
+          options: { raw: [], byDimension: {} } // Empty options
+        };
+
+        const tools = await createSetupTools(options);
+
+        // Test options API with empty selections
+        assert.strictEqual(tools.options.in('features', 'api'), false);
+        assert.strictEqual(tools.options.has('api'), false);
+        assert.deepStrictEqual(tools.options.list('features'), []);
+        assert.deepStrictEqual(tools.options.dimensions(), { features: [] });
+        assert.deepStrictEqual(tools.options.raw(), []);
+
+        // Test when() with empty options
+        let callbackExecuted = false;
+        await tools.options.when('api', async () => {
+          callbackExecuted = true;
+        });
+        assert.strictEqual(callbackExecuted, false);
+
+      } finally {
+        await fs.rm(tempDir, { recursive: true, force: true });
+      }
+    });
+
+    it('should provide functional placeholders API', async () => {
+      const tempDir = path.join(tmpdir(), 'placeholders-test-' + Date.now());
+      await fs.mkdir(tempDir, { recursive: true });
+
+      try {
+        const logger = new MockLogger();
+        const options = {
+          projectDirectory: tempDir,
+          projectName: 'test-project',
+          logger,
+          templateContext: {
+            inputs: { NAME: 'MyApp', VERSION: '1.0.0' },
+            authoring: 'wysiwyg',
+            constants: {},
+            authorAssetsDir: '__scaffold__'
+          },
+          dimensions: {},
+          options: { raw: [], byDimension: {} }
+        };
+
+        const tools = await createSetupTools(options);
+
+        // Test replaceAll with explicit replacements
+        const testFile1 = path.join(tempDir, 'test1.txt');
+        await fs.writeFile(testFile1, 'Hello {{NAME}} v{{VERSION}}!');
+        await tools.placeholders.replaceAll({ NAME: 'CustomApp', VERSION: '2.0.0' });
+        const content1 = await fs.readFile(testFile1, 'utf8');
+        assert.strictEqual(content1, 'Hello CustomApp v2.0.0!');
+
+        // Test applyInputs (uses template context inputs)
+        const testFile2 = path.join(tempDir, 'test2.txt');
+        await fs.writeFile(testFile2, 'Welcome {{NAME}} v{{VERSION}}!');
+        await tools.placeholders.applyInputs();
+        const content2 = await fs.readFile(testFile2, 'utf8');
+        assert.strictEqual(content2, 'Welcome MyApp v1.0.0!');
+
+        // Test replaceInFile
+        const testFile3 = path.join(tempDir, 'test3.txt');
+        await fs.writeFile(testFile3, 'Project: {{NAME}}');
+        await tools.placeholders.replaceInFile(testFile3, { NAME: 'FileApp' });
+        const content3 = await fs.readFile(testFile3, 'utf8');
+        assert.strictEqual(content3, 'Project: FileApp');
+
+      } finally {
+        await fs.rm(tempDir, { recursive: true, force: true });
+      }
+    });
+
+    it('should provide functional inputs API', async () => {
+      const tempDir = path.join(tmpdir(), 'inputs-test-' + Date.now());
+      await fs.mkdir(tempDir, { recursive: true });
+
+      try {
+        const logger = new MockLogger();
+        const options = {
+          projectDirectory: tempDir,
+          projectName: 'test-project',
+          logger,
+          templateContext: {
+            inputs: { API_KEY: 'secret123', DEBUG: 'true', PORT: '3000' },
+            authoring: 'wysiwyg',
+            constants: {},
+            authorAssetsDir: '__scaffold__'
+          },
+          dimensions: {},
+          options: { raw: [], byDimension: {} }
+        };
+
+        const tools = await createSetupTools(options);
+
+        // Test get method
+        assert.strictEqual(tools.inputs.get('API_KEY'), 'secret123');
+        assert.strictEqual(tools.inputs.get('MISSING'), undefined);
+        assert.strictEqual(tools.inputs.get('MISSING', 'default'), 'default');
+
+        // Test all method
+        const allInputs = tools.inputs.all();
+        assert.deepStrictEqual(allInputs, {
+          API_KEY: 'secret123',
+          DEBUG: 'true',
+          PORT: '3000'
+        });
+
+      } finally {
+        await fs.rm(tempDir, { recursive: true, force: true });
+      }
+    });
+
+    it('should provide functional files API', async () => {
+      const tempDir = path.join(tmpdir(), 'files-test-' + Date.now());
+      await fs.mkdir(tempDir, { recursive: true });
+
+      try {
+        const logger = new MockLogger();
+        const options = {
+          projectDirectory: tempDir,
+          projectName: 'test-project',
+          logger,
+          templateContext: {
+            inputs: {},
+            authoring: 'wysiwyg',
+            constants: {},
+            authorAssetsDir: '__scaffold__'
+          },
+          dimensions: {},
+          options: { raw: [], byDimension: {} }
+        };
+
+        const tools = await createSetupTools(options);
+
+        // Test ensureDirs
+        const subDir = path.join(tempDir, 'subdir', 'nested');
+        await tools.files.ensureDirs(subDir);
+        const stats = await fs.stat(subDir);
+        assert(stats.isDirectory());
+
+        // Test write
+        const testFile = path.join(tempDir, 'test.txt');
+        await tools.files.write(testFile, 'Hello World');
+        const content = await fs.readFile(testFile, 'utf8');
+        assert.strictEqual(content, 'Hello World');
+
+        // Test copy
+        const copyFile = path.join(tempDir, 'copy.txt');
+        await tools.files.copy(testFile, copyFile);
+        const copyContent = await fs.readFile(copyFile, 'utf8');
+        assert.strictEqual(copyContent, 'Hello World');
+
+        // Test move
+        const moveFile = path.join(tempDir, 'moved.txt');
+        await tools.files.move(copyFile, moveFile);
+        const moveContent = await fs.readFile(moveFile, 'utf8');
+        assert.strictEqual(moveContent, 'Hello World');
+        await assert.rejects(fs.access(copyFile)); // Should not exist
+
+        // Test remove
+        await tools.files.remove(moveFile);
+        await assert.rejects(fs.access(moveFile)); // Should not exist
+
       } finally {
         await fs.rm(tempDir, { recursive: true, force: true });
       }

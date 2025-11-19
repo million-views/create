@@ -1,0 +1,67 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://m5nv.com/schema/config.json",
+  "title": "M5NV Configuration Schema",
+  "description": "Schema for .m5nvrc configuration files used by @m5nv/create-scaffold",
+  "type": "object",
+  "properties": {
+    "author": {
+      "type": "object",
+      "description": "Default author metadata",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Author name"
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "description": "Author email"
+        },
+        "url": {
+          "type": "string",
+          "format": "uri",
+          "description": "Author URL"
+        }
+      },
+      "additionalProperties": false
+    },
+    "placeholders": {
+      "type": "object",
+      "description": "Default placeholder values",
+      "patternProperties": {
+        "^[A-Z][A-Z0-9_]*$": {
+          "type": "string",
+          "description": "Placeholder value"
+        }
+      },
+      "additionalProperties": false
+    },
+    "registries": {
+      "type": "object",
+      "description": "Template registries for auto-discovery",
+      "patternProperties": {
+        "^[a-zA-Z][a-zA-Z0-9_-]*$": {
+          "description": "Registry name",
+          "oneOf": [
+            {
+              "type": "string",
+              "description": "Single repository URL or local path"
+            },
+            {
+              "type": "array",
+              "description": "Array of single-template repository URLs/paths",
+              "items": {
+                "type": "string",
+                "description": "Repository URL or local path"
+              },
+              "minItems": 1
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

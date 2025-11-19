@@ -10,6 +10,7 @@ import { loadConfig, loadConfigFromFile, getPatternsForFile } from '../../../../
 export class Converter {
   constructor(options) {
     this.options = options;
+    this.fileOperations = [];
   }
 
   async convert() {
@@ -139,13 +140,16 @@ export class Converter {
       fileOperations: existingUndo?.fileOperations || []
     };
 
-    // Add current operation
+    // Add template.json creation
     undoLog.fileOperations.push({
       type: 'create',
       path: 'template.json',
       description: 'Created template configuration file',
       timestamp: new Date().toISOString()
     });
+
+    // Add all file modification operations
+    undoLog.fileOperations.push(...this.fileOperations);
 
     // Write undo log
     await writeJsonFile(undoPath, undoLog);
@@ -154,7 +158,7 @@ export class Converter {
   async detectAndReplacePlaceholders() {
     const projectPath = path.resolve(this.options.projectPath);
     const detectedPlaceholders = {};
-    const placeholderFormat = this.options.placeholderFormat || '{{NAME}}';
+    const placeholderFormat = this.options.placeholderFormat || '⦃NAME⦄';
 
     // Load templatization configuration
     console.log('📋 Loading templatization configuration...');
@@ -403,7 +407,8 @@ export class Converter {
     try {
       // Read file content as string for all processors
       const fs = await import('fs/promises');
-      let content = await fs.readFile(filePath, 'utf8');
+      const originalContent = await fs.readFile(filePath, 'utf8');
+      let content = originalContent;
       const fileExt = path.extname(filePath);
 
       // Validate content is not empty
@@ -486,6 +491,16 @@ export class Converter {
         }
 
         await fs.writeFile(filePath, content, 'utf8');
+
+        // Record file operation for undo log
+        const relativePath = path.relative(path.resolve(this.options.projectPath), filePath);
+        this.fileOperations.push({
+          type: 'modified',
+          path: relativePath,
+          originalContent,
+          description: `Modified file with ${Object.keys(placeholders).length} placeholder(s)`,
+          timestamp: new Date().toISOString()
+        });
       }
 
     } catch (error) {
@@ -503,6 +518,19 @@ export class Converter {
     if (!format || typeof format !== 'string') {
       throw new Error(`Invalid placeholder format: ${format}`);
     }
+
+    // Handle named formats
+    const formatMap = {
+      'mustache': '{{NAME}}',
+      'dollar': '$NAME$',
+      'percent': '%NAME%',
+      'unicode': '⦃NAME⦄'
+    };
+
+    if (formatMap[format]) {
+      format = formatMap[format];
+    }
+
     if (!format.includes('NAME')) {
       throw new Error(`Placeholder format must contain 'NAME' placeholder: ${format}`);
     }

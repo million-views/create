@@ -12,9 +12,6 @@ export class NewCommand extends Command {
     if (arg === '--template' || arg === '-T') {
       parsed.template = args[i + 1];
       return i + 1;
-    } else if (arg === '--branch' || arg === '-b') {
-      parsed.branch = args[i + 1];
-      return i + 1;
     } else if (arg === '--no-cache') {
       parsed.cache = false;
       return i;
@@ -30,9 +27,6 @@ export class NewCommand extends Command {
       if (!parsed.placeholders) parsed.placeholders = [];
       parsed.placeholders.push(args[i + 1]);
       return i + 1;
-    } else if (arg === '--experimental-placeholder-prompts') {
-      parsed.experimentalPlaceholderPrompts = true;
-      return i;
     } else if (arg === '--no-input-prompts') {
       parsed.inputPrompts = false;
       return i;
@@ -107,16 +101,6 @@ export class NewCommand extends Command {
         }
       } catch (error) {
         errors.push(`Invalid template: ${error.message}`);
-      }
-    }
-
-    // Validate branch name for security
-    if (parsed.branch) {
-      if (parsed.branch.includes('\0')) {
-        errors.push('Branch name contains invalid characters');
-      } else if (parsed.branch.includes(';') || parsed.branch.includes('|') || parsed.branch.includes('&') ||
-                 parsed.branch.includes('`') || parsed.branch.includes('$(') || parsed.branch.includes('${')) {
-        errors.push('Branch name contains invalid characters');
       }
     }
 

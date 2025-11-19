@@ -5,7 +5,8 @@ export const initHelp = {
 
   detailedDescription: [
     'Creates a skeleton template.json file with common fields.',
-    'Useful for starting a new template from scratch.'
+    'Useful for starting a new template from scratch.',
+    'Must be run inside the project directory you want to templatize.'
   ],
 
   optionGroups: [

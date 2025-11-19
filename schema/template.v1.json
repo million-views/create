@@ -61,6 +61,45 @@
       },
       "description": "Post-scaffold instructions displayed to users. Each string becomes a bullet point under 'Next steps'."
     },
+    "placeholders": {
+      "type": "object",
+      "description": "Placeholder definitions with defaults and descriptions. Keys are placeholder token names (without {{}}).",
+      "patternProperties": {
+        "^[A-Z0-9_]+$": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["default", "description"],
+          "properties": {
+            "default": {
+              "type": "string",
+              "description": "Default value to use when no explicit input is provided."
+            },
+            "description": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Human-readable context for the placeholder."
+            },
+            "required": {
+              "type": "boolean",
+              "description": "Whether the token must be supplied before scaffolding can proceed.",
+              "default": false
+            },
+            "sensitive": {
+              "type": "boolean",
+              "description": "Marks values as secrets so tooling can mask them.",
+              "default": false
+            },
+            "type": {
+              "type": "string",
+              "enum": ["string", "number", "boolean"],
+              "description": "Preferred primitive type when collecting values.",
+              "default": "string"
+            }
+          }
+        }
+      },
+      "additionalProperties": false
+    },
     "setup": {
       "type": "object",
       "additionalProperties": false,
@@ -526,10 +565,5 @@
         }
       }
     }
-  },
-  "constants": {
-    "type": "object",
-    "description": "Fixed template constants that define the template's identity. These values cannot be changed by users and distinguish one template from another.",
-    "additionalProperties": true
   }
 }

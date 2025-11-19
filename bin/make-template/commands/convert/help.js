@@ -5,6 +5,13 @@ export const convertHelp = {
 
   detailedDescription: [
     'Convert an existing project into a reusable template using configurable templatization patterns.',
+    '',
+    'The conversion process:',
+    '  1. Reads templatization rules from .templatize.json (created by \'make-template init\')',
+    '  2. Replaces project-specific values with placeholders using specified format',
+    '  3. Creates .template-undo.json for restoration capabilities',
+    '  4. Generates/updates template.json with detected placeholders',
+    '',
     'Requires a .templatize.json configuration file to specify which content to replace with placeholders.',
     'Use \'npx make-template init\' to generate a default configuration file.',
     'Always specify the project path explicitly to avoid accidental conversion.'
@@ -26,20 +33,6 @@ export const convertHelp = {
       ]
     },
     {
-      title: 'Project Options',
-      options: [
-        {
-          long: '--type',
-          value: '<type>',
-          desc: 'Force specific project type detection',
-          detailed: [
-            'Override automatic project type detection.',
-            'Supported types: vite-react, next, express, generic'
-          ]
-        }
-      ]
-    },
-    {
       title: 'Templatization Options',
       options: [
         {
@@ -48,9 +41,10 @@ export const convertHelp = {
           desc: 'Specify placeholder format',
           detailed: [
             'Choose placeholder style for replacements:',
-            '  • mustache - {{PLACEHOLDER}} (default)',
-            '  • dollar   - $PLACEHOLDER',
-            '  • percent  - %PLACEHOLDER%'
+            '  • unicode  - ⦃PLACEHOLDER⦄ (default, React-friendly, avoids JSX conflicts)',
+            '  • mustache - {{PLACEHOLDER}} (works everywhere, but conflicts with JSX)',
+            '  • dollar   - $PLACEHOLDER$ (avoids conflicts with template literals)',
+            '  • percent  - %PLACEHOLDER% (avoids conflicts with CSS/custom syntax)'
           ]
         }
       ]
@@ -97,6 +91,10 @@ export const convertHelp = {
     {
       cmd: 'convert ./my-project --placeholder-format dollar',
       desc: 'Use $PLACEHOLDER format for replacements'
+    },
+    {
+      cmd: 'convert ./my-project --placeholder-format unicode',
+      desc: 'Use ⦃PLACEHOLDER⦄ format for React compatibility'
     }
   ],
 

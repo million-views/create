@@ -1,3 +1,3 @@
-# {{PROJECT_NAME}} Overview
+# ⦃PROJECT_NAME⦄ Overview
 
 This fixture combines multiple tools runtime capabilities.

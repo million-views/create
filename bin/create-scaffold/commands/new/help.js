@@ -22,21 +22,8 @@ export const newHelp = {
             'Can be specified as:',
             '  • Short name: react-app',
             '  • Full URL: https://github.com/user/template.git',
-            '  • Registry path: official/react-app'
-          ]
-        }
-      ]
-    },
-    {
-      title: 'Template Options',
-      options: [
-        {
-          long: '--branch',
-          short: '-b',
-          value: '<name>',
-          desc: 'Git branch to use (default: main/master)',
-          detailed: [
-            'Specify which branch to clone from the template repository'
+            '  • Registry path: official/react-app',
+            '  • With branch: workshop/basic-react-spa#feature-branch'
           ]
         }
       ]
@@ -68,13 +55,6 @@ export const newHelp = {
           desc: 'Supply placeholder value',
           detailed: [
             'Provide placeholder values in NAME=value format. Can be specified multiple times.'
-          ]
-        },
-        {
-          long: '--experimental-placeholder-prompts',
-          desc: 'Enable experimental placeholder prompting features',
-          detailed: [
-            'Enable advanced interactive prompting for placeholder values'
           ]
         },
         {
@@ -121,8 +101,8 @@ export const newHelp = {
       desc: 'Create React app from template'
     },
     {
-      cmd: 'new api-server --template express-api --branch develop',
-      desc: 'Use specific branch'
+      cmd: 'new my-app --template workshop/basic-react-spa#feature-branch',
+      desc: 'Use template from specific branch'
     },
     {
       cmd: 'new my-app --template react-app --placeholder NAME=MyApp',

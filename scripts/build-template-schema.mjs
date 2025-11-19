@@ -125,9 +125,25 @@ function basicSchemaValidation(schema) {
     throw new Error('Schema setup.authoringMode must declare enum values.');
   }
 
-  const placeholderDef = schema.$defs?.placeholder;
-  if (!placeholderDef || placeholderDef.type !== 'object') {
-    throw new Error('Schema must define $defs.placeholder as an object.');
+  // Validate placeholders structure
+  const placeholders = properties.placeholders;
+  if (!placeholders || typeof placeholders !== 'object') {
+    throw new Error('Schema must include a placeholders object.');
+  }
+
+  const placeholderPatternProps = placeholders.patternProperties?.['^[A-Z0-9_]+$'];
+  if (!placeholderPatternProps || typeof placeholderPatternProps !== 'object') {
+    throw new Error('Schema placeholders must define pattern properties for placeholder tokens.');
+  }
+
+  const placeholderTypeEnum = placeholderPatternProps.properties?.type?.enum;
+  if (!Array.isArray(placeholderTypeEnum) || placeholderTypeEnum.length === 0) {
+    throw new Error('Schema placeholders must define type enum values.');
+  }
+
+  // Validate schema uses modern JSON Schema features
+  if (!schema.$schema || !schema.$schema.includes('draft/2020-12')) {
+    throw new Error('Schema must use JSON Schema Draft 2020-12 or later.');
   }
 }
 

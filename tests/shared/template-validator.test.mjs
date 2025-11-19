@@ -380,9 +380,12 @@ test('TemplateValidator consumption mode validation', async (t) => {
       id: 'test/optional-template',
       name: 'Template with Optionals',
       description: 'Template with optional fields',
-      placeholders: [
-        { name: 'projectName', type: 'string', default: 'my-project' }
-      ],
+      placeholders: {
+        PROJECT_NAME: {
+          default: 'my-project',
+          description: 'Name of the project'
+        }
+      },
       files: {
         include: ['src/**/*'],
         exclude: ['*.log']
@@ -399,12 +402,12 @@ test('TemplateValidator consumption mode validation', async (t) => {
       id: 'test/invalid-template',
       name: 'Invalid Template',
       description: 'Template with invalid placeholders',
-      placeholders: 'not-an-array'
+      placeholders: 'not-an-object'
     };
 
     const result = await validator.validate(template, 'strict', { mode: 'consumption' });
     assert(!result.valid, 'Template with invalid placeholders should be invalid');
-    assert(result.errors.includes('placeholders must be an array'), 'Should report invalid placeholders');
+    assert(result.errors.includes('placeholders must be an object'), 'Should report invalid placeholders');
   });
 
   await t.test('rejects invalid files structure in consumption mode', async () => {

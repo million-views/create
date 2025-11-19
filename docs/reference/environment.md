@@ -78,6 +78,7 @@ export default async function setup({ ctx, tools }) {
 | `authoring` | `"wysiwyg" \| "composable"` | Mode declared in `template.json`. WYSIWYG templates mirror a working project; composable templates assemble features via `_setup.mjs`. |
 | `authorAssetsDir` | `string` | Directory name for template assets (configured via `setup.authorAssetsDir`, defaults to `"__scaffold__"`). |
 | `options` | `object` | Normalized user selections with defaults already applied. Contains `raw` (array of raw option strings) and `byDimension` (object mapping dimension names to selected values). |
+| `options` | `object` | Normalized user selections with defaults already applied. Contains `raw` (array of raw option strings) and `byDimension` (object mapping dimension names to selected values). |
 | `inputs` | `Record<string, string \| number \| boolean>` | Placeholder answers collected during template instantiation. Keys omit braces (`PROJECT_NAME`). Values are immutable and type-coerced based on `metadata.placeholders` and any canonical `metadata.variables` entries. |
 | `constants` | `Record<string, any>` | Template-defined constants from `template.json` that are always available regardless of user selections. |
 

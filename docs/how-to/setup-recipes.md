@@ -44,10 +44,13 @@ Replace placeholders in template files with user-provided values.
 ```javascript
 // _setup.mjs
 export default async function setup({ ctx, tools }) {
-  // Replace project name in multiple files
+  // Replace project name in all files (default selector matches everything)
+  await tools.placeholders.replaceAll({ PROJECT_NAME: ctx.projectName });
+  
+  // Or replace in specific file types
   await tools.placeholders.replaceAll(
     { PROJECT_NAME: ctx.projectName },
-    ['README.md', 'package.json', 'index.html']
+    ['*.md', '*.json', '*.html']
   );
 }
 ```
@@ -635,7 +638,7 @@ export default async function setup({ ctx, tools }) {
       projectName: ctx.projectName,
       author: ctx.author?.name || 'Unknown',
       description: 'My awesome project',
-      features: ctx.options.byDimension.features || []
+      features: (ctx.options.byDimension.features || []).join(', ')
     }
   );
 }
@@ -653,9 +656,7 @@ Created by {{author}}
 
 ## Features
 
-{{#each features}}
-- {{this}}
-{{/each}}
+{{features}}
 ```
 
 **Result (README.md):**
@@ -670,9 +671,7 @@ My awesome project
 
 ## Features
 
-- auth
-- testing
-- i18n
+auth, testing, i18n
 ```
 
 ---

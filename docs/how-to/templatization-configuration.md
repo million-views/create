@@ -44,13 +44,13 @@ Once configured, convert your template:
 
 ```bash
 # Convert with default settings
-npx make-template convert
+npx make-template convert .
 
 # Preview changes without making them
-npx make-template convert --dry-run
+npx make-template convert . --dry-run
 
 # Convert without confirmation prompts (for automation)
-npx make-template convert --yes
+npx make-template convert . --yes
 ```
 
 ## Configuration Structure
@@ -364,7 +364,7 @@ Test your configuration with sample data:
 
 ```bash
 # Create a test conversion
-npx make-template convert --dry-run
+npx make-template convert . --dry-run
 
 # Check the output
 cat converted-files/
@@ -517,7 +517,7 @@ Enable verbose output to see what's happening:
 
 ```bash
 # Enable verbose output during conversion
-npx make-template convert --verbose
+npx make-template convert . --verbose
 ```
 
 This shows detailed information about:

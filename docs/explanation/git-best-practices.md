@@ -1,8 +1,6 @@
 ---
 title: "Git Best Practices for Template Development"
-description:
-  "Essential Git practices for maintaining clean template repositories and
-  avoiding common pitfalls"
+description: "Essential Git practices for maintaining clean template repositories and avoiding common pitfalls"
 type: explanation
 audience: "template-authors"
 estimated_time: "8 minutes"

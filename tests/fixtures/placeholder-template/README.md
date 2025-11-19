@@ -1,5 +1,5 @@
-# {{PROJECT_NAME}}
+# ⦃PROJECT_NAME⦄
 
-This project uses an API token: {{API_TOKEN}}
+This project uses an API token: ⦃API_TOKEN⦄
 
-Workers: {{MAX_WORKERS}}
+Workers: ⦃MAX_WORKERS⦄

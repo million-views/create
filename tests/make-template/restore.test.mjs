@@ -49,12 +49,12 @@ async function createMockUndoLog(projectDir) {
       makeTemplateVersion: '0.6.0',
       projectType: 'generic',
       timestamp: new Date().toISOString(),
-      placeholderFormat: '{{NAME}}'
+      placeholderFormat: '⦃NAME⦄'
     },
     originalValues: {
-      '{{PROJECT_NAME}}': 'test-project',
-      '{{VERSION}}': '1.0.0',
-      '{{DESCRIPTION}}': 'Test project description'
+      '⦃PROJECT_NAME⦄': 'test-project',
+      '⦃VERSION⦄': '1.0.0',
+      '⦃DESCRIPTION⦄': 'Test project description'
     },
     fileOperations: [
       {
@@ -65,8 +65,8 @@ async function createMockUndoLog(projectDir) {
           version: '1.0.0'
         }, null, 2),
         newContent: JSON.stringify({
-          name: '{{PROJECT_NAME}}',
-          version: '{{VERSION}}'
+          name: '⦃PROJECT_NAME⦄',
+          version: '⦃VERSION⦄'
         }, null, 2),
         restorationAction: 'restore-content'
       },
@@ -74,7 +74,7 @@ async function createMockUndoLog(projectDir) {
         type: 'modified',
         path: 'README.md',
         originalContent: '# Original Project\n\nThis is the original project.',
-        newContent: '# {{PROJECT_NAME}}\n\n{{DESCRIPTION}}',
+        newContent: '# ⦃PROJECT_NAME⦄\n\n⦃DESCRIPTION⦄',
         restorationAction: 'restore-content'
       }
     ]
@@ -155,11 +155,11 @@ test('restore performs restoration', async () => {
 
     // Create the templatized files that need to be restored
     await writeFile(join(testDir, 'package.json'), JSON.stringify({
-      name: '{{PROJECT_NAME}}',
-      version: '{{VERSION}}'
+      name: '⦃PROJECT_NAME⦄',
+      version: '⦃VERSION⦄'
     }, null, 2));
 
-    await writeFile(join(testDir, 'README.md'), '# {{PROJECT_NAME}}\n\n{{DESCRIPTION}}');
+    await writeFile(join(testDir, 'README.md'), '# ⦃PROJECT_NAME⦄\n\n⦃DESCRIPTION⦄');
 
     const result = execCLI(['restore', '--yes'], { cwd: testDir });
 
@@ -244,10 +244,10 @@ test('restore handles missing files gracefully', async () => {
         makeTemplateVersion: '0.6.0',
         projectType: 'generic',
         timestamp: new Date().toISOString(),
-        placeholderFormat: '{{NAME}}'
+        placeholderFormat: '⦃NAME⦄'
       },
       originalValues: {
-        '{{PROJECT_NAME}}': 'test-project'
+        '⦃PROJECT_NAME⦄': 'test-project'
       },
       fileOperations: [
         {
@@ -288,11 +288,11 @@ test('restore --restore-files option works', async () => {
 
     // Create the templatized files
     await writeFile(join(testDir, 'package.json'), JSON.stringify({
-      name: '{{PROJECT_NAME}}',
-      version: '{{VERSION}}'
+      name: '⦃PROJECT_NAME⦄',
+      version: '⦃VERSION⦄'
     }, null, 2));
 
-    await writeFile(join(testDir, 'README.md'), '# {{PROJECT_NAME}}\n\n{{DESCRIPTION}}');
+    await writeFile(join(testDir, 'README.md'), '# ⦃PROJECT_NAME⦄\n\n⦃DESCRIPTION⦄');
 
     const result = execCLI(['restore', '--yes', '--restore-files', 'package.json'], { cwd: testDir });
 
@@ -311,7 +311,7 @@ test('restore --restore-files option works', async () => {
     const readmePath = join(testDir, 'README.md');
     await access(readmePath, constants.F_OK);
     const readmeContent = await readFile(readmePath, 'utf8');
-    assert(readmeContent.includes('{{PROJECT_NAME}}'), 'README should not be restored with --restore-files option');
+    assert(readmeContent.includes('⦃PROJECT_NAME⦄'), 'README should not be restored with --restore-files option');
   } finally {
     await rm(baseTestDir, { recursive: true, force: true });
   }

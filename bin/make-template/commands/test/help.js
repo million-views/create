@@ -4,8 +4,16 @@ export const testHelp = {
   description: 'Test template functionality',
 
   detailedDescription: [
-    'Tests a template by performing a trial conversion and restoration.',
-    'Verifies that the template works correctly end-to-end.'
+    'Test templates by creating projects and validating functionality.',
+    '',
+    'The testing process:',
+    '  • Creates a temporary project from the template',
+    '  • Validates template.json structure and metadata',
+    '  • Tests placeholder resolution and restoration',
+    '  • Verifies setup scripts execute correctly',
+    '  • Cleans up temporary files (unless --keep-temp specified)',
+    '',
+    'Use --verbose for detailed output during testing phases.'
   ],
 
   optionGroups: [

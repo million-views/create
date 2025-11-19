@@ -90,19 +90,6 @@ describe('NewCommand', () => {
       assert.deepStrictEqual(parsed.placeholders, ['NAME=MyApp', 'VERSION=1.0.0']);
     });
 
-    it('handles branch specification', () => {
-      const cmd = new NewCommand();
-      const parsed = cmd.parseArgs([
-        'my-app',
-        '--template', 'react-app',
-        '--branch', 'develop'
-      ]);
-
-      assert.strictEqual(parsed.projectName, 'my-app');
-      assert.strictEqual(parsed.template, 'react-app');
-      assert.strictEqual(parsed.branch, 'develop');
-    });
-
     it('handles cache options', () => {
       const cmd = new NewCommand();
       const parsed = cmd.parseArgs([

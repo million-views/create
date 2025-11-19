@@ -1108,7 +1108,8 @@ export class GuidedSetupWorkflow {
           constants: this.metadata?.constants || {},
           authorAssetsDir: this.metadata?.setup?.authorAssetsDir || '__scaffold__'
         },
-        dimensions: this.metadata?.dimensions || {}
+        dimensions: this.metadata?.dimensions || {},
+        options: this.options || { raw: [], byDimension: {} }
       });
 
       await loadSetupScript(setupScriptPath, {

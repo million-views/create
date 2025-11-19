@@ -55,7 +55,7 @@ User Input → Validation → Source Detection → Repository Access → Templat
 ```
 
 **Source Types:**
-- **Registry Aliases**: `registry/template-name` → resolves to configured URL via `.m5nvrc`
+- **Registry References**: `registry-name/template-name` → resolves to auto-discovered template in configured registry
 - **GitHub Shorthand**: `user/repo` → `https://github.com/user/repo.git`
 - **Full URLs**: `https://github.com/user/repo.git`
 - **Local Paths**: `./my-template` or `/absolute/path/to/template`
@@ -252,7 +252,7 @@ Setup scripts run in a resource-restricted sandbox and rely exclusively on the c
 
 ### For Users
 
-- **Multiple Sources**: Use git repositories, GitHub shorthand, full URLs, registry aliases, or local directories as template sources
+- **Multiple Sources**: Use git repositories, GitHub shorthand, full URLs, registry references, or local directories as template sources
 - **Branch Support**: Access different template versions via git branches
 - **Caching Benefits**: Repeated operations are fast due to intelligent caching
 - **Security Assurance**: Template processing respects security boundaries

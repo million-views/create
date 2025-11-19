@@ -1,8 +1,20 @@
 {
   "registries": {
-    "official": "git@github.com:million-views/templates.git",
-    "favorites": "https://github.com/user/favorite-templates.git",
-    "company": "https://github.com/company/templates.git",
-    "community": "https://github.com/community/templates.git"
+    "official": {
+      "type": "git",
+      "url": "git@github.com:million-views/templates.git"
+    },
+    "favorites": {
+      "type": "git", 
+      "url": "https://github.com/user/favorite-templates.git"
+    },
+    "company": {
+      "type": "git",
+      "url": "https://github.com/company/templates.git"
+    },
+    "community": {
+      "type": "git",
+      "url": "https://github.com/community/templates.git"
+    }
   }
 }

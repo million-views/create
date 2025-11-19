@@ -24,6 +24,28 @@ export class TemplateResolver {
    * @returns {string} - Resolved URL (original or mapped value)
    */
   resolveRegistryAlias(templateUrl) {
+    // First check templates config for aliases
+    const templates = this.config?.defaults?.templates;
+    if (templates && typeof templates === 'object') {
+      // Check if templateUrl matches alias/template format
+      const slashIndex = templateUrl.indexOf('/');
+      if (slashIndex !== -1) {
+        const aliasName = templateUrl.substring(0, slashIndex);
+        const templateName = templateUrl.substring(slashIndex + 1);
+
+        if (templateName) {
+          const alias = templates[aliasName];
+          if (alias && typeof alias === 'object') {
+            const mappedUrl = alias[templateName];
+            if (typeof mappedUrl === 'string' && mappedUrl.trim()) {
+              return mappedUrl.trim();
+            }
+          }
+        }
+      }
+    }
+
+    // Fallback to legacy registries for backward compatibility
     const registries = this.config?.defaults?.registries;
     if (!registries || typeof registries !== 'object') {
       return templateUrl;
@@ -42,10 +64,10 @@ export class TemplateResolver {
       return templateUrl; // No template name after slash
     }
 
-    // Check if registry exists
+    // Check if registry exists and is a legacy template mapping
     const registry = registries[registryName];
-    if (!registry || typeof registry !== 'object') {
-      return templateUrl; // Registry doesn't exist
+    if (!registry || typeof registry !== 'object' || registry.type) {
+      return templateUrl; // Not a legacy template mapping
     }
 
     // Check if template exists in registry

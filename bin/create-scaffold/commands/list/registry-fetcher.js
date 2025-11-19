@@ -88,12 +88,22 @@ export class RegistryFetcher {
       throw new Error(`Registry '${registryArg}' not found in configuration. Available registries: ${available}`);
     }
 
-    const registryUrl = registries[registryArg];
-    if (typeof registryUrl !== 'string') {
-      throw new Error(`Registry '${registryArg}' is not configured with a valid repository URL`);
+    const registry = registries[registryArg];
+    if (typeof registry === 'string') {
+      // Legacy string URL format
+      return registry;
+    } else if (typeof registry === 'object' && registry.type) {
+      // Typed registry format
+      if (registry.type === 'git') {
+        return registry.url;
+      } else if (registry.type === 'local') {
+        return registry.path;
+      } else {
+        throw new Error(`Registry '${registryArg}' has unsupported type '${registry.type}'. Supported types: git, local`);
+      }
+    } else {
+      throw new Error(`Registry '${registryArg}' is configured as a template mapping (for 'new' command), not a repository. Use 'create-scaffold new ${registryArg}/template-name' instead of 'list --registry ${registryArg}'`);
     }
-
-    return registryUrl;
   }
 
   isRepositoryUrl(str) {

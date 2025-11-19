@@ -30,25 +30,28 @@ Scaffold projects using templates from the [make-template tutorial](make-templat
 
 ## Registries Overview
 
-Registries organize templates by name instead of file paths. Configure them in `.m5nvrc`:
+Registries are template repositories that auto-discover available templates. Configure them in `.m5nvrc`:
 
 ```json
 {
   "registries": {
-    "workshop": {
-      "basic-react-spa": "./template-workshop/basic-react-spa",
-      "ssr-portfolio-app": "./template-workshop/ssr-portfolio-app", 
-      "portfolio-api": "./template-workshop/portfolio-api",
-      "portfolio-client": "./template-workshop/portfolio-client"
-    }
+    "workshop": "./tmp/template-workshop",
+    "work": "git@github.com:your-org/templates.git",
+    "community": [
+      "https://github.com/community/templates.git"
+    ]
   }
 }
 ```
 
-**Create registry:**
+**List templates from a registry:**
 ```bash
-cd template-workshop
 npx @m5nv/create-scaffold list --registry workshop
+```
+
+**Use templates from registries:**
+```bash
+npx @m5nv/create-scaffold new my-app --template workshop/basic-react-spa
 ```
 
 ## Example 1: Basic React SPA
@@ -57,44 +60,29 @@ npx @m5nv/create-scaffold list --registry workshop
 cd ..
 mkdir scaffolded-projects
 cd scaffolded-projects
-npx @m5nv/create-scaffold new my-react-spa --template basic-react-spa --registry workshop
+npx @m5nv/create-scaffold new my-react-spa --template workshop/basic-react-spa
 cd my-react-spa
 npm install && npm run dev
 ```
 
-## Example 2: SSR Portfolio App
+## Example 2: Custom Configuration
 
 ```bash
 cd ..
-npx @m5nv/create-scaffold new my-portfolio --template ssr-portfolio-app --registry workshop
-cd my-portfolio
-npm install
-npx wrangler d1 create my-portfolio-db
-npm run dev
+npx @m5nv/create-scaffold new my-custom-app --template workshop/basic-react-spa \
+  --placeholder projectName="My Custom App" \
+  --placeholder authorName="Your Name"
+cd my-custom-app
+npm install && npm run dev
 ```
 
-**Test API:**
-```bash
-curl http://localhost:8787/health
-curl http://localhost:8787/api/projects
-```
+## Example 3: Using Selection Files
 
-## Example 3: Full-Stack Portfolio
-
-**API Server:**
-```bash
-npx @m5nv/create-scaffold new portfolio-api --template portfolio-api --registry workshop
-cd portfolio-api
-npm install
-npx wrangler d1 create portfolio-db
-npm run dev
-```
-
-**Client App (new terminal):**
 ```bash
 cd ..
-npx @m5nv/create-scaffold new portfolio-client --template portfolio-client --registry workshop
-cd portfolio-client
+npx @m5nv/create-scaffold new my-quick-start --template workshop/basic-react-spa \
+  --selection '{}'
+cd my-quick-start
 npm install && npm run dev
 ```
 
@@ -102,7 +90,7 @@ npm install && npm run dev
 
 ### CLI Flags
 ```bash
-npx @m5nv/create-scaffold new custom-app --template basic-react-spa --registry workshop \
+npx @m5nv/create-scaffold new custom-app --template workshop/basic-react-spa \
   --placeholder projectName=MyApp \
   --placeholder authorName="Your Name"
 ```
@@ -121,7 +109,7 @@ npx @m5nv/create-scaffold new custom-app --template basic-react-spa --registry w
 ### Environment Variables
 ```bash
 CREATE_SCAFFOLD_PLACEHOLDER_projectName=MyProject \
-npx @m5nv/create-scaffold new env-test --template basic-react-spa --registry workshop
+npx @m5nv/create-scaffold new env-test --template workshop/basic-react-spa
 ```
 
 ## Selection Files for Variants
@@ -130,23 +118,23 @@ Use `selection.json` for predefined template configurations:
 
 ```bash
 # Use existing selection
-npx @m5nv/create-scaffold new my-project --template portfolio-api --registry workshop \
-  --selection ./portfolio-api.selection.json
+npx @m5nv/create-scaffold new my-project --template workshop/basic-react-spa \
+  --selection ./my-selection.selection.json
 
 # Skip prompts with defaults
-npx @m5nv/create-scaffold new quick-start --template basic-react-spa --registry workshop \
+npx @m5nv/create-scaffold new quick-start --template workshop/basic-react-spa \
   --selection '{}'
 ```
 
 ## What You Accomplished
 
-Scaffolded three project types:
+Scaffolded projects using the basic-react-spa template:
 1. **Basic React SPA** - Modern frontend with Vite + React
-2. **SSR Portfolio App** - Server-side rendering with D1 database
-3. **Full-Stack Portfolio** - Split architecture (API + client)
+2. **Custom Configuration** - Template with custom placeholders
+3. **Quick Start** - Template with selection file for defaults
 
 Learned:
-- Registry management for template organization
+- Registry configuration with local template directories
 - CLI customization with `--placeholder` flags
 - Global configuration with `.m5nvrc`
 - Selection files for template variants

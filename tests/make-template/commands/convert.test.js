@@ -29,13 +29,6 @@ describe('ConvertCommand', () => {
     assert.strictEqual(parsed.dryRun, true);
   });
 
-  it('handles options before path', () => {
-    const cmd = new ConvertCommand();
-    const parsed = cmd.parseArgs(['--type', 'vite-react', './my-project']);
-    assert.strictEqual(parsed.projectPath, './my-project');
-    assert.strictEqual(parsed.type, 'vite-react');
-  });
-
   it('shows help with --help flag', () => {
     const cmd = new ConvertCommand();
     const { logs } = captureOutput(() => cmd.execute(['--help']));

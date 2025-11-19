@@ -98,6 +98,7 @@
     "test:make-template:restore": "node scripts/test-runner.mjs --suite \"Make-Template Restore Tests\"",
     "test:make-template:test": "node scripts/test-runner.mjs --suite \"Make-Template Test Command Tests\"",
     "test:make-template:validate": "node scripts/test-runner.mjs --suite \"Make-Template Validate Tests\"",
+    "docs:gen-cli-ref": "node ./scripts/generate-cli-reference.mjs",
     "validate": "npm run schema:check && node ./scripts/comprehensive-validation.mjs",
     "validate:docs": "node ./scripts/validate-docs.mjs",
     "validate:code": "node ./scripts/comprehensive-validation.mjs --code-only"

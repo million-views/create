@@ -185,23 +185,6 @@ runner.createTest('Nonexistent template is detected', async () => {
   }
 });
 
-runner.createTest('Nonexistent branch is detected', async () => {
-  const tempDir = await TestEnvironment.createTempDir();
-  runner.addTempPath(tempDir);
-
-  // Use a local path with a nonexistent branch to test branch validation
-  const localPath = path.join(tempDir, 'nonexistent-template');
-  const result = await runCLI(CLI_PATH, ['new', 'test-project', '--template', localPath, '--branch', 'nonexistent-branch'], { cwd: tempDir });
-  if (result.exitCode === 0) {
-    throw new Error('CLI should have detected nonexistent branch');
-  }
-
-  const output = result.stdout + result.stderr;
-  if (!output.includes('not accessible') && !output.includes('Template not accessible')) {
-    throw new Error('Nonexistent branch/path combination was not detected');
-  }
-});
-
 runner.createTest('Missing template in repository is detected', async () => {
   const tempDir = await TestEnvironment.createTempDir();
   runner.addTempPath(tempDir);

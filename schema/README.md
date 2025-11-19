@@ -10,6 +10,9 @@ This directory stores the authoritative JSON schemas shipped with `@m5nv/create-
 - `selection.v1.json` contains the schema for selection.json files that store user choices and derived metadata during scaffolding.
 - `selection.json` is a symlink pointing to the latest stable selection schema consumed by the CLI.
 
+## Configuration Schema
+- `config.json` contains the schema for .m5nvrc configuration files used by the CLI.
+
 ## Versioning Policy
 
 - Breaking changes (removals, incompatible type shifts) require a new major schema file (`template.v2.json`, `selection.v2.json`).

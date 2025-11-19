@@ -12,7 +12,7 @@ related_docs:
   - "../how-to/setup-recipes.md"
   - "environment.md"
   - "error-codes.md"
-last_updated: "2025-11-17"
+last_updated: "2025-11-19"
 ---
 
 # CLI Reference
@@ -31,53 +31,6 @@ Both tools use command-based interfaces and support help commands:
 - `<tool> <command> --help`: Quick reference - shows options at a glance
 - `<tool> help <command>`: Detailed documentation - comprehensive format with examples
 
-## Tools
-
-### create-scaffold
-
-Scaffolds new projects from git-based templates.
-
-```bash
-# Using npm create (recommended)
-npm create @m5nv/scaffold <project-directory> -- --template <template-name> [options]
-
-# Using npx with command syntax
-npx @m5nv/create-scaffold new <project-directory> --template <template-name> [options]
-
-# Global installation
-create-scaffold new <project-directory> --template <template-name> [options]
-```
-
-### make-template
-
-Converts existing Node.js projects into reusable templates.
-
-```bash
-# Convert project to template
-make-template convert [options]
-
-# Restore templated project
-make-template restore [options]
-
-# Initialize template.json
-make-template init [options]
-
-# Validate template
-make-template validate [options]
-
-# Initialize configuration
-make-template config init [options]
-
-# Validate configuration
-make-template config validate [config-file]
-
-# Show authoring hints
-make-template hints
-
-# Test template end-to-end
-make-template test <template-path> [options]
-```
-
 ## Global Options
 
 Both tools support these global options:
@@ -87,39 +40,19 @@ Both tools support these global options:
 - `--verbose`: Enable verbose output
 - `--json`: Output results in JSON format (supported by: `list`, `validate` commands)
 
+<!-- AUTO-GENERATED: create-scaffold commands -->
 ## create-scaffold Commands
 
-### `new` - Create New Project
+### `list` - List templates from a registry repository
 
-Create a new project from a template.
+Display templates from a registry repository.
+By default, lists templates from the official million-views/templates registry.
+Use --registry to specify a different repository URL or configured registry name.
 
-**Usage:**
-
-```bash
-create-scaffold new <project-directory> --template <template-name> [options]
-```
-
-**Arguments:**
-- `<project-directory>`: Name of the directory to create for your project
-
-**Options:**
-- `--template, -T`: Template to use
-- `--branch, -b`: Git branch to use (default: main/master)
-- `--log-file`: Enable detailed logging to specified file
-- `--dry-run`: Preview changes without executing them
-- `--no-cache`: Bypass cache system and clone directly
-- `--cache-ttl`: Override default cache TTL in hours
-- `--placeholder`: Supply placeholder value in NAME=value form
-- `--experimental-placeholder-prompts`: Enable experimental placeholder prompting features
-- `--no-input-prompts`: Suppress prompts and non-essential output
-- `--interactive`: Force interactive mode
-- `--no-interactive`: Force non-interactive mode
-- `--no-config`: Skip loading user configuration
-- `--options`: Path to options file for template configuration
-
-### `list` - List Available Templates
-
-List available templates and registries.
+Registries are Git repositories containing template directories.
+Each template directory should contain project files like package.json, template.json, etc.
+If a repository contains a single template, --template is not needed when using it.
+If a repository contains multiple templates, --template specifies which directory to use.
 
 **Usage:**
 
@@ -128,14 +61,110 @@ create-scaffold list [options]
 ```
 
 **Options:**
-- `--registry`: Registry to list templates from
-- `--verbose`: Show detailed operation information
-- `--format`: Output format (table|json, default: table)
-- `--json`: Output results in JSON format
 
-### `validate` - Validate Template
+| Option | Description |
+|--------|-------------|
+| `--registry <name-or-url>` | Registry to list templates from Specify a registry by name (from .m5nvrc) or repository URL. If not specified, uses the default million-views/templates registry. Examples: --registry my-templates, --registry https://github.com/user/repo.git |
+| `--format <format>` | Output format (table|json, default: table) Choose output format:   • table - Human-readable table format   • json  - Machine-readable JSON format |
+| `--verbose` | Show detailed information |
 
-Validate a template directory.
+**Examples:**
+
+```bash
+list
+```
+    List templates from default registry (million-views/templates)
+
+```bash
+list --registry https://github.com/user/templates.git
+```
+    List templates from a specific repository URL
+
+```bash
+list --registry my-templates
+```
+    List templates from a configured registry shortcut
+
+```bash
+list --format json
+```
+    Output template information in JSON format
+
+```bash
+list --verbose
+```
+    Show detailed template information including versions and authors
+
+### `new` - Create a new project from a template
+
+Creates a new project by cloning and configuring a template from a registry.
+The command fetches the specified template, processes placeholders, and sets up a working project structure.
+
+**Usage:**
+
+```bash
+create-scaffold new <project-name> --template <template-name> [options]
+```
+
+**Arguments:**
+- `<project-name>`: Name of the directory to create for your project
+- `<template-name>`: Template to use for project creation
+
+**Options:**
+
+| Option | Description |
+|--------|-------------|
+| **Required** | |
+| `-T, --template <name>` | Template to use Template identifier from a configured registry. Can be specified as:   • Short name: react-app   • Full URL: https://github.com/user/template.git   • Registry path: official/react-app   • With branch: workshop/basic-react-spa#feature-branch |
+| **Cache Options** | |
+| `--no-cache` | Bypass cache system and clone directly Skip local cache and fetch template directly from source |
+| `--cache-ttl <hours>` | Override default cache TTL Specify cache time-to-live in hours (default: 24) |
+| **Placeholder Options** | |
+| `--placeholder <NAME=value>` | Supply placeholder value Provide placeholder values in NAME=value format. Can be specified multiple times. |
+| `--no-input-prompts` | Suppress prompts and non-essential output |
+| **Configuration** | |
+| `--no-config` | Skip loading user configuration |
+| `--options <file>` | Path to options file for template configuration Load template configuration from a JSON file |
+| **Operation Modes** | |
+| `-d, --dry-run` | Preview changes without executing them |
+| `--log-file <path>` | Enable detailed logging to specified file |
+
+**Examples:**
+
+```bash
+new my-app --template react-app
+```
+    Create React app from template
+
+```bash
+new my-app --template workshop/basic-react-spa#feature-branch
+```
+    Use template from specific branch
+
+```bash
+new my-app --template react-app --placeholder NAME=MyApp
+```
+    Provide placeholder values
+
+```bash
+new my-app --template react-app --no-cache
+```
+    Skip cache and fetch fresh
+
+```bash
+npm create @m5nv/scaffold my-app --template react-app
+```
+    Use with npm create
+
+```bash
+npx @m5nv/create-scaffold new my-app --template react-app
+```
+    Use with npx
+
+### `validate` - Validate template configuration
+
+Validates a template directory or template.json file.
+Checks for required fields, valid structure, and common issues.
 
 **Usage:**
 
@@ -143,106 +172,48 @@ Validate a template directory.
 create-scaffold validate <template-path> [options]
 ```
 
-**Options:**
-- `--suggest`: Show intelligent fix suggestions
-- `--fix`: Auto-apply safe fixes
-- `--json`: Output results in JSON format
+**Arguments:**
+- `<template-path>`: Path to the template directory to test
 
+**Options:**
+
+| Option | Description |
+|--------|-------------|
+| `--suggest` | Show intelligent fix suggestions Provide suggestions for fixing validation errors |
+| `--fix` | Auto-apply safe fixes Automatically fix issues that can be safely corrected. Manual review recommended after automated fixes. |
+| `--json` | Output results in JSON format Machine-readable output for automation |
+
+**Examples:**
+
+```bash
+validate ./my-template
+```
+    Validate template in directory
+
+```bash
+validate ./template.json
+```
+    Validate template configuration file
+
+```bash
+validate ./my-template --suggest
+```
+    Get fix suggestions
+
+```bash
+validate ./my-template --fix
+```
+    Auto-fix safe issues
+<!-- END AUTO-GENERATED: create-scaffold commands -->
+
+<!-- AUTO-GENERATED: make-template commands -->
 ## make-template Commands
 
-### `convert` - Convert Project to Template
+### `config init` - Initialize .templatize.json configuration file
 
-Convert an existing Node.js project into a reusable template.
-
-**Usage:**
-
-```bash
-make-template convert <project-path> [options]
-```
-
-**Options:**
-- `--type <type>`: Force specific project type detection
-- `--placeholder-format <format>`: Specify placeholder format
-- `--dry-run, -d`: Preview changes without executing them
-- `--yes`: Skip confirmation prompts
-- `--silent`: Suppress prompts and non-essential output
-- `--sanitize-undo`: Remove sensitive data from undo log
-
-### `restore` - Restore Template to Project
-
-Restore a templated project back to its original working state.
-
-**Usage:**
-
-```bash
-make-template restore <project-path> [options]
-```
-
-**Options:**
-- `--files <files>`: Restore only specified files (comma-separated)
-- `--placeholders-only`: Restore only placeholder values, keep template structure
-- `--generate-defaults`: Generate .restore-defaults.json configuration
-- `--dry-run, -d`: Preview changes without executing them
-- `--yes`: Skip confirmation prompts
-
-### `init` - Initialize Template
-
-Generate a skeleton template.json file.
-
-**Usage:**
-
-```bash
-make-template init [options]
-```
-
-**Options:**
-- `--file, -f <path>`: Specify output file path (default: template.json)
-
-### `validate` - Validate Template
-
-Validate template.json against the schema.
-
-**Usage:**
-
-```bash
-make-template validate [options]
-```
-
-**Options:**
-- `--file, -f <path>`: Specify input file path
-- `--suggest`: Show intelligent fix suggestions
-- `--fix`: Auto-apply safe fixes
-- `--json`: Output results in JSON format
-
-### `hints` - Show Authoring Hints
-
-Display available hints catalog for template authoring.
-
-**Usage:**
-
-```bash
-make-template hints
-```
-
-### `test` - Test Template
-
-Test templates by creating projects and validating functionality.
-
-**Usage:**
-
-```bash
-make-template test <template-path> [options]
-```
-
-**Options:**
-- `--verbose, -v`: Enable verbose test output
-- `--keep-temp`: Preserve temporary directories after testing
-
-## make-template config Commands
-
-### `config init` - Initialize Configuration
-
-Generate a skeleton .templatize.json configuration file.
+Generate a default .templatize.json configuration file for templatization.
+This file defines patterns for converting project content into reusable templates.
+Run this command before using 'make-template convert' if no configuration exists.
 
 **Usage:**
 
@@ -251,11 +222,28 @@ make-template config init [options]
 ```
 
 **Options:**
-- `--file, -f <path>`: Specify output file path (default: .templatize.json)
 
-### `config validate` - Validate Configuration
+| Option | Description |
+|--------|-------------|
+| `-f, --file <path>` | Specify output file path Custom path for the configuration file. Defaults to ./.templatize.json |
 
-Validate .templatize.json configuration file.
+**Examples:**
+
+```bash
+config init
+```
+    Generate default .templatize.json in current directory
+
+```bash
+config init --file custom-config.json
+```
+    Generate config with custom filename
+
+### `config validate` - Validate .templatize.json configuration file
+
+Check the .templatize.json configuration file for syntax and semantic errors.
+Validates pattern definitions, file paths, and configuration structure.
+Run this before conversion to catch configuration issues early.
 
 **Usage:**
 
@@ -263,8 +251,270 @@ Validate .templatize.json configuration file.
 make-template config validate [config-file]
 ```
 
+**Examples:**
+
+```bash
+config validate
+```
+    Validate default .templatize.json
+
+```bash
+config validate custom-config.json
+```
+    Validate specific configuration file
+
+### `convert` - Convert project to template using configurable patterns
+
+Convert an existing project into a reusable template using configurable templatization patterns.
+
+The conversion process:
+  1. Reads templatization rules from .templatize.json (created by 'make-template init')
+  2. Replaces project-specific values with placeholders using specified format
+  3. Creates .template-undo.json for restoration capabilities
+  4. Generates/updates template.json with detected placeholders
+
+Requires a .templatize.json configuration file to specify which content to replace with placeholders.
+Use 'npx make-template init' to generate a default configuration file.
+Always specify the project path explicitly to avoid accidental conversion.
+
+**Usage:**
+
+```bash
+make-template convert <project-path> [options]
+```
+
 **Arguments:**
-- `<config-file>`: Path to configuration file (default: .templatize.json)
+- `<project-path>`: Path to the project directory to convert
+
+**Options:**
+
+| Option | Description |
+|--------|-------------|
+| **Configuration** | |
+| `--config <file>` | Use specific configuration file Specify custom .templatize.json file path. Defaults to ./.templatize.json in project directory. |
+| **Templatization Options** | |
+| `--placeholder-format <format>` | Specify placeholder format Choose placeholder style for replacements:   • mustache - {{PLACEHOLDER}} (default, works everywhere)   • dollar   - $PLACEHOLDER$ (avoids conflicts with template literals)   • percent  - %PLACEHOLDER% (avoids conflicts with CSS/custom syntax)   • unicode  - ⦃PLACEHOLDER⦄ (React-friendly, avoids JSX conflicts) |
+| **Operation Modes** | |
+| `-d, --dry-run` | Preview changes without executing them |
+| `--yes` | Skip confirmation prompts |
+| `--silent` | Suppress prompts and non-essential output |
+| **Security** | |
+| `--sanitize-undo` | Remove sensitive data from undo log Prevents sensitive data from being stored in restoration logs |
+
+**Examples:**
+
+```bash
+convert ./my-project
+```
+    Convert project using existing or default config
+
+```bash
+convert ./my-project --dry-run
+```
+    Preview templatization changes
+
+```bash
+convert ./my-project --config custom-config.json --yes
+```
+    Use custom config file and skip prompts
+
+```bash
+convert ./my-project --placeholder-format dollar
+```
+    Use $PLACEHOLDER format for replacements
+
+```bash
+convert ./my-project --placeholder-format unicode
+```
+    Use ⦃PLACEHOLDER⦄ format for React compatibility
+
+For configuration management:
+  • make-template config init - Generate .templatize.json
+  • make-template config validate - Validate configuration
+
+For detailed configuration options, see:
+  • docs/how-to/templatization-configuration.md
+  • docs/reference/templatization-patterns.md
+
+### `hints` - Show hints catalog
+
+Display catalog of available hints for template creation.
+Provides guidance on best practices and common patterns.
+
+**Usage:**
+
+```bash
+make-template hints [options]
+```
+
+**Examples:**
+
+```bash
+hints
+```
+    Show all available hints
+
+### `init` - Generate skeleton template.json
+
+Creates a skeleton template.json file with common fields.
+Useful for starting a new template from scratch.
+Must be run inside the project directory you want to templatize.
+
+**Usage:**
+
+```bash
+make-template init [options]
+```
+
+**Options:**
+
+| Option | Description |
+|--------|-------------|
+| `-f, --file <path>` | Specify output file path (default: template.json) Custom path for the generated template configuration |
+
+**Examples:**
+
+```bash
+init
+```
+    Generate template.json in current directory
+
+```bash
+init --file my-template.json
+```
+    Generate with custom filename
+
+### `restore` - Restore template to project
+
+Restore a template back to a working project state.
+Replaces placeholders with actual values and restores project structure.
+
+**Usage:**
+
+```bash
+make-template restore <project-path> [options]
+```
+
+**Arguments:**
+- `<project-path>`: Path to the project directory to convert
+
+**Options:**
+
+| Option | Description |
+|--------|-------------|
+| **Restore Scope** | |
+| `--files <files>` | Restore only specified files (comma-separated) Comma-separated list of file paths to restore |
+| `--placeholders-only` | Restore only placeholder values, keep template structure Useful for refreshing placeholder values without affecting template files |
+| **Configuration** | |
+| `--generate-defaults` | Generate .restore-defaults.json configuration Creates a configuration file for default restoration values |
+| **Operation Modes** | |
+| `-d, --dry-run` | Preview changes without executing them |
+| `--yes` | Skip confirmation prompts |
+
+**Examples:**
+
+```bash
+restore ./my-template
+```
+    Restore template to working state
+
+```bash
+restore ./my-template --dry-run
+```
+    Preview restoration
+
+```bash
+restore ./my-template --files package.json,src/index.js
+```
+    Restore specific files
+
+```bash
+restore ./my-template --placeholders-only
+```
+    Only restore placeholder values
+
+### `test` - Test template functionality
+
+Test templates by creating projects and validating functionality.
+
+The testing process:
+  • Creates a temporary project from the template
+  • Validates template.json structure and metadata
+  • Tests placeholder resolution and restoration
+  • Verifies setup scripts execute correctly
+  • Cleans up temporary files (unless --keep-temp specified)
+
+Use --verbose for detailed output during testing phases.
+
+**Usage:**
+
+```bash
+make-template test <template-path> [options]
+```
+
+**Arguments:**
+- `<template-path>`: Path to the template directory to test
+
+**Options:**
+
+| Option | Description |
+|--------|-------------|
+| `--verbose` | Show detailed test output |
+| `--keep-temp` | Preserve temporary directories after testing |
+
+**Examples:**
+
+```bash
+test ./my-template
+```
+    Test template functionality
+
+```bash
+test ./my-template --verbose
+```
+    Test with detailed output
+
+### `validate` - Validate template.json
+
+Validates template.json in the current directory.
+Checks for required fields, valid structure, and common issues.
+
+**Usage:**
+
+```bash
+make-template validate [options]
+```
+
+**Options:**
+
+| Option | Description |
+|--------|-------------|
+| `-f, --file <path>` | Specify input file path Custom path to configuration file |
+| `--suggest` | Show intelligent fix suggestions Provide suggestions for fixing validation errors |
+| `--fix` | Auto-apply safe fixes Automatically fix issues that can be safely corrected. Manual review recommended after automated fixes. |
+
+**Examples:**
+
+```bash
+validate template.json
+```
+    Validate template.json in current directory
+
+```bash
+validate --file my-template.json
+```
+    Validate specific file
+
+```bash
+validate --file template.json --suggest
+```
+    Get fix suggestions
+
+```bash
+validate --file template.json --fix
+```
+    Auto-fix safe issues
+<!-- END AUTO-GENERATED: make-template commands -->
 
 ## Registry System
 
@@ -276,17 +526,54 @@ Registries are Git repositories containing template directories. Each registry c
 
 ### Registry Configuration
 
-Registries are configured in `.m5nvrc` configuration files as shortcuts to repository URLs:
+Registries are configured in `.m5nvrc` configuration files. Each registry points to one or more template sources that are automatically discovered:
 
 ```json
 {
   "registries": {
-    "official": "git@github.com:million-views/templates.git",
-    "company": "https://github.com/company/templates.git",
-    "personal": "git@github.com:user/my-templates.git"
+    "work": "git@github.com:million-views/templates.git",
+    "community": [
+      "https://github.com/community-1/template.git",
+      "https://github.com/community-2/template.git"
+    ],
+    "workshop": "~/my-templates"
   }
 }
 ```
+
+**Registry Types:**
+- **Single Repository**: String URL/path pointing to a repository with multiple templates
+- **Template Collection**: Array of URLs/paths, each pointing to a single-template repository
+- **Local Directory**: Local path to a directory containing template subdirectories
+
+### Template URL MicroDSL
+
+Templates can be referenced using a compact URL syntax that combines registry, template name, and branch information:
+
+```text
+registry-name/template-name#branch
+```
+
+**Examples:**
+- `workshop/basic-react-spa` - Template from workshop registry, main branch
+- `workshop/basic-react-spa#feature-branch` - Template from specific branch
+- `https://github.com/user/repo.git#develop` - Direct URL with branch
+
+### Registry Auto-Discovery
+
+When listing templates from a registry, the CLI automatically discovers templates by scanning repository contents for template indicators:
+
+**Template Indicators:**
+- `package.json` - Node.js project marker
+- `template.json` - Template metadata file
+- `_setup.mjs` - Template setup script
+- `src/`, `lib/` - Source code directories
+
+**Discovery Process:**
+1. Clone/fetch the registry repository
+2. Scan subdirectories for template indicators
+3. Extract metadata from `template.json` or `package.json`
+4. Return list of discovered templates
 
 ### Using Registries
 
@@ -297,38 +584,32 @@ Once configured, registries enable shorthand template references:
 create-scaffold list
 
 # List all templates in a specific registry
-create-scaffold list --registry company
+create-scaffold list --registry work
 
 # Use a template from a registry
-create-scaffold new my-app --template react-app --registry company
+create-scaffold new my-app --template work/react-app
 
-# Use a template directly from a repository URL
-create-scaffold new my-app --template react-app --registry https://github.com/user/repo.git
+# Use a template from a community collection
+create-scaffold new my-tool --template community/useful-tool
 ```
+
+**Registry Discovery:**
+- **Single repositories** auto-discover all templates in subdirectories
+- **Template collections** aggregate single templates from multiple repositories
+- **Local directories** auto-discover templates in subdirectories
 
 ### Default Registry
 
 The default registry is `git@github.com:million-views/templates.git` (private). This contains the official templates maintained by the million-views team.
 
-### Registry Types
-
-**Repository URLs**: Any Git repository URL can be used as a registry:
-- `https://github.com/user/repo.git`
-- `git@github.com:user/repo.git`
-- `github.com/user/repo` (shorthand)
-
-**Configured Shortcuts**: Named registries defined in `.m5nvrc`:
-- Reference by name: `--registry my-templates`
-- Maps to configured repository URL
-
 ### Template Discovery
 
 When listing templates from a registry:
-- Scans the repository for directories containing template indicators
-- Template indicators: `package.json`, `template.json`, `_setup.mjs`, `src/`, `lib/`, etc.
-- Returns metadata from `template.json` or `package.json`
-- Single-template repos don't require `--template` when using
-- Multi-template repos require `--template <directory-name>`
+- **Single repositories**: Scan subdirectories for template indicators
+- **Template collections**: Check each repository for its single template
+- **Local directories**: Scan subdirectories for template indicators
+- **Template indicators**: `package.json`, `template.json`, `_setup.mjs`, `src/`, `lib/`, etc.
+- **Metadata**: Retrieved from `template.json` or `package.json`
 
 ## Template manifest schema
 
@@ -386,8 +667,14 @@ Configuration files must be UTF-8 JSON objects with the following optional field
 
 ```json
 {
-  "repo": "owner/templates",
-  "branch": "main",
+  "registries": {
+    "work": "git@github.com:your-org/templates.git",
+    "community": [
+      "https://github.com/community-1/templates.git",
+      "https://github.com/community-2/templates.git"
+    ],
+    "local": "~/my-templates"
+  },
   "author": {
     "name": "Example Dev",
     "email": "dev@example.com",
@@ -400,18 +687,40 @@ Configuration files must be UTF-8 JSON objects with the following optional field
 }
 ```
 
-- `repo`: default template repository (user/repo shorthand, URL, or local path).
-- `branch`: optional git branch.
+- `registries`: object mapping registry names to repository URLs or arrays of URLs that auto-discover available templates.
 - `author`: optional metadata surfaced to setup scripts and logs (values are not printed).
 - `placeholders`: map of placeholder tokens to default values (same syntax as `--placeholder`).
 
+### Configuration schema
+
+Configuration files are validated against a JSON schema to ensure correctness:
+
+- `@m5nv/create-scaffold/schema/config.json` – latest stable schema.
+- `@m5nv/create-scaffold/types/config-schema` – TypeScript declarations for programmatic tooling.
+
+Add the schema to your editor configuration to surface validation and completions:
+
+```json
+{
+  "json.schemas": [
+    {
+      "fileMatch": [".m5nvrc", "rc.json"],
+      "url": "./node_modules/@m5nv/create-scaffold/schema/config.json"
+    }
+  ]
+}
+```
+
+CLI contributors should run `npm run schema:build` after editing the schema and rely on `npm run schema:check` (already wired into `npm run validate`) to detect drift.
+
 ### Precedence
 
-1. CLI flags (`--branch`, `--placeholder`, etc.).
-2. URL parameters in template URLs (e.g., `?options=typescript&branch=main`).
-3. Environment variables (e.g. `CREATE_SCAFFOLD_PLACEHOLDER_<TOKEN>`).
-4. Configuration defaults from `.m5nvrc`.
-5. Template-declared defaults.
+1. CLI flags (`--placeholder`, etc.).
+2. URL parameters in template URLs (e.g., `?options=typescript`).
+3. Branch specifications in template URLs (e.g., `user/repo#branch`).
+4. Environment variables (e.g. `CREATE_SCAFFOLD_PLACEHOLDER_<TOKEN>`).
+5. Configuration defaults from `.m5nvrc`.
+6. Template-declared defaults.
 
 Verbose mode prints which configuration file was used and which fields were applied, masking sensitive placeholder values. Errors reference the offending path and suggest `--no-config` for bypassing corrupt files.
 
@@ -463,12 +772,16 @@ Templates can be specified in multiple formats:
 | Format | Example | Description |
 |--------|---------|-------------|
 | Registry shorthand | `favorites/react-vite` | Template from configured registry |
+| Registry with branch | `favorites/react-vite#develop` | Template from specific branch |
 | GitHub shorthand | `user/repo/template` | GitHub repo with subpath |
+| GitHub with branch | `user/repo/template#feature-branch` | GitHub repo with branch and subpath |
 | Full URL | `https://github.com/user/repo` | Complete repository URL |
+| URL with branch | `https://github.com/user/repo#branch` | Repository URL with specific branch |
 | Local path | `./my-templates/react` | Local directory path |
 | URL with options | `user/repo?options=typescript&branch=main` | URL with query parameters |
 | HTTPS URL | `https://github.com/user/repo.git` | Full GitHub HTTPS URL |
 | SSH URL | `git@github.com:user/repo.git` | SSH URL (requires SSH keys) |
+| Archive URL | `https://github.com/user/repo/archive/refs/tags/v1.0.0.tar.gz` | Direct archive download |
 | Local path | `/path/to/local/repo` | Local git repository |
 | Relative path | `./local-repo` | Relative path to local repository |
 
