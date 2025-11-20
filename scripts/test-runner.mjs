@@ -50,7 +50,9 @@ class TestRunner {
       // System tests: Full end-to-end with resource management
       'system': [
         'Functional Tests',
-        'Resource Leak Tests'
+        'Resource Leak Tests',
+        'E2E Hermetic Isolation Tests',
+        'E2E Tutorial Workflows Tests'
       ],
       // Legacy groupings for backward compatibility
       'smoke': [
@@ -66,7 +68,9 @@ class TestRunner {
       ],
       'e2e': [
         'Functional Tests',
-        'Resource Leak Tests'
+        'Resource Leak Tests',
+        'E2E Hermetic Isolation Tests',
+        'E2E Tutorial Workflows Tests'
       ],
       'create-scaffold': [
         'Create-Scaffold New Tests',
@@ -369,6 +373,18 @@ class TestRunner {
         command: ['--test', './tests/templatize-html.test.mjs'],
         description: 'HTML file templatization with DOM parsing',
         homeSuffix: 'templatize-html'
+      },
+      {
+        name: 'E2E Hermetic Isolation Tests',
+        command: ['--test', './tests/e2e/hermetic-isolation.test.mjs'],
+        description: 'End-to-end hermetic test environment validation',
+        homeSuffix: 'e2e-hermetic'
+      },
+      {
+        name: 'E2E Tutorial Workflows Tests',
+        command: ['--test', './tests/e2e/tutorial-workflows.test.mjs'],
+        description: 'End-to-end tutorial workflow integration tests',
+        homeSuffix: 'e2e-workflows'
       }
     ];
   }
