@@ -1,6 +1,6 @@
 ---
 title: "Create Scaffold Tutorial"
-description: "Learn to scaffold new projects using templates with advanced customization features"
+description: "Learn to scaffold new projects using lawn care templates with marketing websites and customer-facing apps"
 type: tutorial
 audience: "intermediate"
 estimated_time: "35 minutes"
@@ -51,38 +51,40 @@ npx @m5nv/create-scaffold list --registry workshop
 
 **Use templates from registries:**
 ```bash
-npx @m5nv/create-scaffold new my-app --template workshop/basic-react-spa
+npx @m5nv/create-scaffold new my-marketing-site --template workshop/lawnmow-web
+npx @m5nv/create-scaffold new my-customer-app --template workshop/lawnmow-app
 ```
 
-## Example 1: Basic React SPA
+## Example 1: Marketing Website
 
 ```bash
 cd ..
 mkdir scaffolded-projects
 cd scaffolded-projects
-npx @m5nv/create-scaffold new my-react-spa --template workshop/basic-react-spa
-cd my-react-spa
+npx @m5nv/create-scaffold new greencare-site --template workshop/lawnmow-web
+cd greencare-site
 npm install && npm run dev
 ```
 
-## Example 2: Custom Configuration
+## Example 2: Custom Marketing Site with Branding
 
 ```bash
 cd ..
-npx @m5nv/create-scaffold new my-custom-app --template workshop/basic-react-spa \
-  --placeholder projectName="My Custom App" \
-  --placeholder authorName="Your Name"
-cd my-custom-app
+npx @m5nv/create-scaffold new sunshine-lawn --template workshop/lawnmow-web \
+  --placeholder BUSINESS_NAME="Sunshine Lawn Care" \
+  --placeholder BUSINESS_TAGLINE="Serving Phoenix since 2015" \
+  --placeholder CONTACT_EMAIL="mailto:hello@sunshinelawn.com"
+cd sunshine-lawn
 npm install && npm run dev
 ```
 
-## Example 3: Using Selection Files
+## Example 3: Customer-Facing App
 
 ```bash
 cd ..
-npx @m5nv/create-scaffold new my-quick-start --template workshop/basic-react-spa \
+npx @m5nv/create-scaffold new greencare-app --template workshop/lawnmow-app \
   --selection '{}'
-cd my-quick-start
+cd greencare-app
 npm install && npm run dev
 ```
 
@@ -90,26 +92,27 @@ npm install && npm run dev
 
 ### CLI Flags
 ```bash
-npx @m5nv/create-scaffold new custom-app --template workshop/basic-react-spa \
-  --placeholder projectName=MyApp \
-  --placeholder authorName="Your Name"
+npx @m5nv/create-scaffold new custom-site --template workshop/lawnmow-web \
+  --placeholder BUSINESS_NAME="ProMow Services" \
+  --placeholder CONTACT_EMAIL="mailto:info@promow.com"
 ```
 
 ### .m5nvrc Configuration
 ```json
 {
   "placeholders": {
-    "authorName": "Your Name",
-    "authorEmail": "your.email@example.com",
-    "license": "MIT"
+    "BUSINESS_NAME": "Your Lawn Care Business",
+    "CONTACT_EMAIL": "mailto:info@yourbusiness.com",
+    "BUSINESS_TAGLINE": "Professional lawn care services"
   }
 }
 ```
 
 ### Environment Variables
 ```bash
-CREATE_SCAFFOLD_PLACEHOLDER_projectName=MyProject \
-npx @m5nv/create-scaffold new env-test --template workshop/basic-react-spa
+CREATE_SCAFFOLD_PLACEHOLDER_PROJECT_NAME=MyLawnApp \
+CREATE_SCAFFOLD_PLACEHOLDER_CLOUDFLARE_ACCOUNT_ID=abc123 \
+npx @m5nv/create-scaffold new env-test --template workshop/lawnmow-app
 ```
 
 ## Selection Files for Variants
@@ -117,27 +120,28 @@ npx @m5nv/create-scaffold new env-test --template workshop/basic-react-spa
 Use `selection.json` for predefined template configurations:
 
 ```bash
-# Use existing selection
-npx @m5nv/create-scaffold new my-project --template workshop/basic-react-spa \
-  --selection ./my-selection.selection.json
+# Use existing selection for marketing site
+npx @m5nv/create-scaffold new my-marketing-site --template workshop/lawnmow-web \
+  --selection ./lawn-care-branding.selection.json
 
-# Skip prompts with defaults
-npx @m5nv/create-scaffold new quick-start --template workshop/basic-react-spa \
+# Skip prompts with defaults for customer app
+npx @m5nv/create-scaffold new quick-app --template workshop/lawnmow-app \
   --selection '{}'
 ```
 
 ## What You Accomplished
 
-Scaffolded projects using the basic-react-spa template:
-1. **Basic React SPA** - Modern frontend with Vite + React
-2. **Custom Configuration** - Template with custom placeholders
-3. **Quick Start** - Template with selection file for defaults
+Scaffolded projects using lawn care service templates:
+1. **Marketing Website** - Business website with contact forms and testimonials using `lawnmow-web`
+2. **Custom Branding** - Marketing site with custom business name, tagline, and contact info
+3. **Customer App** - Customer-facing scheduling and payment app using `lawnmow-app`
 
 Learned:
 - Registry configuration with local template directories
-- CLI customization with `--placeholder` flags
-- Global configuration with `.m5nvrc`
-- Selection files for template variants
+- CLI customization with `--placeholder` flags for business branding
+- Global configuration with `.m5nvrc` for business defaults
+- Selection files for template variants (marketing vs app)
+- Two-pillar web presence: Marketing (attract) + App (serve)
 
 ## Next Steps
 
