@@ -171,10 +171,10 @@ describe('Templatization Quality Validation Tests', () => {
     const maliciousConfig = {
       rules: {
         '../../../etc/passwd': [
-          { type: 'json-value', path: '$.name', placeholder: 'MALICIOUS' }
+          { context: 'application/json', path: '$.name', placeholder: 'MALICIOUS' }
         ],
         '/absolute/path.json': [
-          { type: 'json-value', path: '$.name', placeholder: 'ABSOLUTE' }
+          { context: 'application/json', path: '$.name', placeholder: 'ABSOLUTE' }
         ]
       }
     };
@@ -239,7 +239,7 @@ describe('Templatization Quality Validation Tests', () => {
       const config = {
         rules: {
           'package.json': [
-            { type: 'json-value', path: '$.name', placeholder: 'NAME' }
+            { context: 'application/json', path: '$.name', placeholder: 'NAME' }
           ]
         }
       };

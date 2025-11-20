@@ -31,7 +31,7 @@ describe('TemplatizeConfig', () => {
         rules: {
           'package.json': [
             {
-              type: 'json-value',
+              context: 'application/json',
               path: '$.name',
               placeholder: 'CUSTOM_NAME'
             }
@@ -180,14 +180,13 @@ describe('TemplatizeConfig', () => {
     it('returns patterns for exact filename match', () => {
       const patterns = getPatternsForFile('package.json', DEFAULT_CONFIG);
       assert(patterns.length > 0);
-      assert.strictEqual(patterns[0].type, 'json-value');
+      assert.strictEqual(patterns[0].context, 'application/json');
     });
 
     it('returns patterns for extension match', () => {
       const patterns = getPatternsForFile('App.jsx', DEFAULT_CONFIG);
       assert(patterns.length > 0);
-      assert.strictEqual(patterns[0].type, 'string-literal');
-      assert.strictEqual(patterns[0].context, 'jsx-text');
+      assert.strictEqual(patterns[0].context, 'text/jsx');
     });
 
     it('returns empty array for unmatched files', () => {
@@ -197,10 +196,10 @@ describe('TemplatizeConfig', () => {
 
     it('handles multiple matching patterns', () => {
       const patterns = getPatternsForFile('index.html', DEFAULT_CONFIG);
-      assert(patterns.length >= 2); // Should have html-text and html-attribute patterns
-      const types = patterns.map(p => p.type);
-      assert(types.includes('html-text'));
-      assert(types.includes('html-attribute'));
+      assert(patterns.length >= 2); // Should have text/html and text/html#attribute patterns
+      const contexts = patterns.map(p => p.context);
+      assert(contexts.includes('text/html'));
+      assert(contexts.includes('text/html#attribute'));
     });
   });
 });

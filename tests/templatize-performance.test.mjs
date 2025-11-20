@@ -103,8 +103,8 @@ describe('Templatization Performance Tests', () => {
     const largeConfig = {
       rules: {
         'package.json': [
-          { type: 'json-value', path: '$.name', placeholder: 'NAME' },
-          { type: 'json-value', path: '$.version', placeholder: 'VERSION' }
+          { context: 'application/json', path: '$.name', placeholder: 'NAME' },
+          { context: 'application/json', path: '$.version', placeholder: 'VERSION' }
         ]
       }
     };
