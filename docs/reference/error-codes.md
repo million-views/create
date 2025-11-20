@@ -186,15 +186,46 @@ Continuing without setup...
 
 ## Environment Variables
 
-The CLI tool doesn't use environment variables for configuration, but setup scripts may access standard environment variables:
+The CLI tools support the following environment variables:
 
 | Variable | Usage | Description |
 |----------|-------|-------------|
+| `M5NV_HOME` | Cache and config base | Override default `~/.m5nv` directory for cache and config storage. Useful for testing and custom installations. |
 | `NODE_ENV` | Setup scripts | Environment mode (development, production) |
 | `PATH` | CLI execution | System PATH for finding git and other tools |
-| `HOME` / `USERPROFILE` | Cache location | User home directory for cache storage |
+| `HOME` / `USERPROFILE` | Default home directory | User home directory (fallback when `M5NV_HOME` not set) |
 
-**Note:** The CLI tool itself doesn't read configuration from environment variables. All configuration is done through command-line arguments.
+### M5NV_HOME Environment Variable
+
+The `M5NV_HOME` environment variable allows you to override the default `~/.m5nv` directory used for cache and configuration storage. This is particularly useful for:
+
+- **Testing**: Isolate test runs with separate cache directories
+- **CI/CD**: Use workspace-local cache instead of user home directory
+- **Custom installations**: Install to non-standard locations (e.g., `/opt/m5nv`)
+
+**Examples:**
+
+```bash
+# Use custom directory for all M5NV data
+export M5NV_HOME=/opt/m5nv
+create-scaffold new my-app --template react
+
+# Isolate test environment
+M5NV_HOME=./test-cache npm test
+
+# CI/CD: Use workspace-local cache
+M5NV_HOME=$GITHUB_WORKSPACE/.m5nv npm run scaffold
+```
+
+**When `M5NV_HOME` is set:**
+- Cache directory: `$M5NV_HOME/cache`
+- Config file: `$M5NV_HOME/rc.json`
+- Template cache: `$M5NV_HOME/cache/templates`
+
+**When `M5NV_HOME` is NOT set (default):**
+- Cache directory: `~/.m5nv/cache`
+- Config file: `~/.m5nv/rc.json`
+- Template cache: `~/.m5nv/cache/templates`
 
 ## Logging and Debugging
 

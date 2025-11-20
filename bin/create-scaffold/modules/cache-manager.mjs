@@ -2,11 +2,11 @@
 
 import fs from 'fs/promises';
 import path from 'path';
-import os from 'os';
 import {
   ensureDirectory, safeCleanup, readJsonFile, writeJsonFile
 } from '../../../lib/fs-utils.mjs';
 import { execCommand } from '../../../lib/command-utils.mjs';
+import { resolveCacheDirectory } from '../../../lib/path-resolver.mjs';
 
 /**
  * Git Repository Cache Manager
@@ -21,7 +21,7 @@ import { execCommand } from '../../../lib/command-utils.mjs';
  * DIFFERENT from RegistryCacheManager which caches template metadata.
  */
 export class CacheManager {
-  constructor(cacheDir = path.join(os.homedir(), '.m5nv', 'cache')) {
+  constructor(cacheDir = resolveCacheDirectory()) {
     this.cacheDir = cacheDir;
   }
 
@@ -160,9 +160,9 @@ export class CacheManager {
 
     // Skip authentication check for obviously invalid/test URLs
     if (normalizedUrl.includes('definitely-does-not-exist') ||
-        normalizedUrl.includes('.invalid') ||
-        normalizedUrl.includes('example.com') ||
-        normalizedUrl.includes('nonexistent-spec-repo')) {
+      normalizedUrl.includes('.invalid') ||
+      normalizedUrl.includes('example.com') ||
+      normalizedUrl.includes('nonexistent-spec-repo')) {
       return true; // Assume these are test URLs and let git handle the actual failure
     }
 
@@ -176,10 +176,10 @@ export class CacheManager {
     } catch (error) {
       // Check if it's an authentication issue
       if (error.message.includes('Authentication failed') ||
-          error.message.includes('Permission denied') ||
-          error.message.includes('Repository not found') ||
-          error.message.includes('could not read Username') ||
-          error.message.includes('terminal prompts disabled')) {
+        error.message.includes('Permission denied') ||
+        error.message.includes('Repository not found') ||
+        error.message.includes('could not read Username') ||
+        error.message.includes('terminal prompts disabled')) {
         return false;
       }
       // For other errors (network issues, etc.), we can't be sure

@@ -150,10 +150,8 @@ optional during local development.
 
 ### Discovery order
 
-1. `CREATE_SCAFFOLD_CONFIG_PATH` (overrides everything when set).
-2. Project-level `.m5nvrc` in your working directory.
-3. User config: `~/.m5nv/rc.json` (macOS/Linux) or `%APPDATA%/m5nv/rc.json`
-   (Windows).
+1. Project-level `.m5nvrc` in your working directory.
+2. User config: `~/.m5nv/rc.json` (or `$M5NV_HOME/rc.json` when M5NV_HOME is set).
 
 Run with `--no-config` to skip discovery entirely. This is useful when testing
 error scenarios or validating the base CLI behavior.

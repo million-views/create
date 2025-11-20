@@ -108,16 +108,18 @@ Each cached repository includes metadata for management:
 
 ### Decision 1: User Directory Cache Location
 
-**Why we chose this:** Cache is stored in `~/.m5nv/cache/` in the user's home directory.
+**Why we chose this:** Cache is stored in `~/.m5nv/cache/` in the user's home directory (configurable via `M5NV_HOME` environment variable).
 
 **Trade-offs:**
-- **Gained**: User-specific caching, no permission issues, survives project deletion
+- **Gained**: User-specific caching, no permission issues, survives project deletion, customizable location
 - **Given up**: System-wide cache sharing (each user has separate cache)
 
 **Alternatives considered:**
 - **Project-local cache** (rejected - doesn't survive project deletion)
 - **System-wide cache** (rejected - permission and security complications)
 - **Temporary directory cache** (rejected - doesn't persist across sessions)
+
+**Customization:** Set `M5NV_HOME` environment variable to override the default `~/.m5nv` location. This is useful for testing, CI/CD, and custom installations.
 
 ### Decision 2: 24-Hour Default TTL
 

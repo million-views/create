@@ -9,6 +9,7 @@ import { EventEmitter } from 'events';
 import fs from 'fs/promises';
 import path from 'path';
 import crypto from 'crypto';
+import { resolveTemplateCacheDirectory } from '../../../../lib/path-resolver.mjs';
 
 /**
  * Registry Cache Manager for template metadata
@@ -43,8 +44,7 @@ export class RegistryCacheManager extends EventEmitter {
    * Get the appropriate cache directory for template metadata
    */
   getCacheDir() {
-    const home = process.env.HOME || process.env.USERPROFILE;
-    return path.join(home, '.m5nv', 'cache', 'templates');
+    return resolveTemplateCacheDirectory();
   }
 
   /**

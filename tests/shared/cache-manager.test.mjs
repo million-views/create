@@ -5,6 +5,7 @@ import assert from 'node:assert';
 import path from 'path';
 import os from 'os';
 import { CacheManager } from '../../bin/create-scaffold/modules/cache-manager.mjs';
+import { resolveCacheDirectory } from '../../lib/path-resolver.mjs';
 
 describe('CacheManager', () => {
   let cacheManager;
@@ -18,7 +19,8 @@ describe('CacheManager', () => {
 
   it('constructor sets default cache directory', () => {
     const defaultManager = new CacheManager();
-    assert.equal(defaultManager.cacheDir, path.join(os.homedir(), '.m5nv', 'cache'));
+    // Use path resolver to get expected default path
+    assert.equal(defaultManager.cacheDir, resolveCacheDirectory());
   });
 
   it('constructor accepts custom cache directory', () => {

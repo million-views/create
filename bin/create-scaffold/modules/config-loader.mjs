@@ -8,9 +8,9 @@ import {
   sanitizeBranchName,
   ValidationError
 } from '../../../lib/security.mjs';
+import { resolveUserConfigPath } from '../../../lib/path-resolver.mjs';
 
 const CONFIG_FILENAME = '.m5nvrc';
-const ENV_OVERRIDE_KEY = 'CREATE_SCAFFOLD_CONFIG_PATH';
 const PLACEHOLDER_TOKEN_PATTERN = /^[A-Z0-9_]+$/;
 
 /**
@@ -52,20 +52,13 @@ export async function loadConfig({ cwd = process.cwd(), env = process.env, skip 
 }
 
 function resolveCandidatePaths({ cwd, env }) {
-  const envOverride = expandHome(resolveString(env[ENV_OVERRIDE_KEY]));
-
-  if (envOverride) {
-    return [path.resolve(envOverride)];
-  }
-
   const projectCandidate = path.resolve(cwd, CONFIG_FILENAME);
-  const userConfigPaths = resolveUserConfigPath(env);
+  const userConfigPath = resolveUserConfigPath(env);
 
-  // Return array with project config first, then user configs (primary then fallback)
+  // Return array with project config first, then user config
   return [
     projectCandidate,
-    userConfigPaths.primary,
-    userConfigPaths.fallback
+    userConfigPath
   ].filter(Boolean);
 }
 
@@ -101,31 +94,6 @@ function expandHome(inputPath) {
   }
 
   return inputPath;
-}
-
-function resolveUserConfigPath(env) {
-  const platform = process.platform;
-  const homeDir = resolveString(env.HOME) || os.homedir();
-
-  if (!homeDir) {
-    return null;
-  }
-
-  // Primary location: ~/.m5nv/rc.json (consistent with cache location)
-  const primaryPath = path.join(homeDir, '.m5nv', 'rc.json');
-
-  // For backward compatibility, also check old location during migration
-  let fallbackPath = null;
-  if (platform === 'win32') {
-    const appData = resolveString(env.APPDATA) || path.join(homeDir, 'AppData', 'Roaming');
-    fallbackPath = path.resolve(appData, 'm5nv', 'rc.json');
-  } else {
-    const configBase = path.resolve(homeDir, '.config');
-    fallbackPath = path.join(configBase, 'm5nv', 'rc.json');
-  }
-
-  // Return both paths - loader will check primary first, then fallback
-  return { primary: primaryPath, fallback: fallbackPath };
 }
 
 async function readConfigFile(filePath) {
@@ -204,7 +172,7 @@ function normalizeConfigPayload(payload, filePath) {
   // Then check product-specific registries (new structure)
   const productName = 'create-scaffold'; // This could be made configurable
   if (payload[productName] && typeof payload[productName] === 'object' &&
-      payload[productName].registries) {
+    payload[productName].registries) {
     registries = payload[productName].registries;
   }
 
@@ -222,7 +190,7 @@ function normalizeConfigPayload(payload, filePath) {
 
   // Check product-specific templates
   if (payload[productName] && typeof payload[productName] === 'object' &&
-      payload[productName].templates) {
+    payload[productName].templates) {
     templates = payload[productName].templates;
   }
 

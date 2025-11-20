@@ -9,10 +9,10 @@ import { ValidationError } from '../../lib/security.mjs';
 import {
   loadConfig
 } from '../../bin/create-scaffold/modules/config-loader.mjs';
+import { resolveUserConfigPath } from '../../lib/path-resolver.mjs';
 
 // Constants from config-loader.mjs (not exported)
 const CONFIG_FILENAME = '.m5nvrc';
-const ENV_OVERRIDE_KEY = 'CREATE_SCAFFOLD_CONFIG_PATH';
 const _PLACEHOLDER_TOKEN_PATTERN = /^[A-Z0-9_]+$/;
 
 describe('ConfigLoader', () => {
@@ -55,8 +55,8 @@ describe('ConfigLoader', () => {
 
     it('loads user config when project config does not exist', async () => {
       const tempDir = path.join(tmpdir(), 'config-test-user');
-      const userConfigDir = path.join(os.homedir(), '.m5nv');
-      const userConfigPath = path.join(userConfigDir, 'rc.json');
+      const userConfigPath = resolveUserConfigPath();
+      const userConfigDir = path.dirname(userConfigPath);
       await fs.mkdir(tempDir, { recursive: true });
 
       // Create user config
@@ -79,8 +79,8 @@ describe('ConfigLoader', () => {
     it('prioritizes project config over user config', async () => {
       const tempDir = path.join(tmpdir(), 'config-test-priority');
       const configPath = path.join(tempDir, CONFIG_FILENAME);
-      const userConfigDir = path.join(os.homedir(), '.m5nv');
-      const userConfigPath = path.join(userConfigDir, 'rc.json');
+      const userConfigPath = resolveUserConfigPath();
+      const userConfigDir = path.dirname(userConfigPath);
       await fs.mkdir(tempDir, { recursive: true });
 
       // Create both configs
@@ -102,45 +102,7 @@ describe('ConfigLoader', () => {
       }
     });
 
-    it('uses environment override when set', async () => {
-      const tempDir = path.join(tmpdir(), 'config-test-env');
-      const overridePath = path.join(tmpdir(), 'override-config.json');
-      await fs.mkdir(tempDir, { recursive: true });
 
-      const configData = { repo: 'https://github.com/user/override.git' };
-      await fs.writeFile(overridePath, JSON.stringify(configData));
-
-      const env = { [ENV_OVERRIDE_KEY]: overridePath };
-
-      try {
-        const result = await loadConfig({ cwd: tempDir, env });
-        assert.notStrictEqual(result, null);
-        assert.strictEqual(result.path, overridePath);
-        assert.strictEqual(result.defaults.repo, 'https://github.com/user/override.git');
-        assert.deepStrictEqual(result.defaults.placeholders, []);
-      } finally {
-        await fs.rm(overridePath, { force: true });
-        await fs.rm(tempDir, { recursive: true, force: true });
-      }
-    });
-
-    it('expands home directory in environment override', async () => {
-      const overridePath = path.join(os.homedir(), 'override-config.json');
-      const configData = { repo: 'https://github.com/user/home.git' };
-      await fs.writeFile(overridePath, JSON.stringify(configData));
-
-      const env = { [ENV_OVERRIDE_KEY]: '~/override-config.json' };
-
-      try {
-        const result = await loadConfig({ env });
-        assert.notStrictEqual(result, null);
-        assert.strictEqual(result.path, overridePath);
-        assert.strictEqual(result.defaults.repo, 'https://github.com/user/home.git');
-        assert.deepStrictEqual(result.defaults.placeholders, []);
-      } finally {
-        await fs.rm(overridePath, { force: true });
-      }
-    });
   });
 
   describe('Configuration Validation', () => {
@@ -475,25 +437,6 @@ describe('ConfigLoader', () => {
   });
 
   describe('Path Resolution', () => {
-    it('expands home directory correctly', async () => {
-      const tempDir = path.join(tmpdir(), 'config-test-home-expand');
-      const homeConfigPath = path.join(os.homedir(), 'test-config.json');
-      await fs.mkdir(tempDir, { recursive: true });
-
-      const configData = { repo: 'https://github.com/user/home.git' };
-      await fs.writeFile(homeConfigPath, JSON.stringify(configData));
-
-      const env = { [ENV_OVERRIDE_KEY]: '~/test-config.json' };
-
-      try {
-        const result = await loadConfig({ cwd: tempDir, env });
-        assert.notStrictEqual(result, null);
-        assert.strictEqual(result.path, homeConfigPath);
-      } finally {
-        await fs.rm(homeConfigPath, { force: true });
-        await fs.rm(tempDir, { recursive: true, force: true });
-      }
-    });
 
     it('handles Windows-style paths on Windows', async () => {
       if (process.platform !== 'win32') {

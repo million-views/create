@@ -650,11 +650,10 @@ The CLI can preload defaults from configuration files so teams avoid repeating f
 
 ### Discovery order
 
-1. `CREATE_SCAFFOLD_CONFIG_PATH` (environment override) when set.
-2. Project-level `.m5nvrc` in the current working directory.
-3. User config: `~/.m5nv/rc.json` (macOS/Linux) or `%APPDATA%/m5nv/rc.json` (Windows).
+1. Project-level `.m5nvrc` in the current working directory.
+2. User config: `~/.m5nv/rc.json` (or `$M5NV_HOME/rc.json` when M5NV_HOME is set).
 
-Discovery stops at the first file found unless `CREATE_SCAFFOLD_CONFIG_PATH` points elsewhere. Use `--no-config` to bypass discovery entirely.
+Discovery stops at the first file found. Use `--no-config` to bypass discovery entirely.
 
 ### File format
 
@@ -759,6 +758,16 @@ create-scaffold list
 # Preview operations without executing (dry run)
 create-scaffold new my-app --template react --dry-run
 ```
+
+## Environment Variables
+
+The CLI tools support the following environment variables:
+
+| Variable | Description |
+|----------|-------------|
+| `M5NV_HOME` | Override default `~/.m5nv` base directory for cache and config storage |
+
+See [Error Codes Reference](error-codes.md#environment-variables) for detailed documentation.
 
 ## Template URL Formats
 
