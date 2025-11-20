@@ -122,3 +122,5 @@ export const newHelp = {
     }
   ]
 };
+
+// Test comment for CLI ref automation

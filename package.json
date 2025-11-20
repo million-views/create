@@ -109,6 +109,10 @@
     ],
     "*.md": [
       "eslint --fix"
+    ],
+    "bin/**/commands/**/help.js": [
+      "node ./scripts/generate-cli-reference.mjs",
+      "git add docs/reference/cli-reference.md"
     ]
   }
 }
