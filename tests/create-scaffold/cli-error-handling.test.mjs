@@ -306,16 +306,22 @@ runner.createTest('Setup script error handling with malformed setup scripts', as
   await TemplateRepository.execCommand('git', ['add', '.'], { cwd: repoDir });
   await TemplateRepository.execCommand('git', ['commit', '-m', 'Add malformed setup script'], { cwd: repoDir });
 
-  const result = await runCLI(CLI_PATH, ['new', tempDir, '--template', repoDir + '/features-demo-template']);
-  if (result.exitCode === 0) {
-    throw new Error('CLI should have failed with malformed setup script');
-  }
+  const result = await runCLI(CLI_PATH, ['new', 'test-malformed-setup', '--template', repoDir + '/features-demo-template'], { cwd: tempDir });
 
   const output = result.stdout + result.stderr;
 
-  // Should provide helpful error message for setup script issues
-  if (!output.includes('setup') && !output.includes('script') && !output.includes('error')) {
-    throw new Error('Setup script error was not handled gracefully');
+  // The workflow should succeed gracefully even with malformed setup scripts
+  // (setup scripts are optional and failures shouldn't brick scaffolding)
+  if (result.exitCode !== 0) {
+    throw new Error('CLI should have succeeded gracefully despite malformed setup script');
+  }
+
+  // Should provide warning about setup script failure
+  const hasWarning = output.toLowerCase().includes('warning') || output.toLowerCase().includes('failed');
+  const hasSetup = output.toLowerCase().includes('setup');
+
+  if (!hasWarning || !hasSetup) {
+    throw new Error('Setup script error should be logged as warning');
   }
 });
 

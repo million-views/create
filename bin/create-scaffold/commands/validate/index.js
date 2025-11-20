@@ -1,12 +1,17 @@
 import { Command } from '../../../../lib/cli/command.js';
 import { validateHelp } from './help.js';
 import { TemplateValidator } from '../../../../lib/validation/template-validator.mjs';
-import fs from 'fs';
-import path from 'path';
+import { SecurityGate, SecurityGateError } from '../../../../lib/security-gate.mjs';
+import { BoundaryValidator } from '../../../../lib/boundary-validator.mjs';
+import { stat } from 'fs/promises';
+import { basename } from 'path';
 
 export class ValidateCommand extends Command {
+  #securityGate;
+
   constructor() {
     super(validateHelp);
+    this.#securityGate = new SecurityGate();
   }
 
   parseArg(arg, args, i, parsed) {
@@ -28,97 +33,86 @@ export class ValidateCommand extends Command {
   }
 
   async run(parsed) {
-    if (!parsed.templatePath) {
-      if (parsed.json) {
-        console.log(JSON.stringify({
-          status: 'fail',
-          results: [{ type: 'error', message: 'Template path is required' }]
-        }, null, 2));
-      } else {
-        console.error('❌ Template path is required. Use: create-scaffold validate <template-path>');
-        console.log('\n💡 Suggestions:');
-        console.log('   • Check that the template path exists and is accessible');
-        console.log('   • Ensure template.json is valid JSON');
-        console.log('   • Use --verbose for detailed validation output');
-        this.showHelp();
-      }
-      process.exit(1);
-    }
-
-    // Handle file/directory validation
-    const validationResult = this.validateTemplatePath(parsed.templatePath);
-    if (!validationResult.valid) {
-      if (parsed.json) {
-        console.log(JSON.stringify({
-          status: 'fail',
-          results: validationResult.errors.map(error => ({ type: 'error', message: error }))
-        }, null, 2));
-      } else {
-        console.error('❌ Validation failed:');
-        validationResult.errors.forEach(error => console.error(`  • ${error}`));
-      }
-      process.exit(1);
-    }
-
-    const validator = new TemplateValidator();
-    const result = await validator.validate(validationResult.templatePath, 'strict', {
-      mode: 'consumption',
-      output: 'console',
-      json: parsed.json,
-      suggest: parsed.suggest
-    });
-
-    if (!result.valid) {
-      process.exit(1);
-    }
-  }
-
-  validateTemplatePath(templatePath) {
     try {
-      const stats = fs.statSync(templatePath);
+      const validated = await this.#securityGate.enforce(parsed, {
+        command: 'validate',
+        requiredFields: ['templatePath'],
+        timestamp: Date.now()
+      });
 
-      if (stats.isDirectory()) {
-        return this.validateDirectory(templatePath);
-      } else if (stats.isFile() && path.basename(templatePath) === 'template.json') {
-        return { valid: true, templatePath };
-      } else {
-        return {
-          valid: false,
-          errors: [`Invalid template path: ${templatePath}. Expected a directory or template.json file`]
-        };
+      const cwd = process.cwd();
+      const boundaryValidator = new BoundaryValidator(cwd);
+      const resolvedPath = boundaryValidator.validatePath(validated.templatePath, 'validate');
+
+      let stats;
+      try {
+        stats = await stat(resolvedPath);
+      } catch (error) {
+        const errorMsg = `Cannot access template path: ${validated.templatePath}`;
+        if (validated.json) {
+          console.log(JSON.stringify({
+            status: 'fail',
+            results: [{ type: 'error', message: errorMsg }]
+          }, null, 2));
+        } else {
+          console.error(`❌ ${errorMsg}`);
+        }
+        process.exit(1);
       }
+
+      let templatePath;
+      if (stats.isDirectory()) {
+        templatePath = resolvedPath;
+      } else if (stats.isFile() && basename(resolvedPath) === 'template.json') {
+        templatePath = resolvedPath;
+      } else {
+        const errorMsg = `Invalid template path. Expected a directory or template.json file`;
+        if (validated.json) {
+          console.log(JSON.stringify({
+            status: 'fail',
+            results: [{ type: 'error', message: errorMsg }]
+          }, null, 2));
+        } else {
+          console.error(`❌ ${errorMsg}`);
+        }
+        process.exit(1);
+      }
+
+      const validator = new TemplateValidator();
+      const result = await validator.validate(templatePath, 'strict', {
+        mode: 'consumption',
+        output: 'console',
+        json: validated.json,
+        suggest: validated.suggest
+      });
+
+      if (!result.valid) {
+        process.exit(1);
+      }
+
     } catch (error) {
-      return {
-        valid: false,
-        errors: [`Cannot access template path: ${templatePath} - ${error.message}`]
-      };
+      if (error instanceof SecurityGateError) {
+        if (parsed.json) {
+          console.log(JSON.stringify({
+            status: 'fail',
+            results: [{ type: 'error', message: error.message }]
+          }, null, 2));
+        } else {
+          console.error('❌ Security validation failed:');
+          if (error.validationErrors) {
+            error.validationErrors.forEach(err => console.error(`  • ${err}`));
+          } else {
+            console.error(`  • ${error.message}`);
+          }
+        }
+        process.exit(1);
+      }
+
+      throw error;
     }
-  }
-
-  validateDirectory(dirPath) {
-    const templateJsonPath = path.join(dirPath, 'template.json');
-    const readmePath = path.join(dirPath, 'README.md');
-
-    if (!fs.existsSync(templateJsonPath)) {
-      return {
-        valid: false,
-        errors: [`template.json not found in ${dirPath}`]
-      };
-    }
-
-    // Check for README.md
-    if (!fs.existsSync(readmePath)) {
-      return {
-        valid: false,
-        errors: ['Missing required file: README.md']
-      };
-    }
-
-    return { valid: true, templatePath: templateJsonPath };
   }
 }
 
-// Direct execution support
 if (import.meta.url === `file://${process.argv[1]}`) {
   const cmd = new ValidateCommand();
   const args = process.argv.slice(2);

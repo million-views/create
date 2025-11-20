@@ -32,7 +32,7 @@ Template scaffolding tools face unique security challenges:
 
 ## Our Approach
 
-We implement defense-in-depth with multiple security layers that work together to create a secure scaffolding environment.
+We implement a layered security model with multiple security controls that protect against common attack vectors. Our architecture focuses on comprehensive input validation, VM sandbox isolation, and bounded file operations to create a secure scaffolding environment.
 
 ### Key Principles
 
@@ -66,7 +66,6 @@ sanitizeBranchName(branchName) // Blocks command injection via branch names
 
 All file operations are bounded to prevent escaping project directories:
 
-- **Relative Path Enforcement**: Absolute paths are rejected
 - **Directory Traversal Blocking**: `../` sequences are detected and blocked
 - **Boundary Validation**: All resolved paths must stay within allowed directories
 - **Null Byte Protection**: Null bytes in paths are detected and rejected
@@ -76,8 +75,6 @@ All file operations are bounded to prevent escaping project directories:
 Git operations and system commands are protected against injection:
 
 - **Parameter Validation**: All git parameters are validated before use
-- **No Shell Expansion**: Commands are executed without shell interpretation
-- **Sanitized Error Messages**: Error outputs are cleaned of sensitive information
 - **Timeout Protection**: Operations have reasonable timeouts to prevent hanging
 
 ### Information Disclosure Protection
@@ -107,15 +104,15 @@ Error messages are sanitized to prevent information leakage:
 
 ### Decision 2: Setup Script Isolation
 
-**Why we chose this:** Setup scripts run in the user's project context, not the CLI tool's context, preventing privilege escalation.
+**Why we chose this:** Setup scripts run in a Node.js VM sandbox with restricted capabilities, blocking access to Node built-ins and dangerous operations.
 
 **Trade-offs:**
-- **Gained**: Protection against CLI tool compromise via malicious templates
-- **Given up**: Some convenience features that would require elevated privileges
+- **Gained**: Protection against malicious scripts accessing filesystem, importing modules, or executing arbitrary code
+- **Given up**: Flexibility - scripts must use provided tools API instead of Node built-ins
 
 **Alternatives considered:**
-- Sandboxed execution (rejected - too complex for the use case)
-- No setup scripts (rejected - reduces template flexibility)
+- No sandbox (rejected - allows arbitrary code execution)
+- Full OS-level sandboxing (rejected - too complex for cross-platform compatibility)
 
 ### Decision 3: Error Message Sanitization
 
@@ -131,15 +128,15 @@ Error messages are sanitized to prevent information leakage:
 
 ### Decision 4: Cache Security
 
-**Why we chose this:** Cached repositories are stored in user directories with proper permissions, metadata validation, and corruption detection.
+**Why we chose this:** Cached repositories are stored in user home directories with metadata validation and corruption detection.
 
 **Trade-offs:**
-- **Gained**: Protection against cache poisoning and unauthorized access through directory validation and metadata integrity
-- **Given up**: Some performance optimizations that would compromise security
+- **Gained**: Corruption detection and automatic recovery through metadata validation
+- **Given up**: Some performance - validation adds overhead
 
 **Alternatives considered:**
 - System-wide cache (rejected - permission and isolation issues)
-- No validation (rejected - allows cache corruption attacks)
+- No validation (rejected - allows cache corruption to cause confusing errors)
 
 ## Implications
 
@@ -153,7 +150,7 @@ Error messages are sanitized to prevent information leakage:
 ### For Template Authors
 
 - **Naming Constraints**: Template and file names must follow security-safe patterns
-- **Setup Script Limitations**: Scripts run in project context with user permissions only
+- **Setup Script Limitations**: Scripts run in VM sandbox and must use provided tools API
 - **Path Restrictions**: Templates cannot write files outside the project directory
 - **Validation Requirements**: All template metadata must pass validation checks
 
@@ -168,11 +165,11 @@ Error messages are sanitized to prevent information leakage:
 
 Our security model has intentional limitations that users should understand:
 
-1. **Setup Script Trust**: Once you consent to setup script execution, it runs with your user permissions
+1. **Setup Script Trust**: Setup scripts run in a VM sandbox but can still modify your project files through the tools API
 2. **Repository Trust**: We validate repository URLs but cannot verify repository content integrity
-3. **Network Security**: We rely on git and npm's network security for remote operations
+3. **Network Security**: We rely on git's network security for remote operations
 4. **Local System Security**: We cannot protect against compromised local systems or credentials
-5. **Template Content**: We validate structure but cannot analyze template file contents for malicious code
+5. **Template Content**: We validate structure but cannot analyze template file contents for malicious patterns
 
 ## Future Considerations
 
@@ -180,7 +177,6 @@ Our security model has intentional limitations that users should understand:
 
 - **Content Scanning**: Static analysis of template files for suspicious patterns
 - **Signature Verification**: Support for signed templates with cryptographic verification
-- **Sandbox Improvements**: Enhanced isolation for setup script execution
 - **Audit Logging**: Detailed security event logging for enterprise environments
 
 ### Research Areas
@@ -188,7 +184,6 @@ Our security model has intentional limitations that users should understand:
 - **Machine Learning Detection**: Automated detection of malicious template patterns
 - **Formal Verification**: Mathematical proofs of security properties
 - **Zero-Trust Architecture**: Assume all inputs and templates are potentially malicious
-- **Integration Security**: Secure integration with IDE and development environment features
 
 ## Related Concepts
 

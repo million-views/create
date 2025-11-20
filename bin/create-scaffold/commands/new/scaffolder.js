@@ -1,8 +1,6 @@
 import fs from 'fs/promises';
 import path from 'path';
-import {
-  ValidationError
-} from '../../../../lib/security.mjs';
+import { SecurityGate } from '../../../../lib/security-gate.mjs';
 import { CacheManager } from '../../modules/cache-manager.mjs';
 import { TemplateResolver } from '../../modules/template-resolver.mjs';
 import { Logger } from '../../../../lib/logger.mjs';
@@ -26,6 +24,8 @@ import { GuidedSetupWorkflow } from '../../modules/guided-setup-workflow.mjs';
 const DEFAULT_REPO = 'million-views/packages';
 
 export class Scaffolder {
+  #securityGate = new SecurityGate();
+
   constructor(options) {
     this.options = options;
     this.cacheManager = new CacheManager();
@@ -60,8 +60,16 @@ export class Scaffolder {
         console.error(`Warning: Failed to load configuration: ${error.message}`);
       }
 
+      // SECURITY LAYER 1: SecurityGate validation (architectural boundary)
+      // Note: template is optional (guided mode), only projectName required
+      const validated = await this.#securityGate.enforce(this.options, {
+        command: 'scaffold',
+        requiredFields: ['projectName'],
+        timestamp: Date.now()
+      });
+
       // Validate project directory early
-      const resolvedProjectDirectory = path.resolve(this.options.projectName);
+      const resolvedProjectDirectory = path.resolve(validated.projectName);
       try {
         const entries = await fs.readdir(resolvedProjectDirectory);
         if (entries.length > 0) {
@@ -84,38 +92,22 @@ export class Scaffolder {
       let _allowFallback = false;
 
       // First, check if the template is a registry alias and resolve it
-      let resolvedTemplate = this.options.template;
-      if (this.options.template && !this.options.template.includes('://') && !this.options.template.startsWith('/') && !this.options.template.startsWith('./') && !this.options.template.startsWith('../')) {
+      let resolvedTemplate = validated.template;
+      if (validated.template && !validated.template.includes('://') && !validated.template.startsWith('/') && !validated.template.startsWith('./') && !validated.template.startsWith('../')) {
         const tempResolver = new TemplateResolver(this.cacheManager, configMetadata);
-        resolvedTemplate = tempResolver.resolveRegistryAlias(this.options.template);
+        resolvedTemplate = tempResolver.resolveRegistryAlias(validated.template);
       }
 
-      // Validate template for security issues before processing
-      if (this.options.template) {
-        // Check for injection characters
-        if (this.options.template.includes('\0')) {
-          handleError(new ValidationError('Template contains null bytes', 'template'), { operation: 'template_validation', exit: true });
-        }
-        if (this.options.template.includes(';') || this.options.template.includes('|') ||
-            this.options.template.includes('&') || this.options.template.includes('`') ||
-            this.options.template.includes('$(') || this.options.template.includes('${')) {
-          handleError(new ValidationError('Template name contains invalid characters', 'template'), { operation: 'template_validation', exit: true });
-        }
-      }
-
-      if (this.options.template) {
+      if (validated.template) {
         // Process template URL
         // Handle different template input types
-        if (this.options.template.startsWith('/') || this.options.template.startsWith('./') || this.options.template.startsWith('../') ||
+        if (validated.template.startsWith('/') || validated.template.startsWith('./') || validated.template.startsWith('../') ||
             resolvedTemplate.startsWith('/') || resolvedTemplate.startsWith('./') || resolvedTemplate.startsWith('../')) {
           console.error('DEBUG: Taking local path branch');
-          // Direct template directory path - validate for security (prevent path traversal)
+          // Direct template directory path
           const templateToUse = (resolvedTemplate.startsWith('/') || resolvedTemplate.startsWith('./') || resolvedTemplate.startsWith('../'))
             ? resolvedTemplate
-            : this.options.template;
-          if (templateToUse.includes('..')) {
-            handleError(new ValidationError('Path traversal attempts are not allowed in template paths', 'template'), { operation: 'template_validation', exit: true });
-          }
+            : validated.template;
           templatePath = templateToUse;
           templateName = path.basename(templateToUse);
           repoUrl = path.dirname(templateToUse);
@@ -144,8 +136,8 @@ export class Scaffolder {
               ttlHours: this.options.cacheTtl ? parseInt(this.options.cacheTtl, 10) : undefined
             }
           );
-          templatePath = path.join(cachedRepoPath, this.options.template);
-          templateName = this.options.template;
+          templatePath = path.join(cachedRepoPath, validated.template);
+          templateName = validated.template;
           repoUrl = repoUrlResolved;
           branchName = branchNameResolved;
           _allowFallback = true; // Repository templates should fallback
@@ -230,14 +222,14 @@ export class Scaffolder {
         // Check if this is a local template directory (templatePath is set and repoUrl is local)
         if (templatePath && repoUrl && (repoUrl.startsWith('/') || repoUrl.startsWith('./') || repoUrl.startsWith('../') || repoUrl === '.')) {
           // For local template directories, use previewScaffoldingFromPath directly
-          preview = await dryRunEngine.previewScaffoldingFromPath(templatePath, this.options.projectName);
+          preview = await dryRunEngine.previewScaffoldingFromPath(templatePath, validated.projectName);
         } else if (repoUrl) {
           // Otherwise, use previewScaffolding for remote repositories
-          preview = await dryRunEngine.previewScaffolding(repoUrl, branchName || 'main', templateName, this.options.projectName);
+          preview = await dryRunEngine.previewScaffolding(repoUrl, branchName || 'main', templateName, validated.projectName);
         } else {
           // For local template paths without repoUrl, use previewScaffoldingFromPath
           const repoPath = path.dirname(templatePath);
-          preview = await dryRunEngine.previewScaffoldingFromPath(repoPath, templateName, this.options.projectName);
+          preview = await dryRunEngine.previewScaffoldingFromPath(repoPath, templateName, validated.projectName);
         }
 
         // Display preview output
@@ -245,7 +237,7 @@ export class Scaffolder {
         this.logger.info('================================');
         this.logger.info(`Template: ${templateName}`);
         this.logger.info(`Source: ${repoUrl}${branchName ? ` (${branchName})` : ''}`);
-        this.logger.info(`Target: ${this.options.projectName}`);
+        this.logger.info(`Target: ${validated.projectName}`);
         this.logger.info('');
 
         this.logger.info('📋 Operations Preview:');
@@ -337,12 +329,12 @@ export class Scaffolder {
 
       // Execute the guided workflow with all resolved parameters
       // Always use guided workflow as the default
-      console.error('DEBUG: About to call workflow for project:', this.options.projectName, 'template:', templatePath);
+      console.error('DEBUG: About to call workflow for project:', validated.projectName, 'template:', templatePath);
       console.error('DEBUG: Template path exists:', !!templatePath);
-      console.error('DEBUG: Project directory:', this.options.projectName);
+      console.error('DEBUG: Project directory:', validated.projectName);
       console.error('DEBUG: NODE_ENV:', process.env.NODE_ENV);
       console.error('DEBUG: About to create GuidedSetupWorkflow with:', {
-        projectDirectory: this.options.projectName,
+        projectDirectory: validated.projectName,
         templatePath,
         templateName,
         options: !!options,
@@ -358,7 +350,7 @@ export class Scaffolder {
           question: async (question) => {
             // In test/non-interactive mode, provide default answers
             if (question.includes('project name') || question.includes('Project name')) {
-              return this.options.projectName || './tmp/test-project';
+              return validated.projectName || './tmp/test-project';
             }
             if (question.includes('template') || question.includes('Template')) {
               return templateName || 'basic';
@@ -383,7 +375,7 @@ export class Scaffolder {
             });
           }
         },
-        projectDirectory: this.options.projectName,
+        projectDirectory: validated.projectName,
         templatePath,
         templateName,
         repoUrl,
@@ -400,7 +392,7 @@ export class Scaffolder {
       } catch (error) {
         result = {
           success: false,
-          projectDirectory: this.options.projectName,
+          projectDirectory: validated.projectName,
           templateUsed: templateName,
           error: error.message
         };

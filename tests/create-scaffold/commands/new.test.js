@@ -102,7 +102,7 @@ describe('NewCommand', () => {
       assert.strictEqual(parsed.projectName, 'my-app');
       assert.strictEqual(parsed.template, 'react-app');
       assert.strictEqual(parsed.cache, false);
-      assert.strictEqual(parsed.cacheTtl, 24);
+      assert.strictEqual(parsed.cacheTtl, '24'); // String before validation
     });
 
     it('handles configuration options', () => {

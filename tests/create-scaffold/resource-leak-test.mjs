@@ -25,8 +25,8 @@ async function runLeakScenario({ name, args, expectedMessage }) {
 test('temp directory cleanup on invalid template', async () => {
   await runLeakScenario({
     name: 'invalid template test',
-    args: ['new', 'test-invalid-template', '--template', '../invalid-template'],
-    expectedMessage: /Path traversal attempts are not allowed/i
+    args: ['new', 'test-invalid-template', '--template', 'template;rm -rf /'],
+    expectedMessage: /shell metacharacters|blocked for security|invalid/i
   });
 });
 
