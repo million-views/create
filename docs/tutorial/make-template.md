@@ -15,7 +15,7 @@ related_docs:
   - "../tutorial/getting-started.md"
   - "../tutorial/create-scaffold.md"
   - "../how-to/author-workflow.md"
-last_updated: "2025-11-12"
+last_updated: "2025-11-19"
 ---
 
 # `make-template` Tutorial
@@ -40,16 +40,7 @@ Along the way, you'll use a basic React SPA to learn the core workflow including
 
 ## Prerequisites
 
-Before starting this tutorial, make sure you have:
-
-- **Node.js v22+** installed ([Download here](https://nodejs.org/))
-  - Verify: `node --version` should show v22 or higher
-- **Git** installed and configured
-  ([Setup guide](https://git-scm.com/book/en/v2/Getting-Started-First-Time-Git-Setup))
-  - Verify: `git --version` should show git version info
-- **30 minutes** available
-- **Basic command line familiarity** (navigating directories, running commands)
-- **Completed the [getting-started tutorial](getting-started.md)**
+**Required:** Completed the [getting-started tutorial](getting-started.md) (verifies Node.js v22+, Git, and CLI tools are working).
 
 ## Learn the Workflow: Basic React SPA
 

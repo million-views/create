@@ -11,7 +11,7 @@ related_docs:
   - "../reference/error-codes.md"
   - "../reference/cli-reference.md"
   - "../tutorial/getting-started.md"
-last_updated: "2025-11-12"
+last_updated: "2025-11-19"
 ---
 
 # Troubleshooting Guide

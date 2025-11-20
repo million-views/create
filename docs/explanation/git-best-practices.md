@@ -11,7 +11,7 @@ related_docs:
   - "../how-to/development.md"
   - "../how-to/creating-templates.md"
   - "../guides/troubleshooting.md"
-last_updated: "2025-11-17"
+last_updated: "2025-11-19"
 ---
 
 # Git Best Practices for Template Development

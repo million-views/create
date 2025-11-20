@@ -11,7 +11,7 @@ related_docs:
   - "../reference/cli-reference.md"
   - "../guides/troubleshooting.md"
   - "template-system.md"
-last_updated: "2025-11-12"
+last_updated: "2025-11-19"
 ---
 
 # Caching Strategy Explained

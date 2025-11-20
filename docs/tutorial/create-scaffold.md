@@ -7,14 +7,12 @@ estimated_time: "35 minutes"
 prerequisites:
   - "Completed Getting Started tutorial"
   - "Completed make-template tutorial"
-  - "Node.js v22+ installed"
-  - "Git installed and configured"
 related_docs:
   - "../reference/cli-reference.md"
   - "../how-to/setup-recipes.md"
   - "../tutorial/getting-started.md"
   - "../tutorial/make-template.md"
-last_updated: "2025-11-12"
+last_updated: "2025-11-19"
 ---
 
 # `create-scaffold` Tutorial
@@ -25,8 +23,7 @@ Scaffold projects using templates from the [make-template tutorial](make-templat
 
 ## Prerequisites
 
-- Completed [Getting Started](getting-started.md) and [make-template](make-template.md) tutorials
-- Node.js v22+ and Git installed
+**Required:** Completed [Getting Started](getting-started.md) and [make-template](make-template.md) tutorials.
 
 ## Registries Overview
 

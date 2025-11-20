@@ -11,7 +11,7 @@ related_docs:
   - "../tutorial/getting-started.md"
   - "../reference/cli-reference.md"
   - "../how-to/creating-templates.md"
-last_updated: "2025-11-12"
+last_updated: "2025-11-19"
 ---
 
 # Security Model Explained
@@ -195,6 +195,54 @@ Our security model has intentional limitations that users should understand:
 - **Template System Architecture**: How security integrates with template processing
 - **Caching Strategy**: How security affects repository caching and validation
 - **IDE Integration Philosophy**: Security considerations in development environment integration
+
+## Best Practices
+
+### Repository Management
+- Keep template repositories clean and organized
+- Use version tags for stable template releases
+- Document template purposes and requirements
+- Regular security audits of template content
+
+### Access Control
+- Use SSH keys instead of passwords
+- Rotate access tokens regularly
+- Limit repository access to necessary users
+- Monitor repository access logs
+
+### Development
+- Test templates in isolated environments first
+- Use separate repositories for experimental templates
+- Implement code review for template changes
+- Keep templates minimal and focused
+
+### Template Security
+
+#### Trust Your Sources
+Only use templates from repositories you trust:
+- Review template repositories before use
+- Verify template authors and organizations
+- Use official or well-known template sources when possible
+
+#### Setup Script Review
+Setup scripts run with your permissions:
+- Review `_setup.mjs` files before running
+- Understand what setup scripts will do
+- Setup scripts can modify files and run commands
+
+#### Private Templates
+For sensitive projects:
+- Use private template repositories
+- Implement proper access controls
+- Audit template changes regularly
+
+## Reporting Security Issues
+
+For security vulnerabilities:
+- Do not create public issues
+- Email security concerns privately
+- Include detailed reproduction steps
+- Allow time for responsible disclosure
 
 ## Further Reading
 
