@@ -29,14 +29,13 @@ The easiest way to get started is to generate the default configuration:
 # Navigate to your template project
 cd my-template-project
 
-# Generate default .templatize.json (and template.json)
+# Initialize configuration files
 npx make-template init
-
-# Or generate only .templatize.json configuration
-npx make-template config init
 ```
 
-The `init` command creates both a `template.json` file and a `.templatize.json` configuration file. Use `config init` if you only need the configuration file.
+The `init` command creates both configuration files:
+- `template.json` - Template metadata and placeholder definitions
+- `.templatize.json` - Templatization rules and patterns
 
 ### Basic Conversion
 

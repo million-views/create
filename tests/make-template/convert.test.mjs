@@ -101,6 +101,17 @@ async function createTestProject(projectDir) {
 
   writeFileSync(join(projectDir, '.templatize.json'), JSON.stringify(config, null, 2));
 
+  // Create template.json
+  const templateJson = {
+    id: 'test-project-template',
+    name: 'Test Project Template',
+    description: 'A test project template for conversion testing',
+    version: '1.0.0',
+    placeholders: {}
+  };
+
+  writeFileSync(join(projectDir, 'template.json'), JSON.stringify(templateJson, null, 2));
+
   // Create index.js
   const indexJs = `
 const express = require('express');
@@ -238,7 +249,7 @@ test('convert --help shows help text', async () => {
     assert.strictEqual(result.exitCode, 0, 'Help command should succeed');
     assert(result.stdout.includes('Convert project to template'), 'Should show command description');
     assert(result.stdout.includes('USAGE:'), 'Should show usage section');
-    assert(result.stdout.includes('convert <project-path> [options]'), 'Should show usage example');
+    assert(result.stdout.includes('convert [project-path] [options]'), 'Should show usage example with optional path');
     assert(result.stdout.includes('--dry-run'), 'Should show dry-run option');
     assert(result.stdout.includes('--yes'), 'Should show yes option');
   } finally {

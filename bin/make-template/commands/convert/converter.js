@@ -17,6 +17,28 @@ export class Converter {
     try {
       console.log(`Converting project: ${this.options.projectPath}`);
 
+      const projectPath = path.resolve(this.options.projectPath);
+
+      // Verify configuration files exist before proceeding
+      const templateJsonPath = path.join(projectPath, 'template.json');
+      const templatizeJsonPath = path.join(projectPath, '.templatize.json');
+
+      if (!await exists(templateJsonPath)) {
+        console.error('❌ Configuration files not found\n');
+        console.error('Before converting, initialize your template configuration:');
+        console.error('  npx make-template init\n');
+        console.error('This creates the required configuration files:');
+        console.error('  • .templatize.json (extraction rules)');
+        console.error('  • template.json (placeholder metadata)\n');
+        process.exit(1);
+      }
+
+      if (!await exists(templatizeJsonPath)) {
+        console.error('❌ Configuration file missing: .templatize.json\n');
+        console.error('Run: npx make-template init\n');
+        process.exit(1);
+      }
+
       // Check for development repository indicators
       const devIndicators = await this.checkDevelopmentIndicators();
       if (devIndicators.length > 0 && !this.options.yes) {
@@ -37,9 +59,6 @@ export class Converter {
         return;
       }
 
-      // Create basic template.json
-      await this.createTemplateJson();
-
       // Detect and replace placeholders in files
       const detectedPlaceholders = await this.detectAndReplacePlaceholders();
 
@@ -55,8 +74,8 @@ export class Converter {
         severity: ErrorSeverity.HIGH,
         operation: 'convert',
         suggestions: [
-          'Check that the project path exists and is accessible',
-          'Ensure the project is not a development repository (or use --yes)',
+          'Run: npx make-template init',
+          'Check that configuration files exist',
           'Verify write permissions in the target directory'
         ]
       });
@@ -68,51 +87,29 @@ export class Converter {
     const indicators = [];
     const projectPath = path.resolve(this.options.projectPath);
 
-    // Check for .git directory
+    // Note: Since .templatize.json is required (user must run 'init' first),
+    // its presence indicates explicit intent to convert this directory.
+    // We only check for truly problematic indicators that suggest mistakes.
+
+    // Check for .git directory (suggests uncommitted changes risk)
     if (await exists(path.join(projectPath, '.git'))) {
       indicators.push('Git repository (.git directory found)');
     }
 
-    // Check for node_modules
+    // Check for node_modules (suggests dependency bloat in template)
     if (await exists(path.join(projectPath, 'node_modules'))) {
       indicators.push('Node modules installed (node_modules directory found)');
     }
 
-    // Check for common development files
-    const devFiles = ['.gitignore', '.env', 'README.md', '.eslintrc.js', '.prettierrc'];
-    for (const file of devFiles) {
-      if (await exists(path.join(projectPath, file))) {
-        indicators.push(`Development file found: ${file}`);
-      }
+    // Check for .env file (suggests secrets might be included)
+    if (await exists(path.join(projectPath, '.env'))) {
+      indicators.push('Environment file found (.env) - may contain secrets');
     }
 
+    // Note: Files like README.md, .gitignore, .eslintrc.js are normal in templates
+    // and should not trigger warnings since .templatize.json presence indicates intent
+
     return indicators;
-  }
-
-  async createTemplateJson() {
-    const projectPath = path.resolve(this.options.projectPath);
-
-    // Read package.json using shared utility
-    const packageJsonPath = path.join(projectPath, 'package.json');
-    const packageJson = await readJsonFile(packageJsonPath) || {};
-
-    // Generate author name from package.json or use default
-    const author = packageJson.author || 'my-org';
-    const authorSlug = author.toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
-    const projectSlug = (packageJson.name || 'my-template').toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
-
-    // Create minimal template structure
-    const template = {
-      schemaVersion: '1.0.0',
-      id: `${authorSlug}/${projectSlug}`,
-      name: packageJson.name || 'My Template',
-      description: packageJson.description || 'A template generated from a project',
-      placeholders: {}
-    };
-
-    // Write template.json using shared utility
-    const templatePath = path.join(projectPath, 'template.json');
-    await writeJsonFile(templatePath, template);
   }
 
   async createUndoLog() {
@@ -139,14 +136,6 @@ export class Converter {
       },
       fileOperations: existingUndo?.fileOperations || []
     };
-
-    // Add template.json creation
-    undoLog.fileOperations.push({
-      type: 'create',
-      path: 'template.json',
-      description: 'Created template configuration file',
-      timestamp: new Date().toISOString()
-    });
 
     // Add all file modification operations
     undoLog.fileOperations.push(...this.fileOperations);
@@ -468,7 +457,8 @@ export class Converter {
       template.placeholders = {};
     }
 
-    // Add detected placeholders to template
+    // Merge detected placeholders with existing ones
+    // Preserves manually added placeholders and adds newly detected ones
     template.placeholders = { ...template.placeholders, ...detectedPlaceholders };
 
     // Validate placeholder definitions
@@ -489,6 +479,7 @@ export class Converter {
 
     try {
       await writeJsonFile(templatePath, template);
+      console.log(`✓ Updated template.json with ${Object.keys(detectedPlaceholders).length} detected placeholder(s)`);
     } catch (error) {
       throw new Error(`Failed to write template.json: ${error.message}`);
     }

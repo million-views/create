@@ -36,14 +36,11 @@ export class ConvertCommand extends Command {
   }
 
   async run(parsed) {
-    if (!parsed.projectPath) {
-      console.error('Error: <project-path> is required');
-      console.error('\n⚠️  Always specify the project path explicitly to avoid accidental conversion');
-      this.showHelp();
-      process.exit(1);
-    }
+    // Default to current directory if no path provided
+    const projectPath = parsed.projectPath || process.cwd();
+    parsed.projectPath = projectPath;
 
-    const validation = validateProjectPath(parsed.projectPath);
+    const validation = validateProjectPath(projectPath);
     if (!validation.valid) {
       console.error(`❌ ${validation.error}`);
       process.exit(1);

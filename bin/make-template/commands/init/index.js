@@ -13,12 +13,18 @@ export class InitCommand extends Command {
     if (arg === '--file' || arg === '-f') {
       parsed.file = args[i + 1];
       return i + 1;
+    } else if (!arg.startsWith('-')) {
+      if (!parsed.projectPath) {
+        parsed.projectPath = arg;
+      }
+      return i;
     }
   }
 
   run(parsed) {
+    const projectPath = parsed.projectPath || process.cwd();
     const outputFile = parsed.file || 'template.json';
-    const outputPath = join(process.cwd(), outputFile);
+    const outputPath = join(projectPath, outputFile);
 
     // Check if file already exists
     if (fs.existsSync(outputPath)) {
@@ -46,7 +52,7 @@ export class InitCommand extends Command {
 
     // Generate .templatize.json configuration
     console.log(`Generating .templatize.json configuration file`);
-    generateConfigFile(process.cwd());
+    generateConfigFile(projectPath);
 
     // Next steps guidance
     console.log(`

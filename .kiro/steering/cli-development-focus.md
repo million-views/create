@@ -89,10 +89,10 @@ inclusion: always
 **Subcommand Organization**
 ```bash
 # Good: Clear hierarchy with related functionality grouped
-tool config init        # Initialize configuration
+tool init               # Initialize template files
+tool convert            # Convert to template
+tool restore            # Restore from template
 tool config validate    # Validate configuration
-tool template convert   # Convert to template
-tool template restore   # Restore from template
 
 # Poor: Flags hiding multiple commands
 tool convert --init-config    # What does convert mean here?
@@ -109,9 +109,9 @@ tool convert --validate-config # Confusing and hard to discover
 ```bash
 # Intuitive discovery flow
 $ tool --help                    # See available commands
-$ tool config --help            # See config subcommands
-$ tool config init --help       # See specific command help
-$ tool config init              # Execute with confidence
+$ tool init --help              # See specific command help
+$ tool init                     # Execute with confidence
+$ tool convert --help           # See conversion options
 ```
 
 ### When CLI Architecture is Sound
@@ -186,18 +186,19 @@ class ConvertCommand {
 $ tool convert --help  # Shows 8+ options, unclear what convert means
 
 # After: Clear, discoverable
-$ tool --help          # Shows "config" and "convert" commands
-$ tool config --help   # Shows "init" and "validate" subcommands
-$ tool config init     # Obvious what this does
+$ tool --help          # Shows "init", "convert", "restore" commands
+$ tool init            # Obvious what this does - initialize
+$ tool convert --help  # Clear options for conversion
 ```
 
 ### Architecture Decision Framework
 
 **When to Use Subcommands**
-- Related operations that users think of as a group (`config init`, `config validate`)
+- Related operations that users think of as a group (`config validate`, `config lint`)
 - Operations that need similar but distinct option sets
 - When flag-based commands would exceed 3-4 flags
 - When operations have different success/failure modes
+- When a namespace helps organize complex functionality
 
 **When to Use Flags**
 - Simple boolean options that modify command behavior

@@ -6,7 +6,6 @@ import { InitCommand } from './commands/init/index.js';
 import { ValidateCommand } from './commands/validate/index.js';
 import { HintsCommand } from './commands/hints/index.js';
 import { TestCommand } from './commands/test/index.js';
-import { ConfigInitCommand } from './commands/config/init/index.js';
 import { ConfigValidateCommand } from './commands/config/validate/index.js';
 
 class MakeTemplateRouter extends Router {
@@ -24,7 +23,6 @@ class MakeTemplateRouter extends Router {
     };
     this.subcommands = {
       config: {
-        init: new ConfigInitCommand(),
         validate: new ConfigValidateCommand()
       }
     };
@@ -36,7 +34,6 @@ class MakeTemplateRouter extends Router {
       'validate',
       'hints',
       'test ./my-template',
-      'config init',
       'config validate'
     ];
   }

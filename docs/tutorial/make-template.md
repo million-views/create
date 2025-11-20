@@ -28,13 +28,15 @@ In this tutorial, you'll learn how to create templates for a complete web presen
 
 ## What you'll build
 
-You'll create two templates that showcase a complete web presence for service businesses:
+You'll learn template authoring by building two templates that showcase a complete web presence for service businesses:
 
-1. **Basic React SPA** - Modern frontend foundation with Vite + React (learn automated templatization workflow and `restore` feature to undo conversions)
-2. **LawnMow Web** - Business marketing website with contact forms, location/hours information, service descriptions, and testimonials (learn `allowMultiple`, HTML form handling)
-3. **LawnMow App** - Customer-facing digital transformation product with scheduling, payments, and service management (learn platform-specific patterns with Cloudflare Workers + D1 database)
+**LawnMow Web** - Marketing website with contact forms, location/hours information, service descriptions, and testimonials (learn `allowMultiple`, HTML form handling, manual configuration)
+
+**LawnMow App** - Customer-facing digital transformation product with scheduling, payments, and service management (learn platform-specific patterns with Cloudflare Workers + D1 database)
 
 These templates demonstrate the two pillars of service business web presence: marketing (attract customers) and operations (serve customers), enabling you to create white-label software for lawn care, cleaning, plumbing, or consulting businesses.
+
+Along the way, you'll use a basic React SPA to learn the core workflow including automated initialization and the `restore` feature for non-destructive iteration.
 
 ## Prerequisites
 
@@ -49,9 +51,9 @@ Before starting this tutorial, make sure you have:
 - **Basic command line familiarity** (navigating directories, running commands)
 - **Completed the [getting-started tutorial](getting-started.md)**
 
-## Step 1: Create Basic React SPA Template (Showcasing Restore)
+## Learn the Workflow: Basic React SPA
 
-Learn the make-template workflow by understanding what templates really are: plain text files with placeholders. Nothing magical. This step also demonstrates the `restore` feature—how to undo a conversion when you want your template files back to their original state.
+Learn the make-template workflow by understanding what templates really are: plain text files with placeholders. Nothing magical. We'll use a basic React SPA to demonstrate the core concepts including the `restore` feature—how to undo a conversion when you want your template files back to their original state.
 
 ### Quick Setup
 
@@ -206,9 +208,9 @@ cd .. && rm -rf test-spa
 cd basic-react-spa
 ```
 
-## Step 2: Create Marketing Website Template
+## Build Template 1: Marketing Website (LawnMow Web)
 
-Now let's build a marketing website template for a lawn care service. This template focuses on attracting customers with contact forms, service descriptions, location/hours, and testimonials. This demonstrates how to organize public-facing business information into templatizable components, including the `allowMultiple` feature for handling multiple service offerings, contact methods, and testimonials.
+Now let's build our first production template: a marketing website for a lawn care service. This template focuses on attracting customers with contact forms, service descriptions, location/hours, and testimonials. This demonstrates how to organize public-facing business information into templatizable components, including the `allowMultiple` feature for handling multiple service offerings, contact methods, and testimonials.
 
 ### Setup Project
 
@@ -285,18 +287,15 @@ export default function Testimonials() {
 }
 ```
 
-### Edit Configuration for Marketing Content
+### Create Manual Configuration for Marketing Content
 
-Now edit `.templatize.json` to organize placeholders for marketing website content. This structure captures business information, contact details, and customer testimonials.
+Marketing websites need structured configuration. Let's create configuration files:
 
-**About `.templatize.json`**: This configuration file tells the system **what** to templatize and **where** to find it. It uses:
-- **`rules`**: Maps file patterns (like `"package.json"` or `"src/**/*.jsx"`) to extraction rules
-- **`context`**: MIME-type format (`text/jsx`, `text/html#attribute`, `application/json`) that determines how to extract values
-- **`selector`**: CSS selectors for HTML/JSX, JSONPath for JSON
-- **`placeholder`**: The name to use in the template (e.g., `PROJECT_NAME`)
-- **`allowMultiple`**: Whether to auto-number multiple matches (`_0`, `_1`, etc.)
+```bash
+npx make-template init
+```
 
-For complete details on pattern types, selectors, and advanced configuration, see the [Templatization Patterns Reference](../reference/templatization-patterns.md).
+This creates `.templatize.json` and `template.json` files. Now edit `.templatize.json` to organize placeholders for marketing content:
 
 ```json
 {
@@ -587,36 +586,20 @@ The naming convention creates a clear hierarchy:
 
 This organization mirrors marketing website structure: hero section, contact section, testimonials section. Users immediately understand: "This template has multiple testimonials, and I can customize each section independently."
 
-### Why This Matters
+### Understanding Manual Configuration
 
-This example answers a key template author question: **"What if I have multiple testimonials or images each needing different values?"**
+**The `make-template init` command creates both configuration files:**
 
-The answer: **`allowMultiple: true`**
+- **`.templatize.json`**: Defines extraction rules (what to replace with placeholders)
+- **`template.json`**: Defines placeholder metadata (default values, descriptions, validation)
 
-Without this feature, you'd need to:
+For marketing websites with structured content like this, you need explicit `.templatize.json` rules. Auto-detection won't understand your business logic—which hero images, testimonials, or contact fields to templatize.
 
-1. Write separate rules for each testimonial (`blockquote:nth-child(1)`, `blockquote:nth-child(2)`)
-2. Create unique placeholders manually (`TESTIMONIAL_1`, `TESTIMONIAL_2`, `TESTIMONIAL_3`)
-3. Repeat this for every section (hero images, contact info, etc.)
+The `.templatize.json` file tells the system HOW to find values, while `template.json` tells users WHAT those values mean.
 
-With `allowMultiple`, you write:
-
-```json
-{
-  "context": "text/jsx",
-  "selector": "blockquote p",
-  "placeholder": "TESTIMONIAL_QUOTE",
-  "allowMultiple": true
-}
-```
-
-The system automatically:
-
-- Finds all matching testimonials
-- Numbers them sequentially (`_0`, `_1`, `_2`...)
-- Creates placeholders in `template.json`
-
-This is the difference between writing 3 rules vs 30 rules for a marketing website with multiple testimonials, services, and team members.
+For detailed patterns, selectors, and advanced configuration, see:
+- [Templatization Patterns Reference](../reference/templatization-patterns.md)
+- [Template Configuration Explanation](../explanation/template-configuration.md)
 
 ### What You Learned
 
@@ -635,9 +618,9 @@ This is the difference between writing 3 rules vs 30 rules for a marketing websi
 cd ..
 ```
 
-## Step 3: Create Customer-Facing App Template
+## Build Template 2: Customer-Facing App (LawnMow App)
 
-Now build the actual digital transformation product—a customer-facing application where lawn care customers can schedule services and make payments. You'll deploy this to Cloudflare's edge platform using React Router v7 with server-side rendering and a D1 database to store appointments and payments.
+Now build our second production template: the actual digital transformation product—a customer-facing application where lawn care customers can schedule services and make payments. You'll deploy this to Cloudflare's edge platform using React Router v7 with server-side rendering and a D1 database to store appointments and payments.
 
 ### Create LawnMow App Project
 
@@ -822,23 +805,22 @@ cd ..
 
 ## What You Accomplished
 
-You created two templates demonstrating a complete web presence for service businesses:
+You created two production templates demonstrating a complete web presence for service businesses:
 
-1. **Basic React SPA** - Learned templates are just files with placeholders; manual → automated workflow; demonstrated the `restore` feature for safe iteration
-2. **LawnMow Web** - Built a marketing website with hero section, contact forms, and testimonials; demonstrated `allowMultiple` for multiple images and testimonials
-3. **LawnMow App** - Created a customer-facing digital transformation product with scheduling, payments, and Cloudflare deployment; demonstrated full-stack template authoring
+**LawnMow Web** - Marketing website with hero section, contact forms, and testimonials; demonstrated `allowMultiple` for multiple images and testimonials, manual configuration with structured placeholder rules
+
+**LawnMow App** - Customer-facing digital transformation product with scheduling, payments, and Cloudflare deployment; demonstrated full-stack template authoring with infrastructure, database schemas, and auto-detection
+
+You also learned the core workflow using a basic React SPA: templates are just files with placeholders, automated initialization with `init`, and the `restore` feature for safe, non-destructive iteration.
 
 Key insights:
 
 - **No magic**: Templates are text files with `⦃PLACEHOLDERS⦄`
 - **Unicode delimiters**: Keep your app running during templatization by avoiding JSX conflicts
 - **Restore feature**: Convert → test → restore → develop → convert again—template authoring is non-destructive
-- **Two-pillar web presence**: Marketing (attract customers) + App (serve customers)
-- **Marketing website patterns**: Hero sections, contact forms, testimonials, business information
-- **Digital transformation patterns**: Customer scheduling, payment processing, service catalogs
 - **Production deployment**: Templates include infrastructure (Cloudflare Workers, D1 databases) not just code
 - **Multi-context extraction**: Different file types (JSON, TOML, SQL, TSX, JSX) use different processors
-- **Target audience**: Software developers building tools for small businesses, independent contractors, and service providers
+- **`allowMultiple` feature**: Write one rule, handle multiple instances with auto-numbered placeholders
 
 ## Next Steps
 

@@ -209,36 +209,6 @@ validate ./my-template --fix
 <!-- AUTO-GENERATED: make-template commands -->
 ## make-template Commands
 
-### `config init` - Initialize .templatize.json configuration file
-
-Generate a default .templatize.json configuration file for templatization.
-This file defines patterns for converting project content into reusable templates.
-Run this command before using 'make-template convert' if no configuration exists.
-
-**Usage:**
-
-```bash
-make-template config init [options]
-```
-
-**Options:**
-
-| Option | Description |
-|--------|-------------|
-| `-f, --file <path>` | Specify output file path Custom path for the configuration file. Defaults to ./.templatize.json |
-
-**Examples:**
-
-```bash
-config init
-```
-    Generate default .templatize.json in current directory
-
-```bash
-config init --file custom-config.json
-```
-    Generate config with custom filename
-
 ### `config validate` - Validate .templatize.json configuration file
 
 Check the .templatize.json configuration file for syntax and semantic errors.
@@ -267,24 +237,24 @@ config validate custom-config.json
 
 Convert an existing project into a reusable template using configurable templatization patterns.
 
-The conversion process:
-  1. Reads templatization rules from .templatize.json (created by 'make-template init')
-  2. Replaces project-specific values with placeholders using specified format
-  3. Creates .template-undo.json for restoration capabilities
-  4. Generates/updates template.json with detected placeholders
+Prerequisites:
+  • Run 'make-template init' first to create configuration files
+  • Configuration files required: template.json and .templatize.json
 
-Requires a .templatize.json configuration file to specify which content to replace with placeholders.
-Use 'npx make-template init' to generate a default configuration file.
-Always specify the project path explicitly to avoid accidental conversion.
+The conversion process:
+  1. Validates that configuration files exist
+  2. Reads templatization rules from .templatize.json
+  3. Replaces project-specific values with placeholders using specified format
+  4. Creates .template-undo.json for restoration capabilities
+  5. Updates template.json with detected placeholders (preserves metadata)
+
+Defaults to current directory if no path specified.
 
 **Usage:**
 
 ```bash
-make-template convert <project-path> [options]
+make-template convert [project-path] [options]
 ```
-
-**Arguments:**
-- `<project-path>`: Path to the project directory to convert
 
 **Options:**
 
@@ -293,7 +263,7 @@ make-template convert <project-path> [options]
 | **Configuration** | |
 | `--config <file>` | Use specific configuration file Specify custom .templatize.json file path. Defaults to ./.templatize.json in project directory. |
 | **Templatization Options** | |
-| `--placeholder-format <format>` | Specify placeholder format Choose placeholder style for replacements:   • mustache - {{PLACEHOLDER}} (default, works everywhere)   • dollar   - $PLACEHOLDER$ (avoids conflicts with template literals)   • percent  - %PLACEHOLDER% (avoids conflicts with CSS/custom syntax)   • unicode  - ⦃PLACEHOLDER⦄ (React-friendly, avoids JSX conflicts) |
+| `--placeholder-format <format>` | Specify placeholder format Choose placeholder style for replacements:   • unicode  - ⦃PLACEHOLDER⦄ (default, React-friendly, avoids JSX conflicts)   • mustache - {{PLACEHOLDER}} (works everywhere, but conflicts with JSX)   • dollar   - $PLACEHOLDER$ (avoids conflicts with template literals)   • percent  - %PLACEHOLDER% (avoids conflicts with CSS/custom syntax) |
 | **Operation Modes** | |
 | `-d, --dry-run` | Preview changes without executing them |
 | `--yes` | Skip confirmation prompts |
@@ -304,22 +274,27 @@ make-template convert <project-path> [options]
 **Examples:**
 
 ```bash
+convert
+```
+    Convert current directory
+
+```bash
 convert ./my-project
 ```
-    Convert project using existing or default config
+    Convert specific project directory
 
 ```bash
-convert ./my-project --dry-run
+convert --dry-run
 ```
-    Preview templatization changes
+    Preview changes without applying them
 
 ```bash
-convert ./my-project --config custom-config.json --yes
+convert --config custom-config.json --yes
 ```
     Use custom config file and skip prompts
 
 ```bash
-convert ./my-project --placeholder-format dollar
+convert --placeholder-format dollar
 ```
     Use $PLACEHOLDER format for replacements
 
@@ -328,8 +303,9 @@ convert ./my-project --placeholder-format unicode
 ```
     Use ⦃PLACEHOLDER⦄ format for React compatibility
 
-For configuration management:
-  • make-template config init - Generate .templatize.json
+Related commands:
+  • make-template init - Initialize template configuration files
+  • make-template restore - Undo templatization changes
   • make-template config validate - Validate configuration
 
 For detailed configuration options, see:
@@ -354,16 +330,21 @@ hints
 ```
     Show all available hints
 
-### `init` - Generate skeleton template.json
+### `init` - Initialize template configuration files
 
-Creates a skeleton template.json file with common fields.
-Useful for starting a new template from scratch.
-Must be run inside the project directory you want to templatize.
+Creates required configuration files for template creation:
+  • template.json - Template metadata and placeholder definitions
+  • .templatize.json - Templatization rules and patterns
+
+This is the first step in converting a project to a template.
+Run this command in the project directory you want to templatize.
+After initialization, edit the configuration files to customize behavior,
+then run 'make-template convert' to apply the templatization.
 
 **Usage:**
 
 ```bash
-make-template init [options]
+make-template init [project-path] [options]
 ```
 
 **Options:**
@@ -377,12 +358,26 @@ make-template init [options]
 ```bash
 init
 ```
-    Generate template.json in current directory
+    Initialize in current directory
+
+```bash
+init ./my-project
+```
+    Initialize in specific directory
 
 ```bash
 init --file my-template.json
 ```
-    Generate with custom filename
+    Initialize with custom template.json filename
+
+Typical workflow:
+  1. make-template init                  # Create configuration files
+  2. Edit template.json and .templatize.json  # Customize for your project
+  3. make-template convert ./project     # Apply templatization
+
+Related commands:
+  • make-template convert - Apply templatization to project
+  • make-template config validate - Validate configuration files
 
 ### `restore` - Restore template to project
 

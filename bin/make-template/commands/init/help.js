@@ -1,12 +1,17 @@
 export const initHelp = {
   name: 'init',
-  usage: 'init [options]',
-  description: 'Generate skeleton template.json',
+  usage: 'init [project-path] [options]',
+  description: 'Initialize template configuration files',
 
   detailedDescription: [
-    'Creates a skeleton template.json file with common fields.',
-    'Useful for starting a new template from scratch.',
-    'Must be run inside the project directory you want to templatize.'
+    'Creates required configuration files for template creation:',
+    '  • template.json - Template metadata and placeholder definitions',
+    '  • .templatize.json - Templatization rules and patterns',
+    '',
+    'This is the first step in converting a project to a template.',
+    'Run this command in the project directory you want to templatize.',
+    'After initialization, edit the configuration files to customize behavior,',
+    'then run \'make-template convert\' to apply the templatization.'
   ],
 
   optionGroups: [
@@ -25,10 +30,22 @@ export const initHelp = {
   ],
 
   examples: [
-    { cmd: 'init', desc: 'Generate template.json in current directory' },
+    { cmd: 'init', desc: 'Initialize in current directory' },
+    { cmd: 'init ./my-project', desc: 'Initialize in specific directory' },
     {
       cmd: 'init --file my-template.json',
-      desc: 'Generate with custom filename'
+      desc: 'Initialize with custom template.json filename'
     }
+  ],
+
+  footer: [
+    'Typical workflow:',
+    '  1. make-template init                  # Create configuration files',
+    '  2. Edit template.json and .templatize.json  # Customize for your project',
+    '  3. make-template convert ./project     # Apply templatization',
+    '',
+    'Related commands:',
+    '  • make-template convert - Apply templatization to project',
+    '  • make-template config validate - Validate configuration files'
   ]
 };

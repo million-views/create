@@ -38,8 +38,14 @@ npm create @m5nv/scaffold my-app -- --template basic-react-spa
 ### 🔄 Convert your project to a template
 
 ```bash
+# From within project
 cd my-project
-npx @m5nv/make-template convert .
+npx @m5nv/make-template init
+npx @m5nv/make-template convert
+
+# Or with explicit path
+npx @m5nv/make-template init ./my-project
+npx @m5nv/make-template convert ./my-project
 ```
 
 ### 📋 Reuse previous choices
@@ -138,7 +144,12 @@ authentication!
 ```bash
 # Convert your project to a reusable template
 cd my-awesome-project
-npx @m5nv/make-template convert .
+npx @m5nv/make-template init      # Create configuration files
+npx @m5nv/make-template convert   # Apply templatization
+
+# Or specify path explicitly
+npx @m5nv/make-template init ./my-awesome-project
+npx @m5nv/make-template convert ./my-awesome-project
 ```
 
 Automatically detects and templatizes JSX, JSON, Markdown, and HTML content.
