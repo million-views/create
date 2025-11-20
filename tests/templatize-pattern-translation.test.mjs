@@ -2,7 +2,11 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert';
 import { Converter } from '../bin/make-template/commands/convert/converter.js';
 
-describe('Pattern Translation Tests', () => {
+// OBSOLETE: This test file is no longer relevant after removing the translation layer.
+// Patterns now use MIME-type context format directly without translation.
+// Keeping file for reference but all tests are skipped.
+
+describe.skip('Pattern Translation Tests (OBSOLETE)', () => {
   let converter;
 
   // Setup converter instance before each test
@@ -136,9 +140,8 @@ describe('Pattern Translation Tests', () => {
 
     it('should translate html-attribute pattern correctly', () => {
       const patterns = [{
-        type: 'html-attribute',
+        context: 'text/html#attribute',
         selector: 'meta[name="description"]',
-        attribute: 'content',
         placeholder: 'META_DESC'
       }];
 
@@ -146,9 +149,7 @@ describe('Pattern Translation Tests', () => {
 
       assert.deepEqual(result[0], {
         selector: 'meta[name="description"]',
-        type: 'string-literal',
-        context: 'html-attribute',
-        attribute: 'content',
+        context: 'text/html#attribute',
         placeholder: 'META_DESC',
         allowMultiple: false
       });
@@ -158,9 +159,8 @@ describe('Pattern Translation Tests', () => {
   describe('JSX Processor Pattern Translation', () => {
     it('should translate string-literal pattern with context', () => {
       const patterns = [{
-        type: 'string-literal',
+        context: 'text/jsx',
         selector: '.component-name',
-        context: 'jsx-text',
         placeholder: 'COMPONENT_NAME'
       }];
 
@@ -168,8 +168,7 @@ describe('Pattern Translation Tests', () => {
 
       assert.deepEqual(result[0], {
         selector: '.component-name',
-        type: 'string-literal',
-        context: 'jsx-text',
+        context: 'text/jsx',
         placeholder: 'COMPONENT_NAME',
         allowMultiple: false
       });
@@ -177,20 +176,16 @@ describe('Pattern Translation Tests', () => {
 
     it('should translate string-literal pattern with attribute', () => {
       const patterns = [{
-        type: 'string-literal',
-        selector: 'Button',
-        context: 'jsx-attribute',
-        attribute: 'variant',
+        context: 'text/jsx#attribute',
+        selector: 'Button[variant]',
         placeholder: 'BUTTON_VARIANT'
       }];
 
       const result = converter.translatePatternsForProcessor(patterns, 'jsx');
 
       assert.deepEqual(result[0], {
-        selector: 'Button',
-        type: 'string-literal',
-        context: 'jsx-attribute',
-        attribute: 'variant',
+        selector: 'Button[variant]',
+        context: 'text/jsx#attribute',
         placeholder: 'BUTTON_VARIANT',
         allowMultiple: false
       });
@@ -198,9 +193,8 @@ describe('Pattern Translation Tests', () => {
 
     it('should handle allowMultiple for JSX patterns', () => {
       const patterns = [{
-        type: 'string-literal',
+        context: 'text/jsx',
         selector: '.item',
-        context: 'jsx-text',
         placeholder: 'ITEM',
         allowMultiple: true
       }];

@@ -29,15 +29,15 @@ describe('Templatization Integration Tests', () => {
       rules: {
         'package.json': [
           {
-            type: 'json-value',
+            context: 'application/json',
             path: '$.name',
             placeholder: 'PROJECT_NAME'
           }
         ],
         'README.md': [
           {
-            type: 'markdown-heading',
-            level: 1,
+            context: 'text/markdown#heading',
+            selector: 'h1',
             placeholder: 'TITLE'
           }
         ]

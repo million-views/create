@@ -241,6 +241,8 @@ export default function ScheduleView() {
     <div>
       <h2>LawnMow Pro - Scheduling</h2>
       <p>Book your next mowing appointment</p>
+      <img src="/images/calendar-icon.png" alt="Calendar icon" />
+      <img src="/images/clock-icon.png" alt="Clock icon" />
       <a href="mailto:support@lawnmow.io">Contact Support</a>
     </div>
   );
@@ -255,6 +257,8 @@ export default function BillingView() {
     <div>
       <h2>LawnMow Pro - Billing</h2>
       <p>Manage your subscription</p>
+      <img src="/images/payment-icon.png" alt="Payment icon" />
+      <img src="/images/card-icon.png" alt="Credit card icon" />
       <a href="mailto:billing@lawnmow.io">Billing Support</a>
     </div>
   );
@@ -269,6 +273,8 @@ export default function CustomerList() {
     <div>
       <h2>LawnMow Pro - Customers</h2>
       <p>Manage your customer base</p>
+      <img src="/images/users-icon.png" alt="Users icon" />
+      <img src="/images/chart-icon.png" alt="Analytics chart icon" />
       <a href="mailto:hello@lawnmow.io">Get Help</a>
     </div>
   );
@@ -277,7 +283,16 @@ export default function CustomerList() {
 
 ### Create Feature-Organized Configuration
 
-Now create `.templatize.json` manually to organize placeholders by feature:
+Now create `.templatize.json` manually to organize placeholders by feature.
+
+**About `.templatize.json`**: This configuration file tells the system **what** to templatize and **where** to find it. It uses:
+- **`rules`**: Maps file patterns (like `"package.json"` or `"src/**/*.jsx"`) to extraction rules
+- **`context`**: MIME-type format (`text/jsx`, `text/html#attribute`, `application/json`) that determines how to extract values
+- **`selector`**: CSS selectors for HTML/JSX, JSONPath for JSON
+- **`placeholder`**: The name to use in the template (e.g., `PROJECT_NAME`)
+- **`allowMultiple`**: Whether to auto-number multiple matches (`_0`, `_1`, etc.)
+
+For complete details on pattern types, selectors, and advanced configuration, see the [Templatization Patterns Reference](../reference/templatization-patterns.md).
 
 ```json
 {
@@ -286,41 +301,80 @@ Now create `.templatize.json` manually to organize placeholders by feature:
   "rules": {
     "package.json": [
       {
-        "type": "json-value",
+        "context": "application/json",
         "path": "$.name",
         "placeholder": "PROJECT_NAME"
       }
     ],
     "src/features/scheduling/*.jsx": [
       {
-        "type": "jsx-text",
+        "context": "text/jsx",
+        "selector": "h2",
         "placeholder": "SCHEDULING_APP_NAME"
       },
       {
-        "type": "jsx-attribute",
-        "attribute": "href",
+        "context": "text/jsx#attribute",
+        "selector": "img[src]",
+        "placeholder": "SCHEDULING_ICON_SRC",
+        "allowMultiple": true
+      },
+      {
+        "context": "text/jsx#attribute",
+        "selector": "img[alt]",
+        "placeholder": "SCHEDULING_ICON_ALT",
+        "allowMultiple": true
+      },
+      {
+        "context": "text/jsx#attribute",
+        "selector": "a[href^='mailto']",
         "placeholder": "SCHEDULING_SUPPORT_EMAIL"
       }
     ],
     "src/features/payments/*.jsx": [
       {
-        "type": "jsx-text",
+        "context": "text/jsx",
+        "selector": "h2",
         "placeholder": "PAYMENTS_APP_NAME"
       },
       {
-        "type": "jsx-attribute",
-        "attribute": "href",
+        "context": "text/jsx#attribute",
+        "selector": "img[src]",
+        "placeholder": "PAYMENTS_ICON_SRC",
+        "allowMultiple": true
+      },
+      {
+        "context": "text/jsx#attribute",
+        "selector": "img[alt]",
+        "placeholder": "PAYMENTS_ICON_ALT",
+        "allowMultiple": true
+      },
+      {
+        "context": "text/jsx#attribute",
+        "selector": "a[href^='mailto']",
         "placeholder": "PAYMENTS_SUPPORT_EMAIL"
       }
     ],
     "src/features/customers/*.jsx": [
       {
-        "type": "jsx-text",
+        "context": "text/jsx",
+        "selector": "h2",
         "placeholder": "CUSTOMERS_APP_NAME"
       },
       {
-        "type": "jsx-attribute",
-        "attribute": "href",
+        "context": "text/jsx#attribute",
+        "selector": "img[src]",
+        "placeholder": "CUSTOMERS_ICON_SRC",
+        "allowMultiple": true
+      },
+      {
+        "context": "text/jsx#attribute",
+        "selector": "img[alt]",
+        "placeholder": "CUSTOMERS_ICON_ALT",
+        "allowMultiple": true
+      },
+      {
+        "context": "text/jsx#attribute",
+        "selector": "a[href^='mailto']",
         "placeholder": "CUSTOMERS_SUPPORT_EMAIL"
       }
     ]
@@ -328,7 +382,25 @@ Now create `.templatize.json` manually to organize placeholders by feature:
 }
 ```
 
-### Create template.json with Feature Organization
+**Key feature demonstrated: `allowMultiple`**
+
+This answers the critical question: **"What if I have multiple images/links each
+needing different values?"**
+
+The `allowMultiple: true` flag tells the system to number multiple matches
+automatically:
+
+- First `img src` → `⦃SCHEDULING_ICON_SRC_0⦄`
+- Second `img src` → `⦃SCHEDULING_ICON_SRC_1⦄`
+- First `img alt` → `⦃SCHEDULING_ICON_ALT_0⦄`
+- Second `img alt` → `⦃SCHEDULING_ICON_ALT_1⦄`
+
+You write ONE rule, the system handles multiple instances. No tedious
+repetition.
+
+### Review and Enhance Generated Placeholders
+
+The system auto-generates `template.json` with entries for all detected placeholders (including `_0`, `_1` suffixes from `allowMultiple`). Enhance the descriptions to help template users:
 
 ```json
 {
@@ -345,29 +417,80 @@ Now create `.templatize.json` manually to organize placeholders by feature:
       "default": "MyMow Pro",
       "description": "Brand name shown in scheduling feature"
     },
+    "SCHEDULING_ICON_SRC_0": {
+      "default": "/images/calendar-icon.png",
+      "description": "First icon in scheduling feature"
+    },
+    "SCHEDULING_ICON_SRC_1": {
+      "default": "/images/clock-icon.png",
+      "description": "Second icon in scheduling feature"
+    },
+    "SCHEDULING_ICON_ALT_0": {
+      "default": "Calendar icon",
+      "description": "Alt text for first scheduling icon"
+    },
+    "SCHEDULING_ICON_ALT_1": {
+      "default": "Clock icon",
+      "description": "Alt text for second scheduling icon"
+    },
     "SCHEDULING_SUPPORT_EMAIL": {
-      "default": "support@mymow.io",
+      "default": "mailto:support@mymow.io",
       "description": "Support email for scheduling"
     },
     "PAYMENTS_APP_NAME": {
       "default": "MyMow Pro",
       "description": "Brand name shown in billing feature"
     },
+    "PAYMENTS_ICON_SRC_0": {
+      "default": "/images/payment-icon.png",
+      "description": "First icon in payments feature"
+    },
+    "PAYMENTS_ICON_SRC_1": {
+      "default": "/images/card-icon.png",
+      "description": "Second icon in payments feature"
+    },
+    "PAYMENTS_ICON_ALT_0": {
+      "default": "Payment icon",
+      "description": "Alt text for first payment icon"
+    },
+    "PAYMENTS_ICON_ALT_1": {
+      "default": "Credit card icon",
+      "description": "Alt text for second payment icon"
+    },
     "PAYMENTS_SUPPORT_EMAIL": {
-      "default": "billing@mymow.io",
+      "default": "mailto:billing@mymow.io",
       "description": "Billing support email"
     },
     "CUSTOMERS_APP_NAME": {
       "default": "MyMow Pro",
       "description": "Brand name shown in customer management"
     },
+    "CUSTOMERS_ICON_SRC_0": {
+      "default": "/images/users-icon.png",
+      "description": "First icon in customers feature"
+    },
+    "CUSTOMERS_ICON_SRC_1": {
+      "default": "/images/chart-icon.png",
+      "description": "Second icon in customers feature"
+    },
+    "CUSTOMERS_ICON_ALT_0": {
+      "default": "Users icon",
+      "description": "Alt text for first customers icon"
+    },
+    "CUSTOMERS_ICON_ALT_1": {
+      "default": "Analytics chart icon",
+      "description": "Alt text for second customers icon"
+    },
     "CUSTOMERS_SUPPORT_EMAIL": {
-      "default": "hello@mymow.io",
+      "default": "mailto:hello@mymow.io",
       "description": "General support email"
     }
   }
 }
 ```
+
+Notice the `_0` and `_1` suffixes? The system automatically numbered the
+placeholders because `allowMultiple: true` was set.
 
 ### Convert and Inspect
 
@@ -385,12 +508,18 @@ You should see:
 
 ```jsx
 <h2>⦃SCHEDULING_APP_NAME⦄ - Scheduling</h2>
-<a href="mailto:⦃SCHEDULING_SUPPORT_EMAIL⦄">Contact Support</a>
+<img src="⦃SCHEDULING_ICON_SRC_0⦄" alt="⦃SCHEDULING_ICON_ALT_0⦄" />
+<img src="⦃SCHEDULING_ICON_SRC_1⦄" alt="⦃SCHEDULING_ICON_ALT_1⦄" />
+<a href="⦃SCHEDULING_SUPPORT_EMAIL⦄">Contact Support</a>
 ```
 
-Each feature has its own namespaced placeholders, making the template
-composable. Notice how the unicode delimiters work perfectly in JSX without
-breaking syntax highlighting or React's parser.
+Each feature has its own namespaced placeholders. Notice:
+
+- **Auto-numbered placeholders**: `_0`, `_1` suffixes for multiple images
+- **One rule, multiple matches**: You wrote ONE `img[src]` rule, the system
+  handled two images
+- **Feature isolation**: Each feature's icons are independent
+  (`SCHEDULING_ICON_SRC_0` vs `PAYMENTS_ICON_SRC_0`)
 
 ### Understanding Placeholder-to-Feature Mapping
 
@@ -405,41 +534,71 @@ The placeholder names tell you which feature they belong to:
 ```json
 {
   "placeholders": {
-    "SCHEDULING_APP_NAME": { ... },      // ← SCHEDULING_ prefix = scheduling feature
-    "SCHEDULING_SUPPORT_EMAIL": { ... }, // ← SCHEDULING_ prefix = scheduling feature
-    "PAYMENTS_APP_NAME": { ... },        // ← PAYMENTS_ prefix = payments feature
-    "PAYMENTS_SUPPORT_EMAIL": { ... },   // ← PAYMENTS_ prefix = payments feature
-    "CUSTOMERS_APP_NAME": { ... },       // ← CUSTOMERS_ prefix = customers feature
-    "CUSTOMERS_SUPPORT_EMAIL": { ... }   // ← CUSTOMERS_ prefix = customers feature
+    "SCHEDULING_APP_NAME": { ... },         // ← SCHEDULING_ prefix = scheduling feature
+    "SCHEDULING_ICON_SRC_0": { ... },       // ← _0 = first image
+    "SCHEDULING_ICON_SRC_1": { ... },       // ← _1 = second image
+    "SCHEDULING_ICON_ALT_0": { ... },       // ← _0 = first image alt text
+    "SCHEDULING_ICON_ALT_1": { ... },       // ← _1 = second image alt text
+    "PAYMENTS_APP_NAME": { ... },           // ← PAYMENTS_ prefix = payments feature
+    "PAYMENTS_ICON_SRC_0": { ... },         // ← _0 = first image
+    "PAYMENTS_ICON_SRC_1": { ... }          // ← _1 = second image
+    // ... similar pattern for CUSTOMERS_
   }
 }
 ```
 
-The naming convention (`FEATURE_PLACEHOLDER_NAME`) creates a clear visual
-hierarchy. Users scaffolding from this template can immediately see which
-placeholders affect which features.
+The naming convention creates a clear hierarchy:
+
+- **Feature prefix**: `SCHEDULING_`, `PAYMENTS_` isolates features
+- **Entity type**: `ICON_SRC`, `ICON_ALT` describes what it is
+- **Auto-numbering**: `_0`, `_1` handles multiple instances
+
+Users immediately understand: "This template has multiple icons per feature, and
+I can customize each one independently."
 
 ### Why This Matters
 
-When scaffolding from this template, users can:
+This example answers a key template author question: **"What if I have multiple
+images/links each needing different values?"**
 
-1. Customize branding per-feature (different names in different modules)
-2. Set different support emails per feature
-3. Enable/disable features independently in `_setup.mjs`
-4. Understand which placeholders belong to which feature by reading the prefix
+The answer: **`allowMultiple: true`**
 
-This is **composability** - organizing your template so features can be mixed
-and matched.
+Without this feature, you'd need to:
+
+1. Write separate rules for each image (`img:nth-child(1)`, `img:nth-child(2)`)
+2. Create unique placeholders manually (`ICON_PATH_1`, `ICON_PATH_2`)
+3. Repeat this for every feature
+
+With `allowMultiple`, you write:
+
+```json
+{
+  "context": "text/jsx#attribute",
+  "selector": "img[src]",
+  "placeholder": "SCHEDULING_ICON_SRC",
+  "allowMultiple": true
+}
+```
+
+The system automatically:
+
+- Finds all matching images
+- Numbers them sequentially (`_0`, `_1`, `_2`...)
+- Creates placeholders in `template.json`
+
+This is the difference between writing 3 rules vs 30 rules for a complex
+template.
 
 ### What You Learned
 
-- **Feature organization**: Group placeholders by functional area
-- **Namespace conventions**: Use prefixes like `SCHEDULING_`, `PAYMENTS_` to
-  avoid collisions
-- **Composable templates**: Structure that allows features to be
-  enabled/disabled independently
-- **Manual configuration**: Sometimes auto-detection needs guidance for complex
-  structures
+- **`allowMultiple: true`**: Write one rule, handle multiple instances
+  automatically
+- **Auto-numbering**: System adds `_0`, `_1` suffixes to duplicate matches
+- **Feature organization**: Group placeholders by functional area with prefixes
+- **CSS selectors**: Target elements precisely (`img`, `a[href^='mailto']`)
+- **Scalability**: Configuration stays simple even with many similar elements
+- **Manual configuration**: Complex structures need explicit `.templatize.json`
+  rules
 
 ### Clean Up
 

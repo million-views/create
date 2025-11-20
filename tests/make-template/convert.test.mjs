@@ -74,25 +74,25 @@ async function createTestProject(projectDir) {
     rules: {
       'package.json': [
         {
-          type: 'json-value',
+          context: 'application/json',
           path: '$.name',
           placeholder: 'PACKAGE_NAME'
         },
         {
-          type: 'json-value',
+          context: 'application/json',
           path: '$.description',
           placeholder: 'PACKAGE_DESCRIPTION'
         },
         {
-          type: 'json-value',
+          context: 'application/json',
           path: '$.author',
           placeholder: 'PACKAGE_AUTHOR'
         }
       ],
       'README.md': [
         {
-          type: 'markdown-heading',
-          level: 1,
+          context: 'text/markdown#heading',
+          selector: 'h1',
           placeholder: 'PROJECT_TITLE'
         }
       ]

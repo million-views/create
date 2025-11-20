@@ -87,14 +87,14 @@ Target exact filenames:
   "rules": {
     "package.json": [
       {
-        "type": "json-value",
+        "context": "application/json",
         "path": "$.name",
         "placeholder": "PACKAGE_NAME"
       }
     ],
     "index.html": [
       {
-        "type": "html-text",
+        "context": "text/html",
         "selector": "title",
         "placeholder": "PAGE_TITLE"
       }
@@ -112,16 +112,15 @@ Target all files with specific extensions:
   "rules": {
     ".jsx": [
       {
-        "type": "string-literal",
-        "context": "jsx-text",
+        "context": "text/jsx",
         "selector": "h1",
         "placeholder": "COMPONENT_TITLE"
       }
     ],
     ".md": [
       {
-        "type": "markdown-heading",
-        "level": 1,
+        "context": "text/markdown#heading",
+        "selector": "h1",
         "placeholder": "DOCUMENT_TITLE"
       }
     ]
@@ -137,17 +136,17 @@ Target all files with specific extensions:
 {
   "package.json": [
     {
-      "type": "json-value",
+      "context": "application/json",
       "path": "$.name",
       "placeholder": "PACKAGE_NAME"
     },
     {
-      "type": "json-value",
+      "context": "application/json",
       "path": "$.description",
       "placeholder": "PACKAGE_DESCRIPTION"
     },
     {
-      "type": "json-value",
+      "context": "application/json",
       "path": "$.author",
       "placeholder": "PACKAGE_AUTHOR"
     }
@@ -161,8 +160,8 @@ Target all files with specific extensions:
 {
   "README.md": [
     {
-      "type": "markdown-heading",
-      "level": 1,
+      "context": "text/markdown#heading",
+      "selector": "h1",
       "placeholder": "PROJECT_TITLE"
     }
   ]
@@ -175,31 +174,25 @@ Target all files with specific extensions:
 {
   ".jsx": [
     {
-      "type": "string-literal",
-      "context": "jsx-text",
+      "context": "text/jsx",
       "selector": "h1:first-child",
       "placeholder": "PAGE_TITLE"
     },
     {
-      "type": "string-literal",
-      "context": "jsx-text",
+      "context": "text/jsx",
       "selector": ".description, [data-description]",
       "placeholder": "CONTENT_DESCRIPTION",
       "allowMultiple": true
     },
     {
-      "type": "string-literal",
-      "context": "jsx-attribute",
+      "context": "text/jsx#attribute",
       "selector": "[title]",
-      "attribute": "title",
       "placeholder": "ELEMENT_TITLE",
       "allowMultiple": true
     },
     {
-      "type": "string-literal",
-      "context": "jsx-attribute",
+      "context": "text/jsx#attribute",
       "selector": "[aria-label]",
-      "attribute": "aria-label",
       "placeholder": "ACCESSIBILITY_LABEL",
       "allowMultiple": true
     }
@@ -213,25 +206,23 @@ Target all files with specific extensions:
 {
   ".html": [
     {
-      "type": "html-text",
+      "context": "text/html",
       "selector": "title",
       "placeholder": "PAGE_TITLE"
     },
     {
-      "type": "html-text",
+      "context": "text/html",
       "selector": "h1:first-child",
       "placeholder": "MAIN_HEADING"
     },
     {
-      "type": "html-attribute",
-      "selector": "meta[name='description']",
-      "attribute": "content",
+      "context": "text/html#attribute",
+      "selector": "meta[name='description'][content]",
       "placeholder": "META_DESCRIPTION"
     },
     {
-      "type": "html-attribute",
-      "selector": "link[rel='icon']",
-      "attribute": "href",
+      "context": "text/html#attribute",
+      "selector": "link[rel='icon'][href]",
       "placeholder": "FAVICON_PATH"
     }
   ]
@@ -248,20 +239,17 @@ Use multiple patterns for the same file type with different conditions:
 {
   ".jsx": [
     {
-      "type": "string-literal",
-      "context": "jsx-text",
+      "context": "text/jsx",
       "selector": "h1:first-child",
       "placeholder": "MAIN_TITLE"
     },
     {
-      "type": "string-literal",
-      "context": "jsx-text",
+      "context": "text/jsx",
       "selector": "h2:first-child",
       "placeholder": "SUB_TITLE"
     },
     {
-      "type": "string-literal",
-      "context": "jsx-text",
+      "context": "text/jsx",
       "selector": ".hero-title",
       "placeholder": "HERO_TITLE"
     }
@@ -277,8 +265,8 @@ Allow patterns to match multiple occurrences:
 {
   ".md": [
     {
-      "type": "markdown-heading",
-      "level": 2,
+      "context": "text/markdown#heading",
+      "selector": "h2",
       "placeholder": "SECTION_TITLE",
       "allowMultiple": true
     }
@@ -294,14 +282,12 @@ Use CSS selector syntax for precise targeting:
 {
   ".jsx": [
     {
-      "type": "string-literal",
-      "context": "jsx-text",
+      "context": "text/jsx",
       "selector": ".header > h1:first-child",
       "placeholder": "HEADER_TITLE"
     },
     {
-      "type": "string-literal",
-      "context": "jsx-text",
+      "context": "text/jsx",
       "selector": ".sidebar h3, aside h3",
       "placeholder": "SIDEBAR_HEADING",
       "allowMultiple": true
@@ -341,15 +327,14 @@ For each piece of content, create appropriate patterns:
   "rules": {
     "package.json": [
       {
-        "type": "json-value",
+        "context": "application/json",
         "path": "$.name",
         "placeholder": "MY_PROJECT_NAME"
       }
     ],
     "src/App.jsx": [
       {
-        "type": "string-literal",
-        "context": "jsx-text",
+        "context": "text/jsx",
         "selector": ".welcome-message",
         "placeholder": "WELCOME_MESSAGE"
       }
@@ -381,35 +366,34 @@ cat converted-files/
   "rules": {
     "package.json": [
       {
-        "type": "json-value",
+        "context": "application/json",
         "path": "$.name",
         "placeholder": "APP_NAME"
       },
       {
-        "type": "json-value",
+        "context": "application/json",
         "path": "$.description",
         "placeholder": "APP_DESCRIPTION"
       }
     ],
     "public/index.html": [
       {
-        "type": "html-text",
+        "context": "text/html",
         "selector": "title",
         "placeholder": "APP_TITLE"
       }
     ],
     "src/App.jsx": [
       {
-        "type": "string-literal",
-        "context": "jsx-text",
+        "context": "text/jsx",
         "selector": "h1",
         "placeholder": "MAIN_HEADING"
       }
     ],
     "README.md": [
       {
-        "type": "markdown-heading",
-        "level": 1,
+        "context": "text/markdown#heading",
+        "selector": "h1",
         "placeholder": "PROJECT_TITLE"
       }
     ],
@@ -426,36 +410,28 @@ cat converted-files/
   "rules": {
     "package.json": [
       {
-        "type": "json-value",
+        "context": "application/json",
         "path": "$.name",
         "placeholder": "LIBRARY_NAME"
       },
       {
-        "type": "json-value",
+        "context": "application/json",
         "path": "$.description",
         "placeholder": "LIBRARY_DESCRIPTION"
       },
       {
-        "type": "json-value",
+        "context": "application/json",
         "path": "$.main",
         "placeholder": "MAIN_ENTRY_POINT"
       }
     ],
     "README.md": [
       {
-        "type": "markdown-heading",
-        "level": 1,
+        "context": "text/markdown#heading",
+        "selector": "h1",
         "placeholder": "LIBRARY_TITLE"
       }
     ],
-    "lib/index.js": [
-      {
-        "type": "string-literal",
-        "context": "string-literal",
-        "selector": "const libraryName",
-        "placeholder": "LIBRARY_CONSTANT_NAME"
-      }
-    ]
   }
 }
 ```
@@ -469,27 +445,27 @@ cat converted-files/
   "rules": {
     "package.json": [
       {
-        "type": "json-value",
+        "context": "application/json",
         "path": "$.name",
         "placeholder": "SITE_NAME"
       }
     ],
     ".html": [
       {
-        "type": "html-text",
+        "context": "text/html",
         "selector": "title",
         "placeholder": "PAGE_TITLE"
       },
       {
-        "type": "html-text",
+        "context": "text/html",
         "selector": "h1:first-child",
         "placeholder": "MAIN_HEADING"
       }
     ],
     ".md": [
       {
-        "type": "markdown-heading",
-        "level": 1,
+        "context": "text/markdown#heading",
+        "selector": "h1",
         "placeholder": "DOCUMENT_TITLE"
       }
     ]

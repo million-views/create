@@ -40,10 +40,10 @@ describe('Templatization Quality Validation Tests', () => {
     const config = {
       rules: {
         'nonexistent.json': [
-          { type: 'json-value', path: '$.name', placeholder: 'NAME' }
+          { context: 'application/json', path: '$.name', placeholder: 'NAME' }
         ],
         'missing.md': [
-          { type: 'markdown-heading', level: 1, placeholder: 'TITLE' }
+          { context: 'text/markdown#heading', selector: 'h1', placeholder: 'TITLE' }
         ]
       }
     };
@@ -71,10 +71,10 @@ describe('Templatization Quality Validation Tests', () => {
     const config = {
       rules: {
         '*.json': [
-          { type: 'json-value', path: '$.name', placeholder: 'NAME' }
+          { context: 'application/json', path: '$.name', placeholder: 'NAME' }
         ],
         '*.md': [
-          { type: 'markdown-heading', level: 1, placeholder: 'TITLE' }
+          { context: 'text/markdown#heading', selector: 'h1', placeholder: 'TITLE' }
         ]
       }
     };
@@ -114,9 +114,9 @@ describe('Templatization Quality Validation Tests', () => {
 
     const config = {
       rules: {
-        'config.json': [
-          { type: 'json-value', path: '$.app.config.database.host', placeholder: 'DB_HOST' },
-          { type: 'json-value', path: '$.app.config.database.credentials.username', placeholder: 'DB_USER' }
+        'complex.json': [
+          { context: 'application/json', path: '$.app.config.database.host', placeholder: 'DB_HOST' },
+          { context: 'application/json', path: '$.app.config.database.credentials.username', placeholder: 'DB_USER' }
         ]
       }
     };
@@ -145,10 +145,10 @@ describe('Templatization Quality Validation Tests', () => {
     const config = {
       rules: {
         'unicode.json': [
-          { type: 'json-value', path: '$.name', placeholder: 'UNICODE_NAME' }
+          { context: 'application/json', path: '$.name', placeholder: 'UNICODE_NAME' }
         ],
         'special.md': [
-          { type: 'markdown-heading', level: 1, placeholder: 'SPECIAL_TITLE' }
+          { context: 'text/markdown#heading', selector: 'h1', placeholder: 'SPECIAL_TITLE' }
         ]
       }
     };
@@ -203,7 +203,7 @@ describe('Templatization Quality Validation Tests', () => {
     const config = {
       rules: {
         'large.json': [
-          { type: 'json-value', path: '$.data', placeholder: 'LARGE_DATA' }
+          { context: 'application/json', path: '$.data', placeholder: 'LARGE_DATA' }
         ]
       }
     };

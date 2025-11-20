@@ -13,6 +13,7 @@ This is a description of my project.
       const config = {
         patterns: [
           {
+            context: 'text/markdown#heading',
             selector: 'h1',
             placeholder: 'projectName'
           }
@@ -44,6 +45,7 @@ Even more content.
       const config = {
         patterns: [
           {
+            context: 'text/markdown#heading',
             selector: 'h1,h2,h3',
             placeholder: 'heading'
           }
@@ -87,10 +89,12 @@ Content here.
       const config = {
         patterns: [
           {
+            context: 'text/markdown',
             selector: 'frontmatter.title',
             placeholder: 'projectName'
           },
           {
+            context: 'text/markdown',
             selector: 'frontmatter.description',
             placeholder: 'projectDescription'
           }
@@ -125,6 +129,7 @@ More content.
 
       const patterns = [
         {
+          context: 'text/markdown#heading',
           selector: 'h1',
           placeholder: 'heading',
           allowMultiple: false
@@ -148,6 +153,7 @@ More content.
 
       const patterns = [
         {
+          context: 'text/markdown#heading',
           selector: 'h1',
           placeholder: 'heading'
         }
@@ -166,6 +172,7 @@ Some content without proper structure.
 
       const patterns = [
         {
+          context: 'text/markdown#heading',
           selector: 'h1',
           placeholder: 'heading'
         }
@@ -181,6 +188,7 @@ Some content without proper structure.
 
       const patterns = [
         {
+          context: 'text/markdown#heading',
           selector: 'h1',
           placeholder: 'heading'
         }
@@ -197,6 +205,7 @@ Some content without proper structure.
 
       const patterns = [
         {
+          context: 'text/markdown#heading',
           selector: 'h1',
           placeholder: 'heading'
         }
@@ -216,6 +225,7 @@ description: "Description"
 
       const patterns = [
         {
+          context: 'text/markdown',
           selector: 'frontmatter.title',
           placeholder: 'title'
         }
@@ -239,6 +249,7 @@ description: "A project"
 
       const patterns = [
         {
+          context: 'text/markdown',
           selector: 'frontmatter.project.name',
           placeholder: 'projectName'
         }
@@ -263,6 +274,7 @@ Some text.
 
       const patterns = [
         {
+          context: 'text/markdown',
           selector: 'code',
           placeholder: 'installCommand'
         }
@@ -278,6 +290,7 @@ Some text.
 
       const patterns = [
         {
+          context: 'text/markdown',
           selector: 'inline-code',
           placeholder: 'runCommand'
         }
@@ -293,6 +306,7 @@ Some text.
 
       const patterns = [
         {
+          context: 'text/markdown',
           selector: 'link',
           placeholder: 'projectLink'
         }
@@ -309,6 +323,7 @@ Some text.
 
       const patterns = [
         {
+          context: 'text/markdown',
           selector: 'image',
           placeholder: 'logoPath'
         }
@@ -327,6 +342,7 @@ Some text.
 
       const patterns = [
         {
+          context: 'text/markdown',
           selector: 'invalid-selector',
           placeholder: 'test'
         }
@@ -346,6 +362,7 @@ title: "Test"
 
       const patterns = [
         {
+          context: 'text/markdown',
           selector: 'frontmatter.nonexistent',
           placeholder: 'test'
         }
@@ -371,10 +388,12 @@ This paragraph should also be templatized.
 
       const patterns = [
         {
+          context: 'text/markdown#heading',
           selector: 'h1,h2',
           placeholder: 'heading'
         },
         {
+          context: 'text/markdown#paragraph',
           selector: 'p',
           placeholder: 'paragraph'
         }

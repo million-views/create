@@ -42,32 +42,33 @@ All patterns share common properties:
 
 ```json
 {
-  "type": "pattern-type",
+  "context": "mime-type-format",
   "placeholder": "PLACEHOLDER_NAME",
   "allowMultiple": false
 }
 ```
 
-- **`type`** (required): The pattern type identifier
+- **`context`** (required): MIME-type format specifying how to extract content (e.g., `"application/json"`, `"text/jsx"`, `"text/html#attribute"`)
 - **`placeholder`** (required): The placeholder name to use for replacement
 - **`allowMultiple`** (optional): Whether this pattern can match multiple occurrences (default: `false`)
 
 ## Pattern Types
 
-### JSON Value Patterns (`json-value`)
+### JSON Value Patterns
 
 Extracts values from JSON files using JSONPath expressions.
 
 **Configuration:**
 ```json
 {
-  "type": "json-value",
+  "context": "application/json",
   "path": "$.name",
   "placeholder": "PACKAGE_NAME"
 }
 ```
 
 **Properties:**
+- **`context`**: `"application/json"`
 - **`path`** (required): JSONPath expression to locate the value
 
 **Examples:**
@@ -86,17 +87,17 @@ Extracts values from JSON files using JSONPath expressions.
 {
   "package.json": [
     {
-      "type": "json-value",
+      "context": "application/json",
       "path": "$.name",
       "placeholder": "PACKAGE_NAME"
     },
     {
-      "type": "json-value",
+      "context": "application/json",
       "path": "$.description",
       "placeholder": "PACKAGE_DESCRIPTION"
     },
     {
-      "type": "json-value",
+      "context": "application/json",
       "path": "$.author",
       "placeholder": "PACKAGE_AUTHOR"
     }
@@ -113,21 +114,22 @@ Extracts values from JSON files using JSONPath expressions.
 }
 ```
 
-### Markdown Heading Patterns (`markdown-heading`)
+### Markdown Heading Patterns
 
-Extracts text from markdown headings by level.
+Extracts text from markdown headings.
 
 **Configuration:**
 ```json
 {
-  "type": "markdown-heading",
-  "level": 1,
+  "context": "text/markdown#heading",
+  "selector": "h1",
   "placeholder": "CONTENT_TITLE"
 }
 ```
 
 **Properties:**
-- **`level`** (required): Heading level (1-6)
+- **`context`**: `"text/markdown#heading"`
+- **`selector`** (required): Heading selector (h1, h2, h3, h4, h5, or h6)
 
 **Examples:**
 
@@ -142,13 +144,13 @@ Extracts text from markdown headings by level.
 {
   "README.md": [
     {
-      "type": "markdown-heading",
-      "level": 1,
+      "context": "text/markdown#heading",
+      "selector": "h1",
       "placeholder": "CONTENT_TITLE"
     },
     {
-      "type": "markdown-heading",
-      "level": 2,
+      "context": "text/markdown#heading",
+      "selector": "h2",
       "placeholder": "CONTENT_SUBTITLE"
     }
   ]
@@ -162,21 +164,22 @@ Extracts text from markdown headings by level.
 ### Section Header
 ```
 
-### Markdown Paragraph Patterns (`markdown-paragraph`)
+### Markdown Paragraph Patterns
 
-Extracts text from markdown paragraphs by position.
+Extracts text from markdown paragraphs.
 
 **Configuration:**
 ```json
 {
-  "type": "markdown-paragraph",
-  "position": "first",
+  "context": "text/markdown#paragraph",
+  "selector": "p",
   "placeholder": "CONTENT_DESCRIPTION"
 }
 ```
 
 **Properties:**
-- **`position`** (required): Position identifier (`"first"`, `"last"`, or numeric index)
+- **`context`**: `"text/markdown#paragraph"`
+- **`selector`** (required): Selector for paragraph matching (e.g., `"p"`)
 
 **Examples:**
 
@@ -197,9 +200,10 @@ Another paragraph here.
 {
   "README.md": [
     {
-      "type": "markdown-paragraph",
-      "position": "first",
-      "placeholder": "CONTENT_DESCRIPTION"
+      "context": "text/markdown#paragraph",
+      "selector": "p",
+      "placeholder": "CONTENT_DESCRIPTION",
+      "allowMultiple": false
     }
   ]
 }
@@ -218,24 +222,31 @@ This is the second paragraph.
 Another paragraph here.
 ```
 
-### String Literal Patterns (`string-literal`)
+### JSX/TSX Patterns
 
-Extracts string literals from source code files with context-specific matching.
+Extracts string literals from JSX/TSX files using CSS selectors.
 
-**Configuration:**
+**Configuration (text content):**
 ```json
 {
-  "type": "string-literal",
-  "context": "jsx-text",
+  "context": "text/jsx",
   "selector": "h1:first-child",
   "placeholder": "CONTENT_TITLE"
 }
 ```
 
+**Configuration (attributes):**
+```json
+{
+  "context": "text/jsx#attribute",
+  "selector": "img[src]",
+  "placeholder": "IMAGE_SRC"
+}
+```
+
 **Properties:**
-- **`context`** (required): Context type (`"jsx-text"`, `"jsx-attribute"`)
-- **`selector`** (required): CSS selector to locate elements
-- **`attribute`** (required for `jsx-attribute` context): Attribute name to extract
+- **`context`** (required): `"text/jsx"` for text content, `"text/jsx#attribute"` for attributes
+- **`selector`** (required): CSS selector to locate elements (attribute name extracted from selector for attribute contexts)
 
 **Examples for JSX/TSX:**
 
@@ -256,22 +267,18 @@ function App() {
 {
   ".jsx": [
     {
-      "type": "string-literal",
-      "context": "jsx-text",
+      "context": "text/jsx",
       "selector": "h1:first-child",
       "placeholder": "CONTENT_TITLE"
     },
     {
-      "type": "string-literal",
-      "context": "jsx-text",
+      "context": "text/jsx",
       "selector": ".description",
       "placeholder": "CONTENT_DESCRIPTION"
     },
     {
-      "type": "string-literal",
-      "context": "jsx-attribute",
+      "context": "text/jsx#attribute",
       "selector": "[title]",
-      "attribute": "title",
       "placeholder": "BUTTON_TITLE"
     }
   ]
@@ -291,20 +298,30 @@ function App() {
 }
 ```
 
-### HTML Text Patterns (`html-text`)
+### HTML Patterns
 
-Extracts text content from HTML elements.
+Extracts text content and attributes from HTML elements.
 
-**Configuration:**
+**Configuration (text content):**
 ```json
 {
-  "type": "html-text",
+  "context": "text/html",
   "selector": "title",
   "placeholder": "PAGE_TITLE"
 }
 ```
 
+**Configuration (attributes):**
+```json
+{
+  "context": "text/html#attribute",
+  "selector": "meta[name='description'][content]",
+  "placeholder": "META_DESCRIPTION"
+}
+```
+
 **Properties:**
+- **`context`** (required): `"text/html"` for text content, `"text/html#attribute"` for attributes
 - **`selector`** (required): CSS selector to locate elements
 
 **Examples:**
@@ -327,17 +344,17 @@ Extracts text content from HTML elements.
 {
   ".html": [
     {
-      "type": "html-text",
+      "context": "text/html",
       "selector": "title",
       "placeholder": "PAGE_TITLE"
     },
     {
-      "type": "html-text",
+      "context": "text/html",
       "selector": "h1:first-child",
       "placeholder": "CONTENT_TITLE"
     },
     {
-      "type": "html-text",
+      "context": "text/html",
       "selector": "p:first-of-type",
       "placeholder": "CONTENT_DESCRIPTION"
     }
@@ -359,25 +376,7 @@ Extracts text content from HTML elements.
 </html>
 ```
 
-### HTML Attribute Patterns (`html-attribute`)
-
-Extracts attribute values from HTML elements.
-
-**Configuration:**
-```json
-{
-  "type": "html-attribute",
-  "selector": "meta[name='description']",
-  "attribute": "content",
-  "placeholder": "META_DESCRIPTION"
-}
-```
-
-**Properties:**
-- **`selector`** (required): CSS selector to locate elements
-- **`attribute`** (required): Attribute name to extract
-
-**Examples:**
+**Attribute Examples:**
 
 ```html
 <!DOCTYPE html>
@@ -397,21 +396,18 @@ Extracts attribute values from HTML elements.
 {
   ".html": [
     {
-      "type": "html-attribute",
-      "selector": "meta[name='description']",
-      "attribute": "content",
+      "context": "text/html#attribute",
+      "selector": "meta[name='description'][content]",
       "placeholder": "META_DESCRIPTION"
     },
     {
-      "type": "html-attribute",
-      "selector": "link[rel='icon']",
-      "attribute": "href",
+      "context": "text/html#attribute",
+      "selector": "link[rel='icon'][href]",
       "placeholder": "FAVICON_PATH"
     },
     {
-      "type": "html-attribute",
-      "selector": "img",
-      "attribute": "alt",
+      "context": "text/html#attribute",
+      "selector": "img[alt]",
       "placeholder": "IMAGE_ALT"
     }
   ]
@@ -472,19 +468,20 @@ You can define multiple patterns for the same file:
 {
   "README.md": [
     {
-      "type": "markdown-heading",
-      "level": 1,
+      "context": "text/markdown#heading",
+      "selector": "h1",
       "placeholder": "TITLE"
     },
     {
-      "type": "markdown-heading",
-      "level": 2,
+      "context": "text/markdown#heading",
+      "selector": "h2",
       "placeholder": "SUBTITLE"
     },
     {
-      "type": "markdown-paragraph",
-      "position": "first",
-      "placeholder": "DESCRIPTION"
+      "context": "text/markdown#paragraph",
+      "selector": "p",
+      "placeholder": "DESCRIPTION",
+      "allowMultiple": false
     }
   ]
 }
@@ -496,8 +493,7 @@ Set `allowMultiple: true` to replace all occurrences of a pattern:
 
 ```json
 {
-  "type": "string-literal",
-  "context": "jsx-text",
+  "context": "text/jsx",
   "selector": ".description",
   "placeholder": "DESCRIPTION",
   "allowMultiple": true
@@ -510,7 +506,7 @@ Use descriptive placeholder names that match your template's needs:
 
 ```json
 {
-  "type": "json-value",
+  "context": "application/json",
   "path": "$.name",
   "placeholder": "PROJECT_NAME"
 }

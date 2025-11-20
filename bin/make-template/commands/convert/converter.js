@@ -187,11 +187,8 @@ export class Converter {
       const filePath = path.join(projectPath, fileConfig.path);
       if (await exists(filePath)) {
         try {
-          // Translate design patterns to processor format
-          const processorPatterns = this.translatePatternsForProcessor(fileConfig.patterns, fileConfig.processorType);
-
           const result = await this.processFileWithProcessor(
-            filePath, fileConfig.processor, processorPatterns,
+            filePath, fileConfig.processor, fileConfig.patterns,
             placeholderFormat);
           Object.assign(detectedPlaceholders, result.placeholders);
         } catch (error) {
@@ -313,92 +310,6 @@ export class Converter {
       case 'jsx': return processJSXFile;
       default: return null;
     }
-  }
-
-  translatePatternsForProcessor(patterns, processorType) {
-    return patterns.map(pattern => {
-      // Handle malformed patterns gracefully
-      if (!pattern || typeof pattern !== 'object' || !pattern.type) {
-        console.warn(`Warning: Invalid pattern encountered: ${JSON.stringify(pattern)}`);
-        return pattern;
-      }
-
-      // Convert design format to processor format
-      switch (processorType) {
-        case 'json':
-          if (pattern.type === 'json-value') {
-            const { path, ...rest } = pattern; // Extract path, spread the rest
-            return {
-              ...rest, // Preserve additional fields
-              selector: pattern.path,
-              type: 'string-literal',
-              context: 'json-value',
-              allowMultiple: pattern.allowMultiple || false
-            };
-          }
-          break;
-
-        case 'markdown':
-          if (pattern.type === 'markdown-heading') {
-            const { level, ...rest } = pattern; // Extract level, spread the rest
-            return {
-              ...rest, // Preserve additional fields
-              selector: `h${pattern.level}`,
-              type: 'string-literal',
-              context: 'markdown',
-              allowMultiple: pattern.allowMultiple || false
-            };
-          } else if (pattern.type === 'markdown-paragraph') {
-            const { position, ...rest } = pattern; // Extract position, spread the rest
-            return {
-              ...rest, // Preserve additional fields
-              selector: pattern.position === 'first' ? 'p:first-of-type' : 'p',
-              type: 'string-literal',
-              context: 'markdown',
-              allowMultiple: pattern.allowMultiple || false
-            };
-          }
-          break;
-
-        case 'html':
-          if (pattern.type === 'html-text') {
-            return {
-              ...pattern, // Preserve additional fields
-              selector: pattern.selector,
-              type: 'string-literal',
-              context: 'html',
-              allowMultiple: pattern.allowMultiple || false
-            };
-          } else if (pattern.type === 'html-attribute') {
-            return {
-              ...pattern, // Preserve additional fields
-              selector: pattern.selector,
-              type: 'string-literal',
-              context: 'html-attribute',
-              attribute: pattern.attribute,
-              allowMultiple: pattern.allowMultiple || false
-            };
-          }
-          break;
-
-        case 'jsx':
-          if (pattern.type === 'string-literal') {
-            return {
-              ...pattern, // Preserve additional fields
-              selector: pattern.selector,
-              type: 'string-literal',
-              context: pattern.context,
-              allowMultiple: pattern.allowMultiple || false,
-              ...(pattern.attribute && { attribute: pattern.attribute })
-            };
-          }
-          break;
-      }
-
-      // If no translation found, return pattern as-is (for forwards compatibility)
-      console.warn(`Warning: Could not translate pattern type '${pattern.type}' for ${processorType} processor`);
-      return pattern;
-    });
   }
 
   async processFileWithProcessor(filePath, processor, patterns, placeholderFormat) {

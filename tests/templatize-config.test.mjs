@@ -104,21 +104,21 @@ describe('TemplatizeConfig', () => {
       assert.throws(() => validateConfig(invalidConfig), /must have a rules object/);
     });
 
-    it('allows unknown pattern types for forwards compatibility', () => {
-      const configWithUnknownType = {
+    it('allows unknown contexts for forwards compatibility', () => {
+      const configWithUnknownContext = {
         ...DEFAULT_CONFIG,
         rules: {
           'test.json': [
             {
-              type: 'unknown-type',
+              context: 'application/future-format',
               placeholder: 'TEST'
             }
           ]
         }
       };
 
-      // Should not throw - unknown types are allowed for forwards compatibility
-      assert.doesNotThrow(() => validateConfig(configWithUnknownType));
+      // Should not throw - unknown contexts are allowed for forwards compatibility
+      assert.doesNotThrow(() => validateConfig(configWithUnknownContext));
     });
   });
 
@@ -151,8 +151,7 @@ describe('TemplatizeConfig', () => {
         rules: {
           'custom.txt': [
             {
-              type: 'string-literal',
-              context: 'text',
+              context: 'text/plain',
               selector: 'body',
               placeholder: 'CUSTOM_CONTENT'
             }

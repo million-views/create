@@ -78,93 +78,80 @@ const testFixtures = {
 // Test patterns for JSON templatization
 const testPatterns = [
   {
-    type: 'string-literal',
-    context: 'json-value',
-    selector: '$.name',
+    context: 'application/json',
+    path: '$.name',
     placeholder: 'PROJECT_NAME',
     allowMultiple: false
   },
   {
-    type: 'string-literal',
-    context: 'json-value',
-    selector: '$.description',
+    context: 'application/json',
+    path: '$.description',
     placeholder: 'PROJECT_DESCRIPTION',
     allowMultiple: false
   },
   {
-    type: 'string-literal',
-    context: 'json-value',
-    selector: '$.project.metadata.title',
+    context: 'application/json',
+    path: '$.project.metadata.title',
     placeholder: 'CONTENT_TITLE',
     allowMultiple: false
   },
   {
-    type: 'string-literal',
-    context: 'json-value',
-    selector: '$.project.metadata.description',
+    context: 'application/json',
+    path: '$.project.metadata.description',
     placeholder: 'CONTENT_DESCRIPTION',
     allowMultiple: false
   },
   {
-    type: 'string-literal',
-    context: 'json-value',
-    selector: '$.config.api.baseUrl',
+    context: 'application/json',
+    path: '$.config.api.baseUrl',
     placeholder: 'API_BASE_URL',
     allowMultiple: false
   },
   {
-    type: 'string-literal',
-    context: 'json-value',
-    selector: '$.items[*].name',
+    context: 'application/json',
+    path: '$.items[*].name',
     placeholder: 'ITEM_NAME',
     allowMultiple: true
   },
   {
-    type: 'string-literal',
-    context: 'json-value',
-    selector: '$.items[*].description',
+    context: 'application/json',
+    path: '$.items[*].description',
     placeholder: 'ITEM_DESCRIPTION',
     allowMultiple: true
   },
   {
-    type: 'string-literal',
-    context: 'json-value',
-    selector: '$.categories[*]',
+    context: 'application/json',
+    path: '$.categories[*]',
     placeholder: 'CATEGORY_NAME',
     allowMultiple: true
   },
   {
-    type: 'string-literal',
-    context: 'json-value',
-    selector: '$.app.title',
+    context: 'application/json',
+    path: '$.app.title',
     placeholder: 'APP_TITLE',
     allowMultiple: false
   },
   {
-    type: 'string-literal',
-    context: 'json-value',
-    selector: '$.app.subtitle',
+    context: 'application/json',
+    path: '$.app.subtitle',
     placeholder: 'APP_SUBTITLE',
     allowMultiple: false
   },
   {
-    type: 'string-literal',
-    context: 'json-value',
-    selector: '$.app.features[*].name',
+    context: 'application/json',
+    path: '$.app.features[*].name',
     placeholder: 'FEATURE_NAME',
     allowMultiple: true
   },
   {
-    type: 'string-literal',
-    context: 'json-value',
-    selector: '$.app.features[*].description',
+    context: 'application/json',
+    path: '$.app.features[*].description',
     placeholder: 'FEATURE_DESCRIPTION',
     allowMultiple: true
   },
   {
-    type: 'string-literal',
-    context: 'json-value',
-    selector: '$.settings.theme.primaryColor',
+    context: 'application/json',
+    path: '$.settings.theme.primaryColor',
     placeholder: 'THEME_PRIMARY_COLOR',
     allowMultiple: false
   }
@@ -288,23 +275,20 @@ test('JSON Processor - Edge cases', async (t) => {
 
     const mixedPatterns = [
       {
-        type: 'string-literal',
-        context: 'json-value',
-        selector: '$.string',
+        context: 'application/json',
+        path: '$.string',
         placeholder: 'STRING_VALUE',
         allowMultiple: false
       },
       {
-        type: 'string-literal',
-        context: 'json-value',
-        selector: '$.array[*]',
+        context: 'application/json',
+        path: '$.array[*]',
         placeholder: 'ARRAY_ITEM',
         allowMultiple: true
       },
       {
-        type: 'string-literal',
-        context: 'json-value',
-        selector: '$.object.nested',
+        context: 'application/json',
+        path: '$.object.nested',
         placeholder: 'NESTED_VALUE',
         allowMultiple: false
       }
@@ -337,17 +321,16 @@ test('JSON Processor - Edge cases', async (t) => {
   }
 }`;
 
-    const deepPatterns = [
+    const patterns = [
       {
-        type: 'string-literal',
-        context: 'json-value',
-        selector: '$.level1.level2.level3.level4.target',
-        placeholder: 'DEEP_VALUE',
+        context: 'application/json',
+        path: '$.level1.level2.level3.level4.target',
+        placeholder: 'DEEPLY_NESTED',
         allowMultiple: false
       }
     ];
 
-    const replacements = await processJSONFile('test.json', deepJSON, deepPatterns);
+    const replacements = await processJSONFile('test.json', deepJSON, patterns);
 
     assert.strictEqual(replacements.length, 1, 'Should find deeply nested value');
     assert.strictEqual(replacements[0].originalText, 'deep value');
@@ -356,26 +339,24 @@ test('JSON Processor - Edge cases', async (t) => {
 
 test('JSON Processor - JSONPath validation', async (t) => {
   await t.test('should handle invalid JSONPath gracefully', async () => {
-    const invalidPatterns = [
+    const invalidPathPattern = [
       {
-        type: 'string-literal',
-        context: 'json-value',
-        selector: '$.invalid..path',
-        placeholder: 'INVALID',
+        context: 'application/json',
+        path: '$.invalid..path',
+        placeholder: 'TEST',
         allowMultiple: false
       }
     ];
 
-    const replacements = await processJSONFile('test.json', testFixtures.simpleJSON, invalidPatterns);
+    const replacements = await processJSONFile('test.json', testFixtures.simpleJSON, invalidPathPattern);
     assert.strictEqual(replacements.length, 0, 'Should handle invalid JSONPath gracefully');
   });
 
   await t.test('should handle non-existent paths', async () => {
     const missingPathPatterns = [
       {
-        type: 'string-literal',
-        context: 'json-value',
-        selector: '$.nonexistent.path',
+        context: 'application/json',
+        path: '$.nonexistent.path',
         placeholder: 'MISSING',
         allowMultiple: false
       }
@@ -399,9 +380,8 @@ test('JSON Processor - JSONPath validation', async (t) => {
     for (const { selector, expected } of pathPatterns) {
       const testJSON = `{"name": "test", "items": [{"name": "item"}]}`;
       const patterns = [{
-        type: 'string-literal',
-        context: 'json-value',
-        selector,
+        context: 'application/json',
+        path: selector,
         placeholder: 'TEST',
         allowMultiple: true
       }];
@@ -441,16 +421,14 @@ test('JSON Processor - JSONPath validation', async (t) => {
 
     const patterns = [
       {
-        type: 'string-literal',
-        context: 'json-value',
-        selector: '$.name',
-        placeholder: 'APP_NAME',
+        context: 'application/json',
+        path: '$.name',
+        placeholder: 'NAME',
         allowMultiple: false
       },
       {
-        type: 'string-literal',
-        context: 'json-value',
-        selector: '$.title',
+        context: 'application/json',
+        path: '$.title',
         placeholder: 'APP_TITLE',
         allowMultiple: false
       }

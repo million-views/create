@@ -86,36 +86,31 @@ const testFixtures = {
 // Test patterns for HTML templatization
 const testPatterns = [
   {
-    type: 'string-literal',
-    context: 'html',
+    context: 'text/html',
     selector: 'h1',
     placeholder: 'TITLE',
     allowMultiple: false
   },
   {
-    type: 'string-literal',
-    context: 'html',
+    context: 'text/html',
     selector: 'h2',
     placeholder: 'SUBTITLE',
     allowMultiple: false
   },
   {
-    type: 'string-literal',
-    context: 'html',
+    context: 'text/html',
     selector: '.description, [data-description]',
     placeholder: 'DESCRIPTION',
     allowMultiple: true
   },
   {
-    type: 'string-literal',
-    context: 'html',
+    context: 'text/html',
     selector: 'title',
     placeholder: 'PAGE_TITLE',
     allowMultiple: false
   },
   {
-    type: 'string-literal',
-    context: 'html',
+    context: 'text/html',
     selector: 'text',
     placeholder: 'CONTENT_TEXT',
     allowMultiple: true
@@ -220,8 +215,7 @@ test('HTML Processor - Selector specificity', async (t) => {
   await t.test('should handle complex selectors', async () => {
     const complexPatterns = [
       {
-        type: 'string-literal',
-        context: 'html',
+        context: 'text/html',
         selector: '.feature h4',
         placeholder: 'FEATURE_TITLE',
         allowMultiple: true
@@ -238,8 +232,7 @@ test('HTML Processor - Selector validation', async (t) => {
   await t.test('should handle invalid selectors gracefully', async () => {
     const invalidPatterns = [
       {
-        type: 'string-literal',
-        context: 'html',
+        context: 'text/html',
         selector: 'invalid::selector::syntax',
         placeholder: 'INVALID',
         allowMultiple: false
@@ -254,8 +247,7 @@ test('HTML Processor - Selector validation', async (t) => {
   await t.test('should validate selector syntax', async () => {
     const validPatterns = [
       {
-        type: 'string-literal',
-        context: 'html',
+        context: 'text/html',
         selector: 'h1:first-child',
         placeholder: 'FIRST_HEADING',
         allowMultiple: false
@@ -286,15 +278,13 @@ test('HTML Processor - Selector validation', async (t) => {
 
     const patterns = [
       {
-        type: 'string-literal',
-        context: 'html',
+        context: 'text/html',
         selector: 'h1',
         placeholder: 'HEADING',
         allowMultiple: true
       },
       {
-        type: 'string-literal',
-        context: 'html',
+        context: 'text/html',
         selector: 'p',
         placeholder: 'PARAGRAPH',
         allowMultiple: true

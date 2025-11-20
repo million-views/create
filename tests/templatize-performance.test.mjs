@@ -22,35 +22,31 @@ describe('Templatization Performance Tests', () => {
     const complexConfig = {
       rules: {
         'package.json': [
-          { type: 'json-value', path: '$.name', placeholder: 'PACKAGE_NAME' },
-          { type: 'json-value', path: '$.description', placeholder: 'PACKAGE_DESCRIPTION' },
-          { type: 'json-value', path: '$.author', placeholder: 'PACKAGE_AUTHOR' },
-          { type: 'json-value', path: '$.version', placeholder: 'PACKAGE_VERSION' }
+          { context: 'application/json', path: '$.name', placeholder: 'PACKAGE_NAME' },
+          { context: 'application/json', path: '$.description', placeholder: 'PACKAGE_DESCRIPTION' },
+          { context: 'application/json', path: '$.author', placeholder: 'PACKAGE_AUTHOR' },
+          { context: 'application/json', path: '$.version', placeholder: 'PACKAGE_VERSION' }
         ],
         'README.md': [
-          { type: 'markdown-heading', level: 1, placeholder: 'TITLE' },
-          { type: 'markdown-heading', level: 2, placeholder: 'SUBTITLE' },
-          { type: 'markdown-paragraph', position: 'first', placeholder: 'DESCRIPTION' }
+          { context: 'text/markdown#heading', selector: 'h1', placeholder: 'TITLE' },
+          { context: 'text/markdown#heading', selector: 'h2', placeholder: 'SUBTITLE' },
+          { context: 'text/markdown#paragraph', selector: 'p', placeholder: 'DESCRIPTION' }
         ],
         '.jsx': [
           {
-            type: 'string-literal',
-            context: 'jsx-attribute',
+            context: 'text/jsx#attribute',
             selector: '[className]',
-            attribute: 'className',
             placeholder: 'CSS_CLASS'
           },
           {
-            type: 'string-literal',
-            context: 'jsx-attribute',
+            context: 'text/jsx#attribute',
             selector: '[id]',
-            attribute: 'id',
             placeholder: 'ELEMENT_ID'
           }
         ],
         '.html': [
-          { type: 'html-text', selector: 'h1', placeholder: 'PAGE_TITLE' },
-          { type: 'html-text', selector: 'p', placeholder: 'PAGE_CONTENT' }
+          { context: 'text/html', selector: 'h1', placeholder: 'PAGE_TITLE' },
+          { context: 'text/html', selector: 'p', placeholder: 'PAGE_CONTENT' }
         ]
       }
     };

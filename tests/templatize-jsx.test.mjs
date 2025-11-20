@@ -86,39 +86,32 @@ export default MyComponent;
 // Test patterns
 const testPatterns = [
   {
-    type: 'string-literal',
-    context: 'jsx-text',
+    context: 'text/jsx',
     selector: 'h1:first-child',
     placeholder: 'CONTENT_TITLE',
     allowMultiple: false
   },
   {
-    type: 'string-literal',
-    context: 'jsx-text',
+    context: 'text/jsx',
     selector: 'h2:first-child',
     placeholder: 'CONTENT_SUBTITLE',
     allowMultiple: false
   },
   {
-    type: 'string-literal',
-    context: 'jsx-text',
+    context: 'text/jsx',
     selector: '.description, [data-description]',
     placeholder: 'CONTENT_DESCRIPTION',
     allowMultiple: true
   },
   {
-    type: 'string-literal',
-    context: 'jsx-attribute',
+    context: 'text/jsx#attribute',
     selector: '[title]',
-    attribute: 'title',
     placeholder: 'CONTENT_TITLE',
     allowMultiple: true
   },
   {
-    type: 'string-literal',
-    context: 'jsx-attribute',
+    context: 'text/jsx#attribute',
     selector: '[aria-label]',
-    attribute: 'aria-label',
     placeholder: 'CONTENT_LABEL',
     allowMultiple: true
   }
