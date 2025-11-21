@@ -288,14 +288,31 @@ test('Tutorial: make-template - Marketing website with multiple placeholders', a
   assert(heroContent.includes('⦃HERO_IMAGE_ALT_0⦄'), 'Should have HERO_IMAGE_ALT_0 placeholder');
   assert(heroContent.includes('⦃HERO_IMAGE_ALT_1⦄'), 'Should have HERO_IMAGE_ALT_1 placeholder');
 
-  // Verify testimonial placeholders
+  // Verify testimonial placeholders with correct order and pairing
   const testimonialContent = await readFile(join(projectDir, 'src/components/Testimonials.jsx'), 'utf8');
+
+  // Verify all placeholders exist
   assert(testimonialContent.includes('⦃TESTIMONIAL_QUOTE_0⦄'), 'Should have TESTIMONIAL_QUOTE_0');
   assert(testimonialContent.includes('⦃TESTIMONIAL_QUOTE_1⦄'), 'Should have TESTIMONIAL_QUOTE_1');
   assert(testimonialContent.includes('⦃TESTIMONIAL_QUOTE_2⦄'), 'Should have TESTIMONIAL_QUOTE_2');
   assert(testimonialContent.includes('⦃TESTIMONIAL_AUTHOR_0⦄'), 'Should have TESTIMONIAL_AUTHOR_0');
   assert(testimonialContent.includes('⦃TESTIMONIAL_AUTHOR_1⦄'), 'Should have TESTIMONIAL_AUTHOR_1');
   assert(testimonialContent.includes('⦃TESTIMONIAL_AUTHOR_2⦄'), 'Should have TESTIMONIAL_AUTHOR_2');
+
+  // Verify correct forward order: _0 appears first, then _1, then _2
+  const quote0Pos = testimonialContent.indexOf('⦃TESTIMONIAL_QUOTE_0⦄');
+  const quote1Pos = testimonialContent.indexOf('⦃TESTIMONIAL_QUOTE_1⦄');
+  const quote2Pos = testimonialContent.indexOf('⦃TESTIMONIAL_QUOTE_2⦄');
+  assert(quote0Pos < quote1Pos, 'TESTIMONIAL_QUOTE_0 should appear before TESTIMONIAL_QUOTE_1');
+  assert(quote1Pos < quote2Pos, 'TESTIMONIAL_QUOTE_1 should appear before TESTIMONIAL_QUOTE_2');
+
+  // Verify correct pairing: each quote appears before its corresponding author in same blockquote
+  const author0Pos = testimonialContent.indexOf('⦃TESTIMONIAL_AUTHOR_0⦄');
+  const author1Pos = testimonialContent.indexOf('⦃TESTIMONIAL_AUTHOR_1⦄');
+  const author2Pos = testimonialContent.indexOf('⦃TESTIMONIAL_AUTHOR_2⦄');
+  assert(quote0Pos < author0Pos && author0Pos < quote1Pos, 'QUOTE_0 and AUTHOR_0 should be paired in first blockquote');
+  assert(quote1Pos < author1Pos && author1Pos < quote2Pos, 'QUOTE_1 and AUTHOR_1 should be paired in second blockquote');
+  assert(quote2Pos < author2Pos, 'QUOTE_2 and AUTHOR_2 should be paired in third blockquote');
 
   // Verify isolation
   await verifyIsolation(testEnv);

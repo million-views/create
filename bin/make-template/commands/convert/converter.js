@@ -336,14 +336,32 @@ export class Converter {
         throw new Error(`Processor returned invalid result: ${typeof matches}`);
       }
 
-      // Process matches and create placeholders
-      // Sort matches by startIndex in reverse order to avoid position shifts
+      // Pre-count placeholders in forward order (document order) to assign correct numbering
+      // This ensures first occurrence gets _0, second gets _1, etc.
+      const placeholderCounts = {};
+      const forwardMatches = matches.slice().sort((a, b) => a.startIndex - b.startIndex);
+
+      for (const match of forwardMatches) {
+        if (!match || typeof match !== 'object' || !match.placeholder) continue;
+
+        const basePlaceholderName = match.placeholder;
+        const matchingPattern = patterns.find(p => p.placeholder === basePlaceholderName);
+        const isAllowMultiple = matchingPattern && matchingPattern.allowMultiple === true;
+
+        if (isAllowMultiple) {
+          if (!placeholderCounts[basePlaceholderName]) {
+            placeholderCounts[basePlaceholderName] = 0;
+          }
+          // Assign counter to this specific match instance
+          match._assignedIndex = placeholderCounts[basePlaceholderName];
+          placeholderCounts[basePlaceholderName]++;
+        }
+      }
+
+      // Process matches in reverse order to avoid position shifts during replacement
       const sortedMatches = matches.sort(
         (a, b) => b.startIndex - a.startIndex
       );
-
-      // Track placeholder counts for allowMultiple numbering
-      const placeholderCounts = {};
 
       for (const match of sortedMatches) {
         // Validate match structure
@@ -381,13 +399,9 @@ export class Converter {
 
         let placeholderName;
         if (isAllowMultiple) {
-          // Track how many times we've seen this base placeholder
-          if (!placeholderCounts[basePlaceholderName]) {
-            placeholderCounts[basePlaceholderName] = 0;
-          }
-          const index = placeholderCounts[basePlaceholderName];
+          // Use pre-assigned index from forward-order counting
+          const index = match._assignedIndex ?? 0;
           placeholderName = `${basePlaceholderName}_${index}`;
-          placeholderCounts[basePlaceholderName]++;
         } else {
           // Skip if we already have this placeholder (non-allowMultiple)
           if (placeholders[basePlaceholderName]) {
