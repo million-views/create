@@ -167,7 +167,7 @@ cd test-spa
 cat package.json | grep name
 ```
 
-You should see `"name": "test-spa"` - the placeholder was replaced!
+You should see `"name": "basic-react-spa"` - the placeholder was replaced!
 
 ### Restore Original Project (Key Feature)
 
@@ -392,9 +392,19 @@ The `allowMultiple: true` flag tells the system to number multiple matches autom
 
 You write ONE rule, the system handles multiple instances. No tedious repetition.
 
+### Convert to Apply Custom Rules
+
+Now run the conversion to apply your custom `.templatize.json` rules:
+
+```bash
+npx make-template convert . --yes
+```
+
+This processes your source files using the custom rules you defined, replacing values with placeholders and generating the auto-numbered suffixes (`_0`, `_1`, `_2`) for `allowMultiple` rules.
+
 ### Review and Enhance Generated Placeholders
 
-The system auto-generates `template.json` with entries for all detected placeholders (including `_0`, `_1`, `_2` suffixes from `allowMultiple`). Enhance the descriptions to help template users:
+After conversion, check the generated `template.json`. The system auto-generated entries for all detected placeholders (including `_0`, `_1`, `_2` suffixes from `allowMultiple`). Now enhance the descriptions to help template users:
 
 ```json
 {
