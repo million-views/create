@@ -73,7 +73,7 @@ placeholder:
 
 ```json
 {
-  "name": "⦃PROJECT_NAME⦄",
+  "name": "⦃PACKAGE_NAME⦄",
   "version": "0.0.0"
 }
 ```
@@ -107,7 +107,7 @@ This creates two configuration files:
 **What gets auto-detected:**
 
 - Project name, author, and description from `package.json`
-- Common placeholders like `⦃PROJECT_NAME⦄`, `⦃AUTHOR⦄`, etc.
+- Common placeholders like `⦃PACKAGE_NAME⦄`, `⦃AUTHOR⦄`, etc.
 - File patterns for different content types (JSX, JSON, Markdown, HTML)
 
 ### Review What Was Generated
@@ -123,7 +123,7 @@ You'll see placeholder definitions like:
 ```json
 {
   "placeholders": {
-    "PROJECT_NAME": {
+    "PACKAGE_NAME": {
       "default": "basic-react-spa",
       "description": "Project name"
     }
@@ -131,7 +131,7 @@ You'll see placeholder definitions like:
 }
 ```
 
-This tells the system: "When someone uses this template, `⦃PROJECT_NAME⦄` should
+This tells the system: "When someone uses this template, `⦃PACKAGE_NAME⦄` should
 default to 'basic-react-spa' if they don't provide a value."
 
 ### Convert to Template
@@ -153,7 +153,7 @@ Check `package.json` now:
 grep "name" package.json
 ```
 
-You should see `"name": "⦃PROJECT_NAME⦄"` - exactly what we described
+You should see `"name": "⦃PACKAGE_NAME⦄"` - exactly what we described
 manually earlier.
 
 ### Test the Template
