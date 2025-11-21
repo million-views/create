@@ -25,7 +25,10 @@ export class NewCommand extends Command {
       if (!parsed.placeholders) parsed.placeholders = [];
       parsed.placeholders.push(args[i + 1]);
       return i + 1;
-    } else if (arg === '--no-input-prompts') {
+    } else if (arg === '--selection') {
+      parsed.selection = args[i + 1];
+      return i + 1;
+    } else if (arg === '--yes') {
       parsed.inputPrompts = false;
       return i;
     } else if (arg === '--no-config') {

@@ -191,16 +191,16 @@ const author = tools.inputs.get('AUTHOR', 'Unknown');
 
 Placeholder replacement operations.
 
-**applyInputs(selector?, extra?)**  
-Apply values from `ctx.inputs`, `ctx.projectName`, and optional `extra` map to files matching the selector.  
+**applyInputs(selector?, extra?)**
+Apply values from `ctx.inputs`, `ctx.projectName`, and optional `extra` map to files matching the selector.
 *Parameters:* `selector?: string | string[], extra?: Record<string, any>`
 
-**replaceAll(replacements, selector?)**  
-Replace `{{TOKEN}}` placeholders in files matching the selector with custom values.  
+**replaceAll(replacements, selector?)**
+Replace `{{TOKEN}}` placeholders in files matching the selector with custom values.
 *Parameters:* `replacements: Record<string, string>, selector?: string | string[]`
 
-**replaceInFile(file, replacements)**  
-Replace placeholders in a single file with custom values.  
+**replaceInFile(file, replacements)**
+Replace placeholders in a single file with custom values.
 *Parameters:* `file: string, replacements: Record<string, string>`
 
 **Usage guidance**
@@ -215,164 +215,177 @@ await tools.placeholders.replaceAll({ SUPPORT_EMAIL: ctx.inputs.SUPPORT_EMAIL },
 
 > Placeholder helpers operate on file contents. To incorporate placeholder values into filenames or directories, combine `ctx.inputs` with `tools.files` (for renames) or `tools.templates.renderFile` (for generated assets).
 
+#### Important: Template Asset Staging
+
+**CRITICAL IMPLEMENTATION DETAIL**: When `_setup.mjs` executes, the template's author assets directory (configured via `setup.authorAssetsDir`, defaults to `__scaffold__`) has already been **copied to the project directory**. This means:
+
+1. `tools.templates.renderFile('template.tpl', 'output.js', data)` reads from `<project-dir>/__scaffold__/template.tpl`, NOT from the cached template source
+2. `tools.templates.copy('configs', 'src/configs')` copies from `<project-dir>/__scaffold__/configs/`, NOT from cache
+3. After `_setup.mjs` completes, the workflow automatically removes both `_setup.mjs` and the author assets directory from the project
+
+**Why this matters**: If you're debugging template asset access failures, verify that:
+- The author assets directory is not in the template ignore list (it shouldn't be)
+- Template metadata (`template.json`) correctly specifies `setup.authorAssetsDir` if using a non-default name
+- Your setup script paths are relative to the assets directory, not absolute paths
+
 ### `tools.text`
 
 Text manipulation operations.
 
-**insertAfter({ file, marker, block })**  
-Insert a block of text immediately after a marker line, if not already present.  
+**insertAfter({ file, marker, block })**
+Insert a block of text immediately after a marker line, if not already present.
 *Parameters:* `file: string, marker: string, block: string | string[]`
 
-**ensureBlock({ file, marker, block })**  
-Guarantee a block exists after the marker (idempotent operation).  
+**ensureBlock({ file, marker, block })**
+Guarantee a block exists after the marker (idempotent operation).
 *Parameters:* `file: string, marker: string, block: string | string[]`
 
-**replaceBetween({ file, start, end, block })**  
-Replace content bounded by start and end markers, preserving the markers themselves.  
+**replaceBetween({ file, start, end, block })**
+Replace content bounded by start and end markers, preserving the markers themselves.
 *Parameters:* `file: string, start: string, end: string, block: string | string[]`
 
-**appendLines({ file, lines })**  
-Append lines to a file with automatic newline handling.  
+**appendLines({ file, lines })**
+Append lines to a file with automatic newline handling.
 *Parameters:* `file: string, lines: string | string[]`
 
-**replace({ file, search, replace, ensureMatch })**  
-String or regex replacement with optional guard to ensure a match exists.  
+**replace({ file, search, replace, ensureMatch })**
+String or regex replacement with optional guard to ensure a match exists.
 *Parameters:* `file: string, search: string | RegExp, replace: string, ensureMatch?: boolean`
 
 ### `tools.files`
 
 File system operations scoped to the project directory.
 
-**ensureDirs(paths)**  
-Create directories. Accepts a single path or array of paths.  
+**ensureDirs(paths)**
+Create directories. Accepts a single path or array of paths.
 *Parameters:* `paths: string | string[]`
 
-**copy(from, to, options?)**  
-Copy files or directories within the project.  
+**copy(from, to, options?)**
+Copy files or directories within the project.
 *Parameters:* `from: string, to: string, options?: { overwrite?: boolean }`
 
-**move(from, to, options?)**  
-Move files or directories within the project. Falls back to copy+remove for cross-device moves.  
+**move(from, to, options?)**
+Move files or directories within the project. Falls back to copy+remove for cross-device moves.
 *Parameters:* `from: string, to: string, options?: { overwrite?: boolean }`
 
-**remove(path)**  
-Remove a file or directory (recursive).  
+**remove(path)**
+Remove a file or directory (recursive).
 *Parameters:* `path: string`
 
-**write(file, content, options?)**  
-Write text content to a file. Content can be string, array of strings, or Buffer.  
+**write(file, content, options?)**
+Write text content to a file. Content can be string, array of strings, or Buffer.
 *Parameters:* `file: string, content: string | string[] | Buffer, options?: { overwrite?: boolean }`
 
-> Note: File helpers skip `.template-undo.json` and other internal artifacts automatically. The CLI stages the `__scaffold__/` directory (or your configured `authorAssetsDir`) before `_setup.mjs` runs and removes it afterwards, so treat that directory as read-only runtime input.
+> Note: File helpers automatically skip internal artifacts like `.template-undo.json`. The workflow copies the author assets directory (default `__scaffold__/`) to the project directory before executing `_setup.mjs`, then removes it along with `_setup.mjs` after setup completes. During setup execution, treat the assets directory as read-only input.
 
 ### `tools.json`
 
 JSON file manipulation operations.
 
-**read(path)**  
-Read and parse a JSON file. Throws if file doesn't exist.  
-*Parameters:* `path: string`  
+**read(path)**
+Read and parse a JSON file. Throws if file doesn't exist.
+*Parameters:* `path: string`
 *Returns:* `any`
 
-**merge(path, patch)**  
-Deep-merge an object into an existing JSON file. Creates file if missing. Arrays are replaced wholesale.  
+**merge(path, patch)**
+Deep-merge an object into an existing JSON file. Creates file if missing. Arrays are replaced wholesale.
 *Parameters:* `path: string, patch: object`
 
-**update(path, updater)**  
-Provide a function that receives a mutable clone of the JSON data. Return new object or mutate the draft.  
+**update(path, updater)**
+Provide a function that receives a mutable clone of the JSON data. Return new object or mutate the draft.
 *Parameters:* `path: string, updater: (data: any) => any`
 
-**set(relativePath, pathExpression, value)**  
-Assign a value at a dot-path (e.g. `scripts.dev`). Dots in the path act as property separators, allowing deep object navigation. Property names can contain any valid JavaScript identifier characters, including special characters like `@` in scoped package names. Intermediate objects are created automatically.  
-*Parameters:* `relativePath: string, pathExpression: string, value: any`  
-*Examples:*  
-- `tools.json.set('package.json', 'scripts.dev', 'node index.js')`  
-- `tools.json.set('package.json', 'dependencies.@m5nv/auth-lib', '^1.0.0')`  
+**set(relativePath, pathExpression, value)**
+Assign a value at a dot-path (e.g. `scripts.dev`). Dots in the path act as property separators, allowing deep object navigation. Property names can contain any valid JavaScript identifier characters, including special characters like `@` in scoped package names. Intermediate objects are created automatically.
+*Parameters:* `relativePath: string, pathExpression: string, value: any`
+*Examples:*
+- `tools.json.set('package.json', 'scripts.dev', 'node index.js')`
+- `tools.json.set('package.json', 'dependencies.@m5nv/auth-lib', '^1.0.0')`
 - `tools.json.set('package.json', 'config.database.host', 'localhost')`
 
-**remove(relativePath, pathExpression)**  
-Remove a property or array entry at the dot-path. Dots act as property separators for deep navigation.  
+**remove(relativePath, pathExpression)**
+Remove a property or array entry at the dot-path. Dots act as property separators for deep navigation.
 *Parameters:* `relativePath: string, pathExpression: string`
 
-**addToArray(relativePath, pathExpression, value, options?)**  
-Push a value into an array at the dot-path, optionally enforcing uniqueness. Dots act as property separators for deep navigation.  
+**addToArray(relativePath, pathExpression, value, options?)**
+Push a value into an array at the dot-path, optionally enforcing uniqueness. Dots act as property separators for deep navigation.
 *Parameters:* `relativePath: string, pathExpression: string, value: any, options?: { unique?: boolean }`
 
-**mergeArray(relativePath, pathExpression, items, options?)**  
-Merge multiple values into an array at the dot-path, optionally enforcing uniqueness. Dots act as property separators for deep navigation.  
+**mergeArray(relativePath, pathExpression, items, options?)**
+Merge multiple values into an array at the dot-path, optionally enforcing uniqueness. Dots act as property separators for deep navigation.
 *Parameters:* `relativePath: string, pathExpression: string, items: any[], options?: { unique?: boolean }`
 
 ### `tools.templates`
 
 Template asset operations. All paths are resolved relative to the template assets directory (configured via `setup.authorAssetsDir`, defaults to `__scaffold__`).
 
-**renderString(template, data)**  
-Render a string containing `{{TOKEN}}` placeholders.  
-*Parameters:* `template: string, data: Record<string, any>`  
+**renderString(template, data)**
+Render a string containing `{{TOKEN}}` placeholders.
+*Parameters:* `template: string, data: Record<string, any>`
 *Returns:* `string`
 
-**renderFile(source, target, data)**  
-Read a template asset file, render it with placeholders, and write to target location in the project (creating directories as needed).  
+**renderFile(source, target, data)**
+Read a template asset file, render it with placeholders, and write to target location in the project (creating directories as needed).
 *Parameters:* `source: string, target: string, data: Record<string, any>`
 
-**copy(from, to, options?)**  
-Copy a directory tree from template assets to the project, respecting template ignore rules.  
+**copy(from, to, options?)**
+Copy a directory tree from template assets to the project, respecting template ignore rules.
 *Parameters:* `from: string, to: string, options?: { overwrite?: boolean }`
 
 ### `tools.logger`
 
 Simple logger routed through the CLI output and optional log file.
 
-**info(message, data?)**  
-Log an info message with optional structured data.  
+**info(message, data?)**
+Log an info message with optional structured data.
 *Parameters:* `message: string, data?: any`
 
-**warn(message, data?)**  
-Log a warning message with optional structured data.  
+**warn(message, data?)**
+Log a warning message with optional structured data.
 *Parameters:* `message: string, data?: any`
 
-**table(rows)**  
-Log tabular data as formatted output.  
+**table(rows)**
+Log tabular data as formatted output.
 *Parameters:* `rows: any[]`
 
 ### `tools.options`
 
 Dimension-based option checking and conditional logic.
 
-**list(dimension?)**  
-Without arguments returns `ctx.options.raw`. With dimension name returns the normalized selection for that dimension.  
-*Parameters:* `dimension?: string`  
+**list(dimension?)**
+Without arguments returns `ctx.options.raw`. With dimension name returns the normalized selection for that dimension.
+*Parameters:* `dimension?: string`
 *Returns:* `string[] | string | null`
 
-**raw()**  
-Shortcut for `ctx.options.raw`.  
+**raw()**
+Shortcut for `ctx.options.raw`.
 *Returns:* `string[]`
 
-**dimensions()**  
-Shallow clone of `ctx.options.byDimension`.  
+**dimensions()**
+Shallow clone of `ctx.options.byDimension`.
 *Returns:* `Record<string, string | string[]>`
 
-**has(name)**  
-Checks whether the default multi-select dimension includes the name.  
-*Parameters:* `name: string`  
+**has(name)**
+Checks whether the default multi-select dimension includes the name.
+*Parameters:* `name: string`
 *Returns:* `boolean`
 
-**in(dimension, value)**  
-Returns true when the selected value(s) for dimension include value.  
-*Parameters:* `dimension: string, value: string`  
+**in(dimension, value)**
+Returns true when the selected value(s) for dimension include value.
+*Parameters:* `dimension: string, value: string`
 *Returns:* `boolean`
 
-**require(value)**  
-Ensures the default multi-select dimension includes value; throws otherwise.  
+**require(value)**
+Ensures the default multi-select dimension includes value; throws otherwise.
 *Parameters:* `value: string`
 
-**require(dimension, value)**  
-Ensures value is selected for dimension; throws otherwise.  
+**require(dimension, value)**
+Ensures value is selected for dimension; throws otherwise.
 *Parameters:* `dimension: string, value: string`
 
-**when(value, fn)**  
-Runs fn when the default multi-select dimension includes value. Supports async callbacks.  
-*Parameters:* `value: string, fn: () => void | Promise<void>`  
+**when(value, fn)**
+Runs fn when the default multi-select dimension includes value. Supports async callbacks.
+*Parameters:* `value: string, fn: () => void | Promise<void>`
 *Returns:* `Promise<void> | undefined`
 
 > The “default dimension” is the first multi-select dimension defined in `template.json`. By convention we reserve `capabilities` for feature toggles, which becomes the default unless a template specifies otherwise.

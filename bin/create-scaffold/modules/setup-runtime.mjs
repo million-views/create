@@ -4,6 +4,7 @@ import fs from 'fs/promises';
 import path from 'path';
 import vm from 'vm';
 import { shouldIgnoreTemplateEntry } from '../../../lib/template-ignore.mjs';
+import { createTokenPattern } from '../../../lib/placeholder-formats.mjs';
 
 export class SetupSandboxError extends Error {
   constructor(message) {
@@ -179,31 +180,32 @@ function validateReplacements(replacements) {
   }
 }
 
-function applyReplacements(content, replacements) {
+function applyReplacements(content, replacements, placeholderFormat = 'unicode') {
   let result = content;
   for (const [token, replacement] of Object.entries(replacements)) {
-    const pattern = new RegExp(`\\{\\{\\s*${escapeRegExp(token)}\\s*\\}\\}`, 'g');
+    // Use centralized format module to generate correct pattern based on template's format
+    const pattern = createTokenPattern(token, placeholderFormat);
     result = result.replace(pattern, replacement);
   }
   return result;
 }
 
-async function replaceInFile(root, file, replacements) {
+async function replaceInFile(root, file, replacements, placeholderFormat = 'unicode') {
   const absolute = resolveProjectPath(root, file, 'file path');
   const original = await fs.readFile(absolute, UTF8);
-  const updated = applyReplacements(original, replacements);
+  const updated = applyReplacements(original, replacements, placeholderFormat);
 
   if (updated !== original) {
     await fs.writeFile(absolute, updated, UTF8);
   }
 }
 
-async function replaceAll(root, replacements, selector) {
+async function replaceAll(root, replacements, selector, placeholderFormat = 'unicode') {
   const matches = await findMatchingFiles(root, selector);
 
   for (const match of matches) {
     const original = await fs.readFile(match.absolute, UTF8);
-    const updated = applyReplacements(original, replacements);
+    const updated = applyReplacements(original, replacements, placeholderFormat);
     if (original !== updated) {
       await fs.writeFile(match.absolute, updated, UTF8);
     }
@@ -357,9 +359,9 @@ async function updateJson(root, relativePath, updater) {
   return output;
 }
 
-async function renderFile(root, sourcePath, targetRelative, data) {
+async function renderFile(root, sourcePath, targetRelative, data, placeholderFormat = 'unicode') {
   const template = await fs.readFile(sourcePath, UTF8);
-  const rendered = applyReplacements(template, data);
+  const rendered = applyReplacements(template, data, placeholderFormat);
   const target = resolveProjectPath(root, targetRelative, 'template destination');
   await ensureParentDirectory(target);
   await fs.writeFile(target, rendered, UTF8);
@@ -698,14 +700,16 @@ function pickDefaultDimension(dimensions) {
 }
 
 function buildPlaceholderApi(root, placeholderContext) {
+  const placeholderFormat = placeholderContext?.placeholderFormat || 'unicode';
+
   return Object.freeze({
     async replaceAll(replacements, selector = DEFAULT_SELECTOR) {
       validateReplacements(replacements);
-      await replaceAll(root, replacements, selector);
+      await replaceAll(root, replacements, selector, placeholderFormat);
     },
     async replaceInFile(file, replacements) {
       validateReplacements(replacements);
-      await replaceInFile(root, file, replacements);
+      await replaceInFile(root, file, replacements, placeholderFormat);
     },
     async applyInputs(selector = DEFAULT_SELECTOR, extra = {}) {
       if (extra === null || typeof extra !== 'object' || Array.isArray(extra)) {
@@ -718,7 +722,7 @@ function buildPlaceholderApi(root, placeholderContext) {
       }
 
       validateReplacements(replacements);
-      await replaceAll(root, replacements, selector);
+      await replaceAll(root, replacements, selector, placeholderFormat);
     }
   });
 }
@@ -734,8 +738,8 @@ function buildInputReplacements(placeholderContext, extra) {
     result[token] = stringifyReplacementValue(value);
   }
 
-  if (!Object.prototype.hasOwnProperty.call(result, 'PROJECT_NAME') && placeholderContext?.projectName) {
-    result.PROJECT_NAME = String(placeholderContext.projectName);
+  if (!Object.prototype.hasOwnProperty.call(result, 'PACKAGE_NAME') && placeholderContext?.projectName) {
+    result.PACKAGE_NAME = String(placeholderContext.projectName);
   }
 
   for (const [token, value] of Object.entries(extra)) {
@@ -863,7 +867,7 @@ function buildJsonApi(root) {
   });
 }
 
-function buildTemplateApi(root, authorAssetsDir) {
+function buildTemplateApi(root, authorAssetsDir, placeholderFormat = 'unicode') {
   return Object.freeze({
     renderString(template, data) {
       if (typeof template !== 'string') {
@@ -872,7 +876,7 @@ function buildTemplateApi(root, authorAssetsDir) {
       if (typeof data !== 'object' || data === null || Array.isArray(data)) {
         throw new SetupSandboxError('templates.renderString requires a data object');
       }
-      return applyReplacements(template, data);
+      return applyReplacements(template, data, placeholderFormat);
     },
     async renderFile(sourceRelative, targetRelative, data) {
       if (typeof data !== 'object' || data === null || Array.isArray(data)) {
@@ -880,7 +884,7 @@ function buildTemplateApi(root, authorAssetsDir) {
       }
       const source = path.resolve(root, authorAssetsDir, sourceRelative);
       const target = resolveProjectPath(root, targetRelative, 'target path');
-      await renderFile(root, source, target, data);
+      await renderFile(root, source, target, data, placeholderFormat);
     },
     async copy(fromRelative, toRelative, options = {}) {
       const source = path.resolve(root, authorAssetsDir, fromRelative);
@@ -1141,6 +1145,7 @@ export async function createSetupTools(options) {
   const root = path.resolve(projectDirectory);
   const placeholderInputs = templateContext?.inputs ?? Object.freeze({});
   const authorAssetsDir = templateContext?.authorAssetsDir ?? '__scaffold__';
+  const placeholderFormat = templateContext?.placeholderFormat ?? 'unicode';
   const ctx = {
     projectName,
     projectDir: root,
@@ -1152,11 +1157,15 @@ export async function createSetupTools(options) {
   };
 
   return Object.freeze({
-    placeholders: buildPlaceholderApi(root, { projectName: ctx.projectName, inputs: placeholderInputs }),
+    placeholders: buildPlaceholderApi(root, {
+      projectName: ctx.projectName,
+      inputs: placeholderInputs,
+      placeholderFormat
+    }),
     inputs: buildInputsApi(placeholderInputs),
     files: buildFileApi(root),
     json: buildJsonApi(root),
-    templates: buildTemplateApi(root, authorAssetsDir),
+    templates: buildTemplateApi(root, authorAssetsDir, placeholderFormat),
     text: buildTextApi(root),
     logger: createLoggerApi(logger),
     options: createOptionsApi({

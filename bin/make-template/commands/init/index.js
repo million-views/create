@@ -39,10 +39,13 @@ export class InitCommand extends Command {
       id: 'my-org/my-template',
       name: 'My Template',
       description: 'A template generated with make-template init',
+      placeholderFormat: 'unicode',
       placeholders: {
-        PROJECT_NAME: {
+        PACKAGE_NAME: {
+          description: 'Package name (used in package.json)',
           default: 'my-awesome-project',
-          description: 'Name of the generated project'
+          type: 'text',
+          required: true
         }
       }
     };
@@ -50,9 +53,14 @@ export class InitCommand extends Command {
     fs.writeFileSync(outputPath, JSON.stringify(skeleton, null, 2));
     console.log(`Skeleton template.json generated successfully`);
 
-    // Generate .templatize.json configuration
-    console.log(`Generating .templatize.json configuration file`);
-    generateConfigFile(projectPath);
+    // Generate .templatize.json configuration (only if it doesn't exist)
+    const templatizeConfigPath = join(projectPath, '.templatize.json');
+    if (fs.existsSync(templatizeConfigPath)) {
+      console.log(`.templatize.json already exists, skipping configuration generation`);
+    } else {
+      console.log(`Generating .templatize.json configuration file`);
+      generateConfigFile(projectPath);
+    }
 
     // Next steps guidance
     console.log(`

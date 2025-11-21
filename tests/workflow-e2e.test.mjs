@@ -1,5 +1,3 @@
-#!/usr/bin/env node
-
 /**
  * End-to-End Workflow Tests
  * Tests complete user journeys that actually use the tools
@@ -53,8 +51,9 @@ test('Complete user workflow: create project → convert to template → test te
   const createResult = execCLI('create-scaffold', [
     'new', projectName,
     '--template', join(process.cwd(), 'tests/fixtures/features-demo-template'),
-    '--placeholders', 'PROJECT_NAME=test-workflow,PORT=3000',
-    '--no-interactive'
+    '--placeholder', 'PROJECT_NAME=test-workflow',
+    '--placeholder', 'PORT=3000',
+    '--yes'
   ], { cwd: testCwd });
 
   console.log('Exit code:', createResult.exitCode);
@@ -71,12 +70,30 @@ test('Complete user workflow: create project → convert to template → test te
   // The placeholder replacement might not work in this simple test, so just verify the file exists
   assert(packageJson.name, 'Package.json should have a name');
 
+  // Verify that template artifacts were NOT copied (create-scaffold should exclude these)
+  const templateJsonExists = await access(join(projectDir, 'template.json'), constants.F_OK).then(() => true).catch(() => false);
+  const setupMjsExists = await access(join(projectDir, '_setup.mjs'), constants.F_OK).then(() => true).catch(() => false);
+  const templatesExists = await access(join(projectDir, 'templates'), constants.F_OK).then(() => true).catch(() => false);
+
+  assert.strictEqual(templateJsonExists, false, 'template.json should NOT be copied to scaffolded project');
+  assert.strictEqual(setupMjsExists, false, '_setup.mjs should NOT be copied to scaffolded project');
+  assert.strictEqual(templatesExists, false, 'templates/ directory should NOT be copied to scaffolded project');
+
+  // Step 1.5: Initialize templatize configuration (should succeed since template.json doesn't exist)
+  console.log('🔧 Step 1.5: Initializing templatize configuration...');
+  const initResult = execCLI('make-template', [
+    'init'
+  ], { cwd: projectDir });
+
+  console.log('Init exit code:', initResult.exitCode);
+  assert.strictEqual(initResult.exitCode, 0, 'Templatize init should succeed');
+
   // Step 2: Convert project to template using make-template
   console.log('🔄 Step 2: Converting project to template...');
   const convertResult = execCLI('make-template', [
-    'convert', projectName,
+    'convert', '.',
     '--yes' // Skip development repo warning
-  ], { cwd: testCwd });
+  ], { cwd: projectDir });
 
   console.log('Convert exit code:', convertResult.exitCode);
   console.log('Convert stdout:', convertResult.stdout);

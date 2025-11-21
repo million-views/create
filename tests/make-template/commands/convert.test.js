@@ -4,28 +4,17 @@ import { ConvertCommand } from '../../../bin/make-template/commands/convert/inde
 import { captureOutput, mockExit } from '../../helpers.js';
 
 describe('ConvertCommand', () => {
-  it('requires project-path argument', () => {
-    const cmd = new ConvertCommand();
-    const exitCode = mockExit(() => {
-      captureOutput(() => cmd.execute([]));
-    });
-    assert.strictEqual(exitCode, 1);
-  });
-
-  it('shows safety warning when path missing', () => {
-    const cmd = new ConvertCommand();
-    mockExit(() => {
-      const { errors } = captureOutput(() => cmd.execute([]));
-      const output = errors.join('\n');
-      assert.match(output, /project-path.*required/);
-      assert.match(output, /specify the project path explicitly/);
-    });
-  });
-
   it('parses project-path correctly', () => {
     const cmd = new ConvertCommand();
     const parsed = cmd.parseArgs(['./my-project', '--dry-run']);
     assert.strictEqual(parsed.projectPath, './my-project');
+    assert.strictEqual(parsed.dryRun, true);
+  });
+
+  it('defaults to current directory when no path provided', () => {
+    const cmd = new ConvertCommand();
+    const parsed = cmd.parseArgs(['--dry-run']);
+    assert.strictEqual(parsed.projectPath, undefined); // Will default to cwd in run()
     assert.strictEqual(parsed.dryRun, true);
   });
 
@@ -34,6 +23,6 @@ describe('ConvertCommand', () => {
     const { logs } = captureOutput(() => cmd.execute(['--help']));
     const output = logs.join('\n');
     assert.match(output, /Convert project to template/);
-    assert.match(output, /--type/);
+    assert.match(output, /--placeholder-format/);
   });
 });

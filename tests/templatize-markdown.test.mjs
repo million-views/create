@@ -266,7 +266,7 @@ description: "A project"
       const content = `# Installation
 
 \`\`\`bash
-npm install {{packageName}}
+npm install ⦃PACKAGE_NAME⦄
 \`\`\`
 
 Some text.
@@ -281,12 +281,12 @@ Some text.
       ];
 
       const result = await processMarkdownFile('test.md', content, patterns);
-      // Manual placeholders take precedence - should skip areas with existing {{placeholders}}
+      // Manual placeholders take precedence - should skip areas with existing placeholders (any format)
       assert.equal(result.length, 0);
     });
 
     it('should handle inline code', async () => {
-      const content = `Use \`{{command}}\` to run the script.`;
+      const content = `Use \`⦃COMMAND⦄\` to run the script.`;
 
       const patterns = [
         {
@@ -297,7 +297,7 @@ Some text.
       ];
 
       const result = await processMarkdownFile('test.md', content, patterns);
-      // Manual placeholders take precedence - should skip areas with existing {{placeholders}}
+      // Manual placeholders take precedence - should skip areas with existing placeholders (any format)
       assert.equal(result.length, 0);
     });
 

@@ -13,7 +13,7 @@
 ## 3. Placeholder Resolver
 - [x] Implement resolver that merges defaults, flags, env, and interactive prompts.
 - [x] Support `type` coercion and `sensitive` masking.
-- [x] Respect `--no-input-prompts` (fail when required placeholders lack values).
+- [x] Respect `--yes` (fail when required placeholders lack values).
 - [x] Add unit tests covering merge precedence and error cases.
 
 ## 4. Runtime Context & Helpers

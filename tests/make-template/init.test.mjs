@@ -96,9 +96,9 @@ test('make-template init command', async (t) => {
 
     // Verify placeholders structure
     assert(template.placeholders, 'Should have placeholders section');
-    assert(template.placeholders.PROJECT_NAME, 'Should have PROJECT_NAME placeholder');
-    assert.strictEqual(template.placeholders.PROJECT_NAME.default, 'my-awesome-project', 'Should have correct default');
-    assert.strictEqual(template.placeholders.PROJECT_NAME.description, 'Name of the generated project', 'Should have correct description');
+    assert(template.placeholders.PACKAGE_NAME, 'Should have PACKAGE_NAME placeholder');
+    assert.strictEqual(template.placeholders.PACKAGE_NAME.default, 'my-awesome-project', 'Should have correct default');
+    assert.strictEqual(template.placeholders.PACKAGE_NAME.description, 'Package name (used in package.json)', 'Should have correct description');
   });
 
   await t.test('init with custom filename works', async () => {

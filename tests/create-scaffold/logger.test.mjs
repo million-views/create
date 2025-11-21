@@ -5,8 +5,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { Logger } from '../../lib/utils/logger.mjs';
-import { createTempDir } from '../../utils/temp.js';
+import { Logger } from '../../lib/logger.mjs';
+import { createTempDir } from '../utils/temp.js';
 
 async function readLogEntries(filePath) {
   const content = await fs.readFile(filePath, 'utf8');

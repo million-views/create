@@ -44,9 +44,9 @@ test('buildTemplateSchema generates TypeScript artifacts', async () => {
   const selectionDtsContent = await readFile(selectionDtsPath, 'utf8');
   const selectionMjsContent = await readFile(selectionMjsPath, 'utf8');
 
-  // Template schema checks
+  // Template schema checks (v1.0 - Registry Model)
   assert.match(templateTsContent, /export interface TemplateManifest/);
-  assert.match(templateTsContent, /type TemplateAuthoringMode = 'wysiwyg' \| 'composable';/);
+  // New schema v1.0: No authoring mode enum anymore, validate basic structure instead
   assert.match(templateTsContent, /export interface TemplateCanonicalVariable/);
   assert.match(templateTsContent, /variables\?: TemplateCanonicalVariable\[];/);
   // .ts file should have 'as const' assertions
@@ -58,10 +58,11 @@ test('buildTemplateSchema generates TypeScript artifacts', async () => {
   assert.match(templateMjsContent, /exports nothing at runtime/);
   assert.match(templateMjsContent, /export \{\};/);
 
-  // Selection schema checks
+  // Selection schema checks (v1.0 - Generic choices/placeholders structure)
   assert.match(selectionTsContent, /export interface SelectionManifest/);
-  assert.match(selectionTsContent, /type SelectionDeploymentTarget = 'vercel' \| 'netlify'/);
+  // New schema v1.0: Choices are generic, validate structure instead of specific deployment targets
   assert.match(selectionTsContent, /export interface SelectionChoices/);
+  assert.match(selectionTsContent, /export interface SelectionPlaceholders/);
   // .ts file should have 'as const' assertions
   assert.match(selectionTsContent, /export const SELECTION_SCHEMA_VERSION = '[^']+' as const;/);
   assert.match(selectionTsContent, /export const SELECTION_SCHEMA_PATH = '[^']+' as const;/);

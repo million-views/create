@@ -1,5 +1,8 @@
 {
   "schemaVersion": "1.0.0",
+  "id": "test/missing-readme",
   "name": "missing-readme",
-  "description": "Template missing README for validation negative path"
+  "description": "Template missing README for validation negative path",
+  "placeholderFormat": "unicode",
+  "placeholders": {}
 }

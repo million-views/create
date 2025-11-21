@@ -42,6 +42,7 @@ class TestCommand extends Command {
   parseArg(arg, args, i, parsed) {
     if (arg === '--flag' || arg === '-f') {
       parsed.flag = true;
+      return i;
     } else if (arg === '--value' || arg === '-v') {
       parsed.value = args[i + 1];
       return i + 1;
@@ -51,14 +52,14 @@ class TestCommand extends Command {
       return i + 1;
     } else if (arg === '--verbose') {
       parsed.verbose = true;
+      return i;
     } else if (arg === '--json') {
       parsed.json = true;
+      return i;
     } else if (!arg.startsWith('-') && !parsed.requiredArg) {
       parsed.requiredArg = arg;
-    } else {
-      // Unknown argument - let base class handle
-      return undefined;
     }
+    // Unknown argument or positional arg - let base class handle
     return undefined;
   }
 
@@ -177,12 +178,12 @@ describe('Argument Parser (Command Framework)', () => {
       assert.strictEqual(parsed.verbose, true);
     });
 
-    it('handles unknown arguments gracefully', () => {
+    it('throws on unknown options', () => {
       const cmd = new TestCommand();
-      const parsed = cmd.parseArgs(['--unknown', 'value', '--flag']);
-      // Should still parse known arguments
-      assert.strictEqual(parsed.flag, true);
-      // Unknown arguments are ignored by default implementation
+      assert.throws(
+        () => cmd.parseArgs(['--unknown', 'value', '--flag']),
+        /Unknown option: --unknown/
+      );
     });
 
     it('preserves argument order for positional args', () => {
@@ -326,6 +327,7 @@ describe('Argument Parser (Command Framework)', () => {
         parseArg(arg, args, i, parsed) {
           if (arg.startsWith('--value=')) {
             parsed.value = arg.split('=')[1];
+            return i;
           } else if (!arg.startsWith('-')) {
             parsed.arg = arg;
           }
@@ -371,8 +373,10 @@ describe('Argument Parser (Command Framework)', () => {
         parseArg(arg, args, i, parsed) {
           if (arg === '--no-cache') {
             parsed.cache = false;
+            return i;
           } else if (arg === '--cache') {
             parsed.cache = true;
+            return i;
           } else if (!arg.startsWith('-')) {
             parsed.arg = arg;
           }
@@ -458,6 +462,7 @@ describe('Argument Parser (Command Framework)', () => {
             return i + 1;
           } else if (arg === '--dry-run' || arg === '-d') {
             parsed.dryRun = true;
+            return i;
           } else if (!arg.startsWith('-') && !parsed.projectName) {
             parsed.projectName = arg;
           }
@@ -490,8 +495,10 @@ describe('Argument Parser (Command Framework)', () => {
         parseArg(arg, args, i, parsed) {
           if (arg === '--suggest') {
             parsed.suggest = true;
+            return i;
           } else if (arg === '--fix') {
             parsed.fix = true;
+            return i;
           } else if (!arg.startsWith('-') && !parsed.templatePath) {
             parsed.templatePath = arg;
           }

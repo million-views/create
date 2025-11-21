@@ -261,6 +261,7 @@ test('validateTemplateManifest enforces placeholder pattern', () => {
     id: 'test/test',
     name: 'broken',
     description: 'broken template',
+    placeholderFormat: 'unicode',
     placeholders: {
       'INVALID_PLACEHOLDER': {
         default: 'value'
@@ -281,6 +282,7 @@ test('validateTemplateManifest rejects invalid placeholder structure', () => {
     id: 'test/test',
     name: 'invalid',
     description: 'invalid placeholders',
+    placeholderFormat: 'unicode',
     placeholders: 'not-an-object'
   };
 
@@ -295,7 +297,9 @@ test('validateTemplateManifest adds canonical placeholders without duplication',
     schemaVersion: '1.0.0',
     id: 'test/test',
     name: 'canonical-test',
-    description: 'manifest with canonical variable'
+    description: 'manifest with canonical variable',
+    placeholderFormat: 'unicode',
+    placeholders: {}
   };
 
   const result = validateTemplateManifest(manifest);
@@ -310,6 +314,7 @@ test('validateTemplateManifest merges canonical and template placeholder metadat
     id: 'test/test',
     name: 'merge-test',
     description: 'manifest with overrides',
+    placeholderFormat: 'unicode',
     placeholders: {
       'AUTHOR': {
         default: 'Test Author',
@@ -322,7 +327,8 @@ test('validateTemplateManifest merges canonical and template placeholder metadat
   const authorPlaceholders = result.placeholders.filter((placeholder) => placeholder.token === 'AUTHOR');
 
   assert.equal(authorPlaceholders.length, 1);
-  assert.equal(authorPlaceholders[0].required, false);
+  // New schema v1.0: 'required' defaults to true (not false)
+  assert.equal(authorPlaceholders[0].required, true);
   assert.equal(authorPlaceholders[0].description, 'Custom author prompt');
   // V1.0.0 schema doesn't support canonical variables
   assert.equal(result.canonicalVariables.length, 0);
@@ -336,6 +342,7 @@ test('validateTemplateManifest rejects unknown canonical variables', () => {
     id: 'test/test',
     name: 'bad-placeholders',
     description: 'invalid placeholders',
+    placeholderFormat: 'unicode',
     placeholders: 'not-an-object'
   };
 

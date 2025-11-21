@@ -18,7 +18,7 @@ Responsible for merging sources of values:
 1. **CLI flags** (`--placeholder NAME=value`) − parsed into an object.
 2. **Environment variables** (`CREATE_SCAFFOLD_PLACEHOLDER_<NAME>`) − case-sensitive (uppercased tokens).
 3. **Defaults** from metadata entries.
-4. **Interactive prompts** – for required placeholders still missing values (unless `--no-input-prompts`).
+4. **Interactive prompts** – for required placeholders still missing values (unless `--yes`).
 
 API: `await resolvePlaceholders({ placeholders, options })` returning `{ values, promptReport }`.
 - `placeholders`: normalized entries from schema module.
@@ -29,7 +29,7 @@ API: `await resolvePlaceholders({ placeholders, options })` returning `{ values,
 
 ### 3. CLI Integration (`bin/cli.mjs`)
 - Extend argument parser to accept repeated `--placeholder NAME=value` flags.
-- Respect existing `--no-input-prompts` (fails if any required placeholder remains unresolved).
+- Respect existing `--yes` (fails if any required placeholder remains unresolved).
 - After loading `template.json`, call schema normalizer + resolver before scaffolding begins.
 - Store resolved values on the instantiation context: `ctx.inputs = Object.freeze(values)`.
 
@@ -69,7 +69,7 @@ API: `await resolvePlaceholders({ placeholders, options })` returning `{ values,
 - Unknown placeholder passed via `--placeholder` triggers warning but is ignored (opt-in: future strict mode?).
 - Invalid `type`: log warning, treat as string (but mark as schema error for template authors when validations enabled).
 - Type coercion failure (e.g., `number` but value not numeric) results in error before scaffolding begins.
-- Missing required values with `--no-input-prompts` or piped stdin produce exit code 1 with message `Missing required placeholders: AUTHOR, WORKER_NAME`.
+- Missing required values with `--yes` or piped stdin produce exit code 1 with message `Missing required placeholders: AUTHOR, WORKER_NAME`.
 
 ## Security Considerations
 

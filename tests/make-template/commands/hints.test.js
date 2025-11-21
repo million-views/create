@@ -15,8 +15,8 @@ describe('HintsCommand', () => {
     const cmd = new HintsCommand();
     const { logs } = captureOutput(() => cmd.run({}));
     const output = logs.join('\n');
-    assert.match(output, /Template Creation Hints/);
-    assert.match(output, /Use descriptive placeholder names/);
+    assert.match(output, /Available Hints Catalog for Template Authoring/);
+    assert.match(output, /Feature Hints/);
   });
 
   it('handles empty arguments', () => {

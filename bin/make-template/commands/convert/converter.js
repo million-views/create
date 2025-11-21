@@ -6,6 +6,7 @@ import { processMarkdownFile } from '../../../../lib/templatize-markdown.mjs';
 import { processJSXFile } from '../../../../lib/templatize-jsx.mjs';
 import { processHTMLFile } from '../../../../lib/templatize-html.mjs';
 import { loadConfig, loadConfigFromFile, getPatternsForFile } from '../../../../lib/templatize-config.mjs';
+import { formatPlaceholder as formatPlaceholderToken, normalizeFormat } from '../../../../lib/placeholder-formats.mjs';
 
 export class Converter {
   constructor(options) {
@@ -147,7 +148,8 @@ export class Converter {
   async detectAndReplacePlaceholders() {
     const projectPath = path.resolve(this.options.projectPath);
     const detectedPlaceholders = {};
-    const placeholderFormat = this.options.placeholderFormat || '⦃NAME⦄';
+    // Normalize format: accept named formats or default to 'unicode'
+    const placeholderFormat = this.options.placeholderFormat || 'unicode';
 
     // Load templatization configuration
     console.log('📋 Loading templatization configuration...');
@@ -261,10 +263,19 @@ export class Converter {
 
   matchesAnyPattern(filePath, patterns) {
     const fileName = path.basename(filePath);
+    // Normalize path separators for cross-platform compatibility
+    const normalizedFilePath = filePath.replace(/\\/g, '/');
 
     for (const pattern of patterns) {
+      const normalizedPattern = pattern.replace(/\\/g, '/');
+
       // Exact filename match
       if (pattern === fileName) {
+        return true;
+      }
+
+      // Exact relative path match (e.g., "src/components/Hero.jsx")
+      if (normalizedFilePath === normalizedPattern) {
         return true;
       }
 
@@ -331,6 +342,9 @@ export class Converter {
         (a, b) => b.startIndex - a.startIndex
       );
 
+      // Track placeholder counts for allowMultiple numbering
+      const placeholderCounts = {};
+
       for (const match of sortedMatches) {
         // Validate match structure
         if (!match || typeof match !== 'object') {
@@ -353,17 +367,33 @@ export class Converter {
           continue;
         }
 
-        const placeholderName = match.placeholder;
+        const basePlaceholderName = match.placeholder;
 
-        // Skip if we already have this placeholder
-        if (placeholders[placeholderName]) {
+        // Validate placeholder format
+        if (!/^[A-Z][A-Z0-9_]*$/.test(basePlaceholderName)) {
+          console.warn(`Warning: Invalid placeholder name '${basePlaceholderName}', must be uppercase letters, numbers, and underscores, starting with a letter`);
           continue;
         }
 
-        // Validate placeholder format
-        if (!/^[A-Z][A-Z0-9_]*$/.test(placeholderName)) {
-          console.warn(`Warning: Invalid placeholder name '${placeholderName}', must be uppercase letters, numbers, and underscores, starting with a letter`);
-          continue;
+        // Check if this is an allowMultiple pattern
+        const matchingPattern = patterns.find(p => p.placeholder === basePlaceholderName);
+        const isAllowMultiple = matchingPattern && matchingPattern.allowMultiple === true;
+
+        let placeholderName;
+        if (isAllowMultiple) {
+          // Track how many times we've seen this base placeholder
+          if (!placeholderCounts[basePlaceholderName]) {
+            placeholderCounts[basePlaceholderName] = 0;
+          }
+          const index = placeholderCounts[basePlaceholderName];
+          placeholderName = `${basePlaceholderName}_${index}`;
+          placeholderCounts[basePlaceholderName]++;
+        } else {
+          // Skip if we already have this placeholder (non-allowMultiple)
+          if (placeholders[basePlaceholderName]) {
+            continue;
+          }
+          placeholderName = basePlaceholderName;
         }
 
         // Create placeholder definition
@@ -419,22 +449,13 @@ export class Converter {
       throw new Error(`Invalid placeholder format: ${format}`);
     }
 
-    // Handle named formats
-    const formatMap = {
-      'mustache': '{{NAME}}',
-      'dollar': '$NAME$',
-      'percent': '%NAME%',
-      'unicode': '⦃NAME⦄'
-    };
-
-    if (formatMap[format]) {
-      format = formatMap[format];
+    // Use centralized format module to ensure consistency
+    try {
+      const normalizedFormat = normalizeFormat(format);
+      return formatPlaceholderToken(name, normalizedFormat);
+    } catch (error) {
+      throw new Error(`Invalid placeholder format: ${error.message}`);
     }
-
-    if (!format.includes('NAME')) {
-      throw new Error(`Placeholder format must contain 'NAME' placeholder: ${format}`);
-    }
-    return format.replace('NAME', name);
   }
 
   async updateTemplateJsonWithPlaceholders(detectedPlaceholders) {
@@ -456,6 +477,10 @@ export class Converter {
     if (!template.placeholders || typeof template.placeholders !== 'object') {
       template.placeholders = {};
     }
+
+    // Store the placeholder format used during conversion
+    const placeholderFormat = this.options.placeholderFormat || 'unicode';
+    template.placeholderFormat = placeholderFormat;
 
     // Merge detected placeholders with existing ones
     // Preserves manually added placeholders and adds newly detected ones

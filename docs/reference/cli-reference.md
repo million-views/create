@@ -121,7 +121,8 @@ create-scaffold new <project-name> --template <template-name> [options]
 | `--cache-ttl <hours>` | Override default cache TTL Specify cache time-to-live in hours (default: 24) |
 | **Placeholder Options** | |
 | `--placeholder <NAME=value>` | Supply placeholder value Provide placeholder values in NAME=value format. Can be specified multiple times. |
-| `--no-input-prompts` | Suppress prompts and non-essential output |
+| `--selection <file>` | Use selection.json file for configuration Load template selections and placeholder values from a selection.json file. The file should conform to the Template Schema V1.0 selection manifest format. When provided, bypasses interactive prompts and uses the saved configuration. |
+| `--yes` | Suppress prompts and non-essential output |
 | **Configuration** | |
 | `--no-config` | Skip loading user configuration |
 | `--options <file>` | Path to options file for template configuration Load template configuration from a JSON file |
@@ -145,6 +146,11 @@ new my-app --template workshop/basic-react-spa#feature-branch
 new my-app --template react-app --placeholder NAME=MyApp
 ```
     Provide placeholder values
+
+```bash
+new my-app --selection ./selection.json
+```
+    Use selection file for configuration
 
 ```bash
 new my-app --template react-app --no-cache
@@ -383,15 +389,13 @@ Related commands:
 
 Restore a template back to a working project state.
 Replaces placeholders with actual values and restores project structure.
+If project-path is omitted, operates on current directory.
 
 **Usage:**
 
 ```bash
-make-template restore <project-path> [options]
+make-template restore [project-path] [options]
 ```
-
-**Arguments:**
-- `<project-path>`: Path to the project directory to convert
 
 **Options:**
 
@@ -409,22 +413,27 @@ make-template restore <project-path> [options]
 **Examples:**
 
 ```bash
+restore
+```
+    Restore current directory
+
+```bash
 restore ./my-template
 ```
     Restore template to working state
 
 ```bash
-restore ./my-template --dry-run
+restore --dry-run
 ```
-    Preview restoration
+    Preview restoration in current directory
 
 ```bash
-restore ./my-template --files package.json,src/index.js
+restore --files package.json,src/index.js
 ```
     Restore specific files
 
 ```bash
-restore ./my-template --placeholders-only
+restore --placeholders-only
 ```
     Only restore placeholder values
 

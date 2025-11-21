@@ -102,7 +102,7 @@ export class Scaffolder {
         // Process template URL
         // Handle different template input types
         if (validated.template.startsWith('/') || validated.template.startsWith('./') || validated.template.startsWith('../') ||
-            resolvedTemplate.startsWith('/') || resolvedTemplate.startsWith('./') || resolvedTemplate.startsWith('../')) {
+          resolvedTemplate.startsWith('/') || resolvedTemplate.startsWith('./') || resolvedTemplate.startsWith('../')) {
           console.error('DEBUG: Taking local path branch');
           // Direct template directory path
           const templateToUse = (resolvedTemplate.startsWith('/') || resolvedTemplate.startsWith('./') || resolvedTemplate.startsWith('../'))
@@ -194,7 +194,22 @@ export class Scaffolder {
         console.log('DEBUG: Attempting placeholder resolution');
         console.log('DEBUG: this.options.placeholders:', this.options.placeholders);
         console.log('DEBUG: metadata.placeholders:', metadata.placeholders);
-        const placeholderDefinitions = Array.isArray(metadata.placeholders) ? metadata.placeholders : [];
+
+        // Convert placeholders from object format (schema v1.0.0) to array format for resolver
+        let placeholderDefinitions = [];
+        if (metadata.placeholders) {
+          if (Array.isArray(metadata.placeholders)) {
+            placeholderDefinitions = metadata.placeholders;
+          } else if (typeof metadata.placeholders === 'object') {
+            // Convert object format to array format
+            // The resolver expects: {token: 'PACKAGE_NAME', description: '...', required: true, ...}
+            placeholderDefinitions = Object.entries(metadata.placeholders).map(([key, value]) => ({
+              token: key,
+              ...value
+            }));
+          }
+        }
+
         console.log('DEBUG: placeholderDefinitions:', placeholderDefinitions);
         if (placeholderDefinitions.length > 0) {
           const resolution = await resolvePlaceholders({

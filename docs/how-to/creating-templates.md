@@ -278,7 +278,7 @@ When `metadata.placeholders` lists a value that shouldn't be replaced inline, mo
 > **Instantiator tips**
 > - Placeholder prompting is opt-in while the feature stabilizes. Document `--experimental-placeholder-prompts` in your README so users know how to enable it.
 > - CLI runs accept repeated `--placeholder NAME=value` flags for overrides and honour `CREATE_SCAFFOLD_PLACEHOLDER_<NAME>` environment variables (uppercase tokens).
-> - Pipelines can combine the flag with `--no-input-prompts` to force hard failures when required placeholders are missing instead of falling back to interactive input.
+> - Pipelines can combine the flag with `--yes` to force hard failures when required placeholders are missing instead of falling back to interactive input.
 
 ### Step 5: Stage author assets (composable mode)
 

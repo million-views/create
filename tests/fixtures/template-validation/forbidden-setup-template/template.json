@@ -1,5 +1,8 @@
 {
   "schemaVersion": "1.0.0",
+  "id": "test/forbidden-setup",
   "name": "forbidden-setup",
-  "description": "Template with forbidden globals in setup script"
+  "description": "Template with forbidden globals in setup script",
+  "placeholderFormat": "unicode",
+  "placeholders": {}
 }

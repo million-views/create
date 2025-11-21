@@ -111,7 +111,7 @@ create/
 
 **Options Processor (`bin/create-scaffold/modules/options-processor.mjs`)**:
 - Processes and validates CLI arguments using native `util.parseArgs`
-- Supports all CLI options: `--help`, `--log-file`, `--dry-run`, `--no-cache`, `--experimental-placeholder-prompts`, `--no-input-prompts`, `--cache-ttl`
+- Supports all CLI options: `--help`, `--log-file`, `--dry-run`, `--no-cache`, `--experimental-placeholder-prompts`, `--yes`, `--cache-ttl`
 - Provides comprehensive help text and usage information
 
 **Guided Setup Workflow (`bin/create-scaffold/modules/guided-setup-workflow.mjs`)**:

@@ -7,6 +7,7 @@ import {
   shouldIgnoreTemplateEntry, createTemplateIgnoreSet
 } from '../../../lib/template-ignore.mjs';
 import { loadTemplateMetadataFromPath } from '../../../lib/template-discovery.mjs';
+import { extractPlaceholders as extractPlaceholdersWithFormat } from '../../../lib/placeholder-formats.mjs';
 
 /**
  * Dry Run Engine module
@@ -208,20 +209,24 @@ export class DryRunEngine {
   /**
    * Extract placeholders from template files
    */
-  extractPlaceholders(files, _templatePath) {
+  extractPlaceholders(files, templatePath) {
     const placeholders = new Set();
+
+    // Try to load template metadata to get placeholder format
+    let placeholderFormat = 'unicode'; // default
+    try {
+      const metadata = loadTemplateMetadataFromPath(templatePath);
+      placeholderFormat = metadata.placeholderFormat || 'unicode';
+    } catch {
+      // If metadata can't be loaded, use default format
+    }
 
     for (const file of files) {
       try {
         const content = fs.readFileSync(file.path, 'utf8');
-        // Simple regex to find {{placeholder}} patterns
-        const matches = content.match(/\{\{([^}]+)\}\}/g);
-        if (matches) {
-          matches.forEach(match => {
-            const placeholder = match.slice(2, -2).trim(); // Remove {{ }}
-            placeholders.add(placeholder);
-          });
-        }
+        // Use centralized extraction to support all formats
+        const tokens = extractPlaceholdersWithFormat(content, placeholderFormat);
+        tokens.forEach(token => placeholders.add(token));
       } catch (error) {
         // Skip files we can't read
         this.logger.warn(`Warning: Could not read file ${file.path}: ${error.message}`);

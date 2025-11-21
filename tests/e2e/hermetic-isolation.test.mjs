@@ -76,8 +76,11 @@ test('M5NV_HOME isolation - create-scaffold uses isolated environment', async (t
   await createTestProject(templateDir, {
     'package.json': JSON.stringify({ name: '⦃PACKAGE_NAME⦄' }, null, 2),
     'template.json': JSON.stringify({
+      schemaVersion: '1.0.0',
+      id: 'test/test-template',
       name: 'test-template',
-      placeholders: { PACKAGE_NAME: { required: false, default: 'my-app' } }
+      description: 'Test template for hermetic isolation',
+      placeholders: { PACKAGE_NAME: { description: 'Package name', required: false, default: 'my-app' } }
     }, null, 2)
   });
 

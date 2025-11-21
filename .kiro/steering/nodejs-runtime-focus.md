@@ -48,6 +48,40 @@ inclusion: always
 - Update or add suites in kebab-case (`*.test.mjs`) so `node --test` discovers them automatically.
 - Capture real command output from the native runner when documenting or troubleshooting behavior; do not rely on simulated output.
 
+#### Node.js Test Runner Execution Modes
+
+**CRITICAL**: The Node.js test runner has THREE different execution modes with different IPC and subprocess behavior:
+
+1. **Unquoted Path Mode** (Strict Subprocess with IPC Serialization):
+   ```bash
+   node --test tests/file.test.mjs  # No quotes
+   ```
+   - Triggers strict subprocess mode with IPC communication
+   - Requires all data to be serializable for IPC transport
+   - May fail with "deserialization error" if test uses console.log + execSync
+   - Use this mode to verify test data serialization compatibility
+
+2. **Quoted Glob Mode** (Normal Test Discovery):
+   ```bash
+   node --test 'tests/file.test.mjs'  # Quoted
+   node --test 'tests/**/*.test.mjs'  # Glob pattern
+   ```
+   - Uses normal test discovery mode
+   - More lenient IPC handling
+   - **RECOMMENDED** for all test execution
+   - Use this mode for production test runs
+
+3. **Direct Execution Mode** (No Test Runner Subprocess):
+   ```bash
+   node tests/file.test.mjs  # No --test flag
+   ```
+   - Bypasses test runner entirely
+   - No subprocess or IPC
+   - Useful for debugging test logic in isolation
+   - Does NOT provide test runner features (TAP output, parallel execution, etc.)
+
+**Best Practice**: Always use quoted glob patterns for consistent behavior across all test scenarios. Configure `npm test` to use glob patterns.
+
 ## Development Task Ordering
 
 ### Correct Order for Development (RED-GREEN-REFACTOR)
@@ -128,6 +162,18 @@ When tests fail or issues arise:
 - **ALWAYS** fix the test files and re-run through proper test runner
 - **ALWAYS** use `npm test` or specific test file execution
 - **ALWAYS** treat test failures as specification issues, not implementation bugs
+
+### Root Cause Analysis Principles
+
+**CRITICAL MINDSET**: Never accept surface-level explanations or dismiss issues as "quirks"
+
+1. **No Band-Aids Allowed**: If you find yourself writing workarounds in tests to make them pass, STOP. The production code is broken. Example: If template artifacts are being copied to scaffolded projects and you want to "clean them up" in tests, that's a sign that the scaffold logic is fundamentally broken and not doing its job of excluding template metadata.
+
+2. **No Quirks, Only Ignorance**: When something fails in an unexpected way, never dismiss it as "just a quirk" of the system. Every failure has a root cause. Investigate until you understand WHY it happens. Example: "Node.js test runner quirk" is ignorance speaking - dig deeper to understand the actual subprocess execution modes and IPC serialization behavior.
+
+3. **Question Your Assumptions**: When behavior differs between execution contexts (e.g., works in full suite, fails in isolation), identify what's ACTUALLY different about those contexts. Don't guess or assume - trace the execution path and find the concrete difference.
+
+4. **Production Code First**: If a test requires special setup or cleanup that real users wouldn't do, the production code is wrong. Tests should reflect real-world usage, not work around implementation deficiencies.
 
 ## Success Criteria
 

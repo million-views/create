@@ -1,5 +1,8 @@
 {
   "schemaVersion": "1.0.0",
+  "id": "test/author-assets-template",
   "name": "author-assets-template",
-  "description": "Template for verifying author asset staging and cleanup."
+  "description": "Template for verifying author asset staging and cleanup.",
+  "placeholderFormat": "unicode",
+  "placeholders": {}
 }

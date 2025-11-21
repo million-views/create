@@ -14,7 +14,7 @@ export class RestoreCommand extends Command {
     } else if (arg === '--yes') {
       parsed.yes = true;
       return i;
-    } else if (arg === '--restore-files') {
+    } else if (arg === '--files') {
       parsed.files = args[i + 1].split(',');
       return i + 1;
     } else if (arg === '--placeholders-only') {
@@ -35,7 +35,7 @@ export class RestoreCommand extends Command {
   }
 
   async run(parsed) {
-    // Default to current directory if no project path specified
+    // Default to current directory if not specified
     if (!parsed.projectPath) {
       parsed.projectPath = '.';
     }

@@ -13,8 +13,10 @@ export class TestCommand extends Command {
   parseArg(arg, args, i, parsed) {
     if (arg === '--verbose') {
       parsed.verbose = true;
+      return i;
     } else if (arg === '--keep-temp') {
       parsed.keepTemp = true;
+      return i;
     } else if (!arg.startsWith('-')) {
       if (!parsed.templatePath) {
         parsed.templatePath = arg;

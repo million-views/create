@@ -3,6 +3,8 @@
   "id": "test/ide-demo-template",
   "name": "IDE Demo Template",
   "description": "Demo template with IDE-specific configuration",
+  "placeholderFormat": "unicode",
+  "placeholders": {},
   "constants": {
     "ide": "vscode"
   }

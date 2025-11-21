@@ -94,7 +94,7 @@ runner.createTest('Temp directory cleanup on copyTemplate() failure', async () =
   }
 
   // Restore permissions for cleanup
-  await fs.chmod(tempDir, 0o755).catch(() => {});
+  await fs.chmod(tempDir, 0o755).catch(() => { });
 
   const afterSnapshot = await ResourceMonitor.getResourceSnapshot();
 
@@ -325,7 +325,7 @@ runner.createTest('Setup script error handling with malformed setup scripts', as
   }
 });
 
-runner.createTest('Placeholder prompts fail when required values missing with no-input-prompts', async () => {
+runner.createTest('Placeholder prompts fail when required values missing with --yes', async () => {
   const tempDir = await TestEnvironment.createTempDir();
   runner.addTempPath(tempDir);
 
@@ -355,15 +355,15 @@ runner.createTest('Placeholder prompts fail when required values missing with no
   await TemplateRepository.execCommand('git', ['add', '.'], { cwd: repoDir });
   await TemplateRepository.execCommand('git', ['commit', '-m', 'Add template with required placeholder'], { cwd: repoDir });
 
-  const result = await runCLI(CLI_PATH, ['new', tempDir, '--template', repoDir + '/features-demo-template', '--no-input-prompts']);
+  const result = await runCLI(CLI_PATH, ['new', tempDir, '--template', repoDir + '/features-demo-template', '--yes']);
   if (result.exitCode === 0) {
-    throw new Error('CLI should have failed with missing required placeholder and no-input-prompts');
+    throw new Error('CLI should have failed with missing required placeholder and --yes');
   }
 
   const output = result.stdout + result.stderr;
 
   // Should indicate that required placeholder is missing
   if (!output.includes('required') && !output.includes('placeholder') && !output.includes('missing')) {
-    throw new Error('Required placeholder validation did not work with no-input-prompts');
+    throw new Error('Required placeholder validation did not work with --yes');
   }
 });

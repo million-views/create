@@ -1,4 +1,4 @@
-# ⦃PROJECT_NAME⦄
+# ⦃PACKAGE_NAME⦄
 
 This project uses an API token: ⦃API_TOKEN⦄
 

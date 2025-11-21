@@ -33,7 +33,7 @@ export class GuidedSetupWorkflow {
     metadata,
     selectionFilePath
   }) {
-        // Debug logging for test environment
+    // Debug logging for test environment
     if (process.env.NODE_ENV === 'test' && logger) {
       logger.debug('GuidedSetupWorkflow constructor called with:', {
         projectDirectory: !!projectDirectory,
@@ -182,7 +182,7 @@ export class GuidedSetupWorkflow {
         if (loadedSelection && loadedSelection.selections) {
           // Validate that the loaded selection matches the current template
           if (loadedSelection.templateId === (this.metadata?.id || this.templateName) &&
-              loadedSelection.version === (this.metadata?.schemaVersion || '1.0.0')) {
+            loadedSelection.version === (this.metadata?.schemaVersion || '1.0.0')) {
 
             // Validate the loaded selections against template constraints
             const validationResult = await this.#validateLoadedSelections(loadedSelection.selections);
@@ -542,7 +542,7 @@ export class GuidedSetupWorkflow {
 
         // Skip completed steps unless resuming from failure
         if (this.workflowState.completedSteps.includes(step.name) &&
-            !this.workflowState.failedSteps.includes(step.name)) {
+          !this.workflowState.failedSteps.includes(step.name)) {
           if (process.env.NODE_ENV === 'test') {
             console.error(`DEBUG: Skipping completed step: ${step.name}`);
           }
@@ -1024,9 +1024,9 @@ export class GuidedSetupWorkflow {
 
       // Skip certain files and directories
       if (entry.name === '.git' ||
-          entry.name === 'node_modules' ||
-          entry.name === '.create-scaffold-workflow.json' ||
-          entry.name.startsWith('.')) {
+        entry.name === 'node_modules' ||
+        entry.name === '.create-scaffold-workflow.json' ||
+        entry.name.startsWith('.')) {
         continue;
       }
 
@@ -1046,9 +1046,15 @@ export class GuidedSetupWorkflow {
       const content = await fs.readFile(filePath, 'utf8');
       let modifiedContent = content;
 
-      // Replace each placeholder
+      // Get placeholder format from template metadata
+      const placeholderFormat = this.metadata?.placeholderFormat || 'unicode';
+
+      // Import the format utility
+      const { createTokenPattern } = await import('../../../lib/placeholder-formats.mjs');
+
+      // Replace each placeholder using the correct format
       for (const [key, value] of Object.entries(placeholders)) {
-        const placeholderPattern = new RegExp(`{{${key}}}`, 'g');
+        const placeholderPattern = createTokenPattern(key, placeholderFormat);
         modifiedContent = modifiedContent.replace(placeholderPattern, value);
       }
 
@@ -1106,7 +1112,8 @@ export class GuidedSetupWorkflow {
           inputs: this.placeholders,
           authoring: this.metadata?.authoring || 'wysiwyg',
           constants: this.metadata?.constants || {},
-          authorAssetsDir: this.metadata?.setup?.authorAssetsDir || '__scaffold__'
+          authorAssetsDir: this.metadata?.setup?.authorAssetsDir || '__scaffold__',
+          placeholderFormat: this.metadata?.placeholderFormat || 'unicode'
         },
         dimensions: this.metadata?.dimensions || {},
         options: this.options || { raw: [], byDimension: {} }
@@ -1137,13 +1144,25 @@ export class GuidedSetupWorkflow {
       }
       throw error;
     } finally {
-      // Always remove the setup script file after execution attempt
+      // Always remove template artifacts after setup execution
       try {
         await fs.unlink(setupScriptPath);
       } catch (cleanupError) {
         // Ignore cleanup errors in test mode
         if (process.env.NODE_ENV !== 'test') {
           console.warn('Warning: Failed to clean up setup script file:', cleanupError.message);
+        }
+      }
+
+      // Remove author assets directory (templates/, __scaffold__/, etc.)
+      const authorAssetsDir = this.metadata?.authorAssetsDir || '__scaffold__';
+      const authorAssetPath = path.join(this.resolvedProjectDirectory, authorAssetsDir);
+      try {
+        await fs.rm(authorAssetPath, { recursive: true, force: true });
+      } catch (cleanupError) {
+        // Ignore cleanup errors - directory may not exist or already removed
+        if (process.env.NODE_ENV !== 'test') {
+          console.warn('Warning: Failed to clean up author assets directory:', cleanupError.message);
         }
       }
     }

@@ -58,7 +58,17 @@ export const newHelp = {
           ]
         },
         {
-          long: '--no-input-prompts',
+          long: '--selection',
+          value: '<file>',
+          desc: 'Use selection.json file for configuration',
+          detailed: [
+            'Load template selections and placeholder values from a selection.json file.',
+            'The file should conform to the Template Schema V1.0 selection manifest format.',
+            'When provided, bypasses interactive prompts and uses the saved configuration.'
+          ]
+        },
+        {
+          long: '--yes',
           desc: 'Suppress prompts and non-essential output'
         }
       ]
@@ -107,6 +117,10 @@ export const newHelp = {
     {
       cmd: 'new my-app --template react-app --placeholder NAME=MyApp',
       desc: 'Provide placeholder values'
+    },
+    {
+      cmd: 'new my-app --selection ./selection.json',
+      desc: 'Use selection file for configuration'
     },
     {
       cmd: 'new my-app --template react-app --no-cache',

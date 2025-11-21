@@ -4,7 +4,12 @@
   "title": "Template Manifest V1.0 (Registry + UI)",
   "description": "Defines a template's infrastructure stack, feature hints, and configuration variables.",
   "type": "object",
-  "required": ["schemaVersion", "id", "placeholders"],
+  "required": [
+    "schemaVersion",
+    "id",
+    "placeholderFormat",
+    "placeholders"
+  ],
   "properties": {
     "schemaVersion": {
       "type": "string",
@@ -16,59 +21,123 @@
       "pattern": "^[a-z0-9-]+/[a-z0-9-]+$",
       "description": "Unique identifier (e.g., author/template-name)"
     },
-    "name": { "type": "string", "maxLength": 120 },
-    "description": { "type": "string", "maxLength": 500 },
-    
+    "name": {
+      "type": "string",
+      "maxLength": 120
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 500
+    },
+    "placeholderFormat": {
+      "type": "string",
+      "enum": [
+        "unicode",
+        "mustache",
+        "dollar",
+        "percent"
+      ],
+      "default": "unicode",
+      "description": "Delimiter format used for placeholders in template files. Set by 'make-template convert --placeholder-format'."
+    },
     "placeholders": {
       "type": "object",
       "description": "THE REGISTRY. Populated by 'make-template convert'. A flat dictionary of all variables.",
       "patternProperties": {
         "^[A-Z0-9_]+$": {
           "type": "object",
-          "required": ["description"],
+          "required": [
+            "description"
+          ],
           "properties": {
-            "description": { "type": "string" },
-            "default": { "type": ["string", "number", "boolean"] },
-            "type": { 
-              "type": "string", 
-              "enum": ["text", "number", "boolean", "email", "password", "url"],
+            "description": {
+              "type": "string"
+            },
+            "default": {
+              "type": [
+                "string",
+                "number",
+                "boolean"
+              ]
+            },
+            "type": {
+              "type": "string",
+              "enum": [
+                "text",
+                "number",
+                "boolean",
+                "email",
+                "password",
+                "url"
+              ],
               "default": "text"
             },
-            "required": { "type": "boolean", "default": true },
-            "secure": { "type": "boolean", "default": false }
+            "required": {
+              "type": "boolean",
+              "default": true
+            },
+            "secure": {
+              "type": "boolean",
+              "default": false
+            }
           },
           "additionalProperties": false
         }
       }
     },
-
     "dimensions": {
       "type": "object",
       "description": "Infrastructure choices (Stack).",
       "patternProperties": {
         "^[a-z_]+$": {
           "type": "object",
-          "required": ["options"],
+          "required": [
+            "options"
+          ],
           "properties": {
-            "label": { "type": "string", "description": "Header label in the UI" },
+            "label": {
+              "type": "string",
+              "description": "Header label in the UI"
+            },
             "display": {
               "type": "object",
               "properties": {
-                "variant": { "enum": ["card-grid", "list-selection", "dropdown"], "default": "list-selection" },
-                "icon": { "type": "string" }
+                "variant": {
+                  "enum": [
+                    "card-grid",
+                    "list-selection",
+                    "dropdown"
+                  ],
+                  "default": "list-selection"
+                },
+                "icon": {
+                  "type": "string"
+                }
               }
             },
             "options": {
               "type": "array",
               "items": {
                 "type": "object",
-                "required": ["id"],
+                "required": [
+                  "id"
+                ],
                 "properties": {
-                  "id": { "type": "string" },
-                  "label": { "type": "string" },
-                  "desc": { "type": "string" },
-                  "icon": { "type": "string" },
-                  "placeholders": { "$ref": "#/$defs/placeholderRefList" }
+                  "id": {
+                    "type": "string"
+                  },
+                  "label": {
+                    "type": "string"
+                  },
+                  "desc": {
+                    "type": "string"
+                  },
+                  "icon": {
+                    "type": "string"
+                  },
+                  "placeholders": {
+                    "$ref": "#/$defs/placeholderRefList"
+                  }
                 }
               }
             }
@@ -76,24 +145,38 @@
         }
       }
     },
-
     "hints": {
       "type": "array",
       "description": "Feature choices (White-labelling/Content).",
       "items": {
         "type": "object",
-        "required": ["id", "label", "needs"],
+        "required": [
+          "id",
+          "label",
+          "needs"
+        ],
         "properties": {
-          "id": { "type": "string" },
-          "label": { "type": "string" },
-          "description": { "type": "string" },
-          "icon": { "type": "string" },
-          "needs": { "$ref": "#/$defs/capabilityNeeds" },
-          "placeholders": { "$ref": "#/$defs/placeholderRefList" }
+          "id": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "icon": {
+            "type": "string"
+          },
+          "needs": {
+            "$ref": "#/$defs/capabilityNeeds"
+          },
+          "placeholders": {
+            "$ref": "#/$defs/placeholderRefList"
+          }
         }
       }
     },
-
     "gates": {
       "type": "object",
       "description": "Compatibility rules between dimensions.",
@@ -104,7 +187,12 @@
             "^[a-z0-9-]+$": {
               "type": "object",
               "patternProperties": {
-                "^[a-z_]+$": { "type": "array", "items": { "type": "string" } }
+                "^[a-z_]+$": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
               }
             }
           }
@@ -121,14 +209,22 @@
     "placeholderRefList": {
       "type": "array",
       "description": "List of placeholder keys (from registry) required by this item.",
-      "items": { "$ref": "#/$defs/placeholderKey" },
+      "items": {
+        "$ref": "#/$defs/placeholderKey"
+      },
       "uniqueItems": true
     },
     "capabilityNeeds": {
       "type": "object",
       "description": "Defining what infrastructure capabilities this feature requires.",
       "patternProperties": {
-        "^[a-z_]+$": { "enum": ["required", "optional", "none"] }
+        "^[a-z_]+$": {
+          "enum": [
+            "required",
+            "optional",
+            "none"
+          ]
+        }
       }
     }
   }

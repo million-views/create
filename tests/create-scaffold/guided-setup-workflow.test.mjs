@@ -45,6 +45,8 @@ test('GuidedSetupWorkflow - selection.json generation integration', async (t) =>
 
     // Create template.json
     const templateJson = {
+      schemaVersion: '1.0.0',
+      id: 'test-template',
       name: 'Test Template',
       description: 'A test template',
       placeholders: {
@@ -68,7 +70,7 @@ export async function setup(templateDir, targetDir, options) {
 
     // Run create-scaffold with --yes to skip prompts
     const result = await new Promise((resolve) => {
-      const child = spawn('node', [CLI_PATH, 'test-output', templateDir, '--yes'], {
+      const child = spawn('node', [CLI_PATH, 'new', 'test-output', '--template', templateDir, '--yes'], {
         stdio: ['pipe', 'pipe', 'pipe'],
         cwd: tempDir
       });
@@ -116,6 +118,8 @@ export async function setup(templateDir, targetDir, options) {
     await fs.mkdir(templateDir, { recursive: true });
 
     const templateJson = {
+      schemaVersion: '1.0.0',
+      id: 'another-template',
       name: 'Another Template',
       description: 'Another test template',
       placeholders: {}
@@ -133,7 +137,7 @@ export async function setup(templateDir, targetDir, options) {
 
     // Run scaffolding
     const result = await new Promise((resolve) => {
-      const child = spawn('node', [CLI_PATH, 'another-output', templateDir, '--yes'], {
+      const child = spawn('node', [CLI_PATH, 'new', 'another-output', '--template', templateDir, '--yes'], {
         stdio: ['pipe', 'pipe', 'pipe'],
         cwd: tempDir
       });

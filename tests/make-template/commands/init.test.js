@@ -8,7 +8,7 @@ describe('InitCommand', () => {
     const cmd = new InitCommand();
     const { logs } = captureOutput(() => cmd.execute(['--help']));
     const output = logs.join('\n');
-    assert.match(output, /Generate skeleton template.json/);
+    assert.match(output, /Initialize template configuration files/);
     assert.match(output, /--file/);
   });
 

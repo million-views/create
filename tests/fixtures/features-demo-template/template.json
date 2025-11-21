@@ -3,9 +3,16 @@
   "id": "test/features-demo-template",
   "name": "Features Demo Template",
   "description": "Fixture exercising feature-driven setup",
+  "placeholderFormat": "unicode",
+  "authorAssetsDir": "templates",
+  "placeholders": {},
   "dimensions": {
     "features": {
-      "values": ["api", "auth", "testing"],
+      "values": [
+        "api",
+        "auth",
+        "testing"
+      ],
       "default": []
     }
   },

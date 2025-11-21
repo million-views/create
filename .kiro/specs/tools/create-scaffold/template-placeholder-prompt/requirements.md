@@ -44,7 +44,7 @@ Template authors rely on `metadata.placeholders` in `template.json` to describe 
 - Ensure prompts respect defaults (`default` field) and optional statuses (`required: false`).
 - Avoid leaking sensitive input in logs by default; offer redaction for secrets.
 - Align prompt ordering with template metadata for predictability.
-- Provide a way to skip prompts (`--no-input-prompts`) for users scripting ephemeral projects.
+- Provide a way to skip prompts (`--yes`) for users scripting ephemeral projects.
 - Favor the term “instantiate” in user-facing copy to avoid implying templates are authored from scratch during this flow.
 - Deliver deterministic helper APIs so that AI coding assistants can generate consistent `_setup.mjs` snippets without re-deriving project-specific logic.
 - Ensure silent CI/CD pipelines can supply all placeholder values via `--placeholder` flags or environment variables with zero interactive prompts.
@@ -55,7 +55,7 @@ Template authors rely on `metadata.placeholders` in `template.json` to describe 
 2. **How to mark sensitive values?** Extend the schema with optional `"sensitive": true`. When set, CLI prompts use masked input (no echo) and redact the value from verbose logs. Absent the flag, input is treated as non-sensitive—no heuristic guesses.
 3. **Type hints?** Support an optional `"type"` field with accepted values `"string"` (default), `"number"`, and `"boolean"`. The CLI validates/coerces responses accordingly, and non-interactive overrides must parse to the declared type. Future iterations can add richer types (enum, pattern) without breaking this contract.
 4. **Interaction with helpers.** Add a convenience API `await tools.placeholders.applyInputs(filesOrGlobs)` that merges `ctx.inputs` plus `ctx.projectName` into selected files. Authors (and AI assistants) can rely on this one-liner for WYSIWYG flows instead of re-implementing replacement logic. Existing `replaceAll` remains available for advanced control.
-5. **CLI overrides.** Introduce `--placeholder NAME=value` (repeatable) and environment variables `CREATE_SCAFFOLD_PLACEHOLDER_<NAME>=value` for CI/CD. Both feed into the same resolver. Combined with the existing `--no-input-prompts`, this enables fully silent pipelines.
+5. **CLI overrides.** Introduce `--placeholder NAME=value` (repeatable) and environment variables `CREATE_SCAFFOLD_PLACEHOLDER_<NAME>=value` for CI/CD. Both feed into the same resolver. Combined with the existing `--yes`, this enables fully silent pipelines.
 6. **Telemetry/logging.** No telemetry for now. The CLI prints a summary only when `--verbose`, stating which placeholders were satisfied via defaults, CLI overrides, or interactive entry—values for sensitive placeholders remain redacted.
 
 ## Future Considerations (Not in Scope for This Iteration)
@@ -66,7 +66,7 @@ Template authors rely on `metadata.placeholders` in `template.json` to describe 
 
 - **Interactive Prompt**: Given a template with `metadata.placeholders` containing a required `{{AUTHOR}}`, running the CLI without supplying a value prompts the user, stores the response, and the final project replaces `{{AUTHOR}}`.
 - **Default Handling**: If a placeholder has `default: "My Project"`, the prompt pre-populates or auto-fills the value when the user accepts.
-- **Non-Interactive Failure**: Running with `--no-input-prompts` and without providing required values fails with a clear error message referencing the missing placeholders.
+- **Non-Interactive Failure**: Running with `--yes` and without providing required values fails with a clear error message referencing the missing placeholders.
 - **CLI Overrides**: Supplying `--placeholder AUTHOR="Jane Doe"` skips the prompt and uses the provided value.
 - **Setup Script Access**: Inside `_setup.mjs`, `ctx.inputs.AUTHOR` (or equivalent API) contains the value for replacements.
 - **Optional Placeholder**: Optional placeholders without provided values are left untouched; the scaffold warns (if configured) but proceeds.

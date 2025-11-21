@@ -1,11 +1,12 @@
 export const restoreHelp = {
   name: 'restore',
-  usage: 'restore <project-path> [options]',
+  usage: 'restore [project-path] [options]',
   description: 'Restore template to project',
 
   detailedDescription: [
     'Restore a template back to a working project state.',
-    'Replaces placeholders with actual values and restores project structure.'
+    'Replaces placeholders with actual values and restores project structure.',
+    'If project-path is omitted, operates on current directory.'
   ],
 
   optionGroups: [
@@ -56,14 +57,15 @@ export const restoreHelp = {
   ],
 
   examples: [
+    { cmd: 'restore', desc: 'Restore current directory' },
     { cmd: 'restore ./my-template', desc: 'Restore template to working state' },
-    { cmd: 'restore ./my-template --dry-run', desc: 'Preview restoration' },
+    { cmd: 'restore --dry-run', desc: 'Preview restoration in current directory' },
     {
-      cmd: 'restore ./my-template --files package.json,src/index.js',
+      cmd: 'restore --files package.json,src/index.js',
       desc: 'Restore specific files'
     },
     {
-      cmd: 'restore ./my-template --placeholders-only',
+      cmd: 'restore --placeholders-only',
       desc: 'Only restore placeholder values'
     }
   ]

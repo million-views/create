@@ -3,11 +3,12 @@
   "id": "test/placeholder-template",
   "name": "Placeholder Template",
   "description": "Fixture demonstrating placeholder resolution",
+  "placeholderFormat": "unicode",
   "setup": {
     "authoringMode": "wysiwyg"
   },
   "placeholders": {
-    "PROJECT_NAME": {
+    "PACKAGE_NAME": {
       "default": "my-project",
       "description": "Name of the generated project",
       "required": true
