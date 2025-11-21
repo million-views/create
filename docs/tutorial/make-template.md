@@ -246,7 +246,7 @@ export default function Contact() {
       </form>
       <div>
         <p>Phone: (555) 123-4567</p>
-        <p>Email: <a href="mailto:hello@lawnmow.io">hello@lawnmow.io</a></p>
+        <p>Email: hello@lawnmow.io</p>
         <p>Address: 123 Main Street, Springfield, MA 01101</p>
       </div>
     </section>
@@ -350,14 +350,9 @@ This creates `.templatize.json` and `template.json` files. Now edit `.templatize
       },
       {
         "context": "text/jsx",
-        "selector": "p",
+        "selector": "div > p",
         "placeholder": "CONTACT_INFO",
         "allowMultiple": true
-      },
-      {
-        "context": "text/jsx#attribute",
-        "selector": "a[href^='mailto']",
-        "placeholder": "CONTACT_EMAIL"
       }
     ],
     "src/components/Testimonials.jsx": [
@@ -463,15 +458,11 @@ After conversion, check the generated `template.json`. The system auto-generated
     },
     "CONTACT_INFO_1": {
       "default": "Email: hello@business.com",
-      "description": "Email address display"
+      "description": "Email address"
     },
     "CONTACT_INFO_2": {
       "default": "Address: 123 Main St, City, State 12345",
       "description": "Physical address"
-    },
-    "CONTACT_EMAIL": {
-      "default": "mailto:hello@business.com",
-      "description": "Contact email href"
     },
     "TESTIMONIAL_QUOTE_0": {
       "default": "Outstanding service!",
@@ -570,7 +561,7 @@ The placeholder names tell you which section they belong to:
     "HERO_IMAGE_SRC_0": { ... },        // ← _0 = first hero image
     "HERO_IMAGE_SRC_1": { ... },        // ← _1 = second hero image
     "CONTACT_INFO_0": { ... },          // ← _0 = phone
-    "CONTACT_INFO_1": { ... },          // ← _1 = email display
+    "CONTACT_INFO_1": { ... },          // ← _1 = email
     "CONTACT_INFO_2": { ... },          // ← _2 = address
     "TESTIMONIAL_QUOTE_0": { ... },     // ← _0 = first testimonial
     "TESTIMONIAL_QUOTE_1": { ... },     // ← _1 = second testimonial
