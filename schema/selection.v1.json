@@ -1,125 +1,52 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://schemas.million-views.dev/create/selection.v1.json",
-  "title": "create-scaffold Template Selection Schema",
-  "description": "Schema for selection.json files containing user choices and derived metadata.",
+  "title": "Template Selection Manifest V1.0",
+  "description": "A portable recipe containing all user choices and configuration values required to scaffold a project.",
   "type": "object",
   "additionalProperties": false,
   "required": [
+    "schemaVersion",
     "templateId",
-    "version",
-    "selections"
+    "choices",
+    "placeholders"
   ],
   "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "const": "1.0.0",
+      "description": "Matches the schema version of the template used."
+    },
     "templateId": {
       "type": "string",
       "pattern": "^[a-z0-9-]+/[a-z0-9-]+$",
-      "description": "Reference to the template being used."
+      "description": "The template ID used (e.g. acme/remix-v2)."
     },
-    "version": {
+    "timestamp": {
       "type": "string",
-      "pattern": "^\\d+\\.\\d+\\.\\d+$",
-      "description": "Template version used for this selection."
+      "format": "date-time",
+      "description": "When this selection was created."
     },
-    "selections": {
+    "choices": {
       "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "deployment": {
-          "type": "string",
-          "enum": ["vercel", "netlify", "railway", "render", "fly", "heroku", "aws", "gcp", "azure", "local"],
-          "description": "Selected deployment target."
-        },
-        "features": {
-          "type": "array",
-          "items": {
-            "type": "string",
-            "pattern": "^[a-z][a-z0-9_-]*$"
-          },
-          "uniqueItems": true,
-          "description": "Selected features to enable."
-        },
-        "database": {
-          "type": "string",
-          "enum": ["postgres", "mysql", "sqlite", "mongodb", "redis", "none"],
-          "description": "Selected database solution."
-        },
-        "storage": {
-          "type": "string",
-          "enum": ["local", "s3", "cloudflare", "vercel-blob", "none"],
-          "description": "Selected storage solution."
-        },
-        "auth": {
-          "type": "array",
-          "items": {
-            "type": "string",
-            "enum": ["auth0", "clerk", "firebase", "supabase", "custom", "none"]
-          },
-          "uniqueItems": true,
-          "description": "Selected authentication providers."
-        },
-        "payments": {
-          "type": "string",
-          "enum": ["stripe", "paypal", "lemonsqueezy", "custom", "none"],
-          "description": "Selected payment processor."
-        },
-        "analytics": {
-          "type": "string",
-          "enum": ["google-analytics", "mixpanel", "posthog", "plausible", "custom", "none"],
-          "description": "Selected analytics provider."
-        }
+      "description": "The 'Stack' selections. Keys must match dimension IDs from the template.",
+      "additionalProperties": {
+        "oneOf": [
+          { "type": "string", "description": "Single selection (e.g. deployment target)" },
+          { "type": "array", "items": { "type": "string" }, "description": "Multi selection (e.g. auth providers)" }
+        ]
       }
     },
-    "derived": {
+    "placeholders": {
       "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "needAuth": {
-          "type": "boolean",
-          "description": "Whether authentication features are selected."
-        },
-        "needDb": {
-          "type": "boolean",
-          "description": "Whether a database is selected."
-        },
-        "needPayments": {
-          "type": "boolean",
-          "description": "Whether payment processing is selected."
-        },
-        "needStorage": {
-          "type": "boolean",
-          "description": "Whether cloud storage is selected."
+      "description": "The 'Configuration' values. Keys must match the template's placeholder registry.",
+      "patternProperties": {
+        "^[A-Z0-9_]+$": {
+          "type": ["string", "number", "boolean"],
+          "description": "The value provided by the user."
         }
-      }
-    },
-    "metadata": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": ["name"],
-      "properties": {
-        "name": {
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 120,
-          "description": "Project name for the scaffolded application."
-        },
-        "packageManager": {
-          "type": "string",
-          "enum": ["npm", "yarn", "pnpm", "bun"],
-          "default": "npm",
-          "description": "Package manager to use for the project."
-        },
-        "createdAt": {
-          "type": "string",
-          "format": "date-time",
-          "description": "Timestamp when this selection was created."
-        },
-        "cliVersion": {
-          "type": "string",
-          "pattern": "^\\d+\\.\\d+\\.\\d+$",
-          "description": "Version of create-scaffold CLI used."
-        }
-      }
+      },
+      "additionalProperties": false
     }
   }
 }

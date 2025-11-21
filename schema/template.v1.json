@@ -1,568 +1,134 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://schemas.million-views.dev/create/template.v1.json",
-  "title": "create-scaffold Template Authoring Schema",
-  "description": "Schema for template.json files used by template authors to define scaffolding behavior and constraints.",
+  "title": "Template Manifest V1.0 (Registry + UI)",
+  "description": "Defines a template's infrastructure stack, feature hints, and configuration variables.",
   "type": "object",
-  "additionalProperties": false,
-  "required": [
-    "schemaVersion",
-    "id",
-    "name",
-    "description"
-  ],
+  "required": ["schemaVersion", "id", "placeholders"],
   "properties": {
     "schemaVersion": {
       "type": "string",
       "const": "1.0.0",
-      "description": "Schema version for this template.json file."
+      "description": "Must be exactly 1.0.0"
     },
     "id": {
       "type": "string",
       "pattern": "^[a-z0-9-]+/[a-z0-9-]+$",
-      "description": "Unique identifier in format 'author/template-name'."
+      "description": "Unique identifier (e.g., author/template-name)"
     },
-    "name": {
-      "type": "string",
-      "minLength": 1,
-      "maxLength": 120,
-      "description": "Human-readable template name."
-    },
-    "description": {
-      "type": "string",
-      "minLength": 1,
-      "maxLength": 500,
-      "description": "Detailed description of what this template creates."
-    },
-    "tags": {
-      "type": "array",
-      "items": {
-        "type": "string",
-        "pattern": "^[a-z0-9-]+$"
-      },
-      "description": "Categorization tags for template discovery."
-    },
-    "author": {
-      "type": "string",
-      "minLength": 1,
-      "description": "Template author or organization name."
-    },
-    "license": {
-      "type": "string",
-      "minLength": 1,
-      "description": "License under which the template is distributed."
-    },
-    "handoff": {
-      "type": "array",
-      "items": {
-        "type": "string",
-        "minLength": 1,
-        "maxLength": 240
-      },
-      "description": "Post-scaffold instructions displayed to users. Each string becomes a bullet point under 'Next steps'."
-    },
+    "name": { "type": "string", "maxLength": 120 },
+    "description": { "type": "string", "maxLength": 500 },
+    
     "placeholders": {
       "type": "object",
-      "description": "Placeholder definitions with defaults and descriptions. Keys are placeholder token names (without {{}}).",
+      "description": "THE REGISTRY. Populated by 'make-template convert'. A flat dictionary of all variables.",
       "patternProperties": {
         "^[A-Z0-9_]+$": {
           "type": "object",
-          "additionalProperties": false,
-          "required": ["default", "description"],
+          "required": ["description"],
           "properties": {
-            "default": {
-              "type": "string",
-              "description": "Default value to use when no explicit input is provided."
+            "description": { "type": "string" },
+            "default": { "type": ["string", "number", "boolean"] },
+            "type": { 
+              "type": "string", 
+              "enum": ["text", "number", "boolean", "email", "password", "url"],
+              "default": "text"
             },
-            "description": {
-              "type": "string",
-              "minLength": 1,
-              "description": "Human-readable context for the placeholder."
-            },
-            "required": {
-              "type": "boolean",
-              "description": "Whether the token must be supplied before scaffolding can proceed.",
-              "default": false
-            },
-            "sensitive": {
-              "type": "boolean",
-              "description": "Marks values as secrets so tooling can mask them.",
-              "default": false
-            },
-            "type": {
-              "type": "string",
-              "enum": ["string", "number", "boolean"],
-              "description": "Preferred primitive type when collecting values.",
-              "default": "string"
-            }
-          }
-        }
-      },
-      "additionalProperties": false
-    },
-    "setup": {
-      "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "policy": {
-          "type": "string",
-          "enum": ["strict", "lenient"],
-          "default": "strict",
-          "description": "Validation policy: strict=enforce all rules, lenient=warn but allow."
-        },
-        "authoringMode": {
-          "type": "string",
-          "enum": ["wysiwyg", "composable"],
-          "default": "composable",
-          "description": "Template authoring mode: wysiwyg=visual editor, composable=code-based."
+            "required": { "type": "boolean", "default": true },
+            "secure": { "type": "boolean", "default": false }
+          },
+          "additionalProperties": false
         }
       }
     },
+
     "dimensions": {
       "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "deployment": {
+      "description": "Infrastructure choices (Stack).",
+      "patternProperties": {
+        "^[a-z_]+$": {
           "type": "object",
-          "additionalProperties": false,
+          "required": ["options"],
           "properties": {
-            "values": {
-              "type": "array",
-              "items": {
-                "type": "string",
-                "enum": ["vercel", "netlify", "railway", "render", "fly", "heroku", "aws", "gcp", "azure", "local"]
-              },
-              "minItems": 1,
-              "uniqueItems": true
+            "label": { "type": "string", "description": "Header label in the UI" },
+            "display": {
+              "type": "object",
+              "properties": {
+                "variant": { "enum": ["card-grid", "list-selection", "dropdown"], "default": "list-selection" },
+                "icon": { "type": "string" }
+              }
             },
-            "default": {
-              "type": "string",
-              "description": "Default deployment target if not specified."
-            }
-          }
-        },
-        "features": {
-          "type": "object",
-          "additionalProperties": false,
-          "properties": {
-            "values": {
+            "options": {
               "type": "array",
               "items": {
-                "type": "string",
-                "pattern": "^[a-z][a-z0-9_-]*$",
-                "minLength": 1,
-                "maxLength": 50
-              },
-              "minItems": 1,
-              "uniqueItems": true
-            },
-            "default": {
-              "type": "array",
-              "items": {
-                "type": "string"
-              },
-              "description": "Default features to enable if not specified."
-            }
-          }
-        },
-        "database": {
-          "type": "object",
-          "additionalProperties": false,
-          "properties": {
-            "values": {
-              "type": "array",
-              "items": {
-                "type": "string",
-                "enum": ["postgres", "mysql", "sqlite", "mongodb", "redis", "none"]
-              },
-              "minItems": 1,
-              "uniqueItems": true
-            },
-            "default": {
-              "type": "string",
-              "description": "Default database if not specified."
-            }
-          }
-        },
-        "storage": {
-          "type": "object",
-          "additionalProperties": false,
-          "properties": {
-            "values": {
-              "type": "array",
-              "items": {
-                "type": "string",
-                "enum": ["local", "s3", "cloudflare", "vercel-blob", "none"]
-              },
-              "minItems": 1,
-              "uniqueItems": true
-            },
-            "default": {
-              "type": "string",
-              "description": "Default storage solution if not specified."
-            }
-          }
-        },
-        "auth": {
-          "type": "object",
-          "additionalProperties": false,
-          "properties": {
-            "values": {
-              "type": "array",
-              "items": {
-                "type": "string",
-                "enum": ["auth0", "clerk", "firebase", "supabase", "custom", "none"]
-              },
-              "minItems": 1,
-              "uniqueItems": true
-            },
-            "default": {
-              "type": "array",
-              "items": {
-                "type": "string"
-              },
-              "description": "Default auth providers if not specified."
-            }
-          }
-        },
-        "payments": {
-          "type": "object",
-          "additionalProperties": false,
-          "properties": {
-            "values": {
-              "type": "array",
-              "items": {
-                "type": "string",
-                "enum": ["stripe", "paypal", "lemonsqueezy", "custom", "none"]
-              },
-              "minItems": 1,
-              "uniqueItems": true
-            },
-            "default": {
-              "type": "string",
-              "description": "Default payment processor if not specified."
-            }
-          }
-        },
-        "analytics": {
-          "type": "object",
-          "additionalProperties": false,
-          "properties": {
-            "values": {
-              "type": "array",
-              "items": {
-                "type": "string",
-                "enum": ["google-analytics", "mixpanel", "posthog", "plausible", "custom", "none"]
-              },
-              "minItems": 1,
-              "uniqueItems": true
-            },
-            "default": {
-              "type": "string",
-              "description": "Default analytics provider if not specified."
+                "type": "object",
+                "required": ["id"],
+                "properties": {
+                  "id": { "type": "string" },
+                  "label": { "type": "string" },
+                  "desc": { "type": "string" },
+                  "icon": { "type": "string" },
+                  "placeholders": { "$ref": "#/$defs/placeholderRefList" }
+                }
+              }
             }
           }
         }
       }
     },
+
+    "hints": {
+      "type": "array",
+      "description": "Feature choices (White-labelling/Content).",
+      "items": {
+        "type": "object",
+        "required": ["id", "label", "needs"],
+        "properties": {
+          "id": { "type": "string" },
+          "label": { "type": "string" },
+          "description": { "type": "string" },
+          "icon": { "type": "string" },
+          "needs": { "$ref": "#/$defs/capabilityNeeds" },
+          "placeholders": { "$ref": "#/$defs/placeholderRefList" }
+        }
+      }
+    },
+
     "gates": {
       "type": "object",
-      "description": "Platform capability constraints that cannot be violated.",
+      "description": "Compatibility rules between dimensions.",
       "patternProperties": {
-        "^[a-z][a-z0-9_-]*$": {
+        "^[a-z_]+$": {
           "type": "object",
-          "additionalProperties": false,
-          "required": ["platform", "constraint"],
-          "properties": {
-            "platform": {
-              "type": "string",
-              "description": "Platform this gate applies to."
-            },
-            "constraint": {
-              "type": "string",
-              "description": "Human-readable description of the constraint."
-            },
-            "allowed": {
+          "patternProperties": {
+            "^[a-z0-9-]+$": {
               "type": "object",
               "patternProperties": {
-                "^[a-z][a-z0-9_-]*$": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  },
-                  "description": "Allowed values for this dimension on this platform."
-                }
-              },
-              "description": "Dimension values allowed on this platform."
-            },
-            "forbidden": {
-              "type": "object",
-              "patternProperties": {
-                "^[a-z][a-z0-9_-]*$": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  },
-                  "description": "Forbidden values for this dimension on this platform."
-                }
-              },
-              "description": "Dimension values forbidden on this platform."
-            }
-          }
-        }
-      },
-      "additionalProperties": false
-    },
-    "featureSpecs": {
-      "type": "object",
-      "description": "Detailed specifications for each feature including requirements.",
-      "patternProperties": {
-        "^[a-z][a-z0-9_-]*$": {
-          "type": "object",
-          "additionalProperties": false,
-          "required": ["label", "description"],
-          "properties": {
-            "label": {
-              "type": "string",
-              "minLength": 1,
-              "maxLength": 100,
-              "description": "Human-readable feature name."
-            },
-            "description": {
-              "type": "string",
-              "minLength": 1,
-              "maxLength": 500,
-              "description": "Detailed description of what this feature provides."
-            },
-            "needs": {
-              "type": "object",
-              "patternProperties": {
-                "^[a-z][a-z0-9_-]*$": {
-                  "type": "string",
-                  "enum": ["required", "optional", "none"],
-                  "description": "Requirement level for this dimension: required=must be enabled, optional=can be enabled, none=cannot be enabled."
-                }
-              },
-              "description": "Dimension requirements for this feature to work properly."
-            },
-            "category": {
-              "type": "string",
-              "enum": ["authentication", "database", "storage", "payments", "analytics", "ui", "api", "deployment", "other"],
-              "description": "Feature category for organization."
-            }
-          }
-        }
-      },
-      "additionalProperties": false
-    },
-    "hints": {
-      "type": "object",
-      "properties": {
-        "features": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "required": ["id", "label", "description", "needs"],
-            "properties": {
-              "id": { "type": "string", "pattern": "^[a-z0-9_:-]{2,64}$" },
-              "label": { "type": "string" },
-              "description": { "type": "string" },
-              "examples": { "type": "array", "items": { "type": "string" } },
-              "needs": {
-                "type": "object",
-                "required": ["database", "auth", "payments", "storage"],
-                "properties": {
-                  "database": { "enum": ["required", "optional", "none"] },
-                  "auth": { "enum": ["required", "optional", "none"] },
-                  "payments": { "enum": ["required", "optional", "none"] },
-                  "storage": { "enum": ["required", "optional", "none"] }
-                },
-                "additionalProperties": false
+                "^[a-z_]+$": { "type": "array", "items": { "type": "string" } }
               }
-            },
-            "additionalProperties": false
-          }
-        }
-      },
-      "additionalProperties": false
-    },
-    "constants": {
-      "type": "object",
-      "description": "Fixed template attributes that don't vary by user selection.",
-      "properties": {
-        "language": {
-          "type": "string",
-          "description": "Programming language used by the template"
-        },
-        "framework": {
-          "type": "string", 
-          "description": "Primary framework or library used"
-        },
-        "styling": {
-          "type": "string",
-          "description": "CSS framework or styling approach"
-        },
-        "ci_cd": {
-          "type": "string",
-          "description": "CI/CD platform used"
-        },
-        "runtime": {
-          "type": "string",
-          "description": "Runtime environment"
-        },
-        "code_quality": {
-          "type": "string",
-          "description": "Code quality tools and standards"
-        },
-        "transactional_emails": {
-          "type": "string",
-          "description": "Email service for transactional emails"
-        }
-      },
-      "additionalProperties": true
-    },
-    "scaffold": {
-      "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "steps": {
-          "type": "array",
-          "items": {
-            "oneOf": [
-              {
-                "type": "object",
-                "additionalProperties": false,
-                "required": ["type", "source", "target"],
-                "properties": {
-                  "type": {
-                    "const": "copy"
-                  },
-                  "source": {
-                    "type": "string"
-                  },
-                  "target": {
-                    "type": "string"
-                  },
-                  "condition": {
-                    "type": "string"
-                  }
-                }
-              },
-              {
-                "type": "object",
-                "additionalProperties": false,
-                "required": ["type", "source", "target"],
-                "properties": {
-                  "type": {
-                    "const": "render"
-                  },
-                  "source": {
-                    "type": "string"
-                  },
-                  "target": {
-                    "type": "string"
-                  },
-                  "condition": {
-                    "type": "string"
-                  }
-                }
-              },
-              {
-                "type": "object",
-                "additionalProperties": false,
-                "required": ["type", "file", "operations"],
-                "properties": {
-                  "type": {
-                    "const": "json-edit"
-                  },
-                  "file": {
-                    "type": "string"
-                  },
-                  "operations": {
-                    "type": "array",
-                    "items": {
-                      "type": "object"
-                    }
-                  },
-                  "condition": {
-                    "type": "string"
-                  }
-                }
-              },
-              {
-                "type": "object",
-                "additionalProperties": false,
-                "required": ["type", "command"],
-                "properties": {
-                  "type": {
-                    "const": "shell"
-                  },
-                  "command": {
-                    "type": "string"
-                  },
-                  "cwd": {
-                    "type": "string"
-                  },
-                  "condition": {
-                    "type": "string"
-                  }
-                }
-              }
-            ]
+            }
           }
         }
       }
     }
   },
   "$defs": {
-    "placeholder": {
+    "placeholderKey": {
+      "type": "string",
+      "pattern": "^[A-Z0-9_]+$",
+      "description": "A reference to a key in the placeholders registry."
+    },
+    "placeholderRefList": {
+      "type": "array",
+      "description": "List of placeholder keys (from registry) required by this item.",
+      "items": { "$ref": "#/$defs/placeholderKey" },
+      "uniqueItems": true
+    },
+    "capabilityNeeds": {
       "type": "object",
-      "required": [
-        "name"
-      ],
-      "additionalProperties": false,
-      "properties": {
-        "name": {
-          "type": "string",
-          "pattern": "^\\{\\{[A-Z0-9_]+\\}\\}$",
-          "description": "Token formatted as {{TOKEN_NAME}} that appears in template files."
-        },
-        "description": {
-          "type": "string",
-          "minLength": 1,
-          "description": "Human-readable context for the placeholder."
-        },
-        "required": {
-          "type": "boolean",
-          "description": "Whether the token must be supplied before scaffolding can proceed."
-        },
-        "sensitive": {
-          "type": "boolean",
-          "description": "Marks values as secrets so tooling can mask them."
-        },
-        "type": {
-          "type": "string",
-          "enum": [
-            "string",
-            "number",
-            "boolean"
-          ],
-          "description": "Preferred primitive type when collecting values."
-        },
-        "default": {
-          "description": "Default value to use when no explicit input is provided.",
-          "anyOf": [
-            {
-              "type": "string"
-            },
-            {
-              "type": "number"
-            },
-            {
-              "type": "boolean"
-            }
-          ]
-        }
+      "description": "Defining what infrastructure capabilities this feature requires.",
+      "patternProperties": {
+        "^[a-z_]+$": { "enum": ["required", "optional", "none"] }
       }
     }
   }
