@@ -181,7 +181,7 @@ test('Tutorial: make-template - Marketing website with multiple placeholders', a
       <h2>Contact Us</h2>
       <div>
         <p>Phone: (555) 123-4567</p>
-        <p>Email: hello@lawnmow.io</p>
+        <p>Email: <a href="mailto:hello@lawnmow.io">hello@lawnmow.io</a></p>
         <p>Address: 123 Main Street, Springfield, MA 01101</p>
       </div>
     </section>

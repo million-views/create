@@ -246,7 +246,7 @@ export default function Contact() {
       </form>
       <div>
         <p>Phone: (555) 123-4567</p>
-        <p>Email: hello@lawnmow.io</p>
+        <p>Email: <a href="mailto:hello@lawnmow.io">hello@lawnmow.io</a></p>
         <p>Address: 123 Main Street, Springfield, MA 01101</p>
       </div>
     </section>
@@ -350,9 +350,19 @@ This creates `.templatize.json` and `template.json` files. Now edit `.templatize
       },
       {
         "context": "text/jsx",
-        "selector": "div > p",
+        "selector": "div > p:not(:has(a))",
         "placeholder": "CONTACT_INFO",
         "allowMultiple": true
+      },
+      {
+        "context": "text/jsx#attribute",
+        "selector": "a[href^='mailto']",
+        "placeholder": "CONTACT_EMAIL_HREF"
+      },
+      {
+        "context": "text/jsx",
+        "selector": "a[href^='mailto']",
+        "placeholder": "CONTACT_EMAIL_TEXT"
       }
     ],
     "src/components/Testimonials.jsx": [
@@ -373,7 +383,9 @@ This creates `.templatize.json` and `template.json` files. Now edit `.templatize
 }
 ```
 
-**Key feature demonstrated: `allowMultiple`**
+**Key features demonstrated:**
+
+**1. `allowMultiple` for repeated elements**
 
 This answers the critical question: **"What if I have multiple hero images or testimonials each needing different values?"**
 
@@ -386,6 +398,19 @@ The `allowMultiple: true` flag tells the system to number multiple matches autom
 - Third testimonial quote → `⦃TESTIMONIAL_QUOTE_2⦄`
 
 You write ONE rule, the system handles multiple instances. No tedious repetition.
+
+**2. Selector specificity for mixed content**
+
+Notice the Contact section has a paragraph with nested elements:
+```jsx
+<p>Email: <a href="mailto:hello@lawnmow.io">hello@lawnmow.io</a></p>
+```
+
+The selector `"div > p:not(:has(a))"` matches only paragraphs WITHOUT nested anchors. This prevents the parser from extracting multiple text nodes from a single paragraph. For the email link, we use separate specific selectors:
+- `"a[href^='mailto']"` with `context: "text/jsx#attribute"` → extracts the `href` attribute
+- `"a[href^='mailto']"` with `context: "text/jsx"` → extracts the link text
+
+This demonstrates how to handle mixed content structures in JSX without restricting your design choices.
 
 ### Convert to Apply Custom Rules
 
@@ -457,12 +482,16 @@ After conversion, check the generated `template.json`. The system auto-generated
       "description": "Phone number"
     },
     "CONTACT_INFO_1": {
-      "default": "Email: hello@business.com",
-      "description": "Email address"
-    },
-    "CONTACT_INFO_2": {
       "default": "Address: 123 Main St, City, State 12345",
       "description": "Physical address"
+    },
+    "CONTACT_EMAIL_HREF": {
+      "default": "mailto:hello@business.com",
+      "description": "Contact email href attribute"
+    },
+    "CONTACT_EMAIL_TEXT": {
+      "default": "hello@business.com",
+      "description": "Contact email link text"
     },
     "TESTIMONIAL_QUOTE_0": {
       "default": "Outstanding service!",
@@ -561,8 +590,9 @@ The placeholder names tell you which section they belong to:
     "HERO_IMAGE_SRC_0": { ... },        // ← _0 = first hero image
     "HERO_IMAGE_SRC_1": { ... },        // ← _1 = second hero image
     "CONTACT_INFO_0": { ... },          // ← _0 = phone
-    "CONTACT_INFO_1": { ... },          // ← _1 = email
-    "CONTACT_INFO_2": { ... },          // ← _2 = address
+    "CONTACT_INFO_1": { ... },          // ← _1 = address
+    "CONTACT_EMAIL_HREF": { ... },      // ← email href attribute
+    "CONTACT_EMAIL_TEXT": { ... },      // ← email link text
     "TESTIMONIAL_QUOTE_0": { ... },     // ← _0 = first testimonial
     "TESTIMONIAL_QUOTE_1": { ... },     // ← _1 = second testimonial
     "TESTIMONIAL_QUOTE_2": { ... }      // ← _2 = third testimonial
@@ -597,8 +627,10 @@ For detailed patterns, selectors, and advanced configuration, see:
 
 - **`allowMultiple: true`**: Write one rule, handle multiple instances automatically
 - **Auto-numbering**: System adds `_0`, `_1`, `_2` suffixes to duplicate matches
+- **Selector specificity**: Use `:not(:has(a))` to exclude paragraphs with nested elements, preventing unwanted text node extraction
+- **Mixed content handling**: Target nested elements separately (email link handled with two rules: one for href, one for text)
 - **Section organization**: Group placeholders by website section with prefixes (HERO_, CONTACT_, TESTIMONIAL_)
-- **CSS selectors**: Target elements precisely (`blockquote p`, `img[src]`, `a[href^='mailto']`)
+- **CSS selectors**: Target elements precisely (`blockquote p`, `img[src]`, `a[href^='mailto']`, `p:not(:has(a))`)
 - **Marketing website structure**: Hero section, contact forms, testimonials—all independently customizable
 - **HTML form handling**: Form actions, input placeholders, and contact information
 - **Scalability**: Configuration stays simple even with many similar elements (3+ testimonials)

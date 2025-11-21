@@ -290,13 +290,86 @@ function App() {
 function App() {
   return (
     <div>
-      <h1>{CONTENT_TITLE}</h1>
-      <p className="description">{CONTENT_DESCRIPTION}</p>
-      <button title="{BUTTON_TITLE}">Button</button>
+      <h1>⦃CONTENT_TITLE⦄</h1>
+      <p className="description">⦃CONTENT_DESCRIPTION⦄</p>
+      <button title="⦃BUTTON_TITLE⦄">Button</button>
     </div>
   );
 }
 ```
+
+#### Handling Mixed Content in JSX
+
+**Problem:** When elements contain both text and nested elements, the JSX parser extracts ALL text nodes within the matched element, which may not be what you want.
+
+**Example of the issue:**
+```jsx
+<div>
+  <p>Phone: (555) 123-4567</p>
+  <p>Email: <a href="mailto:hello@example.com">hello@example.com</a></p>
+  <p>Address: 123 Main St</p>
+</div>
+```
+
+If you use selector `"p"` with `allowMultiple: true`, it will extract:
+- "Phone: (555) 123-4567" from first `<p>`
+- "Email: " from second `<p>` (text before `<a>`)
+- "hello@example.com" from second `<p>` (text inside `<a>`)
+- "Address: 123 Main St" from third `<p>`
+
+This creates 4 placeholders instead of the expected 3.
+
+**Solution 1: Use `:not(:has())` selector to exclude mixed content**
+```json
+{
+  ".jsx": [
+    {
+      "context": "text/jsx",
+      "selector": "div > p:not(:has(a))",
+      "placeholder": "CONTACT_INFO",
+      "allowMultiple": true
+    },
+    {
+      "context": "text/jsx#attribute",
+      "selector": "a[href^='mailto']",
+      "placeholder": "CONTACT_EMAIL_HREF"
+    },
+    {
+      "context": "text/jsx",
+      "selector": "a[href^='mailto']",
+      "placeholder": "CONTACT_EMAIL_TEXT"
+    }
+  ]
+}
+```
+
+This creates clean placeholders:
+- `CONTACT_INFO_0`: "Phone: (555) 123-4567"
+- `CONTACT_INFO_1`: "Address: 123 Main St"
+- `CONTACT_EMAIL_HREF`: "mailto:hello@example.com"
+- `CONTACT_EMAIL_TEXT`: "hello@example.com"
+
+**Solution 2: Use specific selectors for each element type**
+
+Instead of broad selectors, target specific elements:
+```json
+{
+  ".jsx": [
+    {
+      "context": "text/jsx",
+      "selector": "p.phone",
+      "placeholder": "CONTACT_PHONE"
+    },
+    {
+      "context": "text/jsx",
+      "selector": "a.email",
+      "placeholder": "CONTACT_EMAIL"
+    }
+  ]
+}
+```
+
+**Key Principle:** Selector specificity is crucial when elements contain nested content. Match at the appropriate level to avoid extracting unwanted text nodes.
 
 ### HTML Patterns
 
