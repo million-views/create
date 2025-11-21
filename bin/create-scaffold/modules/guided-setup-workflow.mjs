@@ -1337,6 +1337,8 @@ export class GuidedSetupWorkflow {
   async #saveWorkflowState() {
     if (process.env.NODE_ENV === 'test') return;
     try {
+      // Ensure parent directory exists before writing state file
+      await ensureDirectory(this.resolvedProjectDirectory);
       await fs.writeFile(this.stateFile, JSON.stringify(this.workflowState, null, 2));
     } catch (error) {
       // Log but don't fail the workflow
