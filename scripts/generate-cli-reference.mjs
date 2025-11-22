@@ -10,7 +10,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { replaceBetween } from '../lib/text-utils.mjs';
+import { Text } from '../lib/utils/text.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT_DIR = path.resolve(__dirname, '..');
@@ -266,7 +266,7 @@ async function generateCliReference() {
     const startMarker = `<!-- AUTO-GENERATED: ${tool} commands -->`;
     const endMarker = `<!-- END AUTO-GENERATED: ${tool} commands -->`;
 
-    await replaceBetween(CLI_REF_PATH, startMarker, endMarker, toolContent);
+    await Text.replaceBetween(CLI_REF_PATH, startMarker, endMarker, toolContent);
   }
   console.log('✅ CLI reference updated successfully');
 }

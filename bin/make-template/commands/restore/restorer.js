@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { readJsonFile, exists, remove } from '../../../../lib/fs-utils.mjs';
+import { File } from '../../../../lib/utils/file.mjs';
 import { ContextualError, ErrorContext, ErrorSeverity, handleError } from '../../../../lib/error-handler.mjs';
 
 export class Restorer {
@@ -15,7 +15,7 @@ export class Restorer {
       const undoLogPath = path.join(this.options.projectPath, '.template-undo.json');
 
       // Check if undo log exists
-      if (!(await exists(undoLogPath))) {
+      if (!(await File.exists(undoLogPath))) {
         throw new ContextualError(
           `.template-undo.json not found in ${this.options.projectPath}`,
           {
@@ -32,7 +32,7 @@ export class Restorer {
       }
 
       // Read undo log
-      const undoLog = await readJsonFile(undoLogPath);
+      const undoLog = await File.readJsonFile(undoLogPath);
 
       if (this.options.dryRun) {
         console.log('DRY RUN MODE - No changes will be made');
@@ -50,7 +50,7 @@ export class Restorer {
 
       // Clean up undo log unless --keep-undo is specified
       if (!this.options.keepUndo) {
-        await remove(undoLogPath);
+        await File.remove(undoLogPath);
         console.log('✓ Cleanup: Removed .template-undo.json');
       }
 
@@ -98,8 +98,8 @@ export class Restorer {
         console.log(`✓ Restored ${operation.path}`);
       } else if (operation.type === 'created') {
         // Remove created files
-        if (await exists(filePath)) {
-          await remove(filePath);
+        if (await File.exists(filePath)) {
+          await File.remove(filePath);
           console.log(`✓ Removed ${operation.path}`);
         }
       } else if (operation.type === 'deleted') {

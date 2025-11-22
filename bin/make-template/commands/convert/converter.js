@@ -1,5 +1,5 @@
 import path from 'path';
-import { readJsonFile, writeJsonFile, exists } from '../../../../lib/fs-utils.mjs';
+import { File } from '../../../../lib/utils/file.mjs';
 import { ErrorContext, ErrorSeverity, handleError } from '../../../../lib/error-handler.mjs';
 import { processJSONFile } from '../../../../lib/templatize-json.mjs';
 import { processMarkdownFile } from '../../../../lib/templatize-markdown.mjs';
@@ -24,7 +24,7 @@ export class Converter {
       const templateJsonPath = path.join(projectPath, 'template.json');
       const templatizeJsonPath = path.join(projectPath, '.templatize.json');
 
-      if (!await exists(templateJsonPath)) {
+      if (!await File.exists(templateJsonPath)) {
         console.error('❌ Configuration files not found\n');
         console.error('Before converting, initialize your template configuration:');
         console.error('  npx make-template init\n');
@@ -34,7 +34,7 @@ export class Converter {
         process.exit(1);
       }
 
-      if (!await exists(templatizeJsonPath)) {
+      if (!await File.exists(templatizeJsonPath)) {
         console.error('❌ Configuration file missing: .templatize.json\n');
         console.error('Run: npx make-template init\n');
         process.exit(1);
@@ -93,17 +93,17 @@ export class Converter {
     // We only check for truly problematic indicators that suggest mistakes.
 
     // Check for .git directory (suggests uncommitted changes risk)
-    if (await exists(path.join(projectPath, '.git'))) {
+    if (await File.exists(path.join(projectPath, '.git'))) {
       indicators.push('Git repository (.git directory found)');
     }
 
     // Check for node_modules (suggests dependency bloat in template)
-    if (await exists(path.join(projectPath, 'node_modules'))) {
+    if (await File.exists(path.join(projectPath, 'node_modules'))) {
       indicators.push('Node modules installed (node_modules directory found)');
     }
 
     // Check for .env file (suggests secrets might be included)
-    if (await exists(path.join(projectPath, '.env'))) {
+    if (await File.exists(path.join(projectPath, '.env'))) {
       indicators.push('Environment file found (.env) - may contain secrets');
     }
 
@@ -120,9 +120,9 @@ export class Converter {
     let existingUndo = null;
 
     // Check for existing undo log
-    if (await exists(undoPath)) {
+    if (await File.exists(undoPath)) {
       try {
-        existingUndo = await readJsonFile(undoPath);
+        existingUndo = await File.readJsonFile(undoPath);
         console.log('⚠️  Existing undo log found, existing undo log will be updated');
       } catch (_error) {
         console.log('⚠️  Existing undo log is corrupted, creating new one');
@@ -142,7 +142,7 @@ export class Converter {
     undoLog.fileOperations.push(...this.fileOperations);
 
     // Write undo log
-    await writeJsonFile(undoPath, undoLog);
+    await File.writeJsonFile(undoPath, undoLog);
   }
 
   async detectAndReplacePlaceholders() {
@@ -178,7 +178,7 @@ export class Converter {
 
     for (const fileConfig of filesToProcess) {
       const filePath = path.join(projectPath, fileConfig.path);
-      if (await exists(filePath)) {
+      if (await File.exists(filePath)) {
         try {
           const result = await this.processFileWithProcessor(
             filePath, fileConfig.processor, fileConfig.patterns,
@@ -511,7 +511,7 @@ export class Converter {
 
     let template;
     try {
-      template = await readJsonFile(templatePath);
+      template = await File.readJsonFile(templatePath);
     } catch (error) {
       throw new Error(`Failed to read template.json: ${error.message}`);
     }
@@ -550,7 +550,7 @@ export class Converter {
     }
 
     try {
-      await writeJsonFile(templatePath, template);
+      await File.writeJsonFile(templatePath, template);
       console.log(`✓ Updated template.json with ${Object.keys(detectedPlaceholders).length} detected placeholder(s)`);
     } catch (error) {
       throw new Error(`Failed to write template.json: ${error.message}`);

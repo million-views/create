@@ -5,8 +5,8 @@ import { CacheManager } from '../../modules/cache-manager.mjs';
 import { TemplateResolver } from '../../modules/template-resolver.mjs';
 import { Logger } from '../../../../lib/logger.mjs';
 import { DryRunEngine } from '../../modules/dry-run-engine.mjs';
-import { execCommand } from '../../../../lib/command-utils.mjs';
-import { validateDirectoryExists } from '../../../../lib/fs-utils.mjs';
+import { Shell } from '../../../../lib/utils/shell.mjs';
+import { File } from '../../../../lib/utils/file.mjs';
 import { createTemplateIgnoreSet, stripIgnoredFromTree } from '../../../../lib/template-ignore.mjs';
 import { loadTemplateMetadataFromPath } from '../../../../lib/template-discovery.mjs';
 import { normalizeOptions } from '../../modules/options-processor.mjs';
@@ -103,7 +103,6 @@ export class Scaffolder {
         // Handle different template input types
         if (validated.template.startsWith('/') || validated.template.startsWith('./') || validated.template.startsWith('../') ||
           resolvedTemplate.startsWith('/') || resolvedTemplate.startsWith('./') || resolvedTemplate.startsWith('../')) {
-          console.error('DEBUG: Taking local path branch');
           // Direct template directory path
           const templateToUse = (resolvedTemplate.startsWith('/') || resolvedTemplate.startsWith('./') || resolvedTemplate.startsWith('../'))
             ? resolvedTemplate
@@ -125,7 +124,6 @@ export class Scaffolder {
           branchName = null; // Branch will be determined by TemplateResolver from URL
           _allowFallback = false; // URLs and repo/template specs should not fallback
         } else {
-          console.error('DEBUG: Taking repository shorthand branch');
           // Repository shorthand - assume it's a template name in default repo
           const repoUrlResolved = DEFAULT_REPO;
           const branchNameResolved = 'main'; // Default branch
@@ -297,13 +295,13 @@ export class Scaffolder {
         const treeCommand = process.env.CREATE_SCAFFOLD_TREE_COMMAND || 'tree';
         try {
           if (treeCommand === 'tree') {
-            await execCommand(treeCommand, ['--version'], { stdio: 'pipe' });
+            await Shell.execCommand(treeCommand, ['--version'], { stdio: 'pipe' });
           } else if (treeCommand.endsWith('.js') || treeCommand.endsWith('.mjs')) {
             // For JS files, check if file exists
             await fs.access(treeCommand, fs.constants.F_OK);
           } else {
             // For other commands, check if they exist
-            await execCommand('which', [treeCommand], { stdio: 'pipe' });
+            await Shell.execCommand('which', [treeCommand], { stdio: 'pipe' });
           }
           // Tree command available, show tree preview
           this.logger.info('');
@@ -322,7 +320,7 @@ export class Scaffolder {
             treeCmd = treeCommand;
             treeArgs = [treeCommand, templatePath];
           }
-          const treeResult = await execCommand(treeCmd, treeArgs, { stdio: 'pipe' });
+          const treeResult = await Shell.execCommand(treeCmd, treeArgs, { stdio: 'pipe' });
           const ignoreSet = createTemplateIgnoreSet();
           const filteredTreeResult = stripIgnoredFromTree(treeResult, ignoreSet);
           this.logger.info(filteredTreeResult);
@@ -344,19 +342,6 @@ export class Scaffolder {
 
       // Execute the guided workflow with all resolved parameters
       // Always use guided workflow as the default
-      console.error('DEBUG: About to call workflow for project:', validated.projectName, 'template:', templatePath);
-      console.error('DEBUG: Template path exists:', !!templatePath);
-      console.error('DEBUG: Project directory:', validated.projectName);
-      console.error('DEBUG: NODE_ENV:', process.env.NODE_ENV);
-      console.error('DEBUG: About to create GuidedSetupWorkflow with:', {
-        projectDirectory: validated.projectName,
-        templatePath,
-        templateName,
-        options: !!options,
-        placeholders: !!placeholders,
-        metadata: !!metadata
-      });
-
       const workflow = new GuidedSetupWorkflow({
         cacheManager: this.cacheManager,
         logger: this.logger,
@@ -448,7 +433,7 @@ export class Scaffolder {
     // Handle local repositories directly without caching
     if (repoUrl.startsWith('/') || repoUrl.startsWith('./') || repoUrl.startsWith('../') || repoUrl.startsWith('~')) {
       const absolutePath = path.resolve(repoUrl);
-      await validateDirectoryExists(absolutePath, 'Local repository path');
+      await File.validateDirectoryExists(absolutePath, 'Local repository path');
       return absolutePath;
     }
 

@@ -2,7 +2,7 @@
 
 import fs from 'fs';
 import path from 'path';
-import { validateDirectoryExists } from '../../../lib/fs-utils.mjs';
+import { File } from '../../../lib/utils/file.mjs';
 import {
   shouldIgnoreTemplateEntry, createTemplateIgnoreSet
 } from '../../../lib/template-ignore.mjs';
@@ -72,7 +72,7 @@ export class DryRunEngine {
    * Preview scaffolding operations from a local template path
    */
   async previewScaffoldingFromPath(templatePath, projectDir, metadata = null) {
-    await validateDirectoryExists(templatePath, 'Template directory');
+    await File.validateDirectoryExists(templatePath, 'Template directory');
 
     if (this.logger) {
       await this.logger.logOperation('dry_run_preview', {

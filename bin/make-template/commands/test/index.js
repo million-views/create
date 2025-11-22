@@ -2,7 +2,7 @@ import { Command } from '../../../../lib/cli/command.js';
 import { testHelp } from './help.js';
 import { spawn } from 'child_process';
 import path from 'path';
-import { exists, remove } from '../../../../lib/fs-utils.mjs';
+import { File } from '../../../../lib/utils/file.mjs';
 import { ContextualError, ErrorContext, ErrorSeverity, handleError } from '../../../../lib/error-handler.mjs';
 
 export class TestCommand extends Command {
@@ -44,7 +44,7 @@ export class TestCommand extends Command {
       const templatePath = path.resolve(parsed.templatePath);
 
       // Validate template exists
-      if (!(await exists(templatePath))) {
+      if (!(await File.exists(templatePath))) {
         throw new ContextualError(
           `Template path does not exist: ${templatePath}`,
           {
@@ -61,7 +61,7 @@ export class TestCommand extends Command {
 
       // Validate template.json exists
       const templateJsonPath = path.join(templatePath, 'template.json');
-      if (!(await exists(templateJsonPath))) {
+      if (!(await File.exists(templateJsonPath))) {
         throw new ContextualError(
           `template.json not found in: ${templatePath}`,
           {
@@ -114,7 +114,7 @@ export class TestCommand extends Command {
       console.log('🔍 Validating test project structure...');
 
       // Basic validation - check if project was created
-      if (!(await exists(testProjectPath))) {
+      if (!(await File.exists(testProjectPath))) {
         throw new ContextualError(
           'Test project was not created',
           {
@@ -130,8 +130,8 @@ export class TestCommand extends Command {
       }
 
       // Check for basic project files
-      const hasPackageJson = await exists(path.join(testProjectPath, 'package.json'));
-      const hasReadme = await exists(path.join(testProjectPath, 'README.md'));
+      const hasPackageJson = await File.exists(path.join(testProjectPath, 'package.json'));
+      const hasReadme = await File.exists(path.join(testProjectPath, 'README.md'));
 
       if (options.verbose) {
         console.log(`Package.json found: ${hasPackageJson}`);
@@ -146,9 +146,9 @@ export class TestCommand extends Command {
 
     } finally {
       // Cleanup unless --keep-temp is specified
-      if (!options.keepTemp && (await exists(testProjectPath))) {
+      if (!options.keepTemp && (await File.exists(testProjectPath))) {
         console.log('🧹 Cleaning up test project...');
-        await remove(testProjectPath);
+        await File.remove(testProjectPath);
         if (options.verbose) {
           console.log(`Removed: ${testProjectPath}`);
         }

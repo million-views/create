@@ -5,24 +5,7 @@ import assert from 'node:assert/strict';
 import { tmpdir } from 'os';
 import { join } from 'path';
 import { mkdtemp, rm, writeFile, mkdir, access } from 'fs/promises';
-import {
-  ensureDirectory,
-  validateDirectoryExists,
-  safeCleanup,
-  readJsonFile,
-  writeJsonFile,
-  writeFileAtomic,
-  exists,
-  readFile,
-  remove,
-  copyFile,
-  stat,
-  readdir,
-  validateRequiredFiles,
-  validateNodeJsProject,
-  validateTemplateRestorable,
-  validateFileDoesNotExist
-} from '../../lib/fs-utils.mjs';
+import { File } from '../../lib/utils/file.mjs';
 
 test.test.describe('File System Utils', () => {
   let tempDir;
@@ -37,10 +20,10 @@ test.test.describe('File System Utils', () => {
     await rm(tempDir, { recursive: true, force: true });
   });
 
-  test.test.describe('ensureDirectory()', () => {
+  test.test.describe('File.ensureDirectory()', () => {
     test('should create directory that does not exist', async () => {
       const testDir = join(tempDir, 'new-dir');
-      await ensureDirectory(testDir);
+      await File.ensureDirectory(testDir);
 
       // Verify directory exists
       await access(testDir);
@@ -49,12 +32,12 @@ test.test.describe('File System Utils', () => {
     test('should not throw when directory already exists', async () => {
       const testDir = join(tempDir, 'existing-dir');
       await mkdir(testDir);
-      await ensureDirectory(testDir); // Should not throw
+      await File.ensureDirectory(testDir); // Should not throw
     });
 
     test('should create nested directories', async () => {
       const testDir = join(tempDir, 'nested', 'deep', 'path');
-      await ensureDirectory(testDir);
+      await File.ensureDirectory(testDir);
 
       await access(testDir);
     });
@@ -66,47 +49,47 @@ test.test.describe('File System Utils', () => {
     });
   });
 
-  test.describe('validateDirectoryExists()', () => {
+  test.describe('File.validateDirectoryExists()', () => {
     test('should not throw for existing directory', async () => {
       const testDir = join(tempDir, 'validate-test');
       await mkdir(testDir);
 
-      await assert.doesNotReject(validateDirectoryExists(testDir, 'test directory'));
+      await assert.doesNotReject(File.validateDirectoryExists(testDir, 'test directory'));
     });
 
     test('should throw for non-existent directory', async () => {
       const nonExistent = join(tempDir, 'does-not-exist');
 
       await assert.rejects(
-        validateDirectoryExists(nonExistent, 'test directory'),
+        File.validateDirectoryExists(nonExistent, 'test directory'),
         /test directory not found/
       );
     });
 
     test('should throw for file that is not a directory', async () => {
       const testFile = join(tempDir, 'not-a-dir.txt');
-      await writeFile(testFile, 'content');
+      await File.writeFile(testFile, 'content');
 
       await assert.rejects(
-        validateDirectoryExists(testFile, 'test directory'),
+        File.validateDirectoryExists(testFile, 'test directory'),
         /test directory exists but is not a directory/
       );
     });
 
     test('should throw when dirPath is undefined', async () => {
       await assert.rejects(
-        validateDirectoryExists(undefined, 'test directory'),
+        File.validateDirectoryExists(undefined, 'test directory'),
         /dirPath is undefined/
       );
     });
   });
 
-  test.describe('safeCleanup()', () => {
+  test.describe('File.safeCleanup()', () => {
     test('should remove existing file without throwing', async () => {
       const testFile = join(tempDir, 'cleanup-file.txt');
-      await writeFile(testFile, 'content');
+      await File.writeFile(testFile, 'content');
 
-      await safeCleanup(testFile);
+      await File.safeCleanup(testFile);
 
       // File should be gone
       await assert.rejects(access(testFile));
@@ -116,7 +99,7 @@ test.test.describe('File System Utils', () => {
       const testDir = join(tempDir, 'cleanup-dir');
       await mkdir(testDir);
 
-      await safeCleanup(testDir);
+      await File.safeCleanup(testDir);
 
       // Directory should be gone
       await assert.rejects(access(testDir));
@@ -124,54 +107,54 @@ test.test.describe('File System Utils', () => {
 
     test('should not throw when path does not exist', async () => {
       const nonExistent = join(tempDir, 'does-not-exist');
-      await safeCleanup(nonExistent); // Should not throw
+      await File.safeCleanup(nonExistent); // Should not throw
     });
   });
 
-  test.describe('readJsonFile()', () => {
+  test.describe('File.readJsonFile()', () => {
     test('should read and parse valid JSON file', async () => {
       const testFile = join(tempDir, 'test.json');
       const testData = { key: 'value', number: 42 };
-      await writeFile(testFile, JSON.stringify(testData));
+      await File.writeFile(testFile, JSON.stringify(testData));
 
-      const result = await readJsonFile(testFile);
+      const result = await File.readJsonFile(testFile);
       assert.deepStrictEqual(result, testData);
     });
 
     test('should return default value for non-existent file', async () => {
       const nonExistent = join(tempDir, 'does-not-exist.json');
-      const result = await readJsonFile(nonExistent, 'default-value');
+      const result = await File.readJsonFile(nonExistent, 'default-value');
 
       assert.strictEqual(result, 'default-value');
     });
 
     test('should return null default for non-existent file', async () => {
       const nonExistent = join(tempDir, 'does-not-exist.json');
-      const result = await readJsonFile(nonExistent);
+      const result = await File.readJsonFile(nonExistent);
 
       assert.strictEqual(result, null);
     });
 
     test('should throw for invalid JSON', async () => {
       const testFile = join(tempDir, 'invalid.json');
-      await writeFile(testFile, 'invalid json content');
+      await File.writeFile(testFile, 'invalid json content');
 
       await assert.rejects(
-        readJsonFile(testFile),
+        File.readJsonFile(testFile),
         /Failed to read JSON file/
       );
     });
   });
 
-  test.describe('writeJsonFile()', () => {
+  test.describe('File.writeJsonFile()', () => {
     test('should write JSON data to file', async () => {
       const testFile = join(tempDir, 'write-test.json');
       const testData = { key: 'value', array: [1, 2, 3] };
 
-      await writeJsonFile(testFile, testData);
+      await File.writeJsonFile(testFile, testData);
 
       // Verify file was written and contains correct JSON
-      const content = await readFile(testFile);
+      const content = await File.readFile(testFile);
       const parsed = JSON.parse(content);
       assert.deepStrictEqual(parsed, testData);
     });
@@ -182,14 +165,14 @@ test.test.describe('File System Utils', () => {
     });
   });
 
-  test.describe('writeFileAtomic()', () => {
+  test.describe('File.writeFileAtomic()', () => {
     test('should write file atomically', async () => {
       const testFile = join(tempDir, 'atomic-test.txt');
       const content = 'atomic write content';
 
-      await writeFileAtomic(testFile, content);
+      await File.writeFileAtomic(testFile, content);
 
-      const readContent = await readFile(testFile);
+      const readContent = await File.readFile(testFile);
       assert.strictEqual(readContent, content);
     });
 
@@ -197,19 +180,19 @@ test.test.describe('File System Utils', () => {
       const testFile = join(tempDir, 'nested', 'dir', 'atomic-test.txt');
       const content = 'nested atomic write';
 
-      await writeFileAtomic(testFile, content);
+      await File.writeFileAtomic(testFile, content);
 
-      const readContent = await readFile(testFile);
+      const readContent = await File.readFile(testFile);
       assert.strictEqual(readContent, content);
     });
   });
 
-  test.describe('exists()', () => {
+  test.describe('File.exists()', () => {
     test('should return true for existing file', async () => {
       const testFile = join(tempDir, 'exists-test.txt');
-      await writeFile(testFile, 'content');
+      await File.writeFile(testFile, 'content');
 
-      const result = await exists(testFile);
+      const result = await File.exists(testFile);
       assert.strictEqual(result, true);
     });
 
@@ -217,24 +200,24 @@ test.test.describe('File System Utils', () => {
       const testDir = join(tempDir, 'exists-dir');
       await mkdir(testDir);
 
-      const result = await exists(testDir);
+      const result = await File.exists(testDir);
       assert.strictEqual(result, true);
     });
 
     test('should return false for non-existent path', async () => {
       const nonExistent = join(tempDir, 'does-not-exist');
-      const result = await exists(nonExistent);
+      const result = await File.exists(nonExistent);
       assert.strictEqual(result, false);
     });
   });
 
-  test.describe('readFile()', () => {
+  test.describe('File.readFile()', () => {
     test('should read file content', async () => {
       const testFile = join(tempDir, 'read-test.txt');
       const content = 'file content to read';
-      await writeFile(testFile, content);
+      await File.writeFile(testFile, content);
 
-      const result = await readFile(testFile);
+      const result = await File.readFile(testFile);
       assert.strictEqual(result, content);
     });
 
@@ -242,7 +225,7 @@ test.test.describe('File System Utils', () => {
       const nonExistent = join(tempDir, 'does-not-exist.txt');
 
       await assert.rejects(
-        readFile(nonExistent),
+        File.readFile(nonExistent),
         /File not found/
       );
     });
@@ -252,20 +235,20 @@ test.test.describe('File System Utils', () => {
       await mkdir(testDir);
 
       await assert.rejects(
-        readFile(testDir),
+        File.readFile(testDir),
         /is a directory, not a file/
       );
     });
   });
 
-  test.describe('remove()', () => {
+  test.describe('File.remove()', () => {
     test('should remove existing file', async () => {
       const testFile = join(tempDir, 'remove-test.txt');
-      await writeFile(testFile, 'content');
+      await File.writeFile(testFile, 'content');
 
-      await remove(testFile);
+      await File.remove(testFile);
 
-      const stillExists = await exists(testFile);
+      const stillExists = await File.exists(testFile);
       assert.strictEqual(stillExists, false);
     });
 
@@ -273,30 +256,30 @@ test.test.describe('File System Utils', () => {
       const testDir = join(tempDir, 'remove-dir');
       const nestedFile = join(testDir, 'nested.txt');
       await mkdir(testDir);
-      await writeFile(nestedFile, 'content');
+      await File.writeFile(nestedFile, 'content');
 
-      await remove(testDir);
+      await File.remove(testDir);
 
-      const stillExists = await exists(testDir);
+      const stillExists = await File.exists(testDir);
       assert.strictEqual(stillExists, false);
     });
 
     test('should not throw for non-existent file when force is true', async () => {
       const nonExistent = join(tempDir, 'does-not-exist');
-      await remove(nonExistent); // Should not throw
+      await File.remove(nonExistent); // Should not throw
     });
   });
 
-  test.describe('copyFile()', () => {
+  test.describe('File.copyFile()', () => {
     test('should copy file to new location', async () => {
       const srcFile = join(tempDir, 'copy-src.txt');
       const destFile = join(tempDir, 'copy-dest.txt');
       const content = 'content to copy';
 
-      await writeFile(srcFile, content);
-      await copyFile(srcFile, destFile);
+      await File.writeFile(srcFile, content);
+      await File.copyFile(srcFile, destFile);
 
-      const copiedContent = await readFile(destFile);
+      const copiedContent = await File.readFile(destFile);
       assert.strictEqual(copiedContent, content);
     });
 
@@ -305,10 +288,10 @@ test.test.describe('File System Utils', () => {
       const destFile = join(tempDir, 'new-dir', 'copy-dest2.txt');
       const content = 'content to copy with dir creation';
 
-      await writeFile(srcFile, content);
-      await copyFile(srcFile, destFile);
+      await File.writeFile(srcFile, content);
+      await File.copyFile(srcFile, destFile);
 
-      const copiedContent = await readFile(destFile);
+      const copiedContent = await File.readFile(destFile);
       assert.strictEqual(copiedContent, content);
     });
 
@@ -317,18 +300,18 @@ test.test.describe('File System Utils', () => {
       const destFile = join(tempDir, 'dest.txt');
 
       await assert.rejects(
-        copyFile(nonExistent, destFile),
+        File.copyFile(nonExistent, destFile),
         /Source file not found/
       );
     });
   });
 
-  test.describe('stat()', () => {
+  test.describe('File.stat()', () => {
     test('should return stats for existing file', async () => {
       const testFile = join(tempDir, 'stat-test.txt');
       await writeFile(testFile, 'content');
 
-      const stats = await stat(testFile);
+      const stats = await File.stat(testFile);
       assert(stats.isFile());
       assert(!stats.isDirectory());
     });
@@ -337,7 +320,7 @@ test.test.describe('File System Utils', () => {
       const testDir = join(tempDir, 'stat-dir');
       await mkdir(testDir);
 
-      const stats = await stat(testDir);
+      const stats = await File.stat(testDir);
       assert(stats.isDirectory());
       assert(!stats.isFile());
     });
@@ -346,13 +329,13 @@ test.test.describe('File System Utils', () => {
       const nonExistent = join(tempDir, 'does-not-exist');
 
       await assert.rejects(
-        stat(nonExistent),
+        File.stat(nonExistent),
         /File or directory not found/
       );
     });
   });
 
-  test.describe('readdir()', () => {
+  test.describe('File.readdir()', () => {
     test('should list directory contents', async () => {
       const testDir = join(tempDir, 'list-dir');
       await mkdir(testDir);
@@ -360,7 +343,7 @@ test.test.describe('File System Utils', () => {
       await writeFile(join(testDir, 'file2.txt'), 'content2');
       await mkdir(join(testDir, 'subdir'));
 
-      const contents = await readdir(testDir);
+      const contents = await File.readdir(testDir);
       assert(contents.includes('file1.txt'));
       assert(contents.includes('file2.txt'));
       assert(contents.includes('subdir'));
@@ -370,7 +353,7 @@ test.test.describe('File System Utils', () => {
       const nonExistent = join(tempDir, 'does-not-exist-dir');
 
       await assert.rejects(
-        readdir(nonExistent),
+        File.readdir(nonExistent),
         /Directory not found/
       );
     });
@@ -380,42 +363,42 @@ test.test.describe('File System Utils', () => {
       await writeFile(testFile, 'content');
 
       await assert.rejects(
-        readdir(testFile),
+        File.readdir(testFile),
         /Not a directory/
       );
     });
   });
 
-  test.describe('validateRequiredFiles()', () => {
+  test.describe('File.validateRequiredFiles()', () => {
     test('should return empty array when all files exist', async () => {
       const file1 = join(tempDir, 'required1.txt');
       const file2 = join(tempDir, 'required2.txt');
-      await writeFile(file1, 'content1');
-      await writeFile(file2, 'content2');
+      await File.writeFile(file1, 'content1');
+      await File.writeFile(file2, 'content2');
 
-      const errors = await validateRequiredFiles([file1, file2], 'test operation');
+      const errors = await File.validateRequiredFiles([file1, file2], 'test operation');
       assert.deepStrictEqual(errors, []);
     });
 
     test('should return errors for missing files', async () => {
       const existingFile = join(tempDir, 'exists.txt');
       const missingFile = join(tempDir, 'missing.txt');
-      await writeFile(existingFile, 'content');
+      await File.writeFile(existingFile, 'content');
 
-      const errors = await validateRequiredFiles([existingFile, missingFile], 'test operation');
+      const errors = await File.validateRequiredFiles([existingFile, missingFile], 'test operation');
       assert.strictEqual(errors.length, 1);
       assert(errors[0].includes('missing.txt not found'));
       assert(errors[0].includes('test operation'));
     });
   });
 
-  test.describe('validateNodeJsProject()', () => {
+  test.describe('File.validateNodeJsProject()', () => {
     test('should return empty array for valid Node.js project', async () => {
       const projectDir = join(tempDir, 'node-project');
       await mkdir(projectDir);
       await writeFile(join(projectDir, 'package.json'), '{"name": "test"}');
 
-      const errors = await validateNodeJsProject(projectDir);
+      const errors = await File.validateNodeJsProject(projectDir);
       assert.deepStrictEqual(errors, []);
     });
 
@@ -423,19 +406,19 @@ test.test.describe('File System Utils', () => {
       const nonProjectDir = join(tempDir, 'not-node-project');
       await mkdir(nonProjectDir);
 
-      const errors = await validateNodeJsProject(nonProjectDir);
+      const errors = await File.validateNodeJsProject(nonProjectDir);
       assert.strictEqual(errors.length, 1);
       assert(errors[0].includes('package.json not found'));
     });
   });
 
-  test.describe('validateTemplateRestorable()', () => {
+  test.describe('File.validateTemplateRestorable()', () => {
     test('should return empty array when undo file exists', async () => {
       const templateDir = join(tempDir, 'restorable-template');
       await mkdir(templateDir);
       await writeFile(join(templateDir, '.template-undo.json'), '{"undo": "data"}');
 
-      const errors = await validateTemplateRestorable(templateDir);
+      const errors = await File.validateTemplateRestorable(templateDir);
       assert.deepStrictEqual(errors, []);
     });
 
@@ -443,17 +426,17 @@ test.test.describe('File System Utils', () => {
       const templateDir = join(tempDir, 'non-restorable-template');
       await mkdir(templateDir);
 
-      const errors = await validateTemplateRestorable(templateDir);
+      const errors = await File.validateTemplateRestorable(templateDir);
       assert.strictEqual(errors.length, 1);
       assert(errors[0].includes('.template-undo.json not found'));
     });
   });
 
-  test.describe('validateFileDoesNotExist()', () => {
+  test.describe('File.validateFileDoesNotExist()', () => {
     test('should return empty array when file does not exist', async () => {
       const nonExistentFile = join(tempDir, 'does-not-exist.txt');
 
-      const errors = await validateFileDoesNotExist(nonExistentFile, 'creation');
+      const errors = await File.validateFileDoesNotExist(nonExistentFile, 'creation');
       assert.deepStrictEqual(errors, []);
     });
 
@@ -461,7 +444,7 @@ test.test.describe('File System Utils', () => {
       const existingFile = join(tempDir, 'exists.txt');
       await writeFile(existingFile, 'content');
 
-      const errors = await validateFileDoesNotExist(existingFile, 'creation');
+      const errors = await File.validateFileDoesNotExist(existingFile, 'creation');
       assert.strictEqual(errors.length, 1);
       assert(errors[0].includes('already exists'));
       assert(errors[0].includes('creation'));

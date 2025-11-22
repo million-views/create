@@ -2,10 +2,8 @@
 
 import fs from 'fs/promises';
 import path from 'path';
-import {
-  ensureDirectory, safeCleanup, readJsonFile, writeJsonFile
-} from '../../../lib/fs-utils.mjs';
-import { execCommand } from '../../../lib/command-utils.mjs';
+import { File } from '../../../lib/utils/file.mjs';
+import { Shell } from '../../../lib/utils/shell.mjs';
 import { resolveCacheDirectory } from '../../../lib/path-resolver.mjs';
 
 /**
@@ -137,7 +135,7 @@ export class CacheManager {
    * Ensure cache directory exists with proper permissions
    */
   async ensureCacheDirectory() {
-    await ensureDirectory(this.cacheDir, 0o755, 'cache directory');
+    await File.ensureDirectory(this.cacheDir, 0o755, 'cache directory');
   }
 
   /**
@@ -147,7 +145,7 @@ export class CacheManager {
   async ensureRepoDirectory(repoHash) {
     await this.ensureCacheDirectory();
     const repoDir = path.join(this.cacheDir, repoHash);
-    await ensureDirectory(repoDir, 0o755, 'repository directory');
+    await File.ensureDirectory(repoDir, 0o755, 'repository directory');
   }
 
   /**
@@ -168,7 +166,7 @@ export class CacheManager {
 
     try {
       // Try a shallow ls-remote to test access without cloning
-      await execCommand('git', ['ls-remote', '--heads', normalizedUrl], {
+      await Shell.execCommand('git', ['ls-remote', '--heads', normalizedUrl], {
         timeout: 10000,
         stdio: ['pipe', 'pipe', 'pipe']
       });
@@ -212,7 +210,7 @@ export class CacheManager {
     const existingMetadata = await this.getCacheMetadata(repoHash);
 
     // Ensure previous state is removed before cloning
-    await safeCleanup(repoDir, { recursive: true, force: true });
+    await File.safeCleanup(repoDir, { recursive: true, force: true });
 
     const args = ['clone', '--depth', '1'];
     if (targetBranch) {
@@ -223,9 +221,9 @@ export class CacheManager {
     args.push(normalizedUrl, repoDir);
 
     try {
-      await execCommand('git', args, { timeout: cloneTimeout, stdio: ['inherit', 'pipe', 'pipe'] });
+      await Shell.execCommand('git', args, { timeout: cloneTimeout, stdio: ['inherit', 'pipe', 'pipe'] });
     } catch (error) {
-      await safeCleanup(repoDir, { recursive: true, force: true });
+      await File.safeCleanup(repoDir, { recursive: true, force: true });
       throw error;
     }
 
@@ -246,7 +244,7 @@ export class CacheManager {
 
       await this.updateCacheMetadata(repoHash, metadata);
     } catch (error) {
-      await safeCleanup(repoDir, { recursive: true, force: true });
+      await File.safeCleanup(repoDir, { recursive: true, force: true });
       throw error;
     }
 
@@ -264,7 +262,7 @@ export class CacheManager {
     const { repoHash, repoDir } = this.resolveRepoDirectory(repoUrl, branchName);
     const existingMetadata = await this.getCacheMetadata(repoHash);
 
-    await safeCleanup(repoDir, { recursive: true, force: true });
+    await File.safeCleanup(repoDir, { recursive: true, force: true });
 
     const populateOptions = {
       ...options
@@ -285,7 +283,7 @@ export class CacheManager {
    */
   async getCacheMetadata(repoHash) {
     const metadataPath = path.join(this.cacheDir, repoHash, 'metadata.json');
-    return await readJsonFile(metadataPath, null, 'cache metadata');
+    return await File.readJsonFile(metadataPath, null, 'cache metadata');
   }
 
   /**
@@ -296,7 +294,7 @@ export class CacheManager {
   async updateCacheMetadata(repoHash, metadata) {
     await this.ensureRepoDirectory(repoHash);
     const metadataPath = path.join(this.cacheDir, repoHash, 'metadata.json');
-    await writeJsonFile(metadataPath, metadata, 'cache metadata');
+    await File.writeJsonFile(metadataPath, metadata, 'cache metadata');
   }
 
   /**
@@ -412,7 +410,7 @@ export class CacheManager {
    */
   async handleCacheCorruption(repoHash) {
     const repoDir = path.join(this.cacheDir, repoHash);
-    await safeCleanup(repoDir);
+    await File.safeCleanup(repoDir);
   }
 
   /**

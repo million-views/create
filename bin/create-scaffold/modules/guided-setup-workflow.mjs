@@ -4,7 +4,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { sanitizeErrorMessage, validateAllInputs } from '../../../lib/security.mjs';
-import { ensureDirectory, safeCleanup } from '../../../lib/fs-utils.mjs';
+import { File } from '../../../lib/utils/file.mjs';
 import { createTemplateIgnoreSet, shouldIgnoreTemplateEntry } from '../../../lib/template-ignore.mjs';
 import { createSetupTools, loadSetupScript } from './setup-runtime.mjs';
 import { ContextualError, ErrorContext, ErrorSeverity } from '../../../lib/error-handler.mjs';
@@ -606,7 +606,7 @@ export class GuidedSetupWorkflow {
     await this.prompt.write('═'.repeat(50) + '\n');
 
     await this.prompt.write(`📁 Project: ${path.basename(this.projectDirectory)}\n`);
-    await this.prompt.write(`📦 Template: ${this.templateName}\n`);
+    await this.prompt.write(`📦 template: ${this.templateName}\n`);
     if (this.repoUrl) {
       await this.prompt.write(`🔗 Source: ${this.repoUrl}${this.branchName ? ` (${this.branchName})` : ''}\n`);
     }
@@ -840,7 +840,7 @@ export class GuidedSetupWorkflow {
     }
 
     if (!this.templatePath) {
-      throw new Error('Template path not resolved');
+      throw new Error('template path not resolved');
     }
 
     // Check if we're resuming a previous workflow
@@ -930,7 +930,7 @@ export class GuidedSetupWorkflow {
     if (process.env.NODE_ENV === 'test') {
       console.error('DEBUG: executeDirectorySetup called');
     }
-    await ensureDirectory(this.resolvedProjectDirectory);
+    await File.ensureDirectory(this.resolvedProjectDirectory);
 
     // Create basic project structure if needed
     const packageJsonPath = path.join(this.resolvedProjectDirectory, 'package.json');
@@ -971,7 +971,7 @@ export class GuidedSetupWorkflow {
     }
 
     // Create project directory
-    await ensureDirectory(this.resolvedProjectDirectory, 0o755, 'project directory');
+    await File.ensureDirectory(this.resolvedProjectDirectory, 0o755, 'project directory');
 
     // Copy all files from template to project directory
     const ignoreSet = createTemplateIgnoreSet();
@@ -979,7 +979,7 @@ export class GuidedSetupWorkflow {
 
     // Remove .git directory if it exists in the copied template
     const gitDir = path.join(this.resolvedProjectDirectory, '.git');
-    await safeCleanup(gitDir);
+    await File.safeCleanup(gitDir);
 
     this.logger.debug('Template copy completed');
     return { success: true, message: 'Template files copied successfully' };
@@ -991,7 +991,7 @@ export class GuidedSetupWorkflow {
   async #copyRecursive(src, dest, ignoreSet) {
     const entries = await fs.readdir(src, { withFileTypes: true });
 
-    await ensureDirectory(dest, 0o755, 'destination directory');
+    await File.ensureDirectory(dest, 0o755, 'destination directory');
 
     for (const entry of entries) {
       const srcPath = path.join(src, entry.name);
@@ -1367,7 +1367,7 @@ export class GuidedSetupWorkflow {
     try {
       // Remove the project directory if it was created by us
       // This is a simplified version - in practice, we'd be more careful
-      await safeCleanup(this.resolvedProjectDirectory);
+      await File.safeCleanup(this.resolvedProjectDirectory);
     } catch (error) {
       await this.prompt.write(`Warning: Could not clean up project directory: ${error.message}\n`);
     }

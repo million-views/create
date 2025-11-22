@@ -3,10 +3,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert';
 
-import {
-  handleValidationError,
-  validateMultipleFields
-} from '../../lib/validation-utils.mjs';
+import { Validator } from '../../lib/utils/validator.mjs';
 import { ValidationError } from '../../lib/security.mjs';
 
 test('Validation Utils', async (t) => {
@@ -14,7 +11,7 @@ test('Validation Utils', async (t) => {
     const validationFn = (value) => value.toUpperCase();
     const errors = [];
 
-    const result = handleValidationError(validationFn, 'test', errors, 'fallback');
+    const result = Validator.handleValidationError(validationFn, 'test', errors, 'fallback');
 
     assert.equal(result, 'TEST', 'Should return transformed value');
     assert.equal(errors.length, 0, 'Should not add errors on success');
@@ -26,7 +23,7 @@ test('Validation Utils', async (t) => {
     };
     const errors = [];
 
-    const result = handleValidationError(validationFn, 'test', errors, 'fallback');
+    const result = Validator.handleValidationError(validationFn, 'test', errors, 'fallback');
 
     assert.equal(result, null, 'Should return null on error');
     assert.equal(errors.length, 1, 'Should add one error');
@@ -39,7 +36,7 @@ test('Validation Utils', async (t) => {
     };
     const errors = [];
 
-    const result = handleValidationError(validationFn, 'test', errors, 'fallback message');
+    const result = Validator.handleValidationError(validationFn, 'test', errors, 'fallback message');
 
     assert.equal(result, null, 'Should return null on error');
     assert.equal(errors.length, 1, 'Should add one error');
@@ -62,7 +59,7 @@ test('Validation Utils', async (t) => {
       }
     ];
 
-    const result = validateMultipleFields(validations);
+    const result = Validator.validateMultipleFields(validations);
 
     assert.equal(result.errors.length, 0, 'Should have no errors');
     assert.equal(result.validated.name, 'TEST', 'Should validate name');
@@ -93,7 +90,7 @@ test('Validation Utils', async (t) => {
       }
     ];
 
-    const result = validateMultipleFields(validations);
+    const result = Validator.validateMultipleFields(validations);
 
     assert.equal(result.errors.length, 1, 'Should have one error');
     assert.equal(result.errors[0], 'Invalid age format', 'Should capture validation error');
@@ -122,7 +119,7 @@ test('Validation Utils', async (t) => {
       }
     ];
 
-    const result = validateMultipleFields(validations);
+    const result = Validator.validateMultipleFields(validations);
 
     assert.equal(result.errors.length, 2, 'Should have two errors');
     assert.equal(result.errors[0], 'Name fallback', 'Should use fallback for generic error');
@@ -131,7 +128,7 @@ test('Validation Utils', async (t) => {
   });
 
   await t.test('validateMultipleFields handles empty validations array', () => {
-    const result = validateMultipleFields([]);
+    const result = Validator.validateMultipleFields([]);
 
     assert.equal(result.errors.length, 0, 'Should have no errors');
     assert.deepEqual(result.validated, {}, 'Should have empty validated object');
