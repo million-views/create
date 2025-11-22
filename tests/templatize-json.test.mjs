@@ -226,7 +226,7 @@ test('JSON Processor - Basic functionality', async (t) => {
   await t.test('should handle malformed JSON gracefully', async () => {
     const malformedJSON = `{
   "name": "Test",
-  "incomplete": 
+  "incomplete":
 }`;
 
     const replacements = await processJSONFile('test.json', malformedJSON, testPatterns);
