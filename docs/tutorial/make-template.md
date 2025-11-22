@@ -832,16 +832,10 @@ You should see:
 
 ### What You Learned
 
-<<<<<<< HEAD
-- **Platform-specific configuration**: Cloudflare Workers use `wrangler.jsonc` (or `wrangler.toml`) for deployment configuration
-- **Wrangler v3.91.0+ formats**: Both `wrangler.jsonc` (recommended) and `wrangler.toml` are supported
-- **Infrastructure auto-detection**: Cloudflare Workers patterns (account_id, D1 bindings, database configs) are built into the system—you don't need manual configuration for common infrastructure
-=======
 - **Infrastructure auto-detection**: Cloudflare Workers, D1 databases, and wrangler configurations are automatically detected
 - **Platform patterns built-in**: Common infrastructure patterns (account_id, database bindings) don't require manual configuration
 - **Wrangler configuration**: Both `wrangler.jsonc` (recommended) and `wrangler.toml` supported as of Wrangler v3.91.0+
 - **Focus on your app**: Template authors only configure application-specific business logic, not infrastructure boilerplate
->>>>>>> 42e80f9 (feat: add Cloudflare Workers infrastructure patterns to auto-detection)
 - **Customer-facing features**: Scheduling forms, payment interfaces, and service pricing can be templatized
 - **Business data modeling**: Database schemas for customer appointments, payments, and service catalogs can be templatized
 - **Cross-file consistency**: The same placeholder can appear in package.json, wrangler.jsonc, React components, and SQL schemas
