@@ -408,8 +408,8 @@ test('JSON Processor - JSONPath validation', async (t) => {
   });
 
   await t.test('should skip content within // @template-skip regions', async () => {
-    // Note: JSON doesn't support comments, so skip regions are not applicable
-    // This test verifies that the processor handles malformed JSON gracefully
+    // JSONC (JSON with comments) is now supported via comment stripping
+    // This test verifies skip regions work correctly in JSONC files
     const skipRegionJSON = `{
   // @template-skip
   "name": "Don't templatize this",
@@ -436,7 +436,8 @@ test('JSON Processor - JSONPath validation', async (t) => {
 
     const replacements = await processJSONFile('test.json', skipRegionJSON, patterns);
 
-    // JSON with comments is malformed, so no replacements should be found
-    assert.strictEqual(replacements.length, 0, 'Should handle malformed JSON gracefully');
+    // Should find 1 replacement: "title" (name is in skip region)
+    assert.strictEqual(replacements.length, 1, 'Should respect skip regions in JSONC');
+    assert.strictEqual(replacements[0].placeholder, 'APP_TITLE', 'Should find title outside skip region');
   });
 });
