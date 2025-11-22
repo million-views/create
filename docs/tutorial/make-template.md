@@ -788,22 +788,20 @@ INSERT INTO service_types (name, description, base_price) VALUES
 
 ### Convert with Auto-Detection
 
-Cloudflare Workers patterns are built into the system. Let's initialize and convert:
-
 ```bash
 npx make-template init
 npx make-template convert . --yes
 ```
 
-**What gets auto-detected:**
+The auto-detection recognizes Cloudflare Workers patterns and automatically replaces infrastructure configurations with placeholders:
 
 - `⦃PROJECT_NAME⦄` from package.json and wrangler.jsonc
-- `⦃CLOUDFLARE_ACCOUNT_ID⦄` from wrangler.jsonc account_id field
-- `⦃D1_DATABASE_BINDING⦄` from wrangler.jsonc d1_databases binding
-- `⦃D1_DATABASE_NAME⦄` from wrangler.jsonc d1_databases database_name
-- `⦃D1_DATABASE_ID⦄` from wrangler.jsonc d1_databases database_id
+- `⦃CLOUDFLARE_ACCOUNT_ID⦄` from wrangler.jsonc
+- `⦃D1_DATABASE_BINDING⦄` from wrangler.jsonc
+- `⦃D1_DATABASE_NAME⦄` from wrangler.jsonc
+- `⦃D1_DATABASE_ID⦄` from wrangler.jsonc
 
-These patterns are built into the system, so you don't need to manually configure `.templatize.json` for Cloudflare Workers infrastructure.
+These patterns are built into the system, so you don't need to configure them manually.
 
 ### Verify Cloudflare Infrastructure Placeholders
 
@@ -830,13 +828,20 @@ You should see:
 }
 ```
 
-**Note**: This tutorial focuses on infrastructure configuration. For a complete production template, you would also add rules for React Router components (TSX files) and SQL schemas following similar patterns.
+**Note**: This tutorial demonstrates infrastructure auto-detection. For application-specific features (React Router components, SQL schemas, business logic), you would add custom rules in `.templatize.json`.
 
 ### What You Learned
 
+<<<<<<< HEAD
 - **Platform-specific configuration**: Cloudflare Workers use `wrangler.jsonc` (or `wrangler.toml`) for deployment configuration
 - **Wrangler v3.91.0+ formats**: Both `wrangler.jsonc` (recommended) and `wrangler.toml` are supported
 - **Infrastructure auto-detection**: Cloudflare Workers patterns (account_id, D1 bindings, database configs) are built into the system—you don't need manual configuration for common infrastructure
+=======
+- **Infrastructure auto-detection**: Cloudflare Workers, D1 databases, and wrangler configurations are automatically detected
+- **Platform patterns built-in**: Common infrastructure patterns (account_id, database bindings) don't require manual configuration
+- **Wrangler configuration**: Both `wrangler.jsonc` (recommended) and `wrangler.toml` supported as of Wrangler v3.91.0+
+- **Focus on your app**: Template authors only configure application-specific business logic, not infrastructure boilerplate
+>>>>>>> 42e80f9 (feat: add Cloudflare Workers infrastructure patterns to auto-detection)
 - **Customer-facing features**: Scheduling forms, payment interfaces, and service pricing can be templatized
 - **Business data modeling**: Database schemas for customer appointments, payments, and service catalogs can be templatized
 - **Cross-file consistency**: The same placeholder can appear in package.json, wrangler.jsonc, React components, and SQL schemas
