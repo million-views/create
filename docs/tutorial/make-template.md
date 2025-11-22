@@ -678,7 +678,7 @@ npm install
 
 ### Add Database Configuration
 
-Edit `wrangler.jsonc` (or `wrangler.toml` if using TOML format) to configure D1 for customer appointments and payments:
+Edit `wrangler.jsonc` to configure D1 for customer appointments and payments:
 
 ```jsonc
 {
@@ -834,7 +834,7 @@ You should see:
 
 - **Infrastructure auto-detection**: Cloudflare Workers, D1 databases, and wrangler configurations are automatically detected
 - **Platform patterns built-in**: Common infrastructure patterns (account_id, database bindings) don't require manual configuration
-- **Wrangler configuration**: Both `wrangler.jsonc` (recommended) and `wrangler.toml` supported as of Wrangler v3.91.0+
+- **Wrangler configuration**: Uses `wrangler.jsonc` format (recommended as of Wrangler v3.91.0+)
 - **Focus on your app**: Template authors only configure application-specific business logic, not infrastructure boilerplate
 - **Customer-facing features**: Scheduling forms, payment interfaces, and service pricing can be templatized
 - **Business data modeling**: Database schemas for customer appointments, payments, and service catalogs can be templatized
