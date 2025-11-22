@@ -335,7 +335,7 @@ export class Converter {
     const ext = path.extname(filePath).toLowerCase();
     const fileName = path.basename(filePath).toLowerCase();
 
-    if (fileName === 'package.json' || ext === '.json') return 'json';
+    if (fileName === 'package.json' || ext === '.json' || ext === '.jsonc') return 'json';
     if (ext === '.md') return 'markdown';
     if (ext === '.html' || ext === '.htm') return 'html';
     if (ext === '.jsx' || ext === '.tsx' || ext === '.js' || ext === '.ts') return 'jsx';
