@@ -669,24 +669,30 @@ Now build our second production template: the actual digital transformation prod
 ### Create LawnMow App Project
 
 ```bash
-mkdir lawnmow-app && cd lawnmow-app
-npm create react-router@latest . -- --template cloudflare --yes
+npm create cloudflare@latest lawnmow-app -- --framework=react-router
+cd lawnmow-app
 npm install
 ```
 
+**Note**: React Router v7 uses Cloudflare's C3 CLI for project creation. The scaffolding automatically sets up React Router with Cloudflare Workers integration.
+
 ### Add Database Configuration
 
-Edit `wrangler.toml` to configure D1 for customer appointments and payments:
+Edit `wrangler.jsonc` (or `wrangler.toml` if using TOML format) to configure D1 for customer appointments and payments:
 
-```toml
-name = "lawnmow-app"
-compatibility_date = "2024-01-01"
-account_id = "abc123def456"
-
-[[d1_databases]]
-binding = "DB"
-database_name = "lawnmow_customer_db"
-database_id = "xyz789abc123"
+```jsonc
+{
+  "name": "lawnmow-app",
+  "compatibility_date": "2024-01-01",
+  "account_id": "abc123def456",
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "lawnmow_customer_db",
+      "database_id": "xyz789abc123"
+    }
+  ]
+}
 ```
 
 ### Add Customer Portal Components
