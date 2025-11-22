@@ -797,6 +797,7 @@ export class GuidedSetupWorkflow {
 
     await this.prompt.write('\n🎉 Project setup completed successfully!\n');
     await this.prompt.write('═'.repeat(50) + '\n');
+    await this.prompt.write('Created with @m5nv/create-scaffold\n\n');
 
     await this.prompt.write(`📁 Project location: ${this.projectDirectory}\n`);
     await this.prompt.write(`📦 Template used: ${this.templateName}\n`);
@@ -1337,8 +1338,6 @@ export class GuidedSetupWorkflow {
   async #saveWorkflowState() {
     if (process.env.NODE_ENV === 'test') return;
     try {
-      // Ensure parent directory exists before writing state file
-      await File.ensureDirectory(this.resolvedProjectDirectory);
       await fs.writeFile(this.stateFile, JSON.stringify(this.workflowState, null, 2));
     } catch (error) {
       // Log but don't fail the workflow
