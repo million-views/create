@@ -793,34 +793,60 @@ npx make-template init
 npx make-template convert . --yes
 ```
 
-The auto-detection will find Cloudflare-specific and customer-facing placeholders:
+**Note on auto-detection**: Auto-detection works best for simple patterns like `package.json` fields and basic JSON/TOML configurations. For this tutorial, auto-detection will find some placeholders from `package.json` and `wrangler.jsonc`, but **Cloudflare-specific configurations and React Router v7 patterns may require manual configuration** in `.templatize.json`.
 
-- `⦃PROJECT_NAME⦄` from package.json and wrangler.toml
-- `⦃CLOUDFLARE_ACCOUNT_ID⦄` from wrangler.toml
-- `⦃D1_DATABASE_BINDING⦄` from wrangler.toml
-- `⦃D1_DATABASE_NAME⦄` from wrangler.toml (lawnmow_customer_db)
-- `⦃D1_DATABASE_ID⦄` from wrangler.toml
-- Form fields, payment methods, and service pricing in React components
-- SQL table/column names in schema.sql (appointments, payments, service_types)
+For a production template, you would typically:
+1. Run `init` to generate base configuration
+2. Manually edit `.templatize.json` to add rules for Cloudflare Workers bindings, D1 database configurations, and React Router routes
+3. Run `convert` to apply your custom rules
+
+Since this tutorial focuses on the workflow, we'll demonstrate what auto-detection *can* find from standard configurations:
+
+- `⦃PROJECT_NAME⦄` from package.json and wrangler.jsonc
+- Basic JSON fields from wrangler.jsonc (if using simple patterns)
+- Form field placeholders from React components (if matching default patterns)
 
 ### Verify Cloudflare and App Placeholders
 
 Check infrastructure configuration:
 
 ```bash
-cat wrangler.toml
+cat wrangler.jsonc
 ```
 
-You should see:
+You should see (example with auto-detection):
 
-```toml
-name = "⦃PROJECT_NAME⦄"
-account_id = "⦃CLOUDFLARE_ACCOUNT_ID⦄"
+```jsonc
+{
+  "name": "⦃PROJECT_NAME⦄",
+  "compatibility_date": "2024-01-01",
+  "account_id": "abc123def456",
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "lawnmow_customer_db",
+      "database_id": "xyz789abc123"
+    }
+  ]
+}
+```
 
-[[d1_databases]]
-binding = "⦃D1_DATABASE_BINDING⦄"
-database_name = "⦃D1_DATABASE_NAME⦄"
-database_id = "⦃D1_DATABASE_ID⦄"
+**Note**: If auto-detection didn't replace these values, you would need to manually configure `.templatize.json` with JSON path rules like:
+```json
+{
+  "wrangler.jsonc": [
+    {
+      "context": "application/json",
+      "path": "$.account_id",
+      "placeholder": "CLOUDFLARE_ACCOUNT_ID"
+    },
+    {
+      "context": "application/json",
+      "path": "$.d1_databases[0].database_id",
+      "placeholder": "D1_DATABASE_ID"
+    }
+  ]
+}
 ```
 
 Check customer-facing UI:
@@ -839,12 +865,14 @@ You should see form fields and service options templatized:
 
 ### What You Learned
 
-- **Platform-specific patterns**: Cloudflare Workers, D1 databases, and edge runtime configurations are automatically detected
+- **Platform-specific configuration**: Cloudflare Workers use `wrangler.jsonc` (or `wrangler.toml`) for deployment configuration
+- **Wrangler v3.91.0+ formats**: Both `wrangler.jsonc` (recommended) and `wrangler.toml` are supported
+- **Auto-detection limitations**: Auto-detection works for simple patterns but complex infrastructure configurations often require manual `.templatize.json` rules
 - **Customer-facing features**: Scheduling forms, payment interfaces, and service pricing can be templatized
 - **Business data modeling**: Database schemas for customer appointments, payments, and service catalogs can be templatized
-- **Cross-file consistency**: The same placeholder appears in package.json, wrangler.toml, React components, and SQL schemas
+- **Cross-file consistency**: The same placeholder can appear in package.json, wrangler.jsonc, React components, and SQL schemas
 - **Production deployment**: Real-world digital transformation templates include infrastructure configuration, UI, and database schemas
-- **Multi-context extraction**: JSON (package.json), TOML (wrangler.toml), TSX (React Router), and SQL (schema.sql) all processed by different extractors
+- **Multi-context extraction**: JSON (package.json, wrangler.jsonc), TSX (React Router), and SQL (schema.sql) all processed by different extractors
 - **Full-stack templates**: Customer portal (frontend) + database (backend) + infrastructure (Cloudflare) in one template
 
 ### Clean Up
