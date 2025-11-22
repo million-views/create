@@ -786,7 +786,9 @@ INSERT INTO service_types (name, description, base_price) VALUES
   ('Premium Care', 'Complete lawn care package', 120.00);
 ```
 
-### Convert with Auto-Detection
+### Create Manual Configuration for Cloudflare Workers
+
+Cloudflare Workers configurations require explicit rules in `.templatize.json`. Let's create the configuration:
 
 ```bash
 npx make-template init
@@ -852,16 +854,27 @@ You should see (example with auto-detection):
 Check customer-facing UI:
 
 ```bash
-cat app/routes/schedule.tsx
+cat wrangler.jsonc
 ```
 
-You should see form fields and service options templatized:
+You should see:
 
-```tsx
-<input type="text" name="customer_name" placeholder="⦃SCHEDULE_NAME_PLACEHOLDER⦄" required />
-<option value="basic">⦃SERVICE_BASIC_NAME⦄ - $⦃SERVICE_BASIC_PRICE⦄</option>
-<option value="full">⦃SERVICE_FULL_NAME⦄ - $⦃SERVICE_FULL_PRICE⦄</option>
+```jsonc
+{
+  "name": "⦃PROJECT_NAME⦄",
+  "compatibility_date": "2024-01-01",
+  "account_id": "⦃CLOUDFLARE_ACCOUNT_ID⦄",
+  "d1_databases": [
+    {
+      "binding": "⦃D1_DATABASE_BINDING⦄",
+      "database_name": "⦃D1_DATABASE_NAME⦄",
+      "database_id": "⦃D1_DATABASE_ID⦄"
+    }
+  ]
+}
 ```
+
+**Note**: This tutorial focuses on infrastructure configuration. For a complete production template, you would also add rules for React Router components (TSX files) and SQL schemas following similar patterns.
 
 ### What You Learned
 
