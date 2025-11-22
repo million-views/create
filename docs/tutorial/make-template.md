@@ -786,72 +786,28 @@ INSERT INTO service_types (name, description, base_price) VALUES
   ('Premium Care', 'Complete lawn care package', 120.00);
 ```
 
-### Create Manual Configuration for Cloudflare Workers
+### Convert with Auto-Detection
 
-Cloudflare Workers configurations require explicit rules in `.templatize.json`. Let's create the configuration:
+Cloudflare Workers patterns are built into the system. Let's initialize and convert:
 
 ```bash
 npx make-template init
 npx make-template convert . --yes
 ```
 
-**Note on auto-detection**: Auto-detection works best for simple patterns like `package.json` fields and basic JSON/TOML configurations. For this tutorial, auto-detection will find some placeholders from `package.json` and `wrangler.jsonc`, but **Cloudflare-specific configurations and React Router v7 patterns may require manual configuration** in `.templatize.json`.
-
-For a production template, you would typically:
-1. Run `init` to generate base configuration
-2. Manually edit `.templatize.json` to add rules for Cloudflare Workers bindings, D1 database configurations, and React Router routes
-3. Run `convert` to apply your custom rules
-
-Since this tutorial focuses on the workflow, we'll demonstrate what auto-detection *can* find from standard configurations:
+**What gets auto-detected:**
 
 - `⦃PROJECT_NAME⦄` from package.json and wrangler.jsonc
-- Basic JSON fields from wrangler.jsonc (if using simple patterns)
-- Form field placeholders from React components (if matching default patterns)
+- `⦃CLOUDFLARE_ACCOUNT_ID⦄` from wrangler.jsonc account_id field
+- `⦃D1_DATABASE_BINDING⦄` from wrangler.jsonc d1_databases binding
+- `⦃D1_DATABASE_NAME⦄` from wrangler.jsonc d1_databases database_name
+- `⦃D1_DATABASE_ID⦄` from wrangler.jsonc d1_databases database_id
 
-### Verify Cloudflare and App Placeholders
+These patterns are built into the system, so you don't need to manually configure `.templatize.json` for Cloudflare Workers infrastructure.
 
-Check infrastructure configuration:
+### Verify Cloudflare Infrastructure Placeholders
 
-```bash
-cat wrangler.jsonc
-```
-
-You should see (example with auto-detection):
-
-```jsonc
-{
-  "name": "⦃PROJECT_NAME⦄",
-  "compatibility_date": "2024-01-01",
-  "account_id": "abc123def456",
-  "d1_databases": [
-    {
-      "binding": "DB",
-      "database_name": "lawnmow_customer_db",
-      "database_id": "xyz789abc123"
-    }
-  ]
-}
-```
-
-**Note**: If auto-detection didn't replace these values, you would need to manually configure `.templatize.json` with JSON path rules like:
-```json
-{
-  "wrangler.jsonc": [
-    {
-      "context": "application/json",
-      "path": "$.account_id",
-      "placeholder": "CLOUDFLARE_ACCOUNT_ID"
-    },
-    {
-      "context": "application/json",
-      "path": "$.d1_databases[0].database_id",
-      "placeholder": "D1_DATABASE_ID"
-    }
-  ]
-}
-```
-
-Check customer-facing UI:
+Check that Cloudflare Workers configuration was templatized:
 
 ```bash
 cat wrangler.jsonc
@@ -880,7 +836,7 @@ You should see:
 
 - **Platform-specific configuration**: Cloudflare Workers use `wrangler.jsonc` (or `wrangler.toml`) for deployment configuration
 - **Wrangler v3.91.0+ formats**: Both `wrangler.jsonc` (recommended) and `wrangler.toml` are supported
-- **Auto-detection limitations**: Auto-detection works for simple patterns but complex infrastructure configurations often require manual `.templatize.json` rules
+- **Infrastructure auto-detection**: Cloudflare Workers patterns (account_id, D1 bindings, database configs) are built into the system—you don't need manual configuration for common infrastructure
 - **Customer-facing features**: Scheduling forms, payment interfaces, and service pricing can be templatized
 - **Business data modeling**: Database schemas for customer appointments, payments, and service catalogs can be templatized
 - **Cross-file consistency**: The same placeholder can appear in package.json, wrangler.jsonc, React components, and SQL schemas
