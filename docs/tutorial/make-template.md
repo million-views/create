@@ -586,27 +586,47 @@ The placeholder names tell you which section they belong to:
 ```json
 {
   "placeholders": {
-    "BUSINESS_NAME": { ... },           // ← Hero section brand
+    "PROJECT_NAME": { ... },            // ← From package.json (first file)
+    "BUSINESS_NAME": { ... },           // ← Hero section (second file)
+    "BUSINESS_TAGLINE": { ... },        // ← Hero tagline
     "HERO_IMAGE_SRC_0": { ... },        // ← _0 = first hero image
     "HERO_IMAGE_SRC_1": { ... },        // ← _1 = second hero image
+    "HERO_IMAGE_ALT_0": { ... },        // ← Alt text for first image
+    "HERO_IMAGE_ALT_1": { ... },        // ← Alt text for second image
+    "CONTACT_FORM_ACTION": { ... },     // ← Contact form (third file)
     "CONTACT_INFO_0": { ... },          // ← _0 = phone
     "CONTACT_INFO_1": { ... },          // ← _1 = address
     "CONTACT_EMAIL_HREF": { ... },      // ← email href attribute
     "CONTACT_EMAIL_TEXT": { ... },      // ← email link text
-    "TESTIMONIAL_QUOTE_0": { ... },     // ← _0 = first testimonial
+    "TESTIMONIAL_QUOTE_0": { ... },     // ← Testimonials (fourth file)
+    "TESTIMONIAL_AUTHOR_0": { ... },    // ← _0 = first author
     "TESTIMONIAL_QUOTE_1": { ... },     // ← _1 = second testimonial
-    "TESTIMONIAL_QUOTE_2": { ... }      // ← _2 = third testimonial
+    "TESTIMONIAL_AUTHOR_1": { ... },    // ← _1 = second author
+    "TESTIMONIAL_QUOTE_2": { ... },     // ← _2 = third testimonial
+    "TESTIMONIAL_AUTHOR_2": { ... }     // ← _2 = third author
   }
 }
 ```
 
-The naming convention creates a clear hierarchy:
+**Predictable File-Order Processing**:
+
+Placeholders appear in `template.json` in the same order files are declared in `.templatize.json`:
+1. `package.json` placeholders appear first
+2. `src/components/Hero.jsx` placeholders appear second
+3. `src/components/Contact.jsx` placeholders appear third
+4. `src/components/Testimonials.jsx` placeholders appear last
+
+Within each file, placeholders follow document order (top-to-bottom as they appear in the source code).
+
+This creates natural, predictable organization without requiring explicit configuration. Technical writers can document: "This organization mirrors marketing website structure: hero section, contact section, testimonials section" and the placeholder order in `template.json` matches that description automatically.
+
+**Naming Conventions**:
 
 - **Section prefix**: `HERO_`, `CONTACT_`, `TESTIMONIAL_` isolates website sections
 - **Entity type**: `IMAGE_SRC`, `QUOTE`, `AUTHOR` describes what it is
-- **Auto-numbering**: `_0`, `_1`, `_2` handles multiple instances
+- **Auto-numbering**: `_0`, `_1`, `_2` handles multiple instances from `allowMultiple`
 
-This organization mirrors marketing website structure: hero section, contact section, testimonials section. Users immediately understand: "This template has multiple testimonials, and I can customize each section independently."
+Users immediately understand: "This template has multiple testimonials, and I can customize each section independently."
 
 ### Understanding Manual Configuration
 

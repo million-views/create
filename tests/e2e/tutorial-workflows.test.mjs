@@ -316,6 +316,37 @@ test('Tutorial: make-template - Marketing website with multiple placeholders', a
   assert(quote1Pos < author1Pos && author1Pos < quote2Pos, 'QUOTE_1 and AUTHOR_1 should be paired in second blockquote');
   assert(quote2Pos < author2Pos, 'QUOTE_2 and AUTHOR_2 should be paired in third blockquote');
 
+  // Verify file-order processing: placeholders in template.json should appear
+  // in the same order as files are declared in .templatize.json
+  const templateJson = JSON.parse(await readFile(join(projectDir, 'template.json'), 'utf8'));
+  const placeholderKeys = Object.keys(templateJson.placeholders);
+
+  // Expected order based on .templatize.json file declaration order:
+  // 1. package.json rules
+  // 2. src/components/Hero.jsx rules
+  // 3. src/components/Testimonials.jsx rules
+  const packageJsonIndex = placeholderKeys.indexOf('PACKAGE_NAME');
+  const heroStartIndex = placeholderKeys.indexOf('BUSINESS_NAME');
+  const testimonialStartIndex = placeholderKeys.indexOf('TESTIMONIAL_QUOTE_0');
+
+  assert(packageJsonIndex !== -1, 'Should have PACKAGE_NAME placeholder');
+  assert(heroStartIndex !== -1, 'Should have BUSINESS_NAME placeholder');
+  assert(testimonialStartIndex !== -1, 'Should have TESTIMONIAL_QUOTE_0 placeholder');
+
+  // Verify ordering: package.json < Hero.jsx < Testimonials.jsx
+  assert(packageJsonIndex < heroStartIndex,
+    'package.json placeholders should appear before Hero.jsx placeholders');
+  assert(heroStartIndex < testimonialStartIndex,
+    'Hero.jsx placeholders should appear before Testimonials.jsx placeholders');
+
+  // Verify Hero placeholders stay together (no testimonials interspersed)
+  const heroImageSrc0 = placeholderKeys.indexOf('HERO_IMAGE_SRC_0');
+  const heroImageAlt1 = placeholderKeys.indexOf('HERO_IMAGE_ALT_1');
+  assert(heroImageSrc0 > heroStartIndex && heroImageSrc0 < testimonialStartIndex,
+    'All Hero placeholders should appear before Testimonials');
+  assert(heroImageAlt1 > heroStartIndex && heroImageAlt1 < testimonialStartIndex,
+    'All Hero placeholders should appear before Testimonials');
+
   // Verify isolation
   await verifyIsolation(testEnv);
 }, { timeout: LONG_TIMEOUT });

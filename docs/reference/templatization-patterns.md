@@ -52,6 +52,56 @@ All patterns share common properties:
 - **`placeholder`** (required): The placeholder name to use for replacement
 - **`allowMultiple`** (optional): Whether this pattern can match multiple occurrences (default: `false`)
 
+## File Processing Order
+
+**Critical Insight**: Placeholders in `template.json` appear in the same order as files are declared in `.templatize.json`.
+
+The converter processes files sequentially in declaration order:
+1. First file pattern → all its placeholders added to `template.json`
+2. Second file pattern → all its placeholders added next
+3. Third file pattern → all its placeholders added next
+4. And so on...
+
+Within each file, placeholders follow document order (top-to-bottom as they appear in source code).
+
+**Example:**
+
+```json
+// .templatize.json
+{
+  "rules": {
+    "package.json": [...],              // Processed first
+    "src/components/Hero.jsx": [...],   // Processed second
+    "src/components/Contact.jsx": [...],// Processed third
+    "src/components/Footer.jsx": [...]  // Processed fourth
+  }
+}
+```
+
+**Resulting `template.json` order:**
+```json
+{
+  "placeholders": {
+    "PACKAGE_NAME": { ... },           // ← From package.json
+    "PROJECT_DESCRIPTION": { ... },    // ← From package.json
+    "HERO_TITLE": { ... },             // ← From Hero.jsx
+    "HERO_SUBTITLE": { ... },          // ← From Hero.jsx
+    "CONTACT_EMAIL": { ... },          // ← From Contact.jsx
+    "CONTACT_PHONE": { ... },          // ← From Contact.jsx
+    "FOOTER_COPYRIGHT": { ... }        // ← From Footer.jsx
+  }
+}
+```
+
+**Why This Matters:**
+
+- **Predictable Organization**: Technical writers can document expected placeholder order knowing it will match file order
+- **Logical Grouping**: Related placeholders (from same component/file) stay together
+- **No Configuration Needed**: Order emerges naturally from `.templatize.json` structure
+- **Documentation Accuracy**: "This template organizes placeholders by website section: hero, contact, footer" statements remain accurate
+
+**Best Practice**: Organize files in `.templatize.json` in the same logical order you want placeholders to appear in `template.json`.
+
 ## Pattern Types
 
 ### JSON Value Patterns

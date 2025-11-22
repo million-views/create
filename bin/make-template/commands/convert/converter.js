@@ -170,8 +170,10 @@ export class Converter {
       throw error;
     }
 
-    // Find all files that match configuration rules
-    const filesToProcess = await this.discoverFilesToProcess(projectPath, config);
+    // Process files in declaration order from .templatize.json
+    // This ensures placeholders appear in template.json in the same order
+    // as files are declared in the configuration
+    const filesToProcess = await this.discoverFilesToProcessInOrder(projectPath, config);
     console.log(`📁 Discovered ${filesToProcess.length} file(s) to process`);
 
     for (const fileConfig of filesToProcess) {
@@ -190,6 +192,45 @@ export class Converter {
     }
 
     return detectedPlaceholders;
+  }
+
+  /**
+   * Discover files to process in declaration order from .templatize.json
+   * This ensures placeholders appear in template.json in the same order
+   * as files are declared in the configuration, creating predictable ordering
+   */
+  async discoverFilesToProcessInOrder(projectPath, config) {
+    const filesToProcess = [];
+    const processedFiles = new Set();
+
+    // Process file patterns in declaration order from config.rules
+    const filePatterns = Object.keys(config.rules);
+
+    for (const pattern of filePatterns) {
+      // Find all matching files for this pattern
+      const matchingFiles = await this.scanProjectForMatchingFiles(projectPath, [pattern]);
+
+      // Process each matching file
+      for (const filePath of matchingFiles) {
+        if (processedFiles.has(filePath)) continue;
+
+        const patterns = config.rules[pattern];
+        if (patterns && patterns.length > 0) {
+          const processorType = this.getProcessorTypeForFile(filePath);
+          if (processorType) {
+            filesToProcess.push({
+              path: filePath,
+              processor: this.getProcessorForType(processorType),
+              processorType,
+              patterns
+            });
+            processedFiles.add(filePath);
+          }
+        }
+      }
+    }
+
+    return filesToProcess;
   }
 
   async discoverFilesToProcess(projectPath, config) {
@@ -337,7 +378,7 @@ export class Converter {
       }
 
       // Pre-count placeholders in forward order (document order) to assign correct numbering
-      // This ensures first occurrence gets _0, second gets _1, etc.
+      // AND build placeholder definitions in forward order for predictable template.json
       const placeholderCounts = {};
       const forwardMatches = matches.slice().sort((a, b) => a.startIndex - b.startIndex);
 
@@ -345,17 +386,42 @@ export class Converter {
         if (!match || typeof match !== 'object' || !match.placeholder) continue;
 
         const basePlaceholderName = match.placeholder;
+
+        // Validate placeholder format
+        if (!/^[A-Z][A-Z0-9_]*$/.test(basePlaceholderName)) {
+          console.warn(`Warning: Invalid placeholder name '${basePlaceholderName}', must be uppercase letters, numbers, and underscores, starting with a letter`);
+          continue;
+        }
+
         const matchingPattern = patterns.find(p => p.placeholder === basePlaceholderName);
         const isAllowMultiple = matchingPattern && matchingPattern.allowMultiple === true;
 
+        let placeholderName;
         if (isAllowMultiple) {
           if (!placeholderCounts[basePlaceholderName]) {
             placeholderCounts[basePlaceholderName] = 0;
           }
           // Assign counter to this specific match instance
-          match._assignedIndex = placeholderCounts[basePlaceholderName];
+          const index = placeholderCounts[basePlaceholderName];
+          match._assignedIndex = index;
+          placeholderName = `${basePlaceholderName}_${index}`;
           placeholderCounts[basePlaceholderName]++;
+        } else {
+          // Skip if we already have this placeholder (non-allowMultiple)
+          if (placeholders[basePlaceholderName]) {
+            continue;
+          }
+          placeholderName = basePlaceholderName;
         }
+
+        // Store placeholder name for replacement pass
+        match._placeholderName = placeholderName;
+
+        // Create placeholder definition in forward order
+        placeholders[placeholderName] = {
+          default: match.originalText || '',
+          description: `${placeholderName.toLowerCase().replace(/_/g, ' ')}`
+        };
       }
 
       // Process matches in reverse order to avoid position shifts during replacement
@@ -364,17 +430,12 @@ export class Converter {
       );
 
       for (const match of sortedMatches) {
-        // Validate match structure
-        if (!match || typeof match !== 'object') {
-          console.warn(`Warning: Invalid match object, skipping`);
+        // Skip if this match was filtered out during forward pass
+        if (!match._placeholderName) {
           continue;
         }
 
-        if (!match.placeholder || typeof match.placeholder !== 'string') {
-          console.warn(`Warning: Match missing valid placeholder, skipping`);
-          continue;
-        }
-
+        // Validate match structure (basic validation - detailed validation done in forward pass)
         if (typeof match.startIndex !== 'number' || typeof match.endIndex !== 'number') {
           console.warn(`Warning: Match missing valid position indices, skipping`);
           continue;
@@ -385,36 +446,8 @@ export class Converter {
           continue;
         }
 
-        const basePlaceholderName = match.placeholder;
-
-        // Validate placeholder format
-        if (!/^[A-Z][A-Z0-9_]*$/.test(basePlaceholderName)) {
-          console.warn(`Warning: Invalid placeholder name '${basePlaceholderName}', must be uppercase letters, numbers, and underscores, starting with a letter`);
-          continue;
-        }
-
-        // Check if this is an allowMultiple pattern
-        const matchingPattern = patterns.find(p => p.placeholder === basePlaceholderName);
-        const isAllowMultiple = matchingPattern && matchingPattern.allowMultiple === true;
-
-        let placeholderName;
-        if (isAllowMultiple) {
-          // Use pre-assigned index from forward-order counting
-          const index = match._assignedIndex ?? 0;
-          placeholderName = `${basePlaceholderName}_${index}`;
-        } else {
-          // Skip if we already have this placeholder (non-allowMultiple)
-          if (placeholders[basePlaceholderName]) {
-            continue;
-          }
-          placeholderName = basePlaceholderName;
-        }
-
-        // Create placeholder definition
-        placeholders[placeholderName] = {
-          default: match.originalText || '',
-          description: `${placeholderName.toLowerCase().replace(/_/g, ' ')}`
-        };
+        // Use the placeholder name determined in forward pass
+        const placeholderName = match._placeholderName;
 
         // Replace the content in the file
         const placeholderValue = this.formatPlaceholder(placeholderName, placeholderFormat);
