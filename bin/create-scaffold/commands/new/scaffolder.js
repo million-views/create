@@ -189,9 +189,6 @@ export class Scaffolder {
 
       // Resolve placeholders if we have explicit values OR template has placeholder definitions
       if ((this.options.placeholders || (metadata && metadata.placeholders)) && metadata) {
-        console.log('DEBUG: Attempting placeholder resolution');
-        console.log('DEBUG: this.options.placeholders:', this.options.placeholders);
-        console.log('DEBUG: metadata.placeholders:', metadata.placeholders);
 
         // Convert placeholders from object format (schema v1.0.0) to array format for resolver
         let placeholderDefinitions = [];
@@ -208,7 +205,6 @@ export class Scaffolder {
           }
         }
 
-        console.log('DEBUG: placeholderDefinitions:', placeholderDefinitions);
         if (placeholderDefinitions.length > 0) {
           const resolution = await resolvePlaceholders({
             definitions: placeholderDefinitions,
@@ -219,7 +215,6 @@ export class Scaffolder {
             noInputPrompts: this.options.inputPrompts === false
           });
           placeholders = resolution.values;
-          console.log('DEBUG: Resolved placeholders:', placeholders);
         }
       }
 
