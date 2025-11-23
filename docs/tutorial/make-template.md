@@ -158,7 +158,35 @@ manually earlier.
 
 ### Test the Template
 
-Scaffold a new project to verify the placeholders work:
+Before scaffolding manually, you can use the built-in test command to validate your template:
+
+```bash
+# Test template functionality
+npx make-template test .
+
+# Test with detailed output
+npx make-template test . --verbose
+```
+
+**What the test command does:**
+- Creates a temporary project from your template
+- Validates `template.json` structure and metadata
+- Tests placeholder resolution
+- Verifies setup scripts execute correctly (if present)
+- Cleans up temporary files automatically
+
+**Example test output:**
+
+```
+✓ Template validation passed
+✓ Created temporary project
+✓ Placeholder resolution successful
+✓ Template structure valid
+
+All tests passed!
+```
+
+Now let's manually scaffold a project to see the template in action:
 
 ```bash
 cd ..
@@ -691,6 +719,32 @@ For detailed patterns, selectors, and advanced configuration, see:
 - [Templatization Patterns Reference](../reference/templatization-patterns.md)
 - [Template Configuration Explanation](../explanation/template-configuration.md)
 
+### Test the Marketing Template
+
+Now that you've created a more complex template with custom configuration, test it to ensure everything works:
+
+```bash
+# Test the template
+npx make-template test . --verbose
+```
+
+**What gets validated:**
+- All 23 placeholder extraction rules
+- `allowMultiple` auto-numbering for images and testimonials
+- CSS selector syntax for JSX contexts
+- `template.json` metadata completeness
+- File structure and configuration consistency
+
+If there are issues, you'll see specific error messages:
+
+```
+✗ Template test failed
+
+Issues found:
+  - src/components/Hero.jsx: Selector "img[src" has invalid syntax
+  - template.json: Missing description for TESTIMONIAL_QUOTE_2
+```
+
 ### What You Learned
 
 - **`allowMultiple: true`**: Write one rule, handle multiple instances automatically
@@ -703,6 +757,7 @@ For detailed patterns, selectors, and advanced configuration, see:
 - **HTML form handling**: Form actions, input placeholders, and contact information
 - **Scalability**: Configuration stays simple even with many similar elements (3+ testimonials)
 - **Manual configuration**: Marketing sites with structured content need explicit `.templatize.json` rules
+- **Template testing**: Use `make-template test` to validate complex templates before distribution
 
 ### Clean Up
 
@@ -1724,6 +1779,7 @@ You also learned the fundamental workflow using a basic React SPA:
 - **Restore feature**: Convert → test → restore → develop → convert again (non-destructive)
 - **Init automation**: `make-template init` generates configuration files
 - **Manual vs automated**: Understanding when to use auto-detection vs custom rules
+- **Template testing**: Use `make-template test` to validate templates before distribution
 
 ### Key Technical Insights
 
