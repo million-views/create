@@ -385,31 +385,45 @@ npx @m5nv/create-scaffold new invalid-combo \
 #   Selected: postgres
 ```
 
-### Validating Selections
+### Validating Templates
 
-Before scaffolding, you can validate your configuration:
+Before using a template, you can validate its configuration to catch issues early:
 
 ```bash
-# Create a test selection file
-cat > test-config.selection.json << 'EOF'
-{
-  "schemaVersion": "1.0.0",
-  "templateId": "workshop/lawnmow-app",
-  "choices": {
-    "deployment": "cloudflare-workers",
-    "database": "d1",
-    "features": ["auth", "payments"]
-  },
-  "placeholders": {
-    "PACKAGE_NAME": "test-app",
-    "BUSINESS_NAME": "Test Lawn Services"
-  }
-}
-EOF
+# Validate a template directory
+npx @m5nv/create-scaffold validate ../lawnmow-app
 
-# Validate it (if your template supports validation)
-npx @m5nv/create-scaffold validate test-config.selection.json \
-  --template workshop/lawnmow-app
+# Validate and get fix suggestions
+npx @m5nv/create-scaffold validate ../lawnmow-app --suggest
+
+# Validate and auto-fix safe issues
+npx @m5nv/create-scaffold validate ../lawnmow-app --fix
+
+# Get machine-readable output for automation
+npx @m5nv/create-scaffold validate ../lawnmow-app --json
+```
+
+**What validation checks:**
+- Required fields in `template.json` (name, schemaVersion, placeholders)
+- Dimension definitions and values
+- Gate constraints and references
+- Hint requirements and feature references
+- Placeholder format consistency
+- Setup script syntax (if `_setup.mjs` exists)
+
+**Example validation output:**
+
+```
+✓ Template validation successful
+
+Template: workshop/lawnmow-app
+Schema version: 1.0.0
+Placeholders: 12 defined
+Dimensions: 3 (features, deployment, database)
+Gates: 2 constraints defined
+Hints: 3 feature combinations suggested
+
+Summary: All checks passed
 ```
 
 ## What You Accomplished
