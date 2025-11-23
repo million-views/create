@@ -424,6 +424,8 @@ npx make-template config validate
 npx make-template config validate .templatize.json
 ```
 
+> **Note**: Configuration validation is automatically performed when you run `npx make-template convert`, so this step is optional. Use `config validate` when you want to verify your configuration without running the full conversion process.
+
 **What config validation checks:**
 - JSON syntax errors
 - Required fields (version, rules)
