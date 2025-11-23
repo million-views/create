@@ -412,6 +412,52 @@ The selector `"div > p:not(:has(a))"` matches only paragraphs WITHOUT nested anc
 
 This demonstrates how to handle mixed content structures in JSX without restricting your design choices.
 
+### Validate Configuration Before Converting
+
+Before running the conversion, validate your `.templatize.json` configuration to catch errors early:
+
+```bash
+# Validate the configuration file
+npx make-template config validate
+
+# Validate a specific configuration file
+npx make-template config validate .templatize.json
+```
+
+**What config validation checks:**
+- JSON syntax errors
+- Required fields (version, rules)
+- Valid context types (application/json, text/jsx, text/html, etc.)
+- Selector syntax for each context type
+- Placeholder naming conventions
+- File path references exist
+- Conflicting or duplicate rules
+
+**Example validation output:**
+
+```
+✓ Configuration validation successful
+
+File: .templatize.json
+Version: 1.0
+Rules: 4 files configured
+Placeholders: 23 extraction rules defined
+
+Summary: All checks passed
+```
+
+If there are errors, you'll see specific messages:
+
+```
+✗ Configuration validation failed
+
+Error in src/components/Hero.jsx:
+  - Invalid selector syntax: "img[src" (missing closing bracket)
+  - Context "text/jsx#attribute" requires "attributeName" field
+
+Fix these issues before running conversion.
+```
+
 ### Convert to Apply Custom Rules
 
 Now run the conversion to apply your custom `.templatize.json` rules:
