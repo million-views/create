@@ -1,0 +1,17 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "fixtures/simple-template",
+  "name": "Simple Template",
+  "description": "Minimal template used to exercise git cloning flows.",
+  "placeholderFormat": "unicode",
+  "placeholders": {
+    "PROJECT_NAME": {
+      "description": "Name of the generated project.",
+      "default": "demo-app"
+    }
+  },
+  "handoff": [
+    "npm install",
+    "npm run start"
+  ]
+}

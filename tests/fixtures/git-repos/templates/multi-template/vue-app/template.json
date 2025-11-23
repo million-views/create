@@ -1,0 +1,13 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "fixtures/vue-app",
+  "name": "Vue App Template",
+  "description": "Vue-focused template used for multi-template registry tests.",
+  "placeholderFormat": "unicode",
+  "placeholders": {
+    "title": {
+      "description": "Headline for the landing page",
+      "default": "Vue Fixture"
+    }
+  }
+}

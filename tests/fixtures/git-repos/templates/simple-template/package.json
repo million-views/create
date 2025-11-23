@@ -1,0 +1,9 @@
+{
+  "name": "fixtures-simple-template",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Simple git template fixture used by cache-manager and template-resolver tests.",
+  "scripts": {
+    "start": "node src/index.js"
+  }
+}

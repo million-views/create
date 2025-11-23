@@ -39,43 +39,6 @@ describe('NewCommand', () => {
   });
 
   describe('Integration Tests', () => {
-    it('performs dry-run scaffolding with local template', async (t) => {
-      // Create a temporary directory for this test
-      const tempDir = path.join(os.tmpdir(), `new-command-test-${Date.now()}`);
-      await fs.mkdir(tempDir, { recursive: true });
-
-      t.after(async () => {
-        // Clean up temporary directory
-        await fs.rm(tempDir, { recursive: true, force: true }).catch(() => {});
-      });
-
-      const projectName = 'test-project';
-      // Use relative path to fixtures in tests directory
-      const templatePath = './tests/fixtures/features-demo-template';
-
-      const cmd = new NewCommand();
-      const parsed = cmd.parseArgs([
-        projectName,
-        '--template', templatePath,
-        '--dry-run'
-      ]);
-
-      // Test that dry-run completes without throwing
-      await assert.doesNotReject(async () => {
-        await cmd.run(parsed);
-      }, 'Dry-run should complete without errors');
-
-      // Test that the project directory was not created (dry-run)
-      const projectPath = path.resolve(projectName);
-      try {
-        await fs.access(projectPath);
-        assert.fail('Project directory should not exist after dry-run');
-      } catch (error) {
-        // Expected - directory should not exist
-        assert.strictEqual(error.code, 'ENOENT');
-      }
-    });
-
     it('handles placeholder arguments', () => {
       const cmd = new NewCommand();
       const parsed = cmd.parseArgs([

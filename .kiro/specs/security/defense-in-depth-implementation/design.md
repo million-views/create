@@ -9,7 +9,7 @@ created: "2025-11-20"
 
 ## Architecture Overview
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │                     CLI Entry Points                         │
 │  (commands/new, commands/list, commands/validate)           │
@@ -87,11 +87,11 @@ export class SecurityGate {
    */
   async enforce(rawInputs, context) {
     const startTime = Date.now();
-    
+
     try {
       // Layer 1: Validate inputs using existing validators
       const validated = validateAllInputs(rawInputs);
-      
+
       // Log successful validation
       this.auditLogger.logValidation({
         timestamp: new Date().toISOString(),
@@ -100,9 +100,9 @@ export class SecurityGate {
         outcome: 'success',
         duration: Date.now() - startTime
       });
-      
+
       return validated;
-      
+
     } catch (error) {
       // Log validation failure
       this.auditLogger.logValidation({
@@ -113,10 +113,10 @@ export class SecurityGate {
         error: error.message,
         duration: Date.now() - startTime
       });
-      
+
       // Check for repeated failures (abuse detection)
       this.checkForAbuse(context, error);
-      
+
       // Re-throw with context
       throw new SecurityGateError(
         `Input validation failed: ${error.message}`,
@@ -124,12 +124,12 @@ export class SecurityGate {
       );
     }
   }
-  
+
   checkForAbuse(context, error) {
     // Track failures per context (e.g., per user session)
     // Implement rate limiting or warnings
   }
-  
+
   sanitizeForLogging(inputs) {
     // Remove sensitive data before logging
     return Object.keys(inputs).reduce((acc, key) => {
@@ -175,15 +175,15 @@ export class SecurityAuditLogger {
       timestamp: event.timestamp || new Date().toISOString(),
       ...event
     };
-    
+
     // Buffer for async writes
     this.buffer.push(entry);
-    
+
     // Console output if enabled
     if (this.console) {
       console.error(`[SECURITY] ${type}:`, entry);
     }
-    
+
     // Flush buffer periodically
     if (this.buffer.length >= 10) {
       this.flush();
@@ -192,10 +192,10 @@ export class SecurityAuditLogger {
 
   async flush() {
     if (!this.logFile || this.buffer.length === 0) return;
-    
+
     const entries = this.buffer.splice(0, this.buffer.length);
     const fs = await import('fs/promises');
-    
+
     // Append to log file (JSON lines format)
     await fs.appendFile(
       this.logFile,
@@ -229,11 +229,11 @@ export class BoundaryValidator {
   validatePath(userPath, operation = 'unknown') {
     // Layer 3: Runtime boundary check
     const resolved = path.resolve(this.allowedRoot, userPath);
-    
+
     // Check for path traversal
-    if (!resolved.startsWith(this.allowedRoot + path.sep) && 
+    if (!resolved.startsWith(this.allowedRoot + path.sep) &&
         resolved !== this.allowedRoot) {
-      
+
       // Log boundary violation
       this.auditLogger.logBoundaryViolation({
         timestamp: new Date().toISOString(),
@@ -242,18 +242,18 @@ export class BoundaryValidator {
         resolvedPath: resolved,
         allowedRoot: this.allowedRoot
       });
-      
+
       throw new BoundaryViolationError(
         'Path escapes allowed directory boundaries',
         { userPath, resolved, allowedRoot: this.allowedRoot }
       );
     }
-    
+
     // Check for null bytes
     if (userPath.includes('\0')) {
       throw new BoundaryViolationError('Path contains null bytes');
     }
-    
+
     return resolved;
   }
 
@@ -264,11 +264,11 @@ export class BoundaryValidator {
     return new Proxy(fs, {
       get: (target, prop) => {
         const original = target[prop];
-        
+
         // Wrap file operations that take paths
-        const pathOps = ['readFile', 'writeFile', 'mkdir', 'readdir', 
+        const pathOps = ['readFile', 'writeFile', 'mkdir', 'readdir',
                         'stat', 'unlink', 'rmdir', 'copyFile'];
-        
+
         if (pathOps.includes(prop)) {
           return (...args) => {
             // Validate first argument (path)
@@ -276,7 +276,7 @@ export class BoundaryValidator {
             return original.apply(target, args);
           };
         }
-        
+
         return original;
       }
     });
@@ -292,17 +292,17 @@ export class BoundaryValidator {
 ```javascript
 async run(parsed) {
   const errors = [];
-  
+
   // Validate required argument
   if (!parsed.projectName) {
     errors.push('<project-name> is required');
   }
-  
+
   // Validate required option
   if (!parsed.template) {
     errors.push('--template flag is required');
   }
-  
+
   // Validate project name
   if (parsed.projectName) {
     const projectValidation = validateProjectName(parsed.projectName);
@@ -310,24 +310,24 @@ async run(parsed) {
       errors.push(projectValidation.error);
     }
   }
-  
+
   // Validate template (50+ lines of manual checks)
   if (parsed.template) {
     // ... complex manual validation ...
   }
-  
+
   // Validate cache flags don't conflict
   if (parsed.cache === false && parsed.cacheTtl !== undefined) {
     errors.push('Cannot use both --no-cache and --cache-ttl');
   }
-  
+
   if (errors.length > 0) {
     console.error('❌ Validation failed:');
     errors.forEach(error => console.error(`  • ${error}`));
     this.showHelp();
     process.exit(1);
   }
-  
+
   // Execute scaffolding
   const scaffolder = new Scaffolder(parsed);
   return scaffolder.scaffold();
@@ -342,7 +342,7 @@ async run(parsed) {
     command: 'new',
     requiredFields: ['projectName', 'template']
   });
-  
+
   // All validation complete - proceed with business logic
   const scaffolder = new Scaffolder(validated);
   return scaffolder.scaffold();
@@ -351,7 +351,7 @@ async run(parsed) {
 
 **Files to DELETE:**
 - `commands/new/validator.js` - Manual validation replaced by SecurityGate
-- `commands/list/validator.js` - Manual validation replaced by SecurityGate  
+- `commands/list/validator.js` - Manual validation replaced by SecurityGate
 - `commands/validate/validator.js` - Manual validation replaced by SecurityGate
 
 **DRY Wins:**
@@ -368,7 +368,7 @@ async run(parsed) {
 ```javascript
 // Registry alias resolution happens BEFORE comprehensive validation (BAD)
 let resolvedTemplate = this.options.template;
-if (this.options.template && !this.options.template.includes('://') && 
+if (this.options.template && !this.options.template.includes('://') &&
     !this.options.template.startsWith('/')) {
   const tempResolver = new TemplateResolver(this.cacheManager, configMetadata);
   resolvedTemplate = tempResolver.resolveRegistryAlias(this.options.template);
@@ -405,10 +405,10 @@ const resolved = await templateResolver.resolve(validated.template);
 async resolve(templateInput) {
   // Layer 2: Business logic validation (defense-in-depth)
   this.validateTemplateFormat(templateInput);
-  
+
   // Determine template type using native URL API
   const type = this.detectTemplateType(templateInput);
-  
+
   switch (type) {
     case 'registry-alias':
       return this.resolveRegistryAlias(templateInput);
@@ -427,21 +427,21 @@ detectTemplateType(input) {
   // Use native URL API for robust parsing
   try {
     const url = new URL(input);
-    return url.protocol === 'https:' || url.protocol === 'http:' 
-      ? 'git-url' 
+    return url.protocol === 'https:' || url.protocol === 'http:'
+      ? 'git-url'
       : 'unknown';
   } catch {
     // Not a URL
   }
-  
+
   if (input.startsWith('./') || input.startsWith('../') || input.startsWith('/')) {
     return 'local-path';
   }
-  
+
   if (input.includes('/')) {
     return 'shorthand'; // repo/template format
   }
-  
+
   return 'registry-alias'; // Simple name
 }
 ```
@@ -460,14 +460,14 @@ detectTemplateType(input) {
 ```javascript
 test('All CLI commands enforce security gate', async () => {
   const commands = ['new', 'list', 'validate'];
-  
+
   for (const cmd of commands) {
     const Command = await import(`./commands/${cmd}/index.js`);
     const instance = new Command.default();
-    
+
     // Verify securityGate is injected and used
     assert.ok(instance.securityGate, `${cmd} command missing security gate`);
-    
+
     // Verify run() method calls enforce()
     const runSource = instance.run.toString();
     assert.ok(
@@ -484,17 +484,17 @@ test('All CLI commands enforce security gate', async () => {
 ```javascript
 test('Each security layer independently blocks path traversal', async () => {
   const maliciousPath = '../../../etc/passwd';
-  
+
   // Layer 1: Input validation should block
   assert.throws(() => validateProjectDirectory(maliciousPath));
-  
+
   // Layer 2: Template name validation should block
   assert.throws(() => validateTemplateName(maliciousPath));
-  
+
   // Layer 3: Runtime boundary check should block
   const validator = new BoundaryValidator('/safe/root');
   assert.throws(() => validator.validatePath(maliciousPath));
-  
+
   // Even if one layer is bypassed, others protect
 });
 ```
@@ -508,13 +508,13 @@ test('Security errors propagate without fallback', async () => {
     projectDirectory: '../evil',
     template: '../../malicious'
   };
-  
+
   // Security gate should reject and NOT fallback to defaults
   await assert.rejects(
     async () => securityGate.enforce(maliciousInputs),
     SecurityGateError
   );
-  
+
   // Verify no state was modified
   assert.equal(fallbackCalled, false, 'Should not fallback on security failure');
 });

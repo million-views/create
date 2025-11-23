@@ -7,7 +7,6 @@
 
 import { execSync } from 'node:child_process';
 import { join } from 'node:path';
-import { tmpdir } from 'node:os';
 import { mkdir, rm, access, constants } from 'node:fs/promises';
 
 const CLI_PATH = join(process.cwd(), 'bin');
@@ -125,7 +124,7 @@ export async function assertFileExists(filePath, message) {
   try {
     await access(filePath, constants.F_OK);
     return true;
-  } catch (error) {
+  } catch {
     throw new Error(`${message}: ${filePath} does not exist`);
   }
 }

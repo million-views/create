@@ -1,0 +1,13 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "fixtures/react-app",
+  "name": "React App Template",
+  "description": "React-focused template used for multi-template registry tests.",
+  "placeholderFormat": "unicode",
+  "placeholders": {
+    "componentName": {
+      "description": "Primary component name",
+      "default": "App"
+    }
+  }
+}

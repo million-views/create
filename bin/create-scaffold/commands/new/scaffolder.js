@@ -161,7 +161,10 @@ export class Scaffolder {
       }
 
       // Prepare options and placeholders
-      let options = {};
+      let options = {
+        raw: [],
+        byDimension: {}
+      };
       let placeholders = {};
 
       // Process options from CLI args and URL parameters
@@ -179,12 +182,20 @@ export class Scaffolder {
         allOptionTokens.push(...urlOptions);
       }
 
-      if (allOptionTokens.length > 0 && metadata) {
+      if (metadata) {
         const normalizedOptionResult = normalizeOptions({
           rawTokens: allOptionTokens,
           dimensions: metadata.dimensions
         });
-        options = normalizedOptionResult.byDimension;
+        options = {
+          raw: allOptionTokens.slice(),
+          byDimension: normalizedOptionResult.byDimension
+        };
+      } else if (allOptionTokens.length > 0) {
+        options = {
+          raw: allOptionTokens.slice(),
+          byDimension: {}
+        };
       }
 
       // Resolve placeholders if we have explicit values OR template has placeholder definitions
@@ -233,11 +244,17 @@ export class Scaffolder {
           preview = await dryRunEngine.previewScaffoldingFromPath(templatePath, validated.projectName);
         } else if (repoUrl) {
           // Otherwise, use previewScaffolding for remote repositories
-          preview = await dryRunEngine.previewScaffolding(repoUrl, branchName || 'main', templateName, validated.projectName);
+          preview = await dryRunEngine.previewScaffolding(repoUrl, branchName || 'main', templatePath, validated.projectName);
         } else {
           // For local template paths without repoUrl, use previewScaffoldingFromPath
           const repoPath = path.dirname(templatePath);
           preview = await dryRunEngine.previewScaffoldingFromPath(repoPath, templateName, validated.projectName);
+        }
+
+        // Validate preview output structure before displaying results
+        const validationErrors = dryRunEngine.validatePreview(preview);
+        if (validationErrors.length > 0) {
+          throw new Error(`Dry run preview invalid:\n- ${validationErrors.join('\n- ')}`);
         }
 
         // Display preview output

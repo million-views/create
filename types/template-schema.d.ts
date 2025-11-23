@@ -4,8 +4,8 @@
 export const TEMPLATE_SCHEMA_VERSION = 'template.v1';
 export const TEMPLATE_SCHEMA_PATH = 'schema/template.v1.json';
 
-export type TemplateAuthoringMode = 'wysiwyg' | 'composable';
-export type TemplatePlaceholderType = 'string' | 'number' | 'boolean';
+export type TemplateAuthoringMode = never;
+export type TemplatePlaceholderType = never;
 export type TemplateDimensionType = 'single' | 'multi';
 export type TemplateDimensionPolicy = 'warn';
 export type TemplateCanonicalVariableName = never;

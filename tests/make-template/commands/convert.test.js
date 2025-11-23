@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { ConvertCommand } from '../../../bin/make-template/commands/convert/index.js';
-import { captureOutput, mockExit } from '../../helpers.js';
+import { captureOutput } from '../../helpers.js';
 
 describe('ConvertCommand', () => {
   it('parses project-path correctly', () => {

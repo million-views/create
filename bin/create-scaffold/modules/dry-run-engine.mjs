@@ -22,16 +22,24 @@ export class DryRunEngine {
   /**
    * Preview complete scaffolding process without execution
    */
-  async previewScaffolding(repoUrl, branchName = 'main', templateName, projectDir) {
+  async previewScaffolding(repoUrl, branchName = 'main', templateTarget, projectDir) {
     const cachedRepoPath = await this.cacheManager.getCachedRepo(repoUrl, branchName);
 
     if (!cachedRepoPath) {
       throw new Error(`Repository ${repoUrl} (${branchName}) is not cached. Please cache the repository first.`);
     }
 
+    const templatePath = path.isAbsolute(templateTarget)
+      ? templateTarget
+      : path.join(cachedRepoPath, templateTarget);
+
+    await File.validateDirectoryExists(templatePath, 'Template directory');
+
+    const templateLabel = path.relative(cachedRepoPath, templatePath) || path.basename(templatePath);
+
     if (this.logger) {
       await this.logger.logOperation('dry_run_preview', {
-        template: templateName,
+        template: templateLabel,
         repoUrl,
         branch: branchName,
         projectDir,
@@ -40,12 +48,11 @@ export class DryRunEngine {
     }
 
     // Load template metadata synchronously
-    const templatePath = path.join(cachedRepoPath, templateName);
     const metadata = loadTemplateMetadataFromPath(templatePath);
 
     if (this.logger) {
       await this.logger.logOperation('template_metadata_loaded', {
-        template: templateName,
+        template: templateLabel,
         name: metadata.name,
         description: metadata.description,
         version: metadata.version

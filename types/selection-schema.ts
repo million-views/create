@@ -4,43 +4,30 @@
 export const SELECTION_SCHEMA_VERSION = 'selection.v1' as const;
 export const SELECTION_SCHEMA_PATH = 'schema/selection.v1.json' as const;
 
-export type SelectionDeploymentTarget = 'vercel' | 'netlify' | 'railway' | 'render' | 'fly' | 'heroku' | 'aws' | 'gcp' | 'azure' | 'local';
-export type SelectionDatabase = 'postgres' | 'mysql' | 'sqlite' | 'mongodb' | 'redis' | 'none';
-export type SelectionStorage = 'local' | 's3' | 'cloudflare' | 'vercel-blob' | 'none';
-export type SelectionAuthProvider = 'auth0' | 'clerk' | 'firebase' | 'supabase' | 'custom' | 'none';
-export type SelectionPaymentProcessor = 'stripe' | 'paypal' | 'lemonsqueezy' | 'custom' | 'none';
-export type SelectionAnalyticsProvider = 'google-analytics' | 'mixpanel' | 'posthog' | 'plausible' | 'custom' | 'none';
-export type SelectionPackageManager = 'npm' | 'yarn' | 'pnpm' | 'bun';
-
+/**
+ * Choices represent user selections from dimensions (infrastructure stack choices).
+ * Keys match dimension IDs from the template. Values can be single or multiple selections.
+ */
 export interface SelectionChoices {
-  deployment_target?: SelectionDeploymentTarget;
-  features?: string[];
-  database?: SelectionDatabase;
-  storage?: SelectionStorage;
-  auth?: SelectionAuthProvider[];
-  payments?: SelectionPaymentProcessor;
-  analytics?: SelectionAnalyticsProvider;
+  [dimensionId: string]: string | string[];
 }
 
-export interface SelectionDerived {
-  needAuth?: boolean;
-  needDb?: boolean;
-  needPayments?: boolean;
-  needStorage?: boolean;
+/**
+ * Placeholders represent configuration values for template variables.
+ * Keys match the placeholder registry (UPPER_SNAKE_CASE tokens).
+ */
+export interface SelectionPlaceholders {
+  [key: string]: string | number | boolean;
 }
 
-export interface SelectionMetadata {
-  name: string;
-  packageManager?: SelectionPackageManager;
-  createdAt?: string;
-  cliVersion?: string;
-}
-
+/**
+ * A complete selection manifest containing all user choices and configuration values.
+ */
 export interface SelectionManifest {
+  schemaVersion: "1.0.0";
   templateId: string;
-  version: string;
-  selections: SelectionChoices;
-  derived?: SelectionDerived;
-  metadata: SelectionMetadata;
+  timestamp?: string;
+  choices: SelectionChoices;
+  placeholders: SelectionPlaceholders;
 }
 

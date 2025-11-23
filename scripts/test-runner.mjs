@@ -23,6 +23,10 @@ class TestRunner {
       'unit': [
         'Security Tests',
         'Template Validator Tests',
+        'Options Processor Tests',
+        'Config Loader Tests',
+        'CacheManager Git Tests',
+        'TemplateResolver Git Tests',
         'Base Command Tests',
         'Router Tests',
         'Template Schema Build Tests',
@@ -34,6 +38,7 @@ class TestRunner {
       // Integration tests: Command-level functionality
       'integration': [
         'Create-Scaffold New Tests',
+        'Dry Run CLI Tests',
         'Create-Scaffold List Tests',
         'Create-Scaffold Validate Tests',
         'Make-Template Init Tests',
@@ -41,7 +46,8 @@ class TestRunner {
         'Make-Template Convert Tests',
         'Make-Template Restore Tests',
         'Make-Template Test Command Tests',
-        'Make-Template Validate Tests'
+        'Make-Template Validate Tests',
+        'Make-Template Config Validate Tests'
       ],
       // Acceptance tests: Requirements and specification compliance
       'acceptance': [
@@ -52,7 +58,8 @@ class TestRunner {
         'Functional Tests',
         'Resource Leak Tests',
         'E2E Hermetic Isolation Tests',
-        'E2E Tutorial Workflows Tests'
+        'E2E Tutorial Workflows Tests',
+        'E2E Guided Workflow Tests'
       ],
       // Legacy groupings for backward compatibility
       'smoke': [
@@ -64,13 +71,15 @@ class TestRunner {
         'Make-Template Convert Tests',
         'Make-Template Restore Tests',
         'Make-Template Test Command Tests',
-        'Make-Template Validate Tests'
+        'Make-Template Validate Tests',
+        'Make-Template Config Validate Tests'
       ],
       'e2e': [
         'Functional Tests',
         'Resource Leak Tests',
         'E2E Hermetic Isolation Tests',
-        'E2E Tutorial Workflows Tests'
+        'E2E Tutorial Workflows Tests',
+        'E2E Guided Workflow Tests'
       ],
       'create-scaffold': [
         'Create-Scaffold New Tests',
@@ -83,7 +92,8 @@ class TestRunner {
         'Make-Template Convert Tests',
         'Make-Template Restore Tests',
         'Make-Template Test Command Tests',
-        'Make-Template Validate Tests'
+        'Make-Template Validate Tests',
+        'Make-Template Config Validate Tests'
       ]
     };
   }
@@ -279,6 +289,30 @@ class TestRunner {
         homeSuffix: 'template-validator'
       },
       {
+        name: 'Options Processor Tests',
+        command: ['--test', './tests/shared/options-processor.test.mjs'],
+        description: 'Template dimension option normalization used by create-scaffold commands',
+        homeSuffix: 'options-processor'
+      },
+      {
+        name: 'Config Loader Tests',
+        command: ['--test', './tests/shared/config-loader.test.mjs', './tests/shared/config-discovery.test.mjs'],
+        description: '.m5nvrc discovery and normalization for create-scaffold defaults',
+        homeSuffix: 'config-loader'
+      },
+      {
+        name: 'CacheManager Git Tests',
+        command: ['--test', './tests/shared/cache-manager.git.test.mjs'],
+        description: 'Git-backed cache population, TTL, and cleanup validation',
+        homeSuffix: 'cache-manager-git'
+      },
+      {
+        name: 'TemplateResolver Git Tests',
+        command: ['--test', './tests/shared/template-resolver.git.test.mjs'],
+        description: 'Git-backed template resolution and alias refresh validation',
+        homeSuffix: 'template-resolver-git'
+      },
+      {
         name: 'Base Command Tests',
         command: ['--test', './tests/cli/command.test.js'],
         description: 'Command template method pattern tests',
@@ -301,6 +335,12 @@ class TestRunner {
         command: ['--test', './tests/create-scaffold/commands/new.test.js'],
         description: 'Create-scaffold new command unit tests',
         homeSuffix: 'create-scaffold-new'
+      },
+      {
+        name: 'Dry Run CLI Tests',
+        command: ['--test', './tests/create-scaffold/dry-run-cli.test.mjs'],
+        description: 'End-to-end dry-run previews for local and cached templates',
+        homeSuffix: 'dry-run-cli'
       },
       {
         name: 'Create-Scaffold List Tests',
@@ -351,6 +391,12 @@ class TestRunner {
         homeSuffix: 'make-template-validate'
       },
       {
+        name: 'Make-Template Config Validate Tests',
+        command: ['--test', './tests/make-template/config-validate.test.mjs'],
+        description: '.templatize.json configuration validation CLI coverage',
+        homeSuffix: 'make-template-config-validate'
+      },
+      {
         name: 'Templatize JSX Tests',
         command: ['--test', './tests/templatize-jsx.test.mjs'],
         description: 'JSX/TSX file templatization with AST parsing',
@@ -385,6 +431,12 @@ class TestRunner {
         command: ['--test', './tests/e2e/tutorial-workflows.test.mjs'],
         description: 'End-to-end tutorial workflow integration tests',
         homeSuffix: 'e2e-workflows'
+      },
+      {
+        name: 'E2E Guided Workflow Tests',
+        command: ['--test', './tests/e2e/guided-workflow.test.mjs'],
+        description: 'Guided workflow coverage for setup runtime and sandbox enforcement',
+        homeSuffix: 'e2e-guided-workflow'
       }
     ];
   }

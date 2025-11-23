@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 
 import fs from 'node:fs/promises';
-import os from 'node:os';
 import path from 'node:path';
 import {
   validateRepoUrl,
@@ -60,40 +59,6 @@ function resolveCandidatePaths({ cwd, env }) {
     projectCandidate,
     userConfigPath
   ].filter(Boolean);
-}
-
-function resolveString(value) {
-  if (typeof value !== 'string') {
-    return '';
-  }
-  const trimmed = value.trim();
-  return trimmed;
-}
-
-function expandHome(inputPath) {
-  if (!inputPath || !inputPath.startsWith('~')) {
-    return inputPath;
-  }
-
-  const homeDir = os.homedir();
-  if (!homeDir) {
-    return inputPath;
-  }
-
-  if (inputPath === '~') {
-    return homeDir;
-  }
-
-  const remainder = inputPath.slice(1);
-  if (remainder.startsWith(path.sep)) {
-    return path.join(homeDir, remainder.slice(1));
-  }
-
-  if (remainder.startsWith('/')) {
-    return path.join(homeDir, remainder.slice(1));
-  }
-
-  return inputPath;
 }
 
 async function readConfigFile(filePath) {

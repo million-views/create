@@ -13,9 +13,7 @@ import { readFile } from 'node:fs/promises';
 import {
   createTestEnvironment,
   execCLI,
-  execCommand,
   assertFileExists,
-  createViteProject,
   createTestProject,
   verifyIsolation
 } from './test-helpers.mjs';

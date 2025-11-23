@@ -47,7 +47,7 @@ export class ValidateCommand extends Command {
       let stats;
       try {
         stats = await stat(resolvedPath);
-      } catch (error) {
+      } catch {
         const errorMsg = `Cannot access template path: ${validated.templatePath}`;
         if (validated.json) {
           console.log(JSON.stringify({

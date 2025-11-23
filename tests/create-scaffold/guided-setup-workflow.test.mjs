@@ -57,8 +57,9 @@ test('GuidedSetupWorkflow - selection.json generation integration', async (t) =>
 
     // Create _setup.mjs
     const setupScript = `
-export async function setup(templateDir, targetDir, options) {
-  // Minimal setup script
+export default async function setup({ ctx, tools }) {
+  await tools.files.ensureDirs('logs');
+  await tools.files.write('logs/setup.txt', ctx.projectName ?? 'unknown');
   return { success: true };
 }
 `;
@@ -127,7 +128,8 @@ export async function setup(templateDir, targetDir, options) {
     await fs.writeFile(path.join(templateDir, 'template.json'), JSON.stringify(templateJson, null, 2));
 
     const setupScript = `
-export async function setup(templateDir, targetDir, options) {
+export default async function setup({ ctx, tools }) {
+  await tools.files.write('logs/setup.txt', ctx.projectName ?? 'unknown');
   return { success: true };
 }
 `;

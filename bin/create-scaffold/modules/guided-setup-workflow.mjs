@@ -157,10 +157,6 @@ export class GuidedSetupWorkflow {
    * Execute dimension selection for V1 templates
    */
   async #executeDimensionSelection() {
-    if (process.env.NODE_ENV === 'test') {
-      console.error('DEBUG: executeDimensionSelection called');
-    }
-
     if (!this.#isV1Template()) {
       return { success: true, message: 'Not a V1 template, skipping dimension selection' };
     }
@@ -255,10 +251,6 @@ export class GuidedSetupWorkflow {
    * Execute hints display for V1 templates
    */
   async #executeHintsDisplay() {
-    if (process.env.NODE_ENV === 'test') {
-      console.error('DEBUG: executeHintsDisplay called');
-    }
-
     if (!this.#isV1Template()) {
       return { success: true, message: 'Not a V1 template, skipping hints display' };
     }
@@ -319,10 +311,6 @@ export class GuidedSetupWorkflow {
    * Execute gate enforcement for V1 templates
    */
   async #executeGateEnforcement() {
-    if (process.env.NODE_ENV === 'test') {
-      console.error('DEBUG: executeGateEnforcement called');
-    }
-
     if (!this.#isV1Template()) {
       return { success: true, message: 'Not a V1 template, skipping gate enforcement' };
     }
@@ -413,10 +401,6 @@ export class GuidedSetupWorkflow {
    * Execute feature validation for V1 templates
    */
   async #executeFeatureValidation() {
-    if (process.env.NODE_ENV === 'test') {
-      console.error('DEBUG: executeFeatureValidation called');
-    }
-
     if (!this.#isV1Template()) {
       return { success: true, message: 'Not a V1 template, skipping feature validation' };
     }
@@ -494,15 +478,8 @@ export class GuidedSetupWorkflow {
    */
   async executeWorkflow() {
     try {
-      if (process.env.NODE_ENV === 'test') {
-        console.error('DEBUG: executeWorkflow() started');
-      }
       await this.#loadWorkflowState();
       await this.#displayWorkflowHeader();
-
-      if (process.env.NODE_ENV === 'test') {
-        console.error('DEBUG: About to define steps array');
-      }
 
       const steps = [
         { name: 'initialization', method: () => this.#executeInitialization() },
@@ -519,23 +496,13 @@ export class GuidedSetupWorkflow {
         { name: 'finalization', method: () => this.#executeFinalization() }
       ];
 
-      if (process.env.NODE_ENV === 'test') {
-        console.error('DEBUG: About to enter for loop');
-      }
-
       for (let i = 0; i < steps.length; i++) {
-        if (process.env.NODE_ENV === 'test') {
-          console.error(`DEBUG: For loop iteration ${i}, step: ${steps[i].name}`);
-        }
         const step = steps[i];
         this.workflowState.currentStep = step.name;
         this.workflowState.progress.currentStepIndex = i;
 
         // Check if step has a condition and skip if not met
         if (step.condition && !step.condition()) {
-          if (process.env.NODE_ENV === 'test') {
-            console.error(`DEBUG: Skipping conditional step: ${step.name}`);
-          }
           await this.#displayStepStatus(step.name, 'skipped', 'Not applicable');
           continue;
         }
@@ -543,15 +510,8 @@ export class GuidedSetupWorkflow {
         // Skip completed steps unless resuming from failure
         if (this.workflowState.completedSteps.includes(step.name) &&
           !this.workflowState.failedSteps.includes(step.name)) {
-          if (process.env.NODE_ENV === 'test') {
-            console.error(`DEBUG: Skipping completed step: ${step.name}`);
-          }
           await this.#displayStepStatus(step.name, 'skipped', 'Already completed');
           continue;
-        }
-
-        if (process.env.NODE_ENV === 'test') {
-          console.error(`DEBUG: About to execute step: ${step.name}`);
         }
 
         try {
@@ -589,9 +549,6 @@ export class GuidedSetupWorkflow {
       };
 
     } catch (error) {
-      if (process.env.NODE_ENV === 'test') {
-        console.error('DEBUG: executeWorkflow() caught error:', error.message, error.stack);
-      }
       await this.#handleWorkflowError(error);
       throw error;
     }
@@ -829,12 +786,6 @@ export class GuidedSetupWorkflow {
    * Execute initialization step
    */
   async #executeInitialization() {
-    if (process.env.NODE_ENV === 'test') {
-      console.error('DEBUG: executeInitialization called');
-    }
-    if (process.env.NODE_ENV === 'test') {
-      console.error('DEBUG: #executeInitialization called');
-    }
     // Validate basic inputs and setup
     if (!this.projectDirectory) {
       throw new Error('Project directory not specified');
@@ -850,9 +801,6 @@ export class GuidedSetupWorkflow {
       await this.prompt.write('   Resuming previous workflow...\n');
     }
 
-    if (process.env.NODE_ENV === 'test') {
-      console.error('DEBUG: #executeInitialization returning');
-    }
     return { success: true, message: 'Workflow initialized successfully' };
   }
 
@@ -860,9 +808,6 @@ export class GuidedSetupWorkflow {
    * Execute validation step
    */
   async #executeValidation() {
-    if (process.env.NODE_ENV === 'test') {
-      console.error('DEBUG: executeValidation called');
-    }
     // Perform security validation on all inputs
     try {
       validateAllInputs({
@@ -928,9 +873,6 @@ export class GuidedSetupWorkflow {
    * Execute directory setup step
    */
   async #executeDirectorySetup() {
-    if (process.env.NODE_ENV === 'test') {
-      console.error('DEBUG: executeDirectorySetup called');
-    }
     await File.ensureDirectory(this.resolvedProjectDirectory);
 
     // Create basic project structure if needed
@@ -963,13 +905,7 @@ export class GuidedSetupWorkflow {
    * Execute template copy step
    */
   async #executeTemplateCopy() {
-    if (process.env.NODE_ENV === 'test') {
-      console.error('DEBUG: executeTemplateCopy called');
-    }
     this.logger.debug('Starting template copy');
-    if (process.env.NODE_ENV !== 'test') {
-      await this.prompt.write('   Copying template files...\n');
-    }
 
     // Create project directory
     await File.ensureDirectory(this.resolvedProjectDirectory, 0o755, 'project directory');
@@ -1080,9 +1016,6 @@ export class GuidedSetupWorkflow {
       return { success: true, message: 'No placeholders to resolve' };
     }
 
-    if (process.env.NODE_ENV !== 'test') {
-      await this.prompt.write(`   Resolving ${Object.keys(this.placeholders).length} placeholders...\n`);
-    }
 
     // Apply placeholders to all files in the project directory
     await this.#applyPlaceholdersToFiles(this.resolvedProjectDirectory, this.placeholders);
@@ -1095,7 +1028,6 @@ export class GuidedSetupWorkflow {
    * Execute setup script execution step
    */
   async #executeSetupScriptExecution() {
-    console.error('DEBUG: Starting setup script execution');
     const setupScriptPath = path.join(this.resolvedProjectDirectory, '_setup.mjs');
 
     try {
@@ -1134,13 +1066,10 @@ export class GuidedSetupWorkflow {
         }
       }, tools, this.logger);
 
-      console.error('DEBUG: Setup script execution completed successfully');
       return { success: true, message: 'Setup script executed successfully' };
     } catch (error) {
-      console.error('DEBUG: Setup script execution failed:', error.message);
       if (error.code === 'ENOENT') {
         // No setup script, which is fine
-        console.error('DEBUG: No setup script found');
         return { success: true, message: 'No setup script found (optional)' };
       }
       throw error;

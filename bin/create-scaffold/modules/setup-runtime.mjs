@@ -1121,7 +1121,7 @@ export async function loadSetupScript(setupPath, ctx, tools, _logger = null) {
 
   if (entry.length >= 2) {
     throw new SetupSandboxError(
-      'Setup scripts must now accept a single Environment object. Update the signature to `export default async function setup({ ctx, tools })`.'
+      'Setup scripts must accept a single Environment object. Use `export default async function setup({ ctx, tools })`.'
     );
   }
 

@@ -48,7 +48,7 @@ test('M5NV_HOME isolation - make-template uses isolated environment', async (t) 
   const userM5nv = join(userHome, '.m5nv');
 
   try {
-    const stats = await access(userM5nv, constants.F_OK);
+    await access(userM5nv, constants.F_OK);
     // If .m5nv exists in user home, verify our test ID isn't there
     const cacheDir = join(userM5nv, 'cache');
     try {
@@ -159,7 +159,7 @@ test('Test artifacts are confined to tmp/ directory', async (t) => {
   assert(!testEnv.baseDir.startsWith(systemTmp), 'Should NOT use system /tmp');
 }, { timeout: LONG_TIMEOUT });
 
-test('Cleanup removes all test artifacts', async (t) => {
+test('Cleanup removes all test artifacts', async () => {
   const testEnv = await createTestEnvironment('cleanup-test');
   const baseDirPath = testEnv.baseDir;
 
