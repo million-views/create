@@ -156,7 +156,7 @@ The context object is frozen; attempting to mutate it throws.
 }
 ```
 
-With `--options "features=auth+docs"` and placeholder inputs from `--placeholder AUTHOR="Jane"` and `--placeholder LICENSE="MIT"`, the setup script receives:
+With a selection manifest defining `features: ['auth', 'docs']` and placeholder inputs from `--placeholder AUTHOR="Jane"` and `--placeholder LICENSE="MIT"`, the setup script receives:
 
 ```javascript
 ctx.options.byDimension.features; // ['auth', 'docs']

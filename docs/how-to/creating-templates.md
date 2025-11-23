@@ -308,7 +308,7 @@ create-scaffold copies this directory into the project before `_setup.mjs` runs 
 1. **Use make-template restore for fast loops.** After editing placeholders, run the generated restore command (based on `.template-undo.json`) to rehydrate the working app and verify changes inline.
 2. **Run create-scaffold dry runs when you touch metadata or `_setup.mjs`.**
    ```bash
-   create-scaffold demo-app --template yourusername/my-templates/portfolio-template --options auth,cloudflare-d1 --dry-run
+   create-scaffold demo-app --template yourusername/my-templates/portfolio-template --dry-run
    ```
    Dry runs show directory/file counts, setup script detection, and skip author assets so the preview matches the final scaffold.
 3. **Execute a full scaffold periodically** to ensure the handoff instructions make sense and the generated project boots as expected.
@@ -382,7 +382,7 @@ Before publishing, test your template locally:
 cd ..
 
 # Test the template (replace 'yourusername' with your GitHub username)
-npm create @m5nv/scaffold test-project -- --template yourusername/my-templates/portfolio-template --options auth,cloudflare-d1
+npm create @m5nv/scaffold test-project -- --template yourusername/my-templates/portfolio-template
 ```
 
 Verify the template works correctly:
@@ -414,7 +414,7 @@ for details.
 | Item | Description |
 |------|-------------|
 | `ctx.projectName` | Sanitized project name. Ideal for injecting into README files, package metadata, or IDE settings. |
-| `ctx.options` | Array of options from `--options`. Use `tools.options.when()` for feature toggles. |
+| `ctx.options` | Template options resolved from selection.json or interactive prompts. Use `tools.options.when()` for feature toggles. |
 | `tools.placeholders` | Replace `{{TOKEN}}` strings across one or many files. |
 | `tools.text` | Insert/ensure blocks, replace between markers, append lines, or run guarded search/replace. |
 | `tools.files` | Ensure directories, copy/move/remove paths, write files, or copy directory trees. |

@@ -34,9 +34,6 @@ export class NewCommand extends Command {
     } else if (arg === '--no-config') {
       parsed.config = false;
       return i;
-    } else if (arg === '--options') {
-      parsed.optionsFile = args[i + 1];
-      return i + 1;
     } else if (arg === '--dry-run' || arg === '-d') {
       parsed.dryRun = true;
       return i;

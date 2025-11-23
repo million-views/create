@@ -77,9 +77,9 @@ Composable templates assemble different variants from a single source. Use autho
    # Default selection
    create-scaffold demo-default --template my-template --repo path/to/templates --dry-run
 
-   # Specific feature mix
+   # Specific feature mix (use selection.json for complex configurations)
    create-scaffold demo-auth --template my-template --repo path/to/templates \
-     --options "features=auth+testing,deployment=cloudflare-d1" --dry-run
+     --selection ./my-selection.json --dry-run
    ```
 
 ### Checklist for composable templates

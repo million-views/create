@@ -73,14 +73,12 @@ describe('NewCommand', () => {
       const parsed = cmd.parseArgs([
         'my-app',
         '--template', 'react-app',
-        '--no-config',
-        '--options', 'ui=react,api=express'
+        '--no-config'
       ]);
 
       assert.strictEqual(parsed.projectName, 'my-app');
       assert.strictEqual(parsed.template, 'react-app');
       assert.strictEqual(parsed.config, false);
-      assert.strictEqual(parsed.optionsFile, 'ui=react,api=express');
     });
 
     it('handles log file option', () => {

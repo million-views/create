@@ -52,7 +52,6 @@ Complete reference for Schema V1.0 (`template.json`). Covers all sections of the
 |-----------|-------|----------|-------------|
 | `<project-directory>` | - | Yes¹ | Directory name for new project |
 | `--template` | `-T` | Yes¹ | Template name or URL to use |
-| `--options` | `-o` | No | Comma-separated template options |
 | `--help` | `-h` | No | Show help information |
 
 ¹Not required for `list`, `info`, `validate` commands or `--help`

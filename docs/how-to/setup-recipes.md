@@ -474,7 +474,7 @@ template/
 
 **Usage:**
 ```bash
-npm create @m5nv/scaffold my-app -- --template react-vite --options "features=auth+testing"
+npm create @m5nv/scaffold my-app -- --template react-vite --selection ./my-selection.json
 ```
 
 ---
@@ -526,7 +526,7 @@ export default async function setup({ ctx, tools }) {
 
 **Usage:**
 ```bash
-npm create @m5nv/scaffold my-app -- --template react-vite --options "styling=tailwind"
+npm create @m5nv/scaffold my-app -- --template react-vite --selection ./my-selection.json
 ```
 
 ---

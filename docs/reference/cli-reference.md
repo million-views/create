@@ -125,7 +125,6 @@ create-scaffold new <project-name> --template <template-name> [options]
 | `--yes` | Suppress prompts and non-essential output |
 | **Configuration** | |
 | `--no-config` | Skip loading user configuration |
-| `--options <file>` | Path to options file for template configuration Load template configuration from a JSON file |
 | **Operation Modes** | |
 | `-d, --dry-run` | Preview changes without executing them |
 | `--log-file <path>` | Enable detailed logging to specified file |
@@ -745,15 +744,6 @@ npm create @m5nv/scaffold my-app -- --template https://github.com/custom-user/te
 npm create @m5nv/scaffold my-app -- --template custom-user/templates/nextjs
 ```
 
-### Template Options Customization
-
-```bash
-# Create project with template options via CLI flag
-npm create @m5nv/scaffold my-app -- --template react --options "typescript,testing"
-# Or specify options directly in the template URL
-npm create @m5nv/scaffold my-app -- --template react?options=typescript,testing
-```
-
 ### Template Discovery
 
 ```bash
@@ -799,18 +789,6 @@ Templates can be specified in multiple formats:
 | Relative path | `./local-repo` | Relative path to local repository |
 
 ## Dimensions and options
-
-`--options` accepts a comma-separated list. Use `dimension=value` to target a specific dimension; join multiple values for the same dimension with `+` (for example `capabilities=auth+testing`). Tokens without `=` apply to the template's default multi-select dimension, typically `capabilities`.
-
-Options can also be specified directly in template URLs using query parameters:
-
-```bash
-# CLI flag approach
-npm create @m5nv/scaffold my-app -- --template react --options "typescript,testing"
-
-# URL parameter approach
-npm create @m5nv/scaffold my-app -- --template react?options=typescript,testing
-```
 
 Templates describe their vocabulary in `template.json` via `metadata.dimensions`:
 

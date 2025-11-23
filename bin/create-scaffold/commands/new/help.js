@@ -79,12 +79,6 @@ export const newHelp = {
         {
           long: '--no-config',
           desc: 'Skip loading user configuration'
-        },
-        {
-          long: '--options',
-          value: '<file>',
-          desc: 'Path to options file for template configuration',
-          detailed: ['Load template configuration from a JSON file']
         }
       ]
     },

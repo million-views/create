@@ -167,13 +167,8 @@ export class Scaffolder {
       };
       let placeholders = {};
 
-      // Process options from CLI args and URL parameters
+      // Process options from URL parameters
       const allOptionTokens = [];
-      if (this.options.optionsFile) {
-        // CLI options come as comma-separated string, split them
-        const cliOptions = Array.isArray(this.options.optionsFile) ? this.options.optionsFile : this.options.optionsFile.split(',').map(opt => opt.trim());
-        allOptionTokens.push(...cliOptions);
-      }
       if (urlParameters.options) {
         // URL options come as comma-separated string, split them
         const urlOptions = Array.isArray(urlParameters.options)
