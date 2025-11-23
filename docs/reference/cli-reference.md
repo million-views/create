@@ -71,29 +71,29 @@ create-scaffold list [options]
 **Examples:**
 
 ```bash
+# List templates from default registry (million-views/templates)
 list
 ```
-    List templates from default registry (million-views/templates)
 
 ```bash
+# List templates from a specific repository URL
 list --registry https://github.com/user/templates.git
 ```
-    List templates from a specific repository URL
 
 ```bash
+# List templates from a configured registry shortcut
 list --registry my-templates
 ```
-    List templates from a configured registry shortcut
 
 ```bash
+# Output template information in JSON format
 list --format json
 ```
-    Output template information in JSON format
 
 ```bash
+# Show detailed template information including versions and authors
 list --verbose
 ```
-    Show detailed template information including versions and authors
 
 ### `new` - Create a new project from a template
 
@@ -132,39 +132,39 @@ create-scaffold new <project-name> --template <template-name> [options]
 **Examples:**
 
 ```bash
+# Create React app from template
 new my-app --template react-app
 ```
-    Create React app from template
 
 ```bash
+# Use template from specific branch
 new my-app --template workshop/basic-react-spa#feature-branch
 ```
-    Use template from specific branch
 
 ```bash
+# Provide placeholder values
 new my-app --template react-app --placeholder NAME=MyApp
 ```
-    Provide placeholder values
 
 ```bash
+# Use selection file for configuration
 new my-app --selection ./selection.json
 ```
-    Use selection file for configuration
 
 ```bash
+# Skip cache and fetch fresh
 new my-app --template react-app --no-cache
 ```
-    Skip cache and fetch fresh
 
 ```bash
+# Use with npm create
 npm create @m5nv/scaffold my-app --template react-app
 ```
-    Use with npm create
 
 ```bash
+# Use with npx
 npx @m5nv/create-scaffold new my-app --template react-app
 ```
-    Use with npx
 
 ### `validate` - Validate template configuration
 
@@ -191,24 +191,24 @@ create-scaffold validate <template-path> [options]
 **Examples:**
 
 ```bash
+# Validate template in directory
 validate ./my-template
 ```
-    Validate template in directory
 
 ```bash
+# Validate template configuration file
 validate ./template.json
 ```
-    Validate template configuration file
 
 ```bash
+# Get fix suggestions
 validate ./my-template --suggest
 ```
-    Get fix suggestions
 
 ```bash
+# Auto-fix safe issues
 validate ./my-template --fix
 ```
-    Auto-fix safe issues
 <!-- END AUTO-GENERATED: create-scaffold commands -->
 
 <!-- AUTO-GENERATED: make-template commands -->
@@ -229,14 +229,14 @@ make-template config validate [config-file]
 **Examples:**
 
 ```bash
+# Validate default .templatize.json
 config validate
 ```
-    Validate default .templatize.json
 
 ```bash
+# Validate specific configuration file
 config validate custom-config.json
 ```
-    Validate specific configuration file
 
 ### `convert` - Convert project to template using configurable patterns
 
@@ -279,34 +279,34 @@ make-template convert [project-path] [options]
 **Examples:**
 
 ```bash
+# Convert current directory
 convert
 ```
-    Convert current directory
 
 ```bash
+# Convert specific project directory
 convert ./my-project
 ```
-    Convert specific project directory
 
 ```bash
+# Preview changes without applying them
 convert --dry-run
 ```
-    Preview changes without applying them
 
 ```bash
+# Use custom config file and skip prompts
 convert --config custom-config.json --yes
 ```
-    Use custom config file and skip prompts
 
 ```bash
+# Use $PLACEHOLDER format for replacements
 convert --placeholder-format dollar
 ```
-    Use $PLACEHOLDER format for replacements
 
 ```bash
+# Use ⦃PLACEHOLDER⦄ format for React compatibility
 convert ./my-project --placeholder-format unicode
 ```
-    Use ⦃PLACEHOLDER⦄ format for React compatibility
 
 Related commands:
   • make-template init - Initialize template configuration files
@@ -331,9 +331,9 @@ make-template hints [options]
 **Examples:**
 
 ```bash
+# Show all available hints
 hints
 ```
-    Show all available hints
 
 ### `init` - Initialize template configuration files
 
@@ -361,19 +361,19 @@ make-template init [project-path] [options]
 **Examples:**
 
 ```bash
+# Initialize in current directory
 init
 ```
-    Initialize in current directory
 
 ```bash
+# Initialize in specific directory
 init ./my-project
 ```
-    Initialize in specific directory
 
 ```bash
+# Initialize with custom template.json filename
 init --file my-template.json
 ```
-    Initialize with custom template.json filename
 
 Typical workflow:
   1. make-template init                  # Create configuration files
@@ -412,29 +412,29 @@ make-template restore [project-path] [options]
 **Examples:**
 
 ```bash
+# Restore current directory
 restore
 ```
-    Restore current directory
 
 ```bash
+# Restore template to working state
 restore ./my-template
 ```
-    Restore template to working state
 
 ```bash
+# Preview restoration in current directory
 restore --dry-run
 ```
-    Preview restoration in current directory
 
 ```bash
+# Restore specific files
 restore --files package.json,src/index.js
 ```
-    Restore specific files
 
 ```bash
+# Only restore placeholder values
 restore --placeholders-only
 ```
-    Only restore placeholder values
 
 ### `test` - Test template functionality
 
@@ -468,14 +468,14 @@ make-template test <template-path> [options]
 **Examples:**
 
 ```bash
+# Test template functionality
 test ./my-template
 ```
-    Test template functionality
 
 ```bash
+# Test with detailed output
 test ./my-template --verbose
 ```
-    Test with detailed output
 
 ### `validate` - Validate template.json
 
@@ -499,24 +499,24 @@ make-template validate [options]
 **Examples:**
 
 ```bash
+# Validate template.json in current directory
 validate template.json
 ```
-    Validate template.json in current directory
 
 ```bash
+# Validate specific file
 validate --file my-template.json
 ```
-    Validate specific file
 
 ```bash
+# Get fix suggestions
 validate --file template.json --suggest
 ```
-    Get fix suggestions
 
 ```bash
+# Auto-fix safe issues
 validate --file template.json --fix
 ```
-    Auto-fix safe issues
 <!-- END AUTO-GENERATED: make-template commands -->
 
 ## Registry System
