@@ -46,7 +46,7 @@ Replace placeholders in template files with user-provided values.
 export default async function setup({ ctx, tools }) {
   // Replace project name in all files (default selector matches everything)
   await tools.placeholders.replaceAll({ PROJECT_NAME: ctx.projectName });
-  
+
   // Or replace in specific file types
   await tools.placeholders.replaceAll(
     { PROJECT_NAME: ctx.projectName },
@@ -119,11 +119,11 @@ export default async function setup({ ctx, tools }) {
   // Set simple values
   await tools.json.set('package.json', 'name', ctx.projectName);
   await tools.json.set('package.json', 'version', '1.0.0');
-  
+
   // Set nested values
   await tools.json.set('package.json', 'author.name', 'Jane Doe');
   await tools.json.set('package.json', 'author.email', 'jane@example.com');
-  
+
   // Set scripts
   await tools.json.set('package.json', 'scripts.dev', 'vite');
   await tools.json.set('package.json', 'scripts.build', 'vite build');
@@ -335,7 +335,7 @@ export default async function setup({ ctx, tools }) {
     'src/auth',
     { overwrite: false }
   );
-  
+
   // Copy single file
   await tools.templates.copy(
     'tailwind.config.js',
@@ -380,10 +380,10 @@ Configure IDE settings by copying curated configurations from the template's `__
 export default async function setup({ ctx, tools }) {
   // Copy VSCode configuration
   await tools.templates.copy('.vscode', '.vscode');
-  
-  // Copy Cursor configuration  
+
+  // Copy Cursor configuration
   await tools.templates.copy('.cursor', '.cursor');
-  
+
   // Copy Windsurf configuration
   await tools.templates.copy('.windsurf', '.windsurf');
 }
@@ -686,18 +686,18 @@ Add informative logging to setup scripts.
 // _setup.mjs
 export default async function setup({ ctx, tools }) {
   tools.logger.info('Starting setup...');
-  
+
   await tools.json.set('package.json', 'name', ctx.projectName);
   tools.logger.info(`Set project name to: ${ctx.projectName}`);
-  
+
   const features = ctx.options.byDimension.features || [];
-  
+
   if (features.length > 0) {
     tools.logger.info(`Enabling features: ${features.join(', ')}`);
   } else {
     tools.logger.info('No additional features enabled');
   }
-  
+
   tools.logger.info('Setup complete!');
 }
 ```
@@ -732,7 +732,7 @@ export default async function setup({ ctx, tools }) {
 
   // 3. Handle styling dimension
   const styling = ctx.options.byDimension.styling || 'css-modules';
-  
+
   if (styling === 'tailwind') {
     await tools.templates.copy('tailwind.config.js', 'tailwind.config.js');
     await tools.json.merge('package.json', {
@@ -772,7 +772,7 @@ export default async function setup({ ctx, tools }) {
     `PORT=${ctx.constants.DEFAULT_PORT || 3000}`,
     'NODE_ENV=development'
   ].join('\n');
-  
+
   await tools.files.write('.env.example', envContent);
 
   // 6. Update README with next steps
