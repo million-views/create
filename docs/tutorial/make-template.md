@@ -849,24 +849,853 @@ You should see:
 cd ..
 ```
 
+## Making Templates Dynamic: Setup Scripts
+
+So far, you've learned that templates are files with placeholders that get replaced during scaffolding. This works great for static content like business names, emails, and contact information. But what if you want templates that **adapt based on what the consumer needs**?
+
+For example, what if some consumers want authentication while others don't? What if the LawnMow App should configure itself differently based on whether they need payment processing?
+
+This is where **setup scripts (`_setup.mjs`)** come in—they transform your templates from static boilerplates into intelligent, adaptive scaffolding tools.
+
+### What are Setup Scripts?
+
+A `_setup.mjs` file is a JavaScript module that runs **after** files are copied but **before** the project is handed to the consumer. Think of it as a post-processing step that can:
+
+- Add or remove files based on configuration
+- Modify package.json based on selected features
+- Generate dynamic content like documentation
+- Ensure consistency between related files
+
+The setup script receives an **Environment** object with two key properties:
+
+- **`ctx`**: Immutable context (project name, consumer choices, placeholder values)
+- **`tools`**: Curated utilities for file operations, JSON manipulation, text processing
+
+**Important**: Setup scripts run in a **secure sandbox** (Node.js VM) with no access to `fs`, `require()`, or `import`. All operations must use the provided `tools` API.
+
+### Enhance LawnMow App with a Setup Script
+
+Let's enhance the LawnMow App template to let consumers choose which features to include.
+
+#### Step 1: Add Setup Script
+
+Navigate back to the LawnMow App directory:
+
+```bash
+cd lawnmow-app
+```
+
+Create the setup script:
+
+**_setup.mjs:**
+
+```javascript
+export default async function setup({ ctx, tools }) {
+  // Always replace core placeholders
+  await tools.placeholders.applyInputs([
+    'package.json',
+    'wrangler.jsonc'
+  ]);
+
+  // Track enabled features for documentation
+  const features = [];
+
+  // Check if consumer wants authentication
+  if (ctx.inputs.ENABLE_AUTH === 'true' || ctx.inputs.ENABLE_AUTH === true) {
+    features.push('authentication');
+    
+    // Add auth dependencies
+    await tools.json.merge('package.json', {
+      dependencies: {
+        '@auth/core': '^0.18.0'
+      }
+    });
+    
+    tools.logger.info('✓ Added authentication support');
+  }
+
+  // Check if consumer wants payment processing
+  if (ctx.inputs.ENABLE_PAYMENTS === 'true' || ctx.inputs.ENABLE_PAYMENTS === true) {
+    features.push('payments');
+    
+    // Add Stripe dependencies
+    await tools.json.merge('package.json', {
+      dependencies: {
+        '@stripe/stripe-js': '^2.2.0'
+      }
+    });
+    
+    tools.logger.info('✓ Added payment processing');
+  }
+
+  // Generate feature documentation
+  if (features.length > 0) {
+    await tools.files.write('FEATURES.md', 
+      `# ${ctx.projectName} - Features\n\n` +
+      'This project includes:\n\n' +
+      features.map(f => `- ${f}`).join('\n') +
+      '\n\nSee package.json for specific dependencies.'
+    );
+  }
+}
+```
+
+#### Step 2: Add Feature Placeholders
+
+Update `template.json` to include feature flags:
+
+```json
+{
+  "schemaVersion": "1.0.0",
+  "id": "workshop/lawnmow-app",
+  "name": "LawnMow App",
+  "description": "Customer-facing lawn care app",
+  "placeholderFormat": "unicode",
+  "placeholders": {
+    "PROJECT_NAME": {
+      "description": "Project name",
+      "default": "lawnmow-app",
+      "required": true
+    },
+    "CLOUDFLARE_ACCOUNT_ID": {
+      "description": "Cloudflare account ID",
+      "required": false
+    },
+    "D1_DATABASE_NAME": {
+      "description": "D1 database name",
+      "required": false
+    },
+    "ENABLE_AUTH": {
+      "description": "Enable authentication features",
+      "type": "boolean",
+      "default": false,
+      "required": false
+    },
+    "ENABLE_PAYMENTS": {
+      "description": "Enable payment processing",
+      "type": "boolean",
+      "default": false,
+      "required": false
+    }
+  }
+}
+```
+
+#### Step 3: Test the Dynamic Template
+
+Now when consumers scaffold from this template, they can enable features:
+
+```bash
+cd ..
+mkdir test-dynamic && cd test-dynamic
+
+# Minimal app (no extra features)
+npx @m5nv/create-scaffold new basic-app \
+  --template ../lawnmow-app \
+  --placeholder PROJECT_NAME=basic-app \
+  --placeholder ENABLE_AUTH=false \
+  --placeholder ENABLE_PAYMENTS=false \
+  --yes
+
+# Full-featured app
+npx @m5nv/create-scaffold new premium-app \
+  --template ../lawnmow-app \
+  --placeholder PROJECT_NAME=premium-app \
+  --placeholder ENABLE_AUTH=true \
+  --placeholder ENABLE_PAYMENTS=true \
+  --yes
+
+# Check what was generated
+cat basic-app/package.json | grep "@auth"
+# (no auth dependency)
+
+cat premium-app/package.json | grep "@auth"
+# Should show: "@auth/core": "^0.18.0"
+
+cat premium-app/FEATURES.md
+# Shows enabled features
+```
+
+### Understanding the Tools API
+
+The `tools` object provides several modules for common operations:
+
+**`tools.placeholders`** - Replace tokens in files
+- `applyInputs(files)` - Apply consumer-provided placeholder values
+- `replaceAll(replacements, files)` - Custom replacements
+
+**`tools.files`** - File operations
+- `write(file, content)` - Write files
+- `copy(from, to)` - Copy files/directories
+- `move(from, to)` - Move/rename files
+- `remove(path)` - Delete files/directories
+- `ensureDirs(paths)` - Create directories
+
+**`tools.json`** - JSON manipulation
+- `merge(file, patch)` - Deep merge objects
+- `set(file, path, value)` - Set nested values
+- `read(file)` - Read JSON files
+
+**`tools.text`** - Text operations
+- `insertAfter({ file, marker, block })` - Insert text after marker
+- `appendLines({ file, lines })` - Append to file
+- `replace({ file, search, replace })` - String/regex replacement
+
+**`tools.logger`** - Logging (use sparingly)
+- `info(message)` - Info logs
+- `warn(message)` - Warnings
+
+See [Environment Reference](../reference/environment.md) for complete API documentation.
+
+### What You Learned
+
+- **Setup scripts**: JavaScript modules that run during scaffolding
+- **Dynamic behavior**: Templates can adapt based on consumer choices
+- **Tools API**: Rich utilities for file/JSON/text operations
+- **Secure sandbox**: No Node.js built-ins, only provided tools
+- **Feature flags**: Boolean placeholders to enable/disable features
+- **Documentation generation**: Create files based on configuration
+
+### Best Practices
+
+**Do:**
+- ✅ Keep setup scripts simple and focused
+- ✅ Use `tools` API for all operations
+- ✅ Document what features are enabled
+- ✅ Test with different placeholder combinations
+
+**Don't:**
+- ❌ Use `console.log()` excessively (use `tools.logger` sparingly)
+- ❌ Try to import Node.js modules
+- ❌ Assume placeholders always have values (check first)
+- ❌ Create complex nested conditionals
+
+## Using Template Assets for Conditional Features
+
+So far, our setup script uses simple boolean flags. But what if you want to include entire files conditionally? This is where **template assets** come in.
+
+Templates can include an assets directory (by default `__scaffold__/`) that contains files used during setup but not copied directly to the generated project.
+
+### Create Template Assets Directory
+
+In the `lawnmow-app` directory:
+
+```bash
+mkdir -p __scaffold__/features
+```
+
+Create feature-specific template files:
+
+**__scaffold__/features/auth-config.js.tpl:**
+```javascript
+// Authentication configuration for ⦃PROJECT_NAME⦄
+export const authConfig = {
+  providers: ['google', 'github'],
+  sessionSecret: process.env.SESSION_SECRET
+};
+```
+
+**__scaffold__/features/payment-config.js.tpl:**
+```javascript
+// Payment configuration for ⦃PROJECT_NAME⦄
+export const paymentConfig = {
+  stripePublishableKey: process.env.STRIPE_PUBLISHABLE_KEY,
+  stripeSecretKey: process.env.STRIPE_SECRET_KEY
+};
+```
+
+### Update Setup Script to Use Assets
+
+Update **_setup.mjs:**
+
+```javascript
+export default async function setup({ ctx, tools }) {
+  await tools.placeholders.applyInputs([
+    'package.json',
+    'wrangler.jsonc'
+  ]);
+
+  const features = [];
+
+  // Conditionally add authentication
+  if (ctx.inputs.ENABLE_AUTH === 'true' || ctx.inputs.ENABLE_AUTH === true) {
+    features.push('authentication');
+    
+    // Create auth directory
+    await tools.files.ensureDirs(['src/config']);
+    
+    // Render auth config from template
+    await tools.templates.renderFile(
+      '__scaffold__/features/auth-config.js.tpl',
+      'src/config/auth.js',
+      { PROJECT_NAME: ctx.projectName }
+    );
+    
+    await tools.json.merge('package.json', {
+      dependencies: {
+        '@auth/core': '^0.18.0'
+      }
+    });
+    
+    tools.logger.info('✓ Added authentication with config');
+  }
+
+  // Conditionally add payments
+  if (ctx.inputs.ENABLE_PAYMENTS === 'true' || ctx.inputs.ENABLE_PAYMENTS === true) {
+    features.push('payments');
+    
+    await tools.files.ensureDirs(['src/config']);
+    
+    await tools.templates.renderFile(
+      '__scaffold__/features/payment-config.js.tpl',
+      'src/config/payments.js',
+      { PROJECT_NAME: ctx.projectName }
+    );
+    
+    await tools.json.merge('package.json', {
+      dependencies: {
+        '@stripe/stripe-js': '^2.2.0'
+      }
+    });
+    
+    tools.logger.info('✓ Added payment processing with config');
+  }
+
+  // Generate documentation
+  if (features.length > 0) {
+    await tools.files.write('FEATURES.md',
+      `# ${ctx.projectName} - Features\n\n` +
+      'Enabled features:\n' +
+      features.map(f => `- ${f}`).join('\n') +
+      '\n\nConfiguration files:\n' +
+      (features.includes('authentication') ? '- src/config/auth.js\n' : '') +
+      (features.includes('payments') ? '- src/config/payments.js\n' : '')
+    );
+  }
+}
+```
+
+**Key concepts:**
+
+- **`__scaffold__/` directory**: Contains template-only files
+- **`tools.templates.renderFile()`**: Renders template with placeholders and writes to destination
+- **Template files (`.tpl`)**: Files with placeholders that get processed
+- **Automatic cleanup**: `__scaffold__/` and `_setup.mjs` are removed after scaffolding
+
+Test the enhanced template:
+
+```bash
+cd ../test-dynamic
+
+npx @m5nv/create-scaffold new configured-app \
+  --template ../lawnmow-app \
+  --placeholder PROJECT_NAME=configured-app \
+  --placeholder ENABLE_AUTH=true \
+  --placeholder ENABLE_PAYMENTS=true \
+  --yes
+
+# Check generated config files
+ls configured-app/src/config/
+# Should show: auth.js  payments.js
+
+cat configured-app/src/config/auth.js
+# Should have PROJECT_NAME replaced
+```
+
+### What You Learned
+
+- **Template assets**: `__scaffold__/` directory for template-only files
+- **Conditional file generation**: Create files only when features are enabled
+- **Template rendering**: `tools.templates.renderFile()` processes placeholders in template files
+- **Organized features**: Keep feature code in separate template files
+- **Automatic cleanup**: Assets directory removed after setup completes
+
+## Structured Configuration with Dimensions
+
+So far, we've used simple boolean placeholders (`ENABLE_AUTH=true`). This works, but has limitations:
+
+- Consumers must know exactly which placeholders exist
+- No guidance on valid combinations
+- Hard to visualize what the template offers
+
+**Dimensions** solve this by providing a structured way to define configuration options. They enable:
+
+1. **Discoverable options** - Consumers see what's available
+2. **Type safety** - Single-select vs multi-select enforced
+3. **Visual configuration** - Tools like validator.breadcrumbs.workers.dev can render your template's options
+4. **Better validation** - Prevent invalid combinations before scaffolding
+
+### Understanding Dimensions
+
+Dimensions are named configuration categories in your `template.json`:
+
+```json
+{
+  "setup": {
+    "dimensions": {
+      "features": {
+        "type": "multi",
+        "values": ["auth", "payments", "analytics"],
+        "default": []
+      },
+      "deployment": {
+        "type": "single",
+        "values": ["cloudflare-workers", "vercel"],
+        "default": "cloudflare-workers"
+      }
+    }
+  }
+}
+```
+
+**Dimension types:**
+- **`single`**: Consumer selects exactly one value (like a radio button)
+- **`multi`**: Consumer can select multiple values (like checkboxes)
+
+### Add Dimensions to LawnMow App
+
+Update `lawnmow-app/template.json`:
+
+```json
+{
+  "schemaVersion": "1.0.0",
+  "id": "workshop/lawnmow-app",
+  "name": "LawnMow App",
+  "description": "Customer-facing lawn care app with configurable features",
+  "placeholderFormat": "unicode",
+  
+  "placeholders": {
+    "PROJECT_NAME": {
+      "description": "Project name",
+      "default": "lawnmow-app",
+      "required": true
+    },
+    "CLOUDFLARE_ACCOUNT_ID": {
+      "description": "Cloudflare account ID",
+      "required": false
+    },
+    "D1_DATABASE_NAME": {
+      "description": "D1 database name",
+      "required": false
+    }
+  },
+  
+  "setup": {
+    "policy": "strict",
+    "dimensions": {
+      "features": {
+        "type": "multi",
+        "values": ["auth", "payments", "analytics"],
+        "default": []
+      }
+    }
+  }
+}
+```
+
+### Update Setup Script to Use Dimensions
+
+Now update `_setup.mjs` to check dimension selections instead of placeholder booleans:
+
+```javascript
+export default async function setup({ ctx, tools }) {
+  await tools.placeholders.applyInputs([
+    'package.json',
+    'wrangler.jsonc'
+  ]);
+
+  const features = [];
+
+  // Use tools.options to check dimension selections
+  await tools.options.when('auth', async () => {
+    features.push('authentication');
+    
+    await tools.files.ensureDirs(['src/config']);
+    await tools.templates.renderFile(
+      '__scaffold__/features/auth-config.js.tpl',
+      'src/config/auth.js',
+      { PROJECT_NAME: ctx.projectName }
+    );
+    
+    await tools.json.merge('package.json', {
+      dependencies: { '@auth/core': '^0.18.0' }
+    });
+    
+    tools.logger.info('✓ Authentication enabled');
+  });
+
+  await tools.options.when('payments', async () => {
+    features.push('payments');
+    
+    await tools.files.ensureDirs(['src/config']);
+    await tools.templates.renderFile(
+      '__scaffold__/features/payment-config.js.tpl',
+      'src/config/payments.js',
+      { PROJECT_NAME: ctx.projectName }
+    );
+    
+    await tools.json.merge('package.json', {
+      dependencies: { '@stripe/stripe-js': '^2.2.0' }
+    });
+    
+    tools.logger.info('✓ Payment processing enabled');
+  });
+
+  await tools.options.when('analytics', async () => {
+    features.push('analytics');
+    
+    await tools.json.merge('package.json', {
+      dependencies: { '@vercel/analytics': '^1.1.0' }
+    });
+    
+    tools.logger.info('✓ Analytics enabled');
+  });
+
+  // Generate documentation
+  if (features.length > 0) {
+    await tools.files.write('FEATURES.md',
+      `# ${ctx.projectName}\n\n` +
+      'Enabled features:\n' +
+      features.map(f => `- ${f}`).join('\n')
+    );
+  }
+}
+```
+
+**Key difference**: Instead of checking `ctx.inputs.ENABLE_AUTH`, we use `tools.options.when('auth', callback)`. This checks if 'auth' was selected in the `features` dimension.
+
+### Using Dimensions with Selection Files
+
+Now consumers configure templates using **selection files**—JSON files that combine dimension choices, placeholder values, and metadata into a single, shareable configuration.
+
+**Why selection files?**
+- **Complete configuration**: Dimensions + placeholders in one file
+- **Shareable**: Commit to version control, share with team
+- **Reproducible**: Same file = same output every time
+- **Visual tools**: Generated by validator.breadcrumbs.workers.dev
+
+Create selection files for different configurations:
+
+```bash
+cd ../test-dynamic
+
+# Create selection file for auth only
+cat > auth-only.selection.json << 'EOF'
+{
+  "schemaVersion": "1.0.0",
+  "templateId": "workshop/lawnmow-app",
+  "choices": {
+    "features": ["auth"]
+  },
+  "placeholders": {
+    "PROJECT_NAME": "app-with-auth"
+  }
+}
+EOF
+
+# Scaffold with auth feature
+npx @m5nv/create-scaffold new app-with-auth \
+  --template ../lawnmow-app \
+  --selection auth-only.selection.json
+
+# Create selection file for all features
+cat > full-features.selection.json << 'EOF'
+{
+  "schemaVersion": "1.0.0",
+  "templateId": "workshop/lawnmow-app",
+  "choices": {
+    "features": ["auth", "payments", "analytics"]
+  },
+  "placeholders": {
+    "PROJECT_NAME": "app-full"
+  }
+}
+EOF
+
+# Scaffold with all features
+npx @m5nv/create-scaffold new app-full \
+  --template ../lawnmow-app \
+  --selection full-features.selection.json
+
+cat app-full/FEATURES.md
+# Shows all three features
+```
+
+### Visual Configuration Tool
+
+Upload your `template.json` to **validator.breadcrumbs.workers.dev** to:
+
+- Interactively select dimensions and set placeholders
+- Validate configurations against gates and hints
+- **Download a complete selection file**
+- Share the configuration URL with your team
+
+This eliminates guesswork—consumers see exactly what your template offers and get a ready-to-use selection file.
+
+### What You Learned
+
+- **Dimensions**: Structured configuration options in `template.json`
+- **Single vs multi**: Control whether consumers pick one or many values
+- **`tools.options.when()`**: Conditional logic based on dimension selections
+- **Selection files**: Complete, shareable configuration (dimensions + placeholders + metadata)
+- **Visual configuration**: validator.breadcrumbs.workers.dev generates selection files interactively
+- **Reproducible scaffolding**: Same selection file = same output every time
+
+## Preventing Invalid Configurations with Gates and Hints
+
+Dimensions let consumers select options, but what if some combinations don't make sense? For example:
+
+- Cloudflare Workers can't use PostgreSQL (must use D1 or no database)
+- Payment features require a database to store transactions
+
+**Gates** and **Hints** solve these problems by adding validation rules to your template.
+
+### Understanding Gates
+
+Gates define compatibility constraints between dimension values. They prevent consumers from selecting invalid combinations.
+
+Add gates to `lawnmow-app/template.json`:
+
+```json
+{
+  "setup": {
+    "dimensions": {
+      "deployment": {
+        "type": "single",
+        "values": ["cloudflare-workers", "vercel"],
+        "default": "cloudflare-workers"
+      },
+      "database": {
+        "type": "single",
+        "values": ["d1", "postgres", "none"],
+        "default": "d1"
+      },
+      "features": {
+        "type": "multi",
+        "values": ["auth", "payments", "analytics"],
+        "default": []
+      }
+    },
+    "gates": {
+      "deployment": {
+        "cloudflare-workers": {
+          "database": ["d1", "none"]
+        },
+        "vercel": {
+          "database": ["postgres", "none"]
+        }
+      }
+    }
+  }
+}
+```
+
+**What this does:**
+- If consumer selects `deployment=cloudflare-workers`, then `database` can only be `d1` or `none`
+- If consumer selects `deployment=vercel`, then `database` can only be `postgres` or `none`
+
+**Error prevention:**
+```bash
+# Create selection with invalid combination
+cat > invalid.selection.json << 'EOF'
+{
+  "schemaVersion": "1.0.0",
+  "templateId": "workshop/lawnmow-app",
+  "choices": {
+    "deployment": "cloudflare-workers",
+    "database": "postgres"
+  },
+  "placeholders": {
+    "PROJECT_NAME": "invalid"
+  }
+}
+EOF
+
+# This will FAIL
+npx @m5nv/create-scaffold new invalid \
+  --template ../lawnmow-app \
+  --selection invalid.selection.json
+
+# Error: ❌ Invalid configuration:
+#   deployment=cloudflare-workers requires database to be one of: [d1, none]
+#   Selected: postgres
+```
+
+### Understanding Hints
+
+Hints provide feature suggestions and declare what infrastructure they need. They help guide template consumers toward valid configurations.
+
+Add hints to `lawnmow-app/template.json`:
+
+```json
+{
+  "hints": [
+    {
+      "id": "simple_booking",
+      "label": "Simple Booking",
+      "description": "Basic appointment scheduling without authentication",
+      "needs": {
+        "database": "required"
+      }
+    },
+    {
+      "id": "auth_booking",
+      "label": "Authenticated Booking",
+      "description": "User accounts with booking history",
+      "needs": {
+        "database": "required",
+        "features": ["auth"]
+      }
+    },
+    {
+      "id": "full_commerce",
+      "label": "Full Commerce",
+      "description": "Booking + payments + user accounts",
+      "needs": {
+        "database": "required",
+        "features": ["auth", "payments"]
+      }
+    }
+  ]
+}
+```
+
+**What hints do:**
+- Suggest common use cases to template consumers
+- Declare infrastructure requirements
+- Help visual tools (like validator.breadcrumbs.workers.dev) show compatible features
+
+**Validation with hints:**
+```bash
+# Create valid selection - payments with database
+cat > valid.selection.json << 'EOF'
+{
+  "schemaVersion": "1.0.0",
+  "templateId": "workshop/lawnmow-app",
+  "choices": {
+    "deployment": "cloudflare-workers",
+    "database": "d1",
+    "features": ["payments"]
+  },
+  "placeholders": {
+    "PROJECT_NAME": "valid"
+  }
+}
+EOF
+
+# This works - payments requires database, and consumer selected d1
+npx @m5nv/create-scaffold new valid \
+  --template ../lawnmow-app \
+  --selection valid.selection.json
+
+# Create invalid selection - payments without database
+cat > invalid-hints.selection.json << 'EOF'
+{
+  "schemaVersion": "1.0.0",
+  "templateId": "workshop/lawnmow-app",
+  "choices": {
+    "deployment": "cloudflare-workers",
+    "database": "none",
+    "features": ["payments"]
+  },
+  "placeholders": {
+    "PROJECT_NAME": "invalid"
+  }
+}
+EOF
+
+# This fails - payments requires database, but consumer selected none
+npx @m5nv/create-scaffold new invalid \
+  --template ../lawnmow-app \
+  --selection invalid-hints.selection.json
+
+# Error: ❌ Invalid configuration:
+#   Feature "payments" requires database but database=none was selected
+```
+
+### What You Learned
+
+- **Gates**: Compatibility constraints preventing invalid dimension combinations
+- **Hints**: Feature suggestions with infrastructure requirements
+- **Validation**: Proactive error prevention before scaffolding
+- **Consumer guidance**: Help consumers make valid configuration choices
+- **Visual tools**: validator.breadcrumbs.workers.dev renders hints/gates interactively
+
 ## What You Accomplished
 
-You created two production templates demonstrating a complete web presence for service businesses:
+You created **two production templates** demonstrating a complete web presence for service businesses, then progressively enhanced one with advanced features:
 
-**LawnMow Web** - Marketing website with hero section, contact forms, and testimonials; demonstrated `allowMultiple` for multiple images and testimonials, manual configuration with structured placeholder rules
+### Template 1: LawnMow Web (Static Marketing Site)
+**Focus:** Marketing website with hero section, contact forms, and testimonials
 
-**LawnMow App** - Customer-facing digital transformation product with scheduling, payments, and Cloudflare deployment; demonstrated full-stack template authoring with infrastructure, database schemas, and auto-detection
+**What you learned:**
+- `allowMultiple` for multiple images and testimonials
+- Manual configuration with structured placeholder rules in `.templatize.json`
+- Selector specificity for mixed JSX content
+- Section-based placeholder organization (HERO_, CONTACT_, TESTIMONIAL_)
 
-You also learned the core workflow using a basic React SPA: templates are just files with placeholders, automated initialization with `init`, and the `restore` feature for safe, non-destructive iteration.
+### Template 2: LawnMow App (Full-Stack with Progressive Enhancement)
+**Focus:** Customer-facing digital transformation product that evolved through multiple enhancements
 
-Key insights:
+**Basic version learned:**
+- Full-stack template authoring (frontend + backend + infrastructure)
+- Cloudflare Workers auto-detection patterns
+- Database schema templatization (SQL files)
+- Multi-context extraction (JSON, TSX, SQL)
+- Infrastructure-as-code in templates (wrangler.jsonc)
 
-- **No magic**: Templates are text files with `⦃PLACEHOLDERS⦄`
-- **Unicode delimiters**: Keep your app running during templatization by avoiding JSX conflicts
-- **Restore feature**: Convert → test → restore → develop → convert again—template authoring is non-destructive
-- **Production deployment**: Templates include infrastructure (Cloudflare Workers, D1 databases) not just code
-- **Multi-context extraction**: Different file types (JSON, TOML, SQL, TSX, JSX) use different processors
-- **`allowMultiple` feature**: Write one rule, handle multiple instances with auto-numbered placeholders
+**Enhanced with setup scripts:**
+- Dynamic behavior based on consumer choices (authentication, payments)
+- Tools API for file/JSON/text operations
+- Feature flags with boolean placeholders
+- Documentation generation
+
+**Enhanced with template assets:**
+- `__scaffold__/` directory for conditional files
+- `tools.templates.renderFile()` for template processing
+- Organized feature modules
+- Automatic cleanup after scaffolding
+
+**Enhanced with dimensions:**
+- Structured configuration options (not just boolean flags)
+- Single-select vs multi-select controls
+- `tools.options.when()` for conditional logic
+- Visual configuration support (validator.breadcrumbs.workers.dev)
+
+**Enhanced with gates and hints:**
+- Compatibility constraints preventing invalid combinations
+- Feature suggestions with infrastructure requirements
+- Proactive validation before scaffolding
+- Consumer guidance for valid configurations
+
+### Core Workflow (Basic React SPA)
+You also learned the fundamental workflow using a basic React SPA:
+
+- **No magic**: Templates are just text files with `⦃PLACEHOLDERS⦄`
+- **Unicode delimiters**: Keep your app running during templatization (avoid JSX conflicts)
+- **Restore feature**: Convert → test → restore → develop → convert again (non-destructive)
+- **Init automation**: `make-template init` generates configuration files
+- **Manual vs automated**: Understanding when to use auto-detection vs custom rules
+
+### Key Technical Insights
+
+**Templatization:**
+- `allowMultiple` feature: Write one rule, handle multiple instances with auto-numbered placeholders
+- File-order processing: Placeholders in `template.json` follow `.templatize.json` file order
+- Multi-context extraction: Different file types use different processors (JSON, JSX, HTML, SQL)
+- Selector specificity: Critical for mixed content (paragraphs with nested elements)
+
+**Dynamic Composition:**
+- Setup scripts execute in secure VM sandbox (no Node.js built-ins)
+- Tools API provides complete file/JSON/text operations
+- Template assets staged before setup, cleaned after delivery
+- Conditional logic enables infinite template variations
+
+**Configuration:**
+- Dimensions define structured choices (single or multi-select)
+- Hints declare feature requirements, enabling smart validation
+- Gates prevent invalid combinations proactively
+- Boolean placeholders work for simple cases, dimensions for complex configurations
 
 ## Next Steps
 
