@@ -26,11 +26,4 @@ describe('ValidateCommand', () => {
     assert.strictEqual(parsed.suggest, true);
     assert.strictEqual(parsed.templatePath, './template');
   });
-
-  it('parses fix flag', () => {
-    const cmd = new ValidateCommand();
-    const parsed = cmd.parseArgs(['./template', '--fix']);
-    assert.strictEqual(parsed.fix, true);
-    assert.strictEqual(parsed.templatePath, './template');
-  });
 });

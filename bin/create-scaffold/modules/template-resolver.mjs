@@ -144,7 +144,7 @@ export class TemplateResolver {
 
     // Check for command injection characters
     if (templateUrl.includes(';') || templateUrl.includes('|') || templateUrl.includes('&') ||
-        templateUrl.includes('`') || templateUrl.includes('$(') || templateUrl.includes('${')) {
+      templateUrl.includes('`') || templateUrl.includes('$(') || templateUrl.includes('${')) {
       throw new ContextualError('Template not accessible', {
         context: ErrorContext.SECURITY,
         severity: ErrorSeverity.CRITICAL,
@@ -153,6 +153,43 @@ export class TemplateResolver {
           'Use only alphanumeric characters, slashes, and safe punctuation'
         ]
       });
+    }
+
+    // Handle file:// URLs (primarily for testing with git fixtures)
+    if (templateUrl.startsWith('file://')) {
+      // Extract path from file:// URL
+      try {
+        const url = new URL(templateUrl);
+        const filePath = url.pathname;
+
+        // Security validation for file:// URLs
+        // Check for null bytes
+        if (filePath.includes('\0')) {
+          throw new Error('File path contains null bytes');
+        }
+
+        // Check for path traversal in the path components
+        if (filePath.includes('/../') || filePath.endsWith('/..')) {
+          throw new Error('Path traversal attempts are not allowed');
+        }
+
+        // file:// URLs must be absolute paths (which is acceptable for git repos)
+        if (!path.isAbsolute(filePath)) {
+          throw new Error('file:// URLs must contain absolute paths');
+        }
+
+        return templateUrl;
+      } catch (error) {
+        throw new ContextualError(`Invalid file:// URL: ${error.message}`, {
+          context: ErrorContext.USER_INPUT,
+          severity: ErrorSeverity.HIGH,
+          suggestions: [
+            'Ensure file:// URLs are properly formatted',
+            'Use file:///absolute/path/to/repository.git format',
+            'Avoid path traversal attempts (..)'
+          ]
+        });
+      }
     }
 
     // Handle local paths

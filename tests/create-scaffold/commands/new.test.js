@@ -2,9 +2,6 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { NewCommand } from '../../../bin/create-scaffold/commands/new/index.js';
 import { captureOutputAsync, mockExitAsync } from '../../helpers.js';
-import fs from 'fs/promises';
-import path from 'path';
-import os from 'os';
 
 describe('NewCommand', () => {
   it('requires project-name argument', async () => {

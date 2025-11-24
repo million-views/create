@@ -1,0 +1,18 @@
+{
+  "schemaVersion": "1.0.0",
+  "name": "template-a",
+  "version": "1.0.0",
+  "description": "Simple template A for testing",
+  "author": "Test Author",
+  "tags": [
+    "simple",
+    "test"
+  ],
+  "placeholderFormat": "unicode",
+  "placeholders": {
+    "PROJECT_NAME": {
+      "type": "string",
+      "description": "Project name"
+    }
+  }
+}

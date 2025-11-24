@@ -76,7 +76,10 @@ export class GitFixtureManager {
 
   async createBareRepo(fixtureName, options = {}) {
     const fixturePath = resolveGitFixturePath(fixtureName);
-    await File.validateDirectoryExists(fixturePath, `Git fixture "${fixtureName}"`);
+    const errors = await File.validateDirectoryExists(fixturePath, `Git fixture "${fixtureName}"`);
+    if (errors.length > 0) {
+      throw new Error(errors.join('; '));
+    }
 
     const uniqueSuffix = `${fixtureName.replace(/[^a-z0-9-]/gi, '-')}-${Date.now()}-${randomSuffix()}`;
     const workDir = path.join(this.baseDir, `${uniqueSuffix}-workdir`);

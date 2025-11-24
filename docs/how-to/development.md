@@ -193,10 +193,9 @@ The project follows a **testing pyramid** architecture that provides maximum con
 
 | Level | Command | Purpose | Confidence Level | Speed |
 |-------|---------|---------|------------------|-------|
-| **Unit** | `npm run test:unit` | Core components & infrastructure | **Foundation** - Ensures basic functionality works | ⚡ Fast |
-| **Integration** | `npm run test:integration` | Command-level functionality | **Feature** - Validates individual commands work | 🚀 Medium |
-| **Acceptance** | `npm run test:acceptance` | Requirements compliance | **Contract** - Verifies spec requirements met | 🐌 Slow |
-| **System** | `npm run test:system` | Full end-to-end + resources | **Production** - Validates complete system behavior | 🐌 Slow |
+| **Unit** | `npm run test:unit` | Core components & infrastructure (L2/L3) | **Foundation** - Ensures basic functionality works | ⚡ Fast |
+| **Integration** | `npm run test:integration` | Command-level functionality (L3/L4) | **Feature** - Validates individual commands work | 🚀 Medium |
+| **System** | `npm run test:system` | Full end-to-end workflows (L4) | **Production** - Validates complete system behavior | 🐌 Slow |
 
 ### Test Level Details
 
@@ -228,15 +227,6 @@ The project follows a **testing pyramid** architecture that provides maximum con
 - Make-Template Validate: Template validation and compliance
 
 **When to run**: After command changes, during feature development.
-
-#### Acceptance Tests (`npm run test:acceptance`)
-**Purpose**: Verify that all specification requirements are met and contractual obligations fulfilled.
-
-**Covers**:
-- Spec Compliance: Comprehensive requirements validation
-- Argument parsing standards, security requirements, error handling, help text, setup script execution, resource management, dependency constraints, package standards
-
-**When to run**: Before releases, after specification changes, for compliance verification.
 
 #### System Tests (`npm run test:system`)
 **Purpose**: Validate complete system behavior under realistic conditions with resource management.
@@ -335,16 +325,15 @@ npm uninstall -g @m5nv/create-scaffold
 npm test
 
 #Individual pyramid levels
-npm run test:unit         # Foundation: Core components & infrastructure
-npm run test:integration  # Feature: Command-level functionality
-npm run test:acceptance   # Contract: Requirements compliance
-npm run test:system       # Production: Full end-to-end + resources
+npm run test:unit         # Foundation: Core components & infrastructure (L2/L3)
+npm run test:integration  # Feature: Command-level functionality (L3/L4)
+npm run test:system       # Production: Full end-to-end workflows (L4)
 
-#Legacy commands (maintained for backward compatibility)
-npm run test:smoke        # Same as test:integration
-npm run test:e2e          # Same as test:system
+# Tool-specific test groups
+npm run test:create-scaffold  # All create-scaffold related tests
+npm run test:make-template    # All make-template related tests
 
-#Code quality
+# Code quality
 npm run lint              # Zero warnings required
 ```
 
@@ -364,18 +353,16 @@ npm run lint              # Code quality check
 
 **Before Releases** (Production readiness):
 ```bash
-npm run test:acceptance   # Verify spec compliance
 npm run test:system       # Full system validation
-npm test                  # Complete suite
+npm test                  # Complete suite (all 37 test suites)
 ```
 
 **Debugging Specific Issues**:
 ```bash
-#Test pyramid level by level to isolate problems
-npm run test:unit         # Check infrastructure
-npm run test:integration  # Check command functionality
-npm run test:acceptance   # Check requirements compliance
-npm run test:system       # Check full system behavior
+# Test pyramid level by level to isolate problems
+npm run test:unit         # Check infrastructure (L2/L3)
+npm run test:integration  # Check command functionality (L3/L4)
+npm run test:system       # Check full system behavior (L4)
 
 #Run individual test suites for deep debugging
 npm run test:suite "Security Tests"        # Debug security issues
@@ -388,13 +375,12 @@ npm run test:suite "Spec Compliance Tests"      # Debug spec violations
 **Confidence Building Approach**:
 1. **Unit tests** catch implementation bugs early
 2. **Integration tests** validate feature functionality
-3. **Acceptance tests** ensure contractual requirements
-4. **System tests** confirm production readiness
+3. **System tests** confirm production readiness
 
 **Performance-Optimized Workflow**:
 - Use `test:unit` + `test:integration` during development (fast feedback)
-- Use `test:acceptance` + `test:system` for final validation (comprehensive)
-- Use `npm test` for complete validation before releases
+- Use `test:system` for final validation (comprehensive)
+- Use `npm test` for complete validation before releases (all 37 test suites)
 
 ### Test specific functionality
 ```bash
@@ -449,10 +435,9 @@ Before any release, the following validation must pass:
 npm run lint                    # Must show zero warnings
 
 # 2. Testing pyramid validation (bottom-up confidence building)
-npm run test:unit               # Foundation: Core components work
-npm run test:integration        # Feature: Commands work end-to-end
-npm run test:acceptance         # Contract: Requirements met
-npm run test:system             # Production: Full system validation
+npm run test:unit               # Foundation: Core components work (L2/L3)
+npm run test:integration        # Feature: Commands work end-to-end (L3/L4)
+npm run test:system             # Production: Full system validation (L4)
 
 # 3. Complete suite validation
 npm test                        # All tests pass together
@@ -483,9 +468,9 @@ npm publish
 
 ### Release Checklist
 
-- [ ] All tests pass (`npm test`)
+- [ ] All tests pass (`npm test` - 37 test suites)
 - [ ] Zero lint warnings (`npm run lint`)
-- [ ] 100% spec compliance (`npm run test:acceptance`)
+- [ ] System tests pass (`npm run test:system`)
 - [ ] Manual CLI testing completed
 - [ ] Documentation updated for new features
 - [ ] CHANGELOG.md updated with changes
@@ -707,7 +692,7 @@ mkdir -p .kiro/specs/feature-name
 # Mark tasks complete as you go
 
 # 3. Validate implementation
-npm run test:acceptance    # Verify spec compliance
+npm run test:system        # Verify system behavior
 ```
 
 ### Debugging and Troubleshooting

@@ -390,8 +390,8 @@ function normalizeRegistries(value, filePath) {
     // 2. Objects mapping template names to URLs/paths (for new command aliases)
     if (typeof templates === 'object' && templates !== null && !Array.isArray(templates)) {
       // Check if this is a typed registry object
-      if (templates.type && (templates.url || templates.path)) {
-        // Typed registry format
+      if (templates.type) {
+        // Typed registry format - validate fields
         const { type, url, path } = templates;
         if (type !== 'git' && type !== 'local') {
           throw wrapValidationError(
@@ -420,12 +420,7 @@ function normalizeRegistries(value, filePath) {
         // Template mapping object format (legacy support)
         const templateMappings = Object.create(null);
         for (const [templateName, templateUrl] of Object.entries(templates)) {
-          if (typeof templateName !== 'string') {
-            throw wrapValidationError(
-              `Configuration file ${filePath} registry "${registryName}" template name must be a string`,
-              'config.registries'
-            );
-          }
+          // Note: Object.entries() always returns string keys, no type check needed for templateName
           if (typeof templateUrl !== 'string') {
             throw wrapValidationError(
               `Configuration file ${filePath} registry "${registryName}" template "${templateName}" must be a URL/path string`,
@@ -466,13 +461,7 @@ function normalizeTemplates(value, filePath) {
   const templates = Object.create(null);
 
   for (const [templateAlias, templateConfig] of Object.entries(value)) {
-    if (typeof templateAlias !== 'string') {
-      throw wrapValidationError(
-        `Configuration file ${filePath} template alias must be a string`,
-        'config.templates'
-      );
-    }
-
+    // Note: Object.entries() always returns string keys, no type check needed
     const trimmedAlias = templateAlias.trim();
     if (!trimmedAlias) {
       throw wrapValidationError(
@@ -491,12 +480,7 @@ function normalizeTemplates(value, filePath) {
     // Template config should have template name to URL/path mappings
     const normalizedMappings = Object.create(null);
     for (const [templateName, templatePath] of Object.entries(templateConfig)) {
-      if (typeof templateName !== 'string') {
-        throw wrapValidationError(
-          `Configuration file ${filePath} template "${templateAlias}" template name must be a string`,
-          'config.templates'
-        );
-      }
+      // Note: Object.entries() always returns string keys, no type check needed for templateName
       if (typeof templatePath !== 'string') {
         throw wrapValidationError(
           `Configuration file ${filePath} template "${templateAlias}" template "${templateName}" must be a URL/path string`,

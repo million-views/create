@@ -33,7 +33,10 @@ export class DryRunEngine {
       ? templateTarget
       : path.join(cachedRepoPath, templateTarget);
 
-    await File.validateDirectoryExists(templatePath, 'Template directory');
+    const errors = await File.validateDirectoryExists(templatePath, 'Template directory');
+    if (errors.length > 0) {
+      throw new Error(errors.join('; '));
+    }
 
     const templateLabel = path.relative(cachedRepoPath, templatePath) || path.basename(templatePath);
 
@@ -79,7 +82,10 @@ export class DryRunEngine {
    * Preview scaffolding operations from a local template path
    */
   async previewScaffoldingFromPath(templatePath, projectDir, metadata = null) {
-    await File.validateDirectoryExists(templatePath, 'Template directory');
+    const errors = await File.validateDirectoryExists(templatePath, 'Template directory');
+    if (errors.length > 0) {
+      throw new Error(errors.join('; '));
+    }
 
     if (this.logger) {
       await this.logger.logOperation('dry_run_preview', {

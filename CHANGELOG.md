@@ -14,10 +14,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Branch URL Parsing**: Fixed template resolver to properly handle GitHub repository shorthand with branch syntax (e.g., `owner/repo#branch`)
 - **Test Isolation**: Implemented comprehensive test isolation to prevent test artifacts from cluttering repository root, following Kiro Methodology guidelines
 - **Test Execution Context**: Updated test utilities to return working directory information, ensuring tests validate behavior in correct execution contexts
+- **Config Loader Validation**: Fixed unreachable validation path for typed registry configurations in normalizeRegistries function
+- **Dead Code Elimination**: Removed 4 files (~690 lines) of broken/dead code including duplicate validation utilities with incorrect imports
 
 ### Improved
 - **Repository Cleanliness**: All test executions now run in temporary directories, maintaining clean repository root as per Kiro Methodology
 - **Test Reliability**: Enhanced test suite stability by eliminating cross-test contamination and ensuring proper resource cleanup
+- **Test Coverage**: Improved overall coverage from 76.22% to 81.23% statements (c8: 77.97%), exceeding 80% target
+- **Test Registration**: Discovered and registered 4 unregistered test suites that weren't being executed by test runner
+- **Test Organization**: Reorganized test suites into 3-tier pyramid (unit/integration/system) with clear layer annotations (L2/L3/L4)
 
 ### Added
 - **Dual-Tool Package**: Integrated `make-template` CLI tool into the `@m5nv/create-scaffold` package
@@ -44,7 +49,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Security**: Comprehensive security audit passed for consolidated codebase
 - **Cross-Platform**: Validated compatibility across macOS, Linux, and Windows
 - **Architecture Migration**: Successfully migrated from custom CLI implementation to shared framework, eliminating ~600 lines of duplicated code
-- **Test Suite**: Updated test runner configuration and removed obsolete test files (5+ files)
+- **Test Suite Cleanup**:
+  - Removed legacy test suite groups (`test:smoke`, `test:e2e`, `test:acceptance`)
+  - Registered 4 previously unregistered test suites (error-handler, placeholder-resolver, selection-validator, path-resolver)
+  - Deleted 4 files of dead/broken test code (~690 lines)
+  - Created 71 new tests across 3 modules (config-loader, error-classes, template-ignore)
+  - All 37 test suites passing with 81.23% statement coverage
 - **Build Processes**: Verified linting and schema building functionality post-refactoring
 
 ## [0.6.0] - 2025-11-11

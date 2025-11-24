@@ -38,6 +38,12 @@ export class RegistryCacheManager extends EventEmitter {
 
     this.memoryCache = new Map();
     this.initialized = false;
+
+    // Track hit/miss statistics for hit rate calculation
+    this.stats = {
+      hits: 0,
+      misses: 0
+    };
   }
 
   /**
@@ -124,16 +130,21 @@ export class RegistryCacheManager extends EventEmitter {
 
     const entry = this.memoryCache.get(key);
     if (!entry) {
+      this.stats.misses++;
       this.emit('cache:miss', key);
       return null;
     }
 
     if (this.isExpired(entry)) {
       await this.delete(key);
+      this.stats.misses++;
       this.emit('cache:expired', key);
       return null;
     }
 
+    // Update access time for LRU eviction
+    entry.lastAccessed = Date.now();
+    this.stats.hits++;
     this.emit('cache:hit', key);
     return entry.data;
   }
@@ -144,11 +155,13 @@ export class RegistryCacheManager extends EventEmitter {
   async set(key, data, ttl = this.options.maxAge) {
     if (!this.options.enabled) return;
 
+    const now = Date.now();
     const entry = {
       data,
-      created: Date.now(),
+      created: now,
+      lastAccessed: now,
       ttl,
-      expires: Date.now() + ttl,
+      expires: now + ttl,
       size: this.calculateSize(data)
     };
 
@@ -333,12 +346,13 @@ export class RegistryCacheManager extends EventEmitter {
   }
 
   /**
-   * Calculate cache hit rate (simplified)
+   * Calculate cache hit rate
    */
   calculateHitRate() {
-    // This would require tracking hits/misses over time
-    // For now, return a placeholder
-    return 0.85; // 85% hit rate as example
+    const total = this.stats.hits + this.stats.misses;
+    if (total === 0) return 0;
+
+    return (this.stats.hits / total) * 100;
   }
 
   /**
@@ -347,6 +361,8 @@ export class RegistryCacheManager extends EventEmitter {
   async shutdown() {
     await this.saveCacheMetadata();
     this.memoryCache.clear();
+    this.stats.hits = 0;
+    this.stats.misses = 0;
     this.emit('shutdown');
   }
 }

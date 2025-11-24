@@ -17,11 +17,19 @@ class TestRunner {
     this.totalStartTime = performance.now();
     this.homeBaseDir = path.join(os.tmpdir(), 'create-scaffold-test-homes');
 
-    // Define test suite groups for perfect partitioning that delivers confidence
+    // Define test suite groups organized by test pyramid levels
     this.suiteGroups = {
-      // Unit tests: Core components and infrastructure
+      // Unit tests: Core components and infrastructure (L2/L3)
       'unit': [
         'Security Tests',
+        'BoundaryValidator Tests',
+        'Registry Cache Manager Tests',
+        'Error Classes Tests',
+        'Template Ignore Tests',
+        'Error Handler Tests',
+        'Placeholder Resolver Tests',
+        'Selection Validator Tests',
+        'Path Resolver Tests',
         'Template Validator Tests',
         'Options Processor Tests',
         'Config Loader Tests',
@@ -35,7 +43,7 @@ class TestRunner {
         'Templatize Markdown Tests',
         'Templatize HTML Tests'
       ],
-      // Integration tests: Command-level functionality
+      // Integration tests: Command-level functionality (L3/L4)
       'integration': [
         'Create-Scaffold New Tests',
         'Dry Run CLI Tests',
@@ -49,11 +57,7 @@ class TestRunner {
         'Make-Template Validate Tests',
         'Make-Template Config Validate Tests'
       ],
-      // Acceptance tests: Requirements and specification compliance
-      'acceptance': [
-        // Spec compliance tests removed - functionality covered by functional tests
-      ],
-      // System tests: Full end-to-end with resource management
+      // System tests: Full end-to-end workflows (L4)
       'system': [
         'Functional Tests',
         'Resource Leak Tests',
@@ -61,30 +65,13 @@ class TestRunner {
         'E2E Tutorial Workflows Tests',
         'E2E Guided Workflow Tests'
       ],
-      // Legacy groupings for backward compatibility
-      'smoke': [
-        'Create-Scaffold New Tests',
-        'Create-Scaffold List Tests',
-        'Create-Scaffold Validate Tests',
-        'Make-Template Init Tests',
-        'Make-Template Hints Tests',
-        'Make-Template Convert Tests',
-        'Make-Template Restore Tests',
-        'Make-Template Test Command Tests',
-        'Make-Template Validate Tests',
-        'Make-Template Config Validate Tests'
-      ],
-      'e2e': [
-        'Functional Tests',
-        'Resource Leak Tests',
-        'E2E Hermetic Isolation Tests',
-        'E2E Tutorial Workflows Tests',
-        'E2E Guided Workflow Tests'
-      ],
+      // Tool-specific groupings for targeted testing
       'create-scaffold': [
         'Create-Scaffold New Tests',
+        'Dry Run CLI Tests',
         'Create-Scaffold List Tests',
-        'Create-Scaffold Validate Tests'
+        'Create-Scaffold Validate Tests',
+        'Functional Tests'
       ],
       'make-template': [
         'Make-Template Init Tests',
@@ -271,6 +258,54 @@ class TestRunner {
         homeSuffix: 'security'
       },
       {
+        name: 'BoundaryValidator Tests',
+        command: ['--test', './tests/shared/boundary-validator.test.mjs'],
+        description: 'Path boundary enforcement and traversal prevention',
+        homeSuffix: 'boundary-validator'
+      },
+      {
+        name: 'Registry Cache Manager Tests',
+        command: ['--test', './tests/shared/registry-cache-manager.test.mjs'],
+        description: 'Template registry metadata caching with LRU eviction',
+        homeSuffix: 'registry-cache'
+      },
+      {
+        name: 'Error Classes Tests',
+        command: ['--test', './tests/shared/error-classes.test.mjs'],
+        description: 'Custom error class instantiation and properties',
+        homeSuffix: 'error-classes'
+      },
+      {
+        name: 'Template Ignore Tests',
+        command: ['--test', './tests/shared/template-ignore.test.mjs'],
+        description: 'Template artifact filtering and tree output sanitization',
+        homeSuffix: 'template-ignore'
+      },
+      {
+        name: 'Error Handler Tests',
+        command: ['--test', './tests/shared/error-handler.test.mjs'],
+        description: 'Error formatting and contextual error handling',
+        homeSuffix: 'error-handler'
+      },
+      {
+        name: 'Placeholder Resolver Tests',
+        command: ['--test', './tests/shared/placeholder-resolver.test.mjs'],
+        description: 'Placeholder resolution and merging logic',
+        homeSuffix: 'placeholder-resolver'
+      },
+      {
+        name: 'Selection Validator Tests',
+        command: ['--test', './tests/shared/selection-validator.test.mjs'],
+        description: 'Template selection validation logic',
+        homeSuffix: 'selection-validator'
+      },
+      {
+        name: 'Path Resolver Tests',
+        command: ['--test', './tests/shared/path-resolver.test.mjs'],
+        description: 'Path resolution and M5NV_HOME handling',
+        homeSuffix: 'path-resolver'
+      },
+      {
         name: 'Functional Tests',
         command: ['--test', './tests/create-scaffold/cli-validation.test.mjs', './tests/create-scaffold/cli-execution.test.mjs', './tests/create-scaffold/cli-error-handling.test.mjs', './tests/create-scaffold/cli-integration.test.mjs'],
         description: 'Comprehensive end-to-end CLI behavior validation',
@@ -296,7 +331,7 @@ class TestRunner {
       },
       {
         name: 'Config Loader Tests',
-        command: ['--test', './tests/shared/config-loader.test.mjs', './tests/shared/config-discovery.test.mjs'],
+        command: ['--test', './tests/shared/config-loader.test.mjs', './tests/shared/config-loader-templates.test.mjs', './tests/shared/config-discovery.test.mjs'],
         description: '.m5nvrc discovery and normalization for create-scaffold defaults',
         homeSuffix: 'config-loader'
       },

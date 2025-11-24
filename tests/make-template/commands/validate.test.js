@@ -24,12 +24,6 @@ describe('ValidateCommand (make-template)', () => {
     assert.strictEqual(parsed.suggest, true);
   });
 
-  it('parses fix flag', () => {
-    const cmd = new ValidateCommand();
-    const parsed = cmd.parseArgs(['--fix']);
-    assert.strictEqual(parsed.fix, true);
-  });
-
   it('uses template.json as default', () => {
     const cmd = new ValidateCommand();
     const parsed = cmd.parseArgs([]);

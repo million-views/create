@@ -15,9 +15,6 @@ export class ValidateCommand extends Command {
     } else if (arg === '--suggest') {
       parsed.suggest = true;
       return i;
-    } else if (arg === '--fix') {
-      parsed.fix = true;
-      return i;
     } else if (!arg.startsWith('-')) {
       if (!parsed.file) {
         parsed.file = arg;

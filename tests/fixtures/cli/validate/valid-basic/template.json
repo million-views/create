@@ -1,0 +1,8 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "test/valid-basic",
+  "name": "valid-basic",
+  "description": "Minimal valid template for validation testing",
+  "placeholderFormat": "unicode",
+  "placeholders": {}
+}
