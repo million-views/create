@@ -177,7 +177,7 @@ npx make-template test . --verbose
 
 **Example test output:**
 
-```
+```console
 ✓ Template validation passed
 ✓ Created temporary project
 ✓ Placeholder resolution successful
@@ -465,7 +465,7 @@ npx make-template config validate .templatize.json
 
 **Example validation output:**
 
-```
+```console
 ✓ Configuration validation successful
 
 File: .templatize.json
@@ -478,7 +478,7 @@ Summary: All checks passed
 
 If there are errors, you'll see specific messages:
 
-```
+```console
 ✗ Configuration validation failed
 
 Error in src/components/Hero.jsx:
@@ -737,7 +737,7 @@ npx make-template test . --verbose
 
 If there are issues, you'll see specific error messages:
 
-```
+```console
 ✗ Template test failed
 
 Issues found:
@@ -1006,34 +1006,34 @@ export default async function setup({ ctx, tools }) {
   // Check if consumer wants authentication
   if (ctx.inputs.ENABLE_AUTH === 'true' || ctx.inputs.ENABLE_AUTH === true) {
     features.push('authentication');
-    
+
     // Add auth dependencies
     await tools.json.merge('package.json', {
       dependencies: {
         '@auth/core': '^0.18.0'
       }
     });
-    
+
     tools.logger.info('✓ Added authentication support');
   }
 
   // Check if consumer wants payment processing
   if (ctx.inputs.ENABLE_PAYMENTS === 'true' || ctx.inputs.ENABLE_PAYMENTS === true) {
     features.push('payments');
-    
+
     // Add Stripe dependencies
     await tools.json.merge('package.json', {
       dependencies: {
         '@stripe/stripe-js': '^2.2.0'
       }
     });
-    
+
     tools.logger.info('✓ Added payment processing');
   }
 
   // Generate feature documentation
   if (features.length > 0) {
-    await tools.files.write('FEATURES.md', 
+    await tools.files.write('FEATURES.md',
       `# ${ctx.projectName} - Features\n\n` +
       'This project includes:\n\n' +
       features.map(f => `- ${f}`).join('\n') +
@@ -1223,44 +1223,44 @@ export default async function setup({ ctx, tools }) {
   // Conditionally add authentication
   if (ctx.inputs.ENABLE_AUTH === 'true' || ctx.inputs.ENABLE_AUTH === true) {
     features.push('authentication');
-    
+
     // Create auth directory
     await tools.files.ensureDirs(['src/config']);
-    
+
     // Render auth config from template
     await tools.templates.renderFile(
       '__scaffold__/features/auth-config.js.tpl',
       'src/config/auth.js',
       { PROJECT_NAME: ctx.projectName }
     );
-    
+
     await tools.json.merge('package.json', {
       dependencies: {
         '@auth/core': '^0.18.0'
       }
     });
-    
+
     tools.logger.info('✓ Added authentication with config');
   }
 
   // Conditionally add payments
   if (ctx.inputs.ENABLE_PAYMENTS === 'true' || ctx.inputs.ENABLE_PAYMENTS === true) {
     features.push('payments');
-    
+
     await tools.files.ensureDirs(['src/config']);
-    
+
     await tools.templates.renderFile(
       '__scaffold__/features/payment-config.js.tpl',
       'src/config/payments.js',
       { PROJECT_NAME: ctx.projectName }
     );
-    
+
     await tools.json.merge('package.json', {
       dependencies: {
         '@stripe/stripe-js': '^2.2.0'
       }
     });
-    
+
     tools.logger.info('✓ Added payment processing with config');
   }
 
@@ -1366,7 +1366,7 @@ Update `lawnmow-app/template.json`:
   "name": "LawnMow App",
   "description": "Customer-facing lawn care app with configurable features",
   "placeholderFormat": "unicode",
-  
+
   "placeholders": {
     "PROJECT_NAME": {
       "description": "Project name",
@@ -1382,7 +1382,7 @@ Update `lawnmow-app/template.json`:
       "required": false
     }
   },
-  
+
   "setup": {
     "policy": "strict",
     "dimensions": {
@@ -1412,45 +1412,45 @@ export default async function setup({ ctx, tools }) {
   // Use tools.options to check dimension selections
   await tools.options.when('auth', async () => {
     features.push('authentication');
-    
+
     await tools.files.ensureDirs(['src/config']);
     await tools.templates.renderFile(
       '__scaffold__/features/auth-config.js.tpl',
       'src/config/auth.js',
       { PROJECT_NAME: ctx.projectName }
     );
-    
+
     await tools.json.merge('package.json', {
       dependencies: { '@auth/core': '^0.18.0' }
     });
-    
+
     tools.logger.info('✓ Authentication enabled');
   });
 
   await tools.options.when('payments', async () => {
     features.push('payments');
-    
+
     await tools.files.ensureDirs(['src/config']);
     await tools.templates.renderFile(
       '__scaffold__/features/payment-config.js.tpl',
       'src/config/payments.js',
       { PROJECT_NAME: ctx.projectName }
     );
-    
+
     await tools.json.merge('package.json', {
       dependencies: { '@stripe/stripe-js': '^2.2.0' }
     });
-    
+
     tools.logger.info('✓ Payment processing enabled');
   });
 
   await tools.options.when('analytics', async () => {
     features.push('analytics');
-    
+
     await tools.json.merge('package.json', {
       dependencies: { '@vercel/analytics': '^1.1.0' }
     });
-    
+
     tools.logger.info('✓ Analytics enabled');
   });
 

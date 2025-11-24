@@ -413,7 +413,7 @@ npx @m5nv/create-scaffold validate ../lawnmow-app --json
 
 **Example validation output:**
 
-```
+```console
 ✓ Template validation successful
 
 Template: workshop/lawnmow-app
