@@ -158,9 +158,9 @@ function generateCommandMarkdown(tool, command, help) {
     lines.push('');
     for (const example of help.examples) {
       lines.push('```bash');
+      lines.push(`# ${example.desc}`);
       lines.push(example.cmd);
       lines.push('```');
-      lines.push(`    ${example.desc}`);
       lines.push('');
     }
   }

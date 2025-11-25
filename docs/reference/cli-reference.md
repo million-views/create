@@ -38,7 +38,8 @@ Both tools support these global options:
 - `--help, -h`: Print help
 - `--version, -v`: Show version information
 - `--verbose`: Enable verbose output
-- `--json`: Output results in JSON format (supported by: `list`, `validate` commands)
+
+*Note: JSON output is available via `--format json` on commands that support it (e.g., `list`).*
 
 <!-- AUTO-GENERATED: create-scaffold commands -->
 ## create-scaffold Commands
@@ -185,8 +186,6 @@ create-scaffold validate <template-path> [options]
 | Option | Description |
 |--------|-------------|
 | `--suggest` | Show intelligent fix suggestions Provide suggestions for fixing validation errors |
-| `--fix` | Auto-apply safe fixes Automatically fix issues that can be safely corrected. Manual review recommended after automated fixes. |
-| `--json` | Output results in JSON format Machine-readable output for automation |
 
 **Examples:**
 
@@ -203,11 +202,6 @@ validate ./template.json
 ```bash
 # Get fix suggestions
 validate ./my-template --suggest
-```
-
-```bash
-# Auto-fix safe issues
-validate ./my-template --fix
 ```
 <!-- END AUTO-GENERATED: create-scaffold commands -->
 
@@ -408,6 +402,7 @@ make-template restore [project-path] [options]
 | **Operation Modes** | |
 | `-d, --dry-run` | Preview changes without executing them |
 | `--yes` | Skip confirmation prompts |
+| `--keep-undo` | Preserve .template-undo.json after restoration Keeps the undo log file for debugging or re-restoration |
 
 **Examples:**
 
@@ -494,7 +489,6 @@ make-template validate [options]
 |--------|-------------|
 | `-f, --file <path>` | Specify input file path Custom path to configuration file |
 | `--suggest` | Show intelligent fix suggestions Provide suggestions for fixing validation errors |
-| `--fix` | Auto-apply safe fixes Automatically fix issues that can be safely corrected. Manual review recommended after automated fixes. |
 
 **Examples:**
 
@@ -511,11 +505,6 @@ validate --file my-template.json
 ```bash
 # Get fix suggestions
 validate --file template.json --suggest
-```
-
-```bash
-# Auto-fix safe issues
-validate --file template.json --fix
 ```
 <!-- END AUTO-GENERATED: make-template commands -->
 
@@ -650,7 +639,7 @@ CLI contributors should run `npm run schema:build` after editing the schema and 
 |----------|------|----------|-------------|
 | `<project-directory>` | string | Yes* | Name of the directory to create for your project. Must contain only letters, numbers, hyphens, and underscores. Cannot start with a dot or contain path separators. |
 
-*Not required when using `--list-templates` or `--help`
+*Not required when using `list` command or `--help`
 
 ## Configuration Defaults
 

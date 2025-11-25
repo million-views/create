@@ -51,6 +51,13 @@ export const restoreHelp = {
         {
           long: '--yes',
           desc: 'Skip confirmation prompts'
+        },
+        {
+          long: '--keep-undo',
+          desc: 'Preserve .template-undo.json after restoration',
+          detailed: [
+            'Keeps the undo log file for debugging or re-restoration'
+          ]
         }
       ]
     }

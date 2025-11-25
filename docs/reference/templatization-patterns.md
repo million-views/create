@@ -694,16 +694,14 @@ The configuration system validates your `.templatize.json` file and provides hel
 - Check for overlapping selectors
 - Test with sample content first
 
-### Debug Mode
+### Verbose Output
 
-Enable debug logging to see pattern matching details:
-
-```bash
-DEBUG=templatize npx make-template convert
-```
-
-This will show:
+The convert command provides detailed output during processing, showing:
 - Which patterns are loaded
-- Files being processed
+- Files being processed  
 - Pattern matches and replacements
 - Any errors or warnings
+
+For additional debugging, examine the generated files:
+- `template.json` - Contains all detected placeholders and their metadata
+- `.template-undo.json` - Records file operations for restoration via `npx make-template restore`

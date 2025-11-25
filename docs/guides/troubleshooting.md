@@ -158,7 +158,7 @@ rm -rf temp-test
 
 **Step 1: List available templates**
 ```bash
-npm create @m5nv/scaffold -- --list-templates --from-repo user/repo
+create-scaffold list --registry https://github.com/user/repo.git
 ```
 
 **Expected output:** List of available template directories
@@ -169,7 +169,7 @@ Template names are case-sensitive and must match directory names exactly.
 **Step 3: Verify branch contains template**
 ```bash
 # Check if template exists in specific branch
-create-scaffold list user/repo --branch feature-branch
+create-scaffold list --registry user/repo#feature-branch
 ```
 
 **Step 4: Use dry run to debug**

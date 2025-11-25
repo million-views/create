@@ -256,6 +256,16 @@ String or regex replacement with optional guard to ensure a match exists.
 
 File system operations scoped to the project directory.
 
+**read(path)**
+Read file contents as a UTF-8 string.
+*Parameters:* `path: string`
+*Returns:* `Promise<string>`
+
+**exists(path)**
+Check if a file or directory exists.
+*Parameters:* `path: string`
+*Returns:* `Promise<boolean>`
+
 **ensureDirs(paths)**
 Create directories. Accepts a single path or array of paths.
 *Parameters:* `paths: string | string[]`

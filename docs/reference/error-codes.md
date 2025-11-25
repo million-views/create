@@ -135,7 +135,7 @@ Please check your network connection and try again.
 
 | Error Message Pattern | Cause | Resolution |
 |----------------------|-------|------------|
-| `❌ Template not found in the repository` | Template directory doesn't exist | Check template name, use `--list-templates` |
+| `❌ Template not found in the repository` | Template directory doesn't exist | Check template name, run `create-scaffold list` |
 | `❌ Failed to copy template: [details]` | File copy operation failed | Check permissions, disk space |
 | `❌ Project directory already exists` | Target directory exists and is not empty | Choose different name or remove existing directory |
 | `❌ Permission denied` | Insufficient file system permissions | Check directory permissions |
@@ -367,7 +367,7 @@ npm create @m5nv/scaffold my-app --template basic --dry-run --log-file debug.log
 |---------|-----------|
 | "Unknown option" error | Check spelling, use `--help` for valid options |
 | "Repository not found" | Verify repository URL, check access permissions |
-| "Template not found" | Use `--list-templates` to see available templates |
+| "Template not found" | Run `create-scaffold list` to see available templates |
 | "Authentication failed" | Set up git credentials (SSH keys or PAT) |
 | "Permission denied" | Check file/directory permissions |
 | "Cache issues" | Use `--no-cache` to bypass cache |
@@ -377,7 +377,7 @@ npm create @m5nv/scaffold my-app --template basic --dry-run --log-file debug.log
 ### Getting Help
 
 1. **Check help:** `npm create @m5nv/scaffold -- --help`
-2. **List templates:** `npm create @m5nv/scaffold -- --list-templates`
+2. **List templates:** `create-scaffold list` or `npm create @m5nv/scaffold -- list`
 3. **Use dry run:** Add `--dry-run` to preview operations
 4. **Enable logging:** Add `--log-file debug.log` for detailed logs
 5. **Bypass cache:** Add `--no-cache` for fresh repository clone

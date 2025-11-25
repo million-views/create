@@ -634,7 +634,7 @@ export class TemplateResolver {
         suggestions: [
           'Available namespaces: official',
           'Configure registries in .m5nvrc for custom aliases',
-          'Run with --list-templates to see available templates'
+          'Run "create-scaffold list" to see available templates'
         ]
       });
     }
@@ -646,7 +646,7 @@ export class TemplateResolver {
         severity: ErrorSeverity.HIGH,
         suggestions: [
           `Available templates in ${parsed.namespace}: ${Object.keys(namespace).join(', ')}`,
-          'Run with --list-templates to see all available templates',
+          'Run "create-scaffold list" to see all available templates',
           'Check template name for typos'
         ]
       });
