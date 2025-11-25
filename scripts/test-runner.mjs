@@ -24,6 +24,7 @@ class TestRunner {
         'Security Tests',
         'BoundaryValidator Tests',
         'Registry Cache Manager Tests',
+        'Environment Module Tests',
         'Error Classes Tests',
         'Template Ignore Tests',
         'Error Handler Tests',
@@ -268,6 +269,12 @@ class TestRunner {
         command: ['--test', './tests/shared/registry-cache-manager.test.mjs'],
         description: 'Template registry metadata caching with LRU eviction',
         homeSuffix: 'registry-cache'
+      },
+      {
+        name: 'Environment Module Tests',
+        command: ['--test', './tests/environment/environment.test.mjs'],
+        description: 'Environment object factory and test utilities',
+        homeSuffix: 'environment'
       },
       {
         name: 'Error Classes Tests',

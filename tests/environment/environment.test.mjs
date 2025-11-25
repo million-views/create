@@ -5,11 +5,16 @@
  * - createContext() factory function
  * - isContext() validator
  * - createTestContext() helper
+ * - createTestTools() helper
+ * - createTestEnvironment() helper
  * - Logger utilities
  */
 
 import assert from 'node:assert/strict';
-import { describe, it } from 'node:test';
+import { describe, it, before, after } from 'node:test';
+import { mkdtemp, rm, mkdir } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 
 import {
   createContext,
@@ -17,7 +22,11 @@ import {
   ContextValidationError,
   DEFAULT_AUTHOR_ASSETS_DIR,
   DEFAULT_AUTHORING_MODE,
+  createTools,
+  isTools,
   createTestContext,
+  createTestTools,
+  createTestEnvironment,
   createTestLogger,
   createSilentLogger,
   TEST_DEFAULTS
@@ -333,6 +342,132 @@ describe('Testing Utilities', () => {
         logger.info('message');
         logger.warn('message');
       });
+    });
+  });
+});
+
+describe('Tools Module', () => {
+  let tempDir;
+
+  before(async () => {
+    tempDir = await mkdtemp(join(tmpdir(), 'env-tools-test-'));
+    // Create __scaffold__ directory for templates API
+    await mkdir(join(tempDir, '__scaffold__'), { recursive: true });
+  });
+
+  after(async () => {
+    await rm(tempDir, { recursive: true, force: true });
+  });
+
+  describe('createTools()', () => {
+    it('should create tools with required projectDirectory', async () => {
+      const tools = await createTools({
+        projectDirectory: tempDir,
+        projectName: 'test-app'
+      });
+
+      assert.ok(tools);
+      assert.ok(tools.files);
+      assert.ok(tools.json);
+      assert.ok(tools.text);
+      assert.ok(tools.placeholders);
+      assert.ok(tools.templates);
+      assert.ok(tools.inputs);
+      assert.ok(tools.logger);
+      assert.ok(tools.options);
+    });
+
+    it('should create tools with custom inputs', async () => {
+      const tools = await createTools({
+        projectDirectory: tempDir,
+        projectName: 'test-app',
+        inputs: { AUTHOR: 'Test Author' }
+      });
+
+      // Verify inputs API has the value
+      assert.equal(tools.inputs.get('AUTHOR'), 'Test Author');
+    });
+  });
+
+  describe('isTools()', () => {
+    it('should return true for valid tools object', async () => {
+      const tools = await createTools({
+        projectDirectory: tempDir,
+        projectName: 'test-app'
+      });
+
+      assert.equal(isTools(tools), true);
+    });
+
+    it('should return false for null', () => {
+      assert.equal(isTools(null), false);
+    });
+
+    it('should return false for undefined', () => {
+      assert.equal(isTools(undefined), false);
+    });
+
+    it('should return false for object missing required APIs', () => {
+      assert.equal(isTools({}), false);
+      assert.equal(isTools({ files: {} }), false);
+    });
+  });
+
+  describe('createTestTools()', () => {
+    it('should create tools with defaults', async () => {
+      const tools = await createTestTools({ projectDirectory: tempDir });
+
+      assert.ok(tools);
+      assert.ok(isTools(tools));
+    });
+
+    it('should throw if projectDirectory is missing', async () => {
+      await assert.rejects(
+        () => createTestTools({}),
+        /projectDirectory/
+      );
+    });
+  });
+
+  describe('createTestEnvironment()', () => {
+    it('should create both ctx and tools', async () => {
+      const { ctx, tools } = await createTestEnvironment({
+        projectDirectory: tempDir
+      });
+
+      assert.ok(ctx);
+      assert.ok(tools);
+      assert.ok(isContext(ctx));
+      assert.ok(isTools(tools));
+    });
+
+    it('should use consistent values between ctx and tools', async () => {
+      const { ctx, tools } = await createTestEnvironment({
+        projectDirectory: tempDir,
+        projectName: 'consistent-app',
+        inputs: { VERSION: '1.0.0' }
+      });
+
+      assert.equal(ctx.projectName, 'consistent-app');
+      assert.equal(ctx.inputs.VERSION, '1.0.0');
+      assert.equal(tools.inputs.get('VERSION'), '1.0.0');
+    });
+
+    it('should throw if projectDirectory is missing', async () => {
+      await assert.rejects(
+        () => createTestEnvironment({}),
+        /projectDirectory/
+      );
+    });
+
+    it('should return frozen environment object', async () => {
+      const env = await createTestEnvironment({
+        projectDirectory: tempDir
+      });
+
+      assert.throws(() => {
+        env.newProperty = 'value';
+      }, TypeError);
     });
   });
 });
