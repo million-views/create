@@ -62,10 +62,16 @@ This project follows a **zero-mock philosophy**:
 │                        TEST LAYERS                              │
 │                                                                 │
 │  ┌───────────────────────────────────────────────────────────┐  │
-│  │ L4 Tests                                                  │  │
-│  │ • Test L4 functions ONLY                                  │  │
-│  │ • Cannot call L3, L2, L1, or L0                           │  │
+│  │ L5 Tests                                                  │  │
+│  │ • Test L5 binary ONLY                                     │  │
+│  │ • Cannot call L4, L3, L2, L1, or L0                       │  │
 │  └───────────────────────────────────────────────────────────┘  │
+│                             ▲                                   │
+│  ┌──────────────────────────┴───────────────────────────────┐   │
+│  │ L4 Tests                                                 │   │
+│  │ • Test L4 functions ONLY                                 │   │
+│  │ • Cannot call L3, L2, L1, or L0                          │   │
+│  └──────────────────────────────────────────────────────────┘   │
 │                             ▲                                   │
 │  ┌──────────────────────────┴───────────────────────────────┐   │
 │  │ L3 Tests                                                 │   │
@@ -89,6 +95,13 @@ This project follows a **zero-mock philosophy**:
 ┌─────────────────────────────────────────────────────────────────┐
 │                    SYSTEM UNDER TEST (SUT)                      │
 │                                                                 │
+│  ┌───────────────────────────────────────────────────────────┐  │
+│  │ L5: CLI Binary                                            │  │
+│  │ • Executable artifact                                     │  │
+│  │ • Shebang, startup, process lifecycle                     │  │
+│  └───────────────────────────────────────────────────────────┘  │
+│                             │                                   │
+│                             ▼                                   │
 │  ┌───────────────────────────────────────────────────────────┐  │
 │  │ L4: CLI Entry Points                                      │  │
 │  │ • Router, command classes                                 │  │
@@ -126,6 +139,7 @@ This project follows a **zero-mock philosophy**:
 
 KEY PRINCIPLE:
 Tests at layer N sit ABOVE the SUT at layer N
+• L5 Tests → test L5 SUT binary
 • L4 Tests → test L4 SUT functions
 • L3 Tests → test L3 SUT functions
 • L2 Tests → test L2 SUT functions
@@ -250,38 +264,79 @@ test('executes setup script with resolved placeholders', async () => {
 - User-facing error messages
 
 **Test Constraint for L4**:
-- ✅ **MUST** spawn the CLI as a separate process (e.g., `spawnSync('node', ['bin/create-scaffold/index.mjs', ...args])`)
-- ✅ **MAY** assert on stdout, stderr, exit codes
-- ✅ **MAY** verify filesystem artifacts created by the CLI (after process completes)
-- ❌ **MUST NOT** import the CLI router or command classes
-- ❌ **MUST NOT** import or call L3 orchestrator functions
-- ❌ **MUST NOT** import or call L2 utility functions
-- ❌ **MUST NOT** import or call L1 wrapper functions
-- ❌ **MUST NOT** use L0 (raw Node.js APIs) except `child_process.spawnSync()` to invoke CLI
+- ✅ **MUST** import and test L4 command classes from the SUT
+- ✅ **MAY** instantiate commands and call `.execute()` with argument arrays
+- ✅ **MAY** use dependency injection for side effects (e.g., inject mock exit handler)
+- ✅ **MAY** assert on return values, stdout/stderr captures, and exit codes
+- ❌ **MUST NOT** import or call L3 orchestrator functions directly
+- ❌ **MUST NOT** import or call L2 utility functions directly
+- ❌ **MUST NOT** import or call L1 wrapper functions directly
+- ❌ **MUST NOT** use L0 (raw Node.js APIs) directly
 
-**Critical Rule**: The ONLY interaction with the SUT is through `argv` (command-line arguments). You're testing the complete user experience, not internal modules. The CLI wires up all dependencies internally.
+**Critical Rule**: Test the command's PUBLIC interface and argument processing. Commands internally call L3/L2/L1, but your test never does. You're testing the CONTRACT (argument parsing, validation, routing), not the implementation. Use dependency injection to avoid hardcoded side effects like `process.exit`.
 
-**Example**: `tests/create-scaffold/dry-run-cli.test.mjs`
+**Example**: `tests/create-scaffold/commands/new.test.js`
 ```javascript
-import { spawnSync } from 'child_process';
+import { NewCommand } from '../../../bin/create-scaffold/commands/new/index.js';
+import { mockExitAsync } from '../../helpers.js';
 
-test('should preview template without creating files', () => {
-  const result = spawnSync('node', [
-    'bin/create-scaffold/index.mjs',
-    'new', 'test-project',
-    '--template', 'react-vite',
-    '--dry-run'
-  ], { encoding: 'utf8' });
-
-  assert.strictEqual(result.status, 0);
-  assert(result.stdout.includes('DRY RUN MODE'));
-  // ❌ FORBIDDEN: Importing and calling setupRuntime() directly
-  // ❌ FORBIDDEN: Calling config-loader functions directly
-  // ✅ CORRECT: Test ONLY through CLI interface
+test('requires project-name argument', async () => {
+  const cmd = new NewCommand();
+  const exitCode = await mockExitAsync(async () => {
+    await cmd.execute([]); // L4 under test
+  });
+  assert.strictEqual(exitCode, 1);
+  // ✅ CORRECT: Test command logic through public interface
+  // ✅ CORRECT: Use DI to handle process.exit side effect
+  // ❌ FORBIDDEN: Calling setupRuntime() or template resolvers directly
 });
 ```
 
-**The key insight**: L4 tests exercise the entire stack naturally by invoking the CLI. The router creates all dependencies and wires them up. You never reach down.
+**The key insight**: L4 tests verify command logic efficiently with fast in-process execution and exhaustive matrix testing. They complement L5 tests, which verify the executable artifact.
+
+#### L5: CLI Binary
+**The executable artifact and process lifecycle.**
+
+**Example SUT**: `bin/create-scaffold/index.mjs` (the file itself)
+- Shebang (`#!/usr/bin/env node`)
+- Module loading and startup
+- Process termination and exit codes
+- Unhandled promise rejections
+
+**Test Constraint for L5**:
+- ✅ **MUST** spawn the CLI binary as a separate process (e.g., `spawnSync('node', ['bin/create-scaffold/index.mjs', ...args])`)
+- ✅ **MAY** assert on stdout, stderr, exit codes
+- ✅ **MAY** verify filesystem artifacts created by the CLI (after process completes)
+- ❌ **MUST NOT** import the CLI router or command classes
+- ❌ **MUST NOT** import or call L4 functions
+- ❌ **MUST NOT** import or call L3 functions
+- ❌ **MUST NOT** import or call L2 functions
+- ❌ **MUST NOT** import or call L1 functions
+- ❌ **MUST NOT** use L0 (raw Node.js APIs) except `child_process.spawnSync()` to invoke CLI
+
+**Critical Rule**: The ONLY interaction with the SUT is through `argv` (command-line arguments). You're testing the complete executable, including startup time, shebang correctness, and real-world process behavior. The binary wires up all dependencies internally.
+
+**Example**: `tests/create-scaffold/cli-execution.test.mjs`
+```javascript
+import { spawnSync } from 'child_process';
+
+test('should create project successfully', () => {
+  const result = spawnSync('node', [
+    'bin/create-scaffold/index.mjs',
+    'new', 'test-project',
+    '--template', 'react-vite'
+  ], { encoding: 'utf8' });
+
+  assert.strictEqual(result.status, 0);
+  assert(result.stdout.includes('Project created successfully'));
+  // ❌ FORBIDDEN: Importing and calling NewCommand.execute() directly
+  // ❌ FORBIDDEN: Calling setupRuntime() directly
+  // ✅ CORRECT: Test ONLY through CLI binary interface
+});
+```
+
+**The key insight**: L5 tests exercise the entire stack naturally by invoking the executable. This catches issues that L4 tests miss, like missing shebangs, unhandled rejections, or startup failures.
+
 
 ### Test Suite Organization
 
@@ -294,15 +349,15 @@ npm run test:unit
 # Integration tests: Orchestrators and commands (L3/L4)
 npm run test:integration
 
-# System tests: Full end-to-end CLI workflows (L4)
+# System tests: Full end-to-end CLI workflows (L5)
 npm run test:system
 ```
 
 **Run by layer**:
 ```bash
-npm run test:unit         # Fast feedback
-npm run test:integration  # Medium speed
-npm run test:system       # Comprehensive validation
+npm run test:unit         # Fast feedback (L1/L2)
+npm run test:integration  # Medium speed (L3/L4)
+npm run test:system       # Comprehensive validation (L5)
 ```
 ---
 
