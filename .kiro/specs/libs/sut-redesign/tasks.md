@@ -235,7 +235,7 @@
 ### Task 4.5: Verify placeholder domain
 - [x] Run full test suite: `npm test`
 - [x] All tests must pass
-- [ ] Commit: "refactor(lib): extract placeholder domain"
+- [x] Commit: "refactor(lib): extract placeholder domain"
 
 ---
 
