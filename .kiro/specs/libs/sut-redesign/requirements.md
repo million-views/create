@@ -130,9 +130,10 @@ The key insight driving this redesign:
 
 ## Dependencies
 
-- **Steering Documents**: `.kiro/steering/naming-conventions.md` (updated)
-- **Testing Guide**: `docs/guides/testing.md` (existing)
-- **Architecture Doc**: `ARCHITECTURE.md` (to be updated)
+- **Steering Documents**:
+  - `.kiro/steering/naming-conventions.md` - Contextual naming rules
+  - `.kiro/steering/typescript-guidelines.md` - Type-strippable TypeScript patterns
+- **Testing Guide**: `docs/guides/testing.md` - Design principles for testing and SUT
 
 ## Risks
 
@@ -143,12 +144,17 @@ The key insight driving this redesign:
 | Documentation drift | Medium | Medium | Update docs in same PR as code |
 | Naming convention violations | Low | Medium | Automated linting (future) |
 
-## Open Questions
+## Open Questions (Resolved)
 
-1. Should lib/index.mjs re-export with renamed identifiers for clarity?
-2. Should we create a lib/internal/ directory for truly private modules?
-3. How do we handle the bin/create-scaffold/modules/ validators that duplicate lib/?
+1. **Should lib/index.mjs re-export with renamed identifiers for clarity?**
+   - **Decision**: Yes, use namespace exports (design.md ADR-2)
+
+2. **Should we create a lib/internal/ directory for truly private modules?**
+   - **Decision**: No, domain facades provide sufficient encapsulation
+
+3. **How do we handle the bin/create-scaffold/modules/ validators that duplicate lib/?**
+   - **Decision**: Audit in Task 7.3; consolidate into lib/validation/ if reusable
 
 ---
 
-**Status**: DRAFT - Awaiting review before design phase
+**Status**: APPROVED - Ready for implementation

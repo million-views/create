@@ -147,6 +147,22 @@ lib/
 │   ├── discover.mts               # Template discovery logic
 │   └── ignore.mts                 # Template ignore patterns
 │
+├── environment/                   # ENVIRONMENT DOMAIN (setup script sandbox)
+│   ├── index.mts                  # Facade: exports Context, Tools, sandbox errors
+│   ├── context.mts                # Context factory for immutable ctx object
+│   ├── tools/                     # Tool implementations (sandboxed APIs)
+│   │   ├── index.mts              # Tools factory
+│   │   ├── files.mts              # files.* operations (read, write, copy, etc.)
+│   │   ├── inputs.mts             # inputs.* operations (placeholder access)
+│   │   ├── json.mts               # json.* operations (read, write, merge)
+│   │   ├── logger.mts             # logger.* operations (info, warn, error)
+│   │   ├── options.mts            # options.* operations (dimension access)
+│   │   ├── placeholders.mts       # placeholders.* operations (resolve, format)
+│   │   ├── templates.mts          # templates.* operations (render strings/files)
+│   │   └── text.mts               # text.* operations (transform utilities)
+│   ├── testing.mts                # Test fixtures: createTestContext, createTestTools
+│   └── utils.mts                  # Sandbox utilities: resolveProjectPath, SandboxError
+│
 ├── cli/                           # CLI INFRASTRUCTURE
 │   ├── command.mts                # Command base class
 │   └── router.mts                 # Router base class
@@ -182,6 +198,9 @@ lib/
 | lib/template-ignore.mjs | `TemplateIgnore` | lib/template/ignore.mjs | `Ignore` | Directory is "template" |
 | lib/templatize-json.mjs | `processJSONFile()` | lib/templatize/strategy/json.mts | `process()` | Module is "json" |
 | lib/utils/file.mjs | `File` | lib/util/file.mts | `File` | Already correct |
+| lib/environment/utils.mjs | `SetupSandboxError` | lib/environment/utils.mts | `SandboxError` | "Setup" context implicit |
+| lib/environment/context.mjs | `ContextValidationError` | lib/environment/context.mts | `ValidationError` | Module is "context" |
+| lib/environment/testing.mjs | `createTestContext()` | lib/environment/testing.mts | `context()` | Module is "testing" |
 
 ### Public Facade Re-exports
 
@@ -212,6 +231,10 @@ export * as templatize from './templatize/index.mjs';
 // Template (namespace export for clarity)
 export * as template from './template/index.mjs';
 // Usage: template.discover(), template.ignore()
+
+// Environment (namespace export for setup script sandbox)
+export * as environment from './environment/index.mjs';
+// Usage: environment.createContext(), environment.createTools(), environment.SandboxError
 
 // CLI infrastructure
 export { Command } from './cli/command.mjs';
@@ -318,6 +341,41 @@ export { normalize } from './schema.mjs';
 export type { PlaceholderFormat, ResolveOptions } from './format.mjs';
 ```
 
+### lib/environment/index.mts
+
+```typescript
+// Environment domain facade - Setup script sandbox
+export { createContext, isContext, ContextValidationError } from './context.mjs';
+export { createTools, isTools } from './tools/index.mjs';
+export { SandboxError, resolveProjectPath } from './utils.mjs';
+
+// Test utilities (separate export for test files only)
+export * as testing from './testing.mjs';
+
+// Re-export types
+export type { Context, CreateContextOptions } from './context.mjs';
+export type { Tools, ToolsConfig } from './tools/index.mjs';
+```
+
+**Sandboxing Architecture**:
+
+The environment domain provides a **sandboxed execution context** for template setup scripts. Key security features:
+
+1. **Path Boundary Enforcement**: `resolveProjectPath()` ensures all file operations stay within the project directory. Any attempt to escape via `../` or absolute paths throws `SandboxError`.
+
+2. **Immutable Context**: The `ctx` object passed to setup scripts is deeply frozen. Scripts cannot mutate project metadata.
+
+3. **Controlled Tool Surface**: Setup scripts only access operations through the `tools` object. Direct `fs` access is not available.
+
+4. **Input Validation**: All tool methods validate inputs before execution, throwing `SandboxError` on violations.
+
+```typescript
+// Example sandbox violation
+tools.files.write('../../../etc/passwd', 'malicious'); // Throws SandboxError
+tools.files.write('/absolute/path', 'content');        // Throws SandboxError
+tools.files.write('safe/relative/path.txt', 'ok');     // Allowed - stays in project
+```
+
 ## Migration Strategy
 
 ### Phase 1: Create New Structure (Non-Breaking)
@@ -365,6 +423,7 @@ export type { PlaceholderFormat, ResolveOptions } from './format.mjs';
 | tests/lib/validation/ | lib/validation/ | L2 |
 | tests/lib/placeholder/ | lib/placeholder/ | L2 |
 | tests/lib/templatize/ | lib/templatize/ | L2 |
+| tests/lib/environment/ | lib/environment/ | L2 |
 | tests/integration/ | Cross-domain | L3 |
 | tests/e2e/ | User workflows | L5 |
 
@@ -403,4 +462,4 @@ sanitizePath(input);
 
 ---
 
-**Status**: DRAFT - Awaiting requirements approval before implementation
+**Status**: APPROVED - Ready for implementation

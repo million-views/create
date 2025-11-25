@@ -7,6 +7,23 @@
 **Validation**: Full test suite must pass after each task  
 **TypeScript**: All new lib/ code uses type-strippable TypeScript (.mts)
 
+## Required Context Documents
+
+**IMPORTANT**: Before working on any task, ensure these steering documents are loaded:
+
+| Document | Purpose | Inclusion |
+|----------|---------|-----------|
+| `.kiro/steering/typescript-guidelines.md` | Type-strippable TypeScript patterns | Always |
+| `.kiro/steering/naming-conventions.md` | Contextual naming rules | Always |
+| `.kiro/steering/security-guidelines.md` | Security validation patterns | Always |
+| `.kiro/steering/nodejs-runtime-focus.md` | Node.js runtime requirements | Always |
+
+**Sprint-Specific Context**:
+| Document | Purpose |
+|----------|---------|
+| `.kiro/specs/libs/sut-redesign/requirements.md` | Goals and success criteria |
+| `.kiro/specs/libs/sut-redesign/design.md` | Architecture decisions and naming transforms |
+
 ---
 
 ## Phase 0: TypeScript Setup (Day 1)
@@ -366,10 +383,11 @@
 
 ## Phase 9: Documentation & Finalization (Week 5)
 
-### Task 9.1: Update ARCHITECTURE.md
-- [ ] Document new domain structure
-- [ ] Update dependency diagram
-- [ ] Document public API
+### Task 9.1: Create ARCHITECTURE.md
+- [ ] Create `ARCHITECTURE.md` at repository root
+- [ ] Document new domain structure with diagram
+- [ ] Document public API contract (lib/index.mts)
+- [ ] Include dependency rules (no cross-domain imports)
 
 ### Task 9.2: Add domain READMEs
 - [ ] Create `lib/error/README.md`
@@ -407,4 +425,4 @@
 
 ---
 
-**Status**: DRAFT - Awaiting requirements and design approval
+**Status**: APPROVED - Ready for implementation
