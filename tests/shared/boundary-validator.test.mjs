@@ -8,11 +8,17 @@ import { tmpdir } from 'os';
 import { BoundaryValidator, BoundaryViolationError } from '../../lib/boundary-validator.mjs';
 
 /**
- * L2 Tests for BoundaryValidator
+ * L1 Tests for BoundaryValidator
+ *
+ * This tests L1 (Low-Level Wrappers) - path validation wrappers around Node.js path APIs.
+ *
+ * Test Constraints:
+ * - ✅ MUST import and test L1 functions from the SUT (BoundaryValidator)
+ * - ✅ MAY use L0 (raw Node.js APIs) for test setup/teardown/verification
+ * - ❌ MUST NOT import or call L2/L3/L4 functions
  *
  * Following Guardrails:
  * - No mocks - uses actual temp directories
- * - L2 utility tests - pure inputs, let SUT handle Node APIs
  * - Tests critical security boundary enforcement
  */
 

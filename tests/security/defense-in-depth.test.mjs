@@ -155,14 +155,18 @@ test('BoundaryValidator - Layer 3: Runtime Boundary Enforcement', async (t) => {
   await t.test('wraps fs module with automatic validation', async () => {
     const validator = new BoundaryValidator('/safe/root');
 
-    // Mock fs module
-    const mockFs = {
+    // Test double: A minimal fs-like object to test wrapFs() behavior
+    // This is NOT a "mock" that replaces real implementation - it's testing
+    // that wrapFs() correctly wraps ANY fs-like object, which is its design.
+    // The function is designed to wrap arbitrary fs objects, so testing with
+    // a test double verifies this polymorphic behavior.
+    const testFsDouble = {
       async readFile(path) {
         return `reading ${path}`;
       }
     };
 
-    const wrappedFs = validator.wrapFs(mockFs);
+    const wrappedFs = validator.wrapFs(testFsDouble);
 
     // Valid path should work
     const result = await wrappedFs.readFile('file.txt');

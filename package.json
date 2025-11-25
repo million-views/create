@@ -77,6 +77,7 @@
   },
   "scripts": {
     "lint": "eslint .",
+    "lint:mocks": "node ./scripts/lint-test-mocks.mjs",
     "prepare": "husky",
     "schema:build": "node ./scripts/build-template-schema.mjs",
     "schema:check": "node ./scripts/build-template-schema.mjs --check && tsc --noEmit --project tsconfig.json",

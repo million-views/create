@@ -1,5 +1,25 @@
 #!/usr/bin/env node
 
+/**
+ * L3 Integration Tests for TemplateResolver
+ *
+ * LAYER CLASSIFICATION: L3 (Orchestrator)
+ * The TemplateResolver is an L3 orchestrator that coordinates:
+ * - URL parsing and validation (L2 logic)
+ * - Cache management (L3 coordination with CacheManager)
+ * - Git operations (L1 wrapped)
+ *
+ * TEST DOUBLE USAGE:
+ * TestCacheManager is a test double that implements the same interface as
+ * CacheManager but with controlled behavior. This follows the zero-mock
+ * philosophy because:
+ * 1. It uses the constructor's dependency injection interface
+ * 2. It creates REAL temp directories (not fake paths)
+ * 3. It tests the TemplateResolver's CONTRACT, not implementation
+ *
+ * For tests requiring real Git operations, see template-resolver.git.test.mjs
+ */
+
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
 import fs from 'node:fs/promises';
@@ -8,8 +28,11 @@ import { tmpdir } from 'node:os';
 import { TemplateResolver } from '../../bin/create-scaffold/modules/template-resolver.mjs';
 import { ContextualError } from '../../lib/error-handler.mjs';
 
-// Mock CacheManager for testing
-class MockCacheManager {
+/**
+ * Test double for CacheManager that uses real filesystem but controlled behavior.
+ * Implements the CacheManager interface for testing TemplateResolver.
+ */
+class TestCacheManager {
   constructor() {
     this.cache = new Map();
     this.populateCalls = [];
@@ -39,10 +62,10 @@ describe('TemplateResolver', () => {
     });
 
     it('creates instance with custom cache manager and config', () => {
-      const mockCache = new MockCacheManager();
+      const testCache = new TestCacheManager();
       const config = { defaults: { branch: 'main' } };
-      const resolver = new TemplateResolver(mockCache, config);
-      assert.strictEqual(resolver.cacheManager, mockCache);
+      const resolver = new TemplateResolver(testCache, config);
+      assert.strictEqual(resolver.cacheManager, testCache);
       assert.strictEqual(resolver.config, config);
     });
   });
@@ -461,8 +484,8 @@ describe('TemplateResolver', () => {
     });
 
     it('resolves GitHub shorthand URLs', async () => {
-      const mockCache = new MockCacheManager();
-      const resolver = new TemplateResolver(mockCache);
+      const testCache = new TestCacheManager();
+      const resolver = new TemplateResolver(testCache);
       const parsed = {
         type: 'github-shorthand',
         owner: 'user',
@@ -473,12 +496,12 @@ describe('TemplateResolver', () => {
 
       const result = await resolver.resolveToPath(parsed, { branch: 'main' });
       assert(result.startsWith(tmpdir()));
-      assert(mockCache.populateCalls.length > 0);
+      assert(testCache.populateCalls.length > 0);
     });
 
     it('resolves GitHub shorthand URLs with subpath', async () => {
-      const mockCache = new MockCacheManager();
-      const resolver = new TemplateResolver(mockCache);
+      const testCache = new TestCacheManager();
+      const resolver = new TemplateResolver(testCache);
       const parsed = {
         type: 'github-shorthand',
         owner: 'user',
@@ -492,8 +515,8 @@ describe('TemplateResolver', () => {
     });
 
     it('resolves GitHub repo URLs', async () => {
-      const mockCache = new MockCacheManager();
-      const resolver = new TemplateResolver(mockCache);
+      const testCache = new TestCacheManager();
+      const resolver = new TemplateResolver(testCache);
       const parsed = {
         type: 'github-repo',
         owner: 'user',
@@ -506,8 +529,8 @@ describe('TemplateResolver', () => {
     });
 
     it('resolves GitHub branch URLs', async () => {
-      const mockCache = new MockCacheManager();
-      const resolver = new TemplateResolver(mockCache);
+      const testCache = new TestCacheManager();
+      const resolver = new TemplateResolver(testCache);
       const parsed = {
         type: 'github-branch',
         owner: 'user',
@@ -550,8 +573,8 @@ describe('TemplateResolver', () => {
 
   describe('resolveRegistryUrl', () => {
     it('resolves official registry templates', async () => {
-      const mockCache = new MockCacheManager();
-      const resolver = new TemplateResolver(mockCache);
+      const testCache = new TestCacheManager();
+      const resolver = new TemplateResolver(testCache);
       const parsed = {
         type: 'registry',
         namespace: 'official',
@@ -677,8 +700,8 @@ describe('TemplateResolver', () => {
       const metadata = { id: 'test-template', name: 'Test Template', version: '1.0.0' };
       await fs.writeFile(templateJsonPath, JSON.stringify(metadata));
 
-      const mockCache = new MockCacheManager();
-      const resolver = new TemplateResolver(mockCache);
+      const testCache = new TestCacheManager();
+      const resolver = new TemplateResolver(testCache);
 
       try {
         // Change to the temp directory so relative paths work

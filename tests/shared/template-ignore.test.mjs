@@ -20,7 +20,8 @@ describe('Template Ignore Logic', () => {
     it('returns default set when no options provided', () => {
       const ignoreSet = createTemplateIgnoreSet();
 
-      assert.ok(ignoreSet instanceof Set);
+      // Test BEHAVIOR: the set contains expected entries
+      // NOT implementation: instanceof Set (which tests internal data structure choice)
       assert.ok(ignoreSet.has('.git'));
       assert.ok(ignoreSet.has('.template-undo.json'));
       assert.ok(ignoreSet.has('.templatize.json'));

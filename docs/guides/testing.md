@@ -34,10 +34,11 @@ This project follows a **zero-mock philosophy**:
 ### The Testing Manifesto
 
 1. **Question before fixing** - When a test fails, ask "Is the SUT broken or is the test broken?"
-2. **Design for testability** - Not "design for test pass-ability"
+2. **Design for testability** - The SUT should expose verification methods; tests should not reach around the SUT
 3. **Test behavior, not implementation** - Tests should survive refactoring
 4. **Fail fast on validation errors** - Never mask security failures with fallbacks
 5. **One assertion per concept** - Clear failure messages guide debugging
+6. **Validate through the SUT** - L1 tests verify low-level operations; higher layers trust and validate outcomes
 
 ---
 
@@ -55,7 +56,7 @@ This project follows a **zero-mock philosophy**:
 
 ### The Layered Testing Model
 
-**CRITICAL PRINCIPLE**: Tests at layer N can ONLY call functions at layer N. They cannot reach down to N-1, N-2, etc.
+**CRITICAL PRINCIPLE**: Tests at layer N can ONLY call functions at layer N (of SUT). They cannot reach down to N-1, N-2, etc.
 
 ```text
 ┌─────────────────────────────────────────────────────────────────┐
@@ -239,16 +240,19 @@ test('should ignore template artifacts', () => {
 import { setupRuntime } from '../../bin/create-scaffold/modules/setup-runtime.mjs';
 
 test('executes setup script with resolved placeholders', async () => {
+  // Provide data context object - NOT a mock, just test input data
   const context = {
-    template: mockTemplate,
+    template: { path: '/path/to/template', name: 'test-template' },
     placeholders: { PROJECT_NAME: 'test' }
   };
 
   const result = await setupRuntime(context); // L3 under test
 
+  // Validate through the SUT's return value - NOT by reading filesystem directly
   assert.strictEqual(result.success, true);
   // ❌ FORBIDDEN: Calling placeholder-resolver functions directly
   // ❌ FORBIDDEN: Using child_process.spawn() directly
+  // ❌ FORBIDDEN: Using fs.readFile() to verify - use SUT's verification methods
   // ✅ CORRECT: Test through setupRuntime's interface only
 });
 ```
@@ -266,28 +270,29 @@ test('executes setup script with resolved placeholders', async () => {
 **Test Constraint for L4**:
 - ✅ **MUST** import and test L4 command classes from the SUT
 - ✅ **MAY** instantiate commands and call `.execute()` with argument arrays
-- ✅ **MAY** use dependency injection for side effects (e.g., inject mock exit handler)
+- ✅ **MAY** use dependency injection for side effects (e.g., inject test exit handler)
 - ✅ **MAY** assert on return values, stdout/stderr captures, and exit codes
 - ❌ **MUST NOT** import or call L3 orchestrator functions directly
 - ❌ **MUST NOT** import or call L2 utility functions directly
 - ❌ **MUST NOT** import or call L1 wrapper functions directly
 - ❌ **MUST NOT** use L0 (raw Node.js APIs) directly
 
-**Critical Rule**: Test the command's PUBLIC interface and argument processing. Commands internally call L3/L2/L1, but your test never does. You're testing the CONTRACT (argument parsing, validation, routing), not the implementation. Use dependency injection to avoid hardcoded side effects like `process.exit`.
+**Critical Rule**: Test the command's PUBLIC interface and argument processing. Commands internally call L3/L2/L1, but your test never does. You're testing the CONTRACT (argument parsing, validation, routing), not the implementation. Use dependency injection to control side effects like `process.exit`.
 
 **Example**: `tests/create-scaffold/commands/new.test.js`
 ```javascript
 import { NewCommand } from '../../../bin/create-scaffold/commands/new/index.js';
-import { mockExitAsync } from '../../helpers.js';
+import { captureExitCode } from '../../helpers.js';
 
 test('requires project-name argument', async () => {
   const cmd = new NewCommand();
-  const exitCode = await mockExitAsync(async () => {
+  // captureExitCode is a test helper that captures process.exit via DI, not a mock
+  const exitCode = await captureExitCode(async () => {
     await cmd.execute([]); // L4 under test
   });
   assert.strictEqual(exitCode, 1);
   // ✅ CORRECT: Test command logic through public interface
-  // ✅ CORRECT: Use DI to handle process.exit side effect
+  // ✅ CORRECT: Use DI to capture process.exit side effect
   // ❌ FORBIDDEN: Calling setupRuntime() or template resolvers directly
 });
 ```
@@ -336,6 +341,141 @@ test('should create project successfully', () => {
 ```
 
 **The key insight**: L5 tests exercise the entire stack naturally by invoking the executable. This catches issues that L4 tests miss, like missing shebangs, unhandled rejections, or startup failures.
+
+
+### Design for Testability: The Critical Principle
+
+**THE CORE DESIGN PRINCIPLE**:
+
+```text
+L3 Test → calls L3 SUT methods (including verification methods)
+         ↓
+L3 SUT → uses L2/L1 internally for verification
+         ↓
+L1 Test → verifies filesystem operations work correctly
+```
+
+**If an L3 orchestrator needs verification, it should expose verification methods that internally use lower layers. The test should NOT reach around the SUT to verify - it should call the SUT's own verification interface.**
+
+This principle applies at every layer:
+- **L2 tests** call L2 SUT methods; L2 SUT may use L1 internally
+- **L3 tests** call L3 SUT methods; L3 SUT may use L2/L1 internally
+- **L4 tests** call L4 SUT methods; L4 SUT may use L3/L2/L1 internally
+- Tests NEVER reach around the SUT to lower layers for verification
+
+**Visual Representation**:
+
+```text
+WRONG: Test → SUT → [side effect] ← Test reads directly (L0)
+                                    ↑
+                                    This violates layer boundaries!
+
+RIGHT: Test → SUT → [side effect]
+                 ↓
+       Test → SUT.verify() → Uses L1 internally (inside SUT)
+```
+
+**Why This Matters**:
+- **Layer boundaries preserved**: L3 tests call L3 methods, not L0/L1 directly
+- **Trust the layers**: L1 tests verify low-level operations work; higher layers can trust them
+- **Refactoring safe**: Internal implementation changes don't break tests
+- **Clear contracts**: Each layer's responsibility is explicit
+- **Bug isolation**: When tests fail, you know which layer has the bug
+
+**The Trust Chain** (Turtles All The Way Down):
+1. L1 tests verify `fs.writeFile()` wrapper works correctly
+2. L2 utilities use L1 wrappers; L2 tests trust L1 works
+3. L3 orchestrators use L2/L1; L3 tests trust lower layers work
+4. If an L3 test fails, we know the issue is in L3 logic, not L1/L2 operations
+5. This chain of trust is established by comprehensive testing at each layer
+
+**Example: Cache Manager Testing**
+
+```javascript
+// ❌ WRONG: L3 test reaching down to L0 for verification
+test('cache persists to disk', async () => {
+  await cacheManager.set('key', { data: 'value' });
+  
+  // VIOLATION: Test imports fs to verify - reaching around the SUT!
+  const content = await fs.readFile(cacheDir + '/key.json'); // L0!
+  assert.ok(content.includes('value'));
+});
+
+// ✅ CORRECT: L3 test uses SUT's verification methods
+test('cache persists to disk', async () => {
+  await cacheManager.set('key', { data: 'value' });
+  await cacheManager.shutdown(); // Ensure persistence
+  
+  // Validate through SUT's own loading mechanism
+  const newCacheManager = new CacheManager(cacheDir);
+  await newCacheManager.initialize();
+  
+  // Use SUT methods to verify - NOT fs.readFile()
+  const restored = await newCacheManager.get('key');
+  assert.deepStrictEqual(restored, { data: 'value' });
+  
+  // Or use SUT's stats method
+  const stats = await newCacheManager.getStats();
+  assert.strictEqual(stats.entries, 1);
+});
+```
+
+**When You Need Verification the SUT Doesn't Provide**:
+
+If you find yourself wanting to use L0/L1 in an L3 test for verification, this is a signal:
+1. The SUT may need additional verification methods
+2. Or the test belongs at a different layer
+3. Or you're testing implementation details instead of behavior
+
+**Real Example: Adding Verification Methods to setup-runtime tools**:
+
+The setup-runtime module provides tools like `tools.files.write()` and `tools.json.set()`. Initially, tests used L0 `fs.readFile()` to verify what these methods wrote:
+
+```javascript
+// ❌ WRONG: Test reaches around SUT to L0 for verification
+await tools.files.write('output.txt', 'content');
+const content = await readFile(path.join(projectDir, 'output.txt'), 'utf8'); // L0!
+assert.strictEqual(content, 'content');
+```
+
+The solution: Add `tools.files.read()` and `tools.files.exists()` methods to the SUT:
+
+```javascript
+// In setup-runtime.mjs - buildFileApi()
+function buildFileApi(root) {
+  return Object.freeze({
+    async read(relativePath) {                    // ✅ Added for testability
+      const absolute = resolveProjectPath(root, relativePath, 'file path');
+      return await fs.readFile(absolute, UTF8);
+    },
+    async exists(relativePath) {                  // ✅ Added for testability
+      const absolute = resolveProjectPath(root, relativePath, 'file path');
+      try { await fs.access(absolute); return true; } catch { return false; }
+    },
+    async write(relativePath, content, options = {}) { /* ... */ },
+    // ...
+  });
+}
+```
+
+Now tests use SUT methods for verification:
+
+```javascript
+// ✅ CORRECT: Test uses SUT methods for verification
+await tools.files.write('output.txt', 'content');
+const content = await tools.files.read('output.txt');  // SUT method
+assert.strictEqual(content, 'content');
+
+await tools.files.remove('deleteme.txt');
+const exists = await tools.files.exists('deleteme.txt'); // SUT method
+assert.strictEqual(exists, false);
+```
+
+**Designing for Testability Checklist**:
+- [ ] Does the SUT expose methods to verify its state?
+- [ ] Can outcomes be validated without reaching to lower layers?
+- [ ] Are side effects observable through the SUT's public interface?
+- [ ] If verification requires L0/L1, should those methods be added to the SUT?
 
 
 ### Test Suite Organization

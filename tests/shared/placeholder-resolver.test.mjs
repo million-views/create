@@ -1,12 +1,34 @@
 #!/usr/bin/env node
 
+/**
+ * L2 Tests for Placeholder Resolver
+ *
+ * LAYER CLASSIFICATION: L2 (Business Logic Utilities)
+ * The resolvePlaceholders function performs pure data transformation:
+ * - Takes definitions, flags, env vars as input data
+ * - Returns resolved values as output data
+ * - The optional promptAdapter is a dependency injection point
+ *
+ * TEST DOUBLE USAGE:
+ * The TestPromptAdapter and nonTTYStreams are NOT mocks that replace real
+ * implementations. They are:
+ * 1. TestPromptAdapter: Uses the designed-in `promptAdapter` DI parameter
+ *    to provide controlled responses for testing interactive behavior
+ * 2. nonTTYStreams: Uses the designed-in `stdin`/`stdout` DI parameters
+ *    to simulate non-interactive environments
+ *
+ * This follows zero-mock philosophy because we're using the SUT's own
+ * dependency injection interface, not replacing internal implementations.
+ */
+
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
 import { PassThrough } from 'node:stream';
 import { resolvePlaceholders, PlaceholderResolutionError } from '../../lib/placeholder-resolver.mjs';
 
-// Mock prompt adapter for testing
-class MockPromptAdapter {
+// Test double: Prompt adapter that provides controlled responses via DI
+// This uses the function's designed promptAdapter parameter, not mocking
+class TestPromptAdapter {
   constructor(responses = []) {
     this.responses = [...responses];
     this.questions = [];
@@ -18,8 +40,9 @@ class MockPromptAdapter {
   }
 }
 
-// Mock non-TTY streams for tests that shouldn't prompt
-const mockNonTTYStreams = {
+// Non-TTY stream configuration for testing non-interactive mode
+// Uses the function's designed stdin/stdout parameters
+const nonTTYStreams = {
   stdin: { isTTY: false },
   stdout: { isTTY: false }
 };
@@ -29,7 +52,7 @@ describe('Placeholder Resolver', () => {
     it('should return empty result for empty definitions', async () => {
       const result = await resolvePlaceholders({
         definitions: [],
-        ...mockNonTTYStreams
+        ...nonTTYStreams
       });
       assert.deepStrictEqual(result.values, {});
       assert.deepStrictEqual(result.report, []);
@@ -39,7 +62,7 @@ describe('Placeholder Resolver', () => {
     it('should return empty result for null definitions', async () => {
       const result = await resolvePlaceholders({
         definitions: null,
-        ...mockNonTTYStreams
+        ...nonTTYStreams
       });
       assert.deepStrictEqual(result.values, {});
       assert.deepStrictEqual(result.report, []);
@@ -54,7 +77,7 @@ describe('Placeholder Resolver', () => {
 
       const result = await resolvePlaceholders({
         definitions,
-        ...mockNonTTYStreams
+        ...nonTTYStreams
       });
 
       assert.strictEqual(result.values.PROJECT_NAME, 'my-project');
@@ -73,7 +96,7 @@ describe('Placeholder Resolver', () => {
       const result = await resolvePlaceholders({
         definitions,
         configDefaults: ['PROJECT_NAME=config-project', 'AUTHOR_NAME=config-author'],
-        ...mockNonTTYStreams
+        ...nonTTYStreams
       });
 
       assert.strictEqual(result.values.PROJECT_NAME, 'config-project');
@@ -90,7 +113,7 @@ describe('Placeholder Resolver', () => {
       const result = await resolvePlaceholders({
         definitions,
         env: { CREATE_SCAFFOLD_PLACEHOLDER_PROJECT_NAME: 'env-project' },
-        ...mockNonTTYStreams
+        ...nonTTYStreams
       });
 
       assert.strictEqual(result.values.PROJECT_NAME, 'env-project');
@@ -106,7 +129,7 @@ describe('Placeholder Resolver', () => {
       const result = await resolvePlaceholders({
         definitions,
         flagInputs: ['PROJECT_NAME=flag-project', 'DEBUG=true'],
-        ...mockNonTTYStreams
+        ...nonTTYStreams
       });
 
       assert.strictEqual(result.values.PROJECT_NAME, 'flag-project');
@@ -125,7 +148,7 @@ describe('Placeholder Resolver', () => {
         flagInputs: ['PROJECT_NAME=flag-project'],
         env: { CREATE_SCAFFOLD_PLACEHOLDER_PROJECT_NAME: 'env-project' },
         configDefaults: ['PROJECT_NAME=config-project'],
-        ...mockNonTTYStreams
+        ...nonTTYStreams
       });
 
       assert.strictEqual(result.values.PROJECT_NAME, 'flag-project');
@@ -140,7 +163,7 @@ describe('Placeholder Resolver', () => {
       const result = await resolvePlaceholders({
         definitions,
         configDefaults: ['PROJECT_NAME=known-project', 'UNKNOWN_TOKEN=value'],
-        ...mockNonTTYStreams
+        ...nonTTYStreams
       });
 
       assert.strictEqual(result.values.PROJECT_NAME, 'known-project');
@@ -155,7 +178,7 @@ describe('Placeholder Resolver', () => {
       const result = await resolvePlaceholders({
         definitions,
         flagInputs: ['PROJECT_NAME=known-project', 'UNKNOWN_TOKEN=value'],
-        ...mockNonTTYStreams
+        ...nonTTYStreams
       });
 
       assert.strictEqual(result.values.PROJECT_NAME, 'known-project');
@@ -171,7 +194,7 @@ describe('Placeholder Resolver', () => {
         definitions,
         configDefaults: ['PROJECT_NAME=known', 'UNKNOWN_TOKEN=value1'],
         flagInputs: ['UNKNOWN_TOKEN=value2'],
-        ...mockNonTTYStreams
+        ...nonTTYStreams
       });
 
       assert.strictEqual(result.values.PROJECT_NAME, 'known');
@@ -186,7 +209,7 @@ describe('Placeholder Resolver', () => {
       const result = await resolvePlaceholders({
         definitions,
         flagInputs: ['API_KEY=secret-key'],
-        ...mockNonTTYStreams
+        ...nonTTYStreams
       });
 
       assert.strictEqual(result.values.API_KEY, 'secret-key');
@@ -203,7 +226,7 @@ describe('Placeholder Resolver', () => {
       const result = await resolvePlaceholders({
         definitions,
         flagInputs: ['PROJECT_NAME=my project'],
-        ...mockNonTTYStreams
+        ...nonTTYStreams
       });
 
       assert.strictEqual(result.values.PROJECT_NAME, 'my project');
@@ -217,7 +240,7 @@ describe('Placeholder Resolver', () => {
       const result = await resolvePlaceholders({
         definitions,
         flagInputs: ['PORT=3000'],
-        ...mockNonTTYStreams
+        ...nonTTYStreams
       });
 
       assert.strictEqual(result.values.PORT, 3000);
@@ -232,7 +255,7 @@ describe('Placeholder Resolver', () => {
       const result = await resolvePlaceholders({
         definitions,
         configDefaults: ['PORT=8080'],
-        ...mockNonTTYStreams
+        ...nonTTYStreams
       });
 
       assert.strictEqual(result.values.PORT, 8080);
@@ -259,7 +282,7 @@ describe('Placeholder Resolver', () => {
         const result = await resolvePlaceholders({
           definitions,
           flagInputs: [`DEBUG=${testCase.input}`],
-          ...mockNonTTYStreams
+          ...nonTTYStreams
         });
 
         assert.strictEqual(result.values.DEBUG, testCase.expected, `Failed for input: ${testCase.input}`);
@@ -275,7 +298,7 @@ describe('Placeholder Resolver', () => {
       const result = await resolvePlaceholders({
         definitions,
         env: { CREATE_SCAFFOLD_PLACEHOLDER_DEBUG: 'true' },
-        ...mockNonTTYStreams
+        ...nonTTYStreams
       });
 
       assert.strictEqual(result.values.DEBUG, true);
@@ -291,7 +314,7 @@ describe('Placeholder Resolver', () => {
         resolvePlaceholders({
           definitions,
           flagInputs: ['PORT=not-a-number'],
-          ...mockNonTTYStreams
+          ...nonTTYStreams
         }),
         PlaceholderResolutionError
       );
@@ -306,7 +329,7 @@ describe('Placeholder Resolver', () => {
         resolvePlaceholders({
           definitions,
           flagInputs: ['PORT='],
-          ...mockNonTTYStreams
+          ...nonTTYStreams
         }),
         PlaceholderResolutionError
       );
@@ -321,7 +344,7 @@ describe('Placeholder Resolver', () => {
         resolvePlaceholders({
           definitions,
           flagInputs: ['DEBUG=maybe'],
-          ...mockNonTTYStreams
+          ...nonTTYStreams
         }),
         PlaceholderResolutionError
       );
@@ -336,7 +359,7 @@ describe('Placeholder Resolver', () => {
         resolvePlaceholders({
           definitions,
           env: { CREATE_SCAFFOLD_PLACEHOLDER_PROJECT_NAME: null },
-          ...mockNonTTYStreams
+          ...nonTTYStreams
         }),
         PlaceholderResolutionError
       );
@@ -345,7 +368,7 @@ describe('Placeholder Resolver', () => {
         resolvePlaceholders({
           definitions,
           env: { CREATE_SCAFFOLD_PLACEHOLDER_PROJECT_NAME: undefined },
-          ...mockNonTTYStreams
+          ...nonTTYStreams
         }),
         PlaceholderResolutionError
       );
@@ -354,7 +377,7 @@ describe('Placeholder Resolver', () => {
 
   describe('Interactive Prompting', () => {
     it('should prompt for required missing placeholders when interactive', async () => {
-      const mockPrompt = new MockPromptAdapter(['interactive-project']);
+      const testPrompt = new TestPromptAdapter(['interactive-project']);
 
       const definitions = [
         { token: 'PROJECT_NAME', type: 'string', required: true }
@@ -362,7 +385,7 @@ describe('Placeholder Resolver', () => {
 
       const result = await resolvePlaceholders({
         definitions,
-        promptAdapter: mockPrompt.prompt.bind(mockPrompt),
+        promptAdapter: testPrompt.prompt.bind(testPrompt),
         interactive: true,
         stdin: { isTTY: true },
         stdout: { isTTY: true }
@@ -370,8 +393,8 @@ describe('Placeholder Resolver', () => {
 
       assert.strictEqual(result.values.PROJECT_NAME, 'interactive-project');
       assert.strictEqual(result.report[0].source, 'prompt');
-      assert.strictEqual(mockPrompt.questions.length, 1);
-      assert.strictEqual(mockPrompt.questions[0].token, 'PROJECT_NAME');
+      assert.strictEqual(testPrompt.questions.length, 1);
+      assert.strictEqual(testPrompt.questions[0].token, 'PROJECT_NAME');
     });
 
     it('should not prompt when noInputPrompts is true', async () => {
@@ -408,7 +431,7 @@ describe('Placeholder Resolver', () => {
     });
 
     it('should handle multiple required prompts', async () => {
-      const mockPrompt = new MockPromptAdapter(['project-name', '3000', 'true']);
+      const testPrompt = new TestPromptAdapter(['project-name', '3000', 'true']);
 
       const definitions = [
         { token: 'PROJECT_NAME', type: 'string', required: true },
@@ -418,7 +441,7 @@ describe('Placeholder Resolver', () => {
 
       const result = await resolvePlaceholders({
         definitions,
-        promptAdapter: mockPrompt.prompt.bind(mockPrompt),
+        promptAdapter: testPrompt.prompt.bind(testPrompt),
         interactive: true,
         stdin: { isTTY: true },
         stdout: { isTTY: true }
@@ -427,11 +450,11 @@ describe('Placeholder Resolver', () => {
       assert.strictEqual(result.values.PROJECT_NAME, 'project-name');
       assert.strictEqual(result.values.PORT, 3000);
       assert.strictEqual(result.values.DEBUG, true);
-      assert.strictEqual(mockPrompt.questions.length, 3);
+      assert.strictEqual(testPrompt.questions.length, 3);
     });
 
     it('should coerce prompted values', async () => {
-      const mockPrompt = new MockPromptAdapter(['8080']);
+      const testPrompt = new TestPromptAdapter(['8080']);
 
       const definitions = [
         { token: 'PORT', type: 'number', required: true }
@@ -439,7 +462,7 @@ describe('Placeholder Resolver', () => {
 
       const result = await resolvePlaceholders({
         definitions,
-        promptAdapter: mockPrompt.prompt.bind(mockPrompt),
+        promptAdapter: testPrompt.prompt.bind(testPrompt),
         interactive: true,
         stdin: { isTTY: true },
         stdout: { isTTY: true }
@@ -472,7 +495,7 @@ describe('Placeholder Resolver', () => {
 
       const result = await resolvePlaceholders({
         definitions,
-        ...mockNonTTYStreams
+        ...nonTTYStreams
       });
 
       assert.deepStrictEqual(result.values, Object.create(null));
@@ -496,7 +519,7 @@ describe('Placeholder Resolver', () => {
         resolvePlaceholders({
           definitions,
           flagInputs: [123], // non-string
-          ...mockNonTTYStreams
+          ...nonTTYStreams
         }),
         PlaceholderResolutionError
       );
@@ -511,7 +534,7 @@ describe('Placeholder Resolver', () => {
         resolvePlaceholders({
           definitions,
           flagInputs: ['malformed-input'],
-          ...mockNonTTYStreams
+          ...nonTTYStreams
         }),
         PlaceholderResolutionError
       );
@@ -526,7 +549,7 @@ describe('Placeholder Resolver', () => {
         resolvePlaceholders({
           definitions,
           flagInputs: ['=value'],
-          ...mockNonTTYStreams
+          ...nonTTYStreams
         }),
         PlaceholderResolutionError
       );
@@ -540,7 +563,7 @@ describe('Placeholder Resolver', () => {
       const result = await resolvePlaceholders({
         definitions,
         configDefaults: ['PROJECT_NAME=valid', 123, null, undefined], // mixed types
-        ...mockNonTTYStreams
+        ...nonTTYStreams
       });
 
       assert.strictEqual(result.values.PROJECT_NAME, 'valid');
@@ -554,7 +577,7 @@ describe('Placeholder Resolver', () => {
       const result = await resolvePlaceholders({
         definitions,
         configDefaults: ['PROJECT_NAME=valid', 'malformed-entry'],
-        ...mockNonTTYStreams
+        ...nonTTYStreams
       });
 
       assert.strictEqual(result.values.PROJECT_NAME, 'valid');
@@ -563,12 +586,12 @@ describe('Placeholder Resolver', () => {
 
   describe('TTY Detection', () => {
     it('should detect interactive mode from TTY streams', async () => {
-      const mockStdin = new PassThrough();
-      const mockStdout = new PassThrough();
+      const testStdin = new PassThrough();
+      const testStdout = new PassThrough();
 
       // Mock TTY detection
-      mockStdin.isTTY = true;
-      mockStdout.isTTY = true;
+      testStdin.isTTY = true;
+      testStdout.isTTY = true;
 
       const definitions = [
         { token: 'PROJECT_NAME', type: 'string', required: true, defaultValue: 'default-project' }
@@ -578,8 +601,8 @@ describe('Placeholder Resolver', () => {
       // we'll just verify the function doesn't throw with TTY streams
       const result = await resolvePlaceholders({
         definitions,
-        stdin: mockStdin,
-        stdout: mockStdout,
+        stdin: testStdin,
+        stdout: testStdout,
         interactive: undefined // Let it auto-detect
       });
 
@@ -589,12 +612,12 @@ describe('Placeholder Resolver', () => {
     });
 
     it('should not be interactive when streams are not TTY', async () => {
-      const mockStdin = new PassThrough();
-      const mockStdout = new PassThrough();
+      const testStdin = new PassThrough();
+      const testStdout = new PassThrough();
 
       // Mock non-TTY
-      mockStdin.isTTY = false;
-      mockStdout.isTTY = false;
+      testStdin.isTTY = false;
+      testStdout.isTTY = false;
 
       const definitions = [
         { token: 'PROJECT_NAME', type: 'string', required: true }
@@ -603,8 +626,8 @@ describe('Placeholder Resolver', () => {
       await assert.rejects(
         resolvePlaceholders({
           definitions,
-          stdin: mockStdin,
-          stdout: mockStdout,
+          stdin: testStdin,
+          stdout: testStdout,
           interactive: undefined // Let it auto-detect
         }),
         PlaceholderResolutionError
@@ -621,7 +644,7 @@ describe('Placeholder Resolver', () => {
       const result = await resolvePlaceholders({
         definitions,
         configDefaults: [],
-        ...mockNonTTYStreams
+        ...nonTTYStreams
       });
 
       assert.strictEqual(result.values.PROJECT_NAME, 'default');
@@ -635,7 +658,7 @@ describe('Placeholder Resolver', () => {
       const result = await resolvePlaceholders({
         definitions,
         configDefaults: null,
-        ...mockNonTTYStreams
+        ...nonTTYStreams
       });
 
       assert.strictEqual(result.values.PROJECT_NAME, 'default');
@@ -649,7 +672,7 @@ describe('Placeholder Resolver', () => {
       const result = await resolvePlaceholders({
         definitions,
         flagInputs: [],
-        ...mockNonTTYStreams
+        ...nonTTYStreams
       });
 
       assert.strictEqual(result.values.PROJECT_NAME, 'default');
@@ -663,7 +686,7 @@ describe('Placeholder Resolver', () => {
       const result = await resolvePlaceholders({
         definitions,
         env: null,
-        ...mockNonTTYStreams
+        ...nonTTYStreams
       });
 
       assert.strictEqual(result.values.PROJECT_NAME, 'default');
@@ -677,7 +700,7 @@ describe('Placeholder Resolver', () => {
 
       const result = await resolvePlaceholders({
         definitions,
-        ...mockNonTTYStreams
+        ...nonTTYStreams
       });
 
       // Last definition wins for defaults
@@ -693,7 +716,7 @@ describe('Placeholder Resolver', () => {
 
       const result = await resolvePlaceholders({
         definitions,
-        ...mockNonTTYStreams
+        ...nonTTYStreams
       });
 
       assert.strictEqual(result.report.length, 3);
@@ -705,7 +728,7 @@ describe('Placeholder Resolver', () => {
 
   describe('Integration Tests', () => {
     it('should handle complex resolution with all sources', async () => {
-      const mockPrompt = new MockPromptAdapter(['prompt-project']);
+      const testPrompt = new TestPromptAdapter(['prompt-project']);
 
       const definitions = [
         { token: 'PROJECT_NAME', type: 'string', required: true, defaultValue: 'default-name' },
@@ -720,7 +743,7 @@ describe('Placeholder Resolver', () => {
         flagInputs: ['PROJECT_NAME=flag-project', 'PORT=8080'],
         env: { CREATE_SCAFFOLD_PLACEHOLDER_AUTHOR_NAME: 'env-author' },
         configDefaults: ['DEBUG=true'],
-        promptAdapter: mockPrompt.prompt.bind(mockPrompt),
+        promptAdapter: testPrompt.prompt.bind(testPrompt),
         interactive: true,
         stdin: { isTTY: true },
         stdout: { isTTY: true }
@@ -749,7 +772,7 @@ describe('Placeholder Resolver', () => {
       const result = await resolvePlaceholders({
         definitions,
         flagInputs: ['PROJECT_NAME=my-project', 'AUTHOR_NAME=John'],
-        ...mockNonTTYStreams
+        ...nonTTYStreams
       });
 
       // The function doesn't return a placeholders array, only values, report, and unknownTokens

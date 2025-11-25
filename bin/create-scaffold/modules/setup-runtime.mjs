@@ -788,6 +788,19 @@ function buildInputsApi(inputs) {
 
 function buildFileApi(root) {
   return Object.freeze({
+    async read(relativePath) {
+      const absolute = resolveProjectPath(root, relativePath, 'file path');
+      return await fs.readFile(absolute, UTF8);
+    },
+    async exists(relativePath) {
+      const absolute = resolveProjectPath(root, relativePath, 'file path');
+      try {
+        await fs.access(absolute);
+        return true;
+      } catch {
+        return false;
+      }
+    },
     async ensureDirs(paths) {
       const list = Array.isArray(paths) ? paths : [paths];
       for (const dir of list) {

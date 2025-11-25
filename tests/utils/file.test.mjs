@@ -6,14 +6,18 @@ import { tmpdir } from 'os';
 import { File } from '../../lib/utils/file.mjs';
 
 /**
- * L2 Utility Tests for lib/utils/file.mjs
+ * L1 Tests for lib/utils/file.mjs
+ *
+ * This tests L1 (Low-Level Wrappers) - thin wrappers around Node.js fs APIs.
+ *
+ * Test Constraints:
+ * - ✅ MUST import and test L1 functions from the SUT (File class)
+ * - ✅ MAY use L0 (raw Node.js APIs) for test setup/teardown/verification
+ * - ❌ MUST NOT import or call L2/L3/L4 functions
  *
  * Following Guardrails:
- * - L2 tests operate on pure inputs (paths, options)
- * - Never import raw Node modules for business logic
- * - Let SUT (file.mjs) handle fs, path operations
  * - Use actual temp directories (no mocks)
- * - Test path normalization, error handling, edge cases
+ * - Test file operations, error handling, edge cases
  */
 
 let testDir;

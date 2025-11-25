@@ -1,8 +1,23 @@
 #!/usr/bin/env node
 
+/**
+ * L2 Tests for setup-runtime tools API
+ *
+ * This tests L2 (Business Logic) - the setup tools that wrap filesystem operations.
+ *
+ * Test Constraints:
+ * - ✅ MUST use SUT methods (tools.files.read, tools.json.read) for verification
+ * - ✅ MAY use L0 (raw Node.js APIs) for fixture setup only (writeFile before SUT)
+ * - ❌ MUST NOT use L0 for verification after calling SUT
+ *
+ * Following Guardrails:
+ * - No mocks - uses actual temp directories
+ * - Design for Testability: SUT exposes read/exists methods for verification
+ */
+
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtemp, rm, writeFile, readFile, mkdir } from 'node:fs/promises';
+import { mkdtemp, rm, writeFile, mkdir } from 'node:fs/promises';
 import path from 'node:path';
 import os from 'node:os';
 import {
@@ -103,13 +118,14 @@ test.describe('setup-runtime loader', () => {
 
       await loadSetupScript(scriptPath, ctx, tools);
 
-      const readme = await readFile(path.join(projectDir, 'README.md'), 'utf8');
+      // Verify using SUT methods (design for testability)
+      const readme = await tools.files.read('README.md');
       assert(readme.includes('runtime-app'));
 
-      const pkg = JSON.parse(await readFile(path.join(projectDir, 'package.json'), 'utf8'));
+      const pkg = await tools.json.read('package.json');
       assert.equal(pkg.scripts.test, 'node test.js');
 
-      const notes = await readFile(path.join(projectDir, 'docs', 'info.txt'), 'utf8');
+      const notes = await tools.files.read('docs/info.txt');
       assert.equal(notes.trim(), 'Project: runtime-app');
     } finally {
       await rm(projectDir, { recursive: true, force: true });
@@ -266,7 +282,7 @@ test.describe('tools.files API', () => {
       await writeFile(path.join(projectDir, 'source.txt'), 'original content');
       await tools.files.copy('source.txt', 'dest.txt');
 
-      const content = await readFile(path.join(projectDir, 'dest.txt'), 'utf8');
+      const content = await tools.files.read('dest.txt');
       assert.strictEqual(content, 'original content');
     } finally {
       await rm(projectDir, { recursive: true, force: true });
@@ -287,7 +303,7 @@ test.describe('tools.files API', () => {
       );
 
       await tools.files.copy('new.txt', 'existing.txt', { overwrite: true });
-      const content = await readFile(path.join(projectDir, 'existing.txt'), 'utf8');
+      const content = await tools.files.read('existing.txt');
       assert.strictEqual(content, 'new content');
     } finally {
       await rm(projectDir, { recursive: true, force: true });
@@ -302,13 +318,11 @@ test.describe('tools.files API', () => {
       await writeFile(path.join(projectDir, 'moveme.txt'), 'content');
       await tools.files.move('moveme.txt', 'moved.txt');
 
-      const content = await readFile(path.join(projectDir, 'moved.txt'), 'utf8');
+      const content = await tools.files.read('moved.txt');
       assert.strictEqual(content, 'content');
 
-      await assert.rejects(
-        () => readFile(path.join(projectDir, 'moveme.txt'), 'utf8'),
-        { code: 'ENOENT' }
-      );
+      const sourceExists = await tools.files.exists('moveme.txt');
+      assert.strictEqual(sourceExists, false);
     } finally {
       await rm(projectDir, { recursive: true, force: true });
     }
@@ -322,10 +336,8 @@ test.describe('tools.files API', () => {
       await writeFile(path.join(projectDir, 'deleteme.txt'), 'content');
       await tools.files.remove('deleteme.txt');
 
-      await assert.rejects(
-        () => readFile(path.join(projectDir, 'deleteme.txt'), 'utf8'),
-        { code: 'ENOENT' }
-      );
+      const exists = await tools.files.exists('deleteme.txt');
+      assert.strictEqual(exists, false);
     } finally {
       await rm(projectDir, { recursive: true, force: true });
     }
@@ -337,7 +349,7 @@ test.describe('tools.files API', () => {
       const tools = await buildTools(projectDir);
 
       await tools.files.write('lines.txt', ['line 1', 'line 2', 'line 3']);
-      const content = await readFile(path.join(projectDir, 'lines.txt'), 'utf8');
+      const content = await tools.files.read('lines.txt');
       assert.strictEqual(content, 'line 1\nline 2\nline 3');
     } finally {
       await rm(projectDir, { recursive: true, force: true });
@@ -379,7 +391,7 @@ test.describe('tools.json API', () => {
       const tools = await buildTools(projectDir);
 
       await tools.json.set('package.json', 'scripts.build', 'tsc');
-      const pkg = JSON.parse(await readFile(path.join(projectDir, 'package.json'), 'utf8'));
+      const pkg = await tools.json.read('package.json');
       assert.strictEqual(pkg.scripts.build, 'tsc');
     } finally {
       await rm(projectDir, { recursive: true, force: true });
@@ -394,7 +406,7 @@ test.describe('tools.json API', () => {
       await writeFile(path.join(projectDir, 'data.json'), JSON.stringify({ items: ['a', 'b'] }));
       await tools.json.set('data.json', 'items[1]', 'replaced');
 
-      const data = JSON.parse(await readFile(path.join(projectDir, 'data.json'), 'utf8'));
+      const data = await tools.json.read('data.json');
       assert.deepStrictEqual(data.items, ['a', 'replaced']);
     } finally {
       await rm(projectDir, { recursive: true, force: true });
@@ -407,7 +419,7 @@ test.describe('tools.json API', () => {
       const tools = await buildTools(projectDir);
 
       await tools.json.addToArray('package.json', 'keywords', 'test-keyword');
-      const pkg = JSON.parse(await readFile(path.join(projectDir, 'package.json'), 'utf8'));
+      const pkg = await tools.json.read('package.json');
       assert(pkg.keywords.includes('test-keyword'));
     } finally {
       await rm(projectDir, { recursive: true, force: true });
@@ -423,7 +435,7 @@ test.describe('tools.json API', () => {
       await tools.json.addToArray('data.json', 'tags', 'existing', { unique: true });
       await tools.json.addToArray('data.json', 'tags', 'new', { unique: true });
 
-      const data = JSON.parse(await readFile(path.join(projectDir, 'data.json'), 'utf8'));
+      const data = await tools.json.read('data.json');
       assert.deepStrictEqual(data.tags, ['existing', 'new']);
     } finally {
       await rm(projectDir, { recursive: true, force: true });
@@ -436,7 +448,7 @@ test.describe('tools.json API', () => {
       const tools = await buildTools(projectDir);
 
       await tools.json.remove('package.json', 'scripts.start');
-      const pkg = JSON.parse(await readFile(path.join(projectDir, 'package.json'), 'utf8'));
+      const pkg = await tools.json.read('package.json');
       assert.strictEqual(pkg.scripts.start, undefined);
     } finally {
       await rm(projectDir, { recursive: true, force: true });
@@ -454,7 +466,7 @@ test.describe('tools.json API', () => {
         return draft;
       });
 
-      const pkg = JSON.parse(await readFile(path.join(projectDir, 'package.json'), 'utf8'));
+      const pkg = await tools.json.read('package.json');
       assert.strictEqual(pkg.version, '2.0.0');
       assert.strictEqual(pkg.scripts.custom, 'echo custom');
     } finally {
@@ -470,7 +482,7 @@ test.describe('tools.json API', () => {
       await writeFile(path.join(projectDir, 'data.json'), JSON.stringify({ items: ['a', 'b'] }));
       await tools.json.mergeArray('data.json', 'items', ['b', 'c'], { unique: true });
 
-      const data = JSON.parse(await readFile(path.join(projectDir, 'data.json'), 'utf8'));
+      const data = await tools.json.read('data.json');
       assert.deepStrictEqual(data.items, ['a', 'b', 'c']);
     } finally {
       await rm(projectDir, { recursive: true, force: true });
@@ -491,7 +503,7 @@ test.describe('tools.text API', () => {
         block: ['## Subheader', 'New paragraph']
       });
 
-      const content = await readFile(path.join(projectDir, 'doc.md'), 'utf8');
+      const content = await tools.files.read('doc.md');
       assert(content.includes('# Header\n## Subheader\nNew paragraph'));
     } finally {
       await rm(projectDir, { recursive: true, force: true });
@@ -572,7 +584,7 @@ test.describe('tools.text API', () => {
         block: 'New content'
       });
 
-      const content = await readFile(path.join(projectDir, 'doc.md'), 'utf8');
+      const content = await tools.files.read('doc.md');
       assert(content.includes('<!-- START -->\nNew content\n<!-- END -->'));
       assert(!content.includes('Old'));
     } finally {
@@ -658,7 +670,7 @@ test.describe('tools.text API', () => {
         block: '## Section'
       });
 
-      let content = await readFile(path.join(projectDir, 'doc.md'), 'utf8');
+      let content = await tools.files.read('doc.md');
       assert(content.includes('## Section'));
 
       // Call again - should not duplicate
@@ -668,7 +680,7 @@ test.describe('tools.text API', () => {
         block: '## Section'
       });
 
-      content = await readFile(path.join(projectDir, 'doc.md'), 'utf8');
+      content = await tools.files.read('doc.md');
       const count = (content.match(/## Section/g) || []).length;
       assert.strictEqual(count, 1);
     } finally {
@@ -687,7 +699,7 @@ test.describe('tools.text API', () => {
         lines: ['Line 2', 'Line 3']
       });
 
-      const content = await readFile(path.join(projectDir, 'notes.txt'), 'utf8');
+      const content = await tools.files.read('notes.txt');
       assert(content.includes('Line 1\nLine 2\nLine 3'));
     } finally {
       await rm(projectDir, { recursive: true, force: true });
@@ -774,7 +786,7 @@ test.describe('tools.text API', () => {
         replace: 'replacement'
       });
 
-      const content = await readFile(path.join(projectDir, 'data.txt'), 'utf8');
+      const content = await tools.files.read('data.txt');
       assert.strictEqual(content, 'original content'); // File unchanged
     } finally {
       await rm(projectDir, { recursive: true, force: true });
@@ -845,7 +857,7 @@ test.describe('tools.templates API', () => {
       await writeFile(path.join(projectDir, '__scaffold__', 'template.tpl'), 'Project: ⦃PROJECT⦄');
       await tools.templates.renderFile('template.tpl', 'output.txt', { PROJECT: 'MyApp' });
 
-      const content = await readFile(path.join(projectDir, 'output.txt'), 'utf8');
+      const content = await tools.files.read('output.txt');
       assert.strictEqual(content, 'Project: MyApp');
     } finally {
       await rm(projectDir, { recursive: true, force: true });
@@ -863,8 +875,8 @@ test.describe('tools.templates API', () => {
 
       await tools.templates.copy('configs', 'src/configs');
 
-      const appConfig = await readFile(path.join(projectDir, 'src', 'configs', 'app.json'), 'utf8');
-      const dbConfig = await readFile(path.join(projectDir, 'src', 'configs', 'db.json'), 'utf8');
+      const appConfig = await tools.files.read('src/configs/app.json');
+      const dbConfig = await tools.files.read('src/configs/db.json');
       assert.strictEqual(appConfig, '{"env":"dev"}');
       assert.strictEqual(dbConfig, '{"host":"localhost"}');
     } finally {
@@ -926,7 +938,7 @@ test.describe('tools.placeholders API', () => {
       await writeFile(path.join(projectDir, 'config.txt'), 'Package: ⦃PACKAGE_NAME⦄');
       await tools.placeholders.applyInputs(['config.txt']);
 
-      const content = await readFile(path.join(projectDir, 'config.txt'), 'utf8');
+      const content = await tools.files.read('config.txt');
       assert.strictEqual(content, 'Package: runtime-app');
     } finally {
       await rm(projectDir, { recursive: true, force: true });
@@ -941,7 +953,7 @@ test.describe('tools.placeholders API', () => {
       await writeFile(path.join(projectDir, 'info.txt'), 'Email: ⦃SUPPORT_EMAIL⦄');
       await tools.placeholders.replaceAll({ SUPPORT_EMAIL: 'help@example.com' }, ['info.txt']);
 
-      const content = await readFile(path.join(projectDir, 'info.txt'), 'utf8');
+      const content = await tools.files.read('info.txt');
       assert.strictEqual(content, 'Email: help@example.com');
     } finally {
       await rm(projectDir, { recursive: true, force: true });
@@ -956,7 +968,7 @@ test.describe('tools.placeholders API', () => {
       await writeFile(path.join(projectDir, 'doc.txt'), 'Version: ⦃VERSION⦄');
       await tools.placeholders.replaceInFile('doc.txt', { VERSION: '1.0.0' });
 
-      const content = await readFile(path.join(projectDir, 'doc.txt'), 'utf8');
+      const content = await tools.files.read('doc.txt');
       assert.strictEqual(content, 'Version: 1.0.0');
     } finally {
       await rm(projectDir, { recursive: true, force: true });
