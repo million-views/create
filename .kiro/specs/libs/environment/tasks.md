@@ -9,13 +9,18 @@
 - [x] Create `lib/environment/context.mjs` with createContext()
 - [x] Create `lib/environment/testing.mjs` with test utilities
 
-### Task 1.2: Create tools wrapper (transitional)
-- [x] Create `lib/environment/tools/index.mjs` with createTools() wrapper
-- [x] Delegate to setup-runtime.mjs for actual implementation
+### Task 1.2: Extract tool modules
+- [x] Create `lib/environment/tools/index.mjs` with createTools() factory
+- [x] Create `lib/environment/tools/files.mjs` - File operations API
+- [x] Create `lib/environment/tools/json.mjs` - JSON manipulation API
+- [x] Create `lib/environment/tools/text.mjs` - Text manipulation API
+- [x] Create `lib/environment/tools/placeholders.mjs` - Placeholder replacement API
+- [x] Create `lib/environment/tools/templates.mjs` - Template asset API
+- [x] Create `lib/environment/tools/inputs.mjs` - Input values API
+- [x] Create `lib/environment/tools/logger.mjs` - Logger API
+- [x] Create `lib/environment/tools/options.mjs` - Options checking API
+- [x] Create `lib/environment/utils.mjs` - Shared utilities
 - [x] Add isTools() type guard
-- [*] Future: Extract individual tool modules (files.mjs, json.mjs, etc.)
-  - Note: This is deferred - setup-runtime.mjs has complex interdependencies
-  - When done, setup-runtime should use lib/environment/tools internally
 
 ### Task 1.3: Create test utilities
 - [x] createTestContext() - creates Context with sensible defaults
@@ -39,17 +44,18 @@
 - [x] Create `lib/environment/types.d.ts` with complete type definitions
 - [x] Includes Context, Tools, all sub-APIs, Environment, and test utilities
 
-## Phase 2: Migrate Consumers (Incremental)
+## Phase 2: Migrate Consumers
 
 ### Task 2.1: Update setup-runtime.test.mjs helpers
 - [x] Replace buildCtx() with createTestContext()
 - [x] Replace buildTools() with createTestTools()
 - [x] Verify all tests pass (60 tests)
 
-### Task 2.2: Future - Full consumer migration
-- [*] setup-runtime.mjs to use lib/environment internally
-- [*] guided-setup-workflow.mjs to use lib/environment
-- [*] Slim down setup-runtime.mjs to sandbox-only (~200 lines)
+### Task 2.2: Slim down setup-runtime.mjs
+- [x] Refactor setup-runtime.mjs to use lib/environment/tools
+- [x] setup-runtime.mjs now only contains L3 sandbox logic (161 lines)
+- [x] createSetupTools() delegates to lib/environment/tools/index.mjs
+- [x] All 38 test suites pass
 
 ## Phase 3: Cleanup and Documentation
 
@@ -65,17 +71,17 @@
 - [x] Document Environment module in docs/reference/environment.md
 - [x] ARCHITECTURE.md removed (content duplicated in docs/)
 
-## Current Status
+## Summary
 
 **Completed:**
-- Environment module foundation with createContext, createTools, test utilities
-- 45 unit tests covering context, tools, and all test helpers
-- Dead code removal (lib/text-utils.mjs)
+- Full Environment module with all tool APIs extracted
+- setup-runtime.mjs reduced from 1190 to 161 lines (86% reduction)
+- TypeScript definitions for complete API surface
+- 45 unit tests for Environment module
+- All 38 test suites passing
 
-**Deferred (marked with [*]):**
-- Full tool extraction from setup-runtime.mjs (complex interdependencies)
-- Moving L2 tools tests from setup-runtime.test.mjs to environment/
-- TypeScript definitions (JSDoc sufficient for now)
+**Deferred:**
+- [*] Move L2 tools API tests from setup-runtime.test.mjs to environment/tools.test.mjs
 
 ## Acceptance Criteria
 
@@ -85,3 +91,4 @@
 - [x] Full test suite (38 suites) passes
 - [x] setup-runtime.test.mjs uses Environment test utilities
 - [x] Environment tests added to test-runner.mjs
+- [x] setup-runtime.mjs slimmed to sandbox-only logic
