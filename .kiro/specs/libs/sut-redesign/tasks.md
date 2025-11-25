@@ -139,48 +139,48 @@
 ### Task 2.7: Verify security domain
 - [x] Run full test suite: `npm test`
 - [x] All tests must pass
-- [ ] Commit: "refactor(lib): extract security domain"
+- [x] Commit: "refactor(lib): extract security domain"
 
 ---
 
 ## Phase 3: Validation Domain Reorganization (Week 2-3)
 
 ### Task 3.1: Create lib/validation/ structure
-- [ ] Create `lib/validation/schema/` directory
-- [ ] Create `lib/validation/domain/` directory
-- [ ] Create `lib/validation/cli/` directory
-- [ ] Create index.mts in each
+- [x] Create `lib/validation/schema/` directory
+- [x] Create `lib/validation/domain/` directory
+- [x] Create `lib/validation/cli/` directory
+- [x] Create index.mts in each
 
 ### Task 3.2: Extract schema validators
-- [ ] Create `lib/validation/schema/template.mts`
+- [x] Create `lib/validation/schema/template.mts`
   - Move schema validation from template-validator.mjs
   - Export `validate()` function
-- [ ] Create `lib/validation/schema/selection.mts`
+- [x] Create `lib/validation/schema/selection.mts`
   - Move schema validation from selection-validator.mjs
   - Export `validate()` function
-- [ ] Create `lib/validation/schema/index.mts` facade
+- [x] Create `lib/validation/schema/index.mts` facade
 
 ### Task 3.3: Extract domain validators
-- [ ] Create `lib/validation/domain/placeholder.mts`
+- [x] Create `lib/validation/domain/placeholder.mts`
   - Extract placeholder business rules
   - Export `validate()` function
-- [ ] Create `lib/validation/domain/dimension.mts`
+- [x] Create `lib/validation/domain/dimension.mts`
   - Extract from `validateDimensionsMetadata()` in security.mjs
   - Export `validate()` function
-- [ ] Create `lib/validation/domain/index.mts` facade
+- [x] Create `lib/validation/domain/index.mts` facade
 
 ### Task 3.4: Extract CLI validators
-- [ ] Create `lib/validation/cli/option.mts`
+- [x] Create `lib/validation/cli/option.mts`
   - Move `validateIdeParameter()` → `ide()`
   - Move `validateAuthoringMode()` → `authoringMode()`
   - Move `validateAuthorAssetsDir()` → `authorAssetsDir()`
   - Move `validateLogFilePath()` → `logFilePath()`
   - Move `validateCacheTtl()` → `cacheTtl()`
   - Move `validateAllInputs()` → `all()`
-- [ ] Create `lib/validation/cli/index.mts` facade
+- [x] Create `lib/validation/cli/index.mts` facade
 
 ### Task 3.5: Create validation root facade
-- [ ] Create `lib/validation/index.mts`:
+- [x] Create `lib/validation/index.mts`:
   ```javascript
   export * as schema from './schema/index.mts';
   export * as domain from './domain/index.mts';
@@ -188,13 +188,13 @@
   ```
 
 ### Task 3.6: Update consumers and create shims
-- [ ] Update internal lib/ consumers
-- [ ] Create re-export shims in old locations
-- [ ] Update lib/security.mjs to be a thin shim
+- [x] Update internal lib/ consumers
+- [x] Create re-export shims in old locations
+- [x] Update lib/security.mjs to be a thin shim
 
 ### Task 3.7: Verify validation domain
-- [ ] Run full test suite: `npm test`
-- [ ] All tests must pass
+- [x] Run full test suite: `npm test`
+- [x] All tests must pass
 - [ ] Commit: "refactor(lib): extract validation domain"
 
 ---
