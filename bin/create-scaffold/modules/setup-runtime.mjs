@@ -12,7 +12,6 @@
  */
 
 import fs from 'fs/promises';
-import path from 'path';
 import vm from 'vm';
 import { createTools } from '../../../lib/environment/tools/index.mjs';
 import { SetupSandboxError } from '../../../lib/environment/utils.mjs';

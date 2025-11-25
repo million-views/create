@@ -2,8 +2,11 @@
 import markdown from '@eslint/markdown';
 
 export default [
+  // Global ignores (must be separate config object without files)
   {
-    ignores: ['tmp/**', 'test-*/**'],
+    ignores: ['tmp/**', 'test-*/**', 'coverage/**', 'node_modules/**']
+  },
+  {
     files: ['**/*.mjs', '**/*.js'],
     languageOptions: {
       ecmaVersion: 'latest',
@@ -98,7 +101,7 @@ export default [
   // Include the markdown recommended config
   ...markdown.configs.recommended.map(config => ({
     ...config,
-    ignores: ['tmp/**', 'test-*/**', 'prompts/**'],
+    ignores: ['tmp/**', 'test-*/**', 'prompts/**', '.kiro/**', 'schema/**'],
     rules: {
       ...config.rules,
       // Adjust some rules for our documentation style
