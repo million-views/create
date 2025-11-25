@@ -42,9 +42,9 @@
 ## Phase 2: Migrate Consumers (Incremental)
 
 ### Task 2.1: Update setup-runtime.test.mjs helpers
-- [ ] Replace buildCtx() with createTestContext()
-- [ ] Replace buildTools() with createTestTools()
-- [ ] Verify all tests pass
+- [x] Replace buildCtx() with createTestContext()
+- [x] Replace buildTools() with createTestTools()
+- [x] Verify all tests pass (60 tests)
 
 ### Task 2.2: Future - Full consumer migration
 - [*] setup-runtime.mjs to use lib/environment internally
@@ -58,12 +58,12 @@
 - [*] Future: Consolidate lib/utils/text.mjs with setup-runtime text API
 
 ### Task 3.2: Add to test runner
-- [ ] Add Environment Module tests to test-runner.mjs
-- [ ] Verify full test suite passes
+- [x] Add Environment Module tests to test-runner.mjs
+- [x] Verify full test suite passes (38 suites)
 
 ### Task 3.3: Documentation
-- [ ] Document Environment module in docs/reference/
-- [ ] Update ARCHITECTURE.md with Environment module
+- [x] Document Environment module in docs/reference/environment.md
+- [x] Update ARCHITECTURE.md with Environment module
 
 ## Current Status
 
@@ -82,6 +82,6 @@
 - [x] `lib/environment/` module exports createContext, createTools
 - [x] `lib/environment/testing.mjs` exports createTestContext, createTestTools, createTestEnvironment
 - [x] Environment module has 45 unit tests, all passing
-- [x] Full test suite (37 suites) passes
-- [ ] setup-runtime.test.mjs uses Environment test utilities
-- [ ] Environment tests added to test-runner.mjs
+- [x] Full test suite (38 suites) passes
+- [x] setup-runtime.test.mjs uses Environment test utilities
+- [x] Environment tests added to test-runner.mjs

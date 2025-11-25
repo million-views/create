@@ -11,10 +11,33 @@ related_docs:
   - "../how-to/creating-templates.md"
   - "../how-to/setup-recipes.md"
   - "cli-reference.md"
-last_updated: "2025-01-13"
+last_updated: "2025-11-25"
 ---
 
 # Environment Reference
+
+## Module Location
+
+The Environment object is defined in `lib/environment/`. For programmatic access:
+
+```javascript
+import {
+  createContext,     // Create a Context object
+  createTools,       // Create a Tools object
+  isContext,         // Type guard for Context
+  isTools,           // Type guard for Tools
+} from './lib/environment/index.mjs';
+
+// For testing
+import {
+  createTestContext,      // Context with test defaults
+  createTestTools,        // Tools with test defaults
+  createTestEnvironment,  // Complete { ctx, tools } pair
+  createTestLogger,       // Logger that captures calls
+  createSilentLogger,     // No-op logger
+  TEST_DEFAULTS           // Default test values
+} from './lib/environment/index.mjs';
+```
 
 ## Setup Contract
 

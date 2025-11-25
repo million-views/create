@@ -1,9 +1,10 @@
 #!/usr/bin/env node
 
 /**
- * L2 Tests for setup-runtime tools API
+ * L3 Tests for setup-runtime sandbox and script execution
  *
- * This tests L2 (Business Logic) - the setup tools that wrap filesystem operations.
+ * This tests L3 (Orchestrator) - the sandbox that executes template setup scripts.
+ * The tools API is tested via the Environment module at L2.
  *
  * Test Constraints:
  * - ✅ MUST use SUT methods (tools.files.read, tools.json.read) for verification
@@ -13,6 +14,7 @@
  * Following Guardrails:
  * - No mocks - uses actual temp directories
  * - Design for Testability: SUT exposes read/exists methods for verification
+ * - Uses Environment module test utilities for ctx/tools construction
  */
 
 import { test } from 'node:test';
@@ -21,14 +23,27 @@ import { mkdtemp, rm, writeFile, mkdir } from 'node:fs/promises';
 import path from 'node:path';
 import os from 'node:os';
 import {
-  createSetupTools,
   loadSetupScript,
   SetupSandboxError
 } from '../../bin/create-scaffold/modules/setup-runtime.mjs';
+import {
+  createTestContext,
+  createTestTools
+} from '../../lib/environment/index.mjs';
 
-const loggerStub = {
-  info: () => { },
-  warn: () => { }
+// Default test values for this test suite
+const TEST_PROJECT_NAME = 'runtime-app';
+const TEST_INPUTS = { PACKAGE_NAME: 'runtime-app' };
+const TEST_CONSTANTS = { org: 'Million Views' };
+const TEST_DIMENSIONS = {
+  features: {
+    type: 'multi',
+    values: ['docs', 'tests']
+  }
+};
+const TEST_OPTIONS = {
+  raw: ['features=docs'],
+  byDimension: { features: ['docs'] }
 };
 
 async function createProjectFixture(prefix = 'setup-runtime-project-') {
@@ -46,51 +61,23 @@ async function createProjectFixture(prefix = 'setup-runtime-project-') {
 }
 
 function buildCtx(projectDir, overrides = {}) {
-  return {
-    projectName: 'runtime-app',
-    projectDir,
-    cwd: projectDir,
-    authoring: 'wysiwyg',
-    inputs: {
-      PACKAGE_NAME: 'runtime-app',
-      ...overrides.inputs
-    },
-    constants: {
-      org: 'Million Views',
-      ...overrides.constants
-    },
-    authorAssetsDir: '__scaffold__',
-    options: overrides.options ?? { raw: [], byDimension: {} }
-  };
+  return createTestContext({
+    projectName: TEST_PROJECT_NAME,
+    projectDirectory: projectDir,
+    inputs: { ...TEST_INPUTS, ...overrides.inputs },
+    constants: { ...TEST_CONSTANTS, ...overrides.constants },
+    options: overrides.options ?? TEST_OPTIONS
+  });
 }
 
 async function buildTools(projectDir, extra = {}) {
-  return createSetupTools({
+  return createTestTools({
     projectDirectory: projectDir,
-    projectName: 'runtime-app',
-    logger: loggerStub,
-    templateContext: {
-      inputs: {
-        PACKAGE_NAME: 'runtime-app'
-      },
-      constants: {
-        org: 'Million Views'
-      },
-      authorAssetsDir: '__scaffold__',
-      placeholderFormat: 'unicode'
-    },
-    dimensions: extra.dimensions ?? {
-      features: {
-        type: 'multi',
-        values: ['docs', 'tests']
-      }
-    },
-    options: extra.options ?? {
-      raw: ['features=docs'],
-      byDimension: {
-        features: ['docs']
-      }
-    }
+    projectName: TEST_PROJECT_NAME,
+    inputs: TEST_INPUTS,
+    constants: TEST_CONSTANTS,
+    dimensions: extra.dimensions ?? TEST_DIMENSIONS,
+    options: extra.options ?? TEST_OPTIONS
   });
 }
 

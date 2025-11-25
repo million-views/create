@@ -117,9 +117,17 @@ lib/
   cli/
     command.js                   # Abstract base class
     router.js                    # Router base class
+  environment/
+    index.mjs                    # Environment module entry point
+    context.mjs                  # createContext(), isContext()
+    testing.mjs                  # Test utilities (createTestContext, etc.)
+    tools/
+      index.mjs                  # createTools(), isTools()
 
 tests/
   helpers.js                     # Test utilities
+  environment/
+    environment.test.mjs         # Environment module tests
   create-scaffold/
     commands/
       new.test.js
@@ -129,6 +137,7 @@ tests/
 
 ### Principles
 - **Base Infrastructure** (`lib/cli/`): Generic, reusable components
+- **Environment Module** (`lib/environment/`): Context and Tools factories for setup scripts
 - **Tool-Specific Code** (`bin/[tool]/`): Command implementations
 - **Tests** (`tests/[tool]/`): Mirror command structure
 - **Separation of Concerns**: Help, parsing, validation, and business logic are separate
