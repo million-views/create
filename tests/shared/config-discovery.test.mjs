@@ -88,13 +88,18 @@ test('Config discovery does NOT walk up directory tree', async (t) => {
     const deepDir = join(baseDir, 'deep', 'nested', 'dir', 'structure');
     await mkdir(deepDir, { recursive: true });
 
+    // Create a fake M5NV_HOME that has no user config
+    const fakeM5nvHome = join(baseDir, 'fake-m5nv-home');
+    await mkdir(fakeM5nvHome, { recursive: true });
+
     // Create configs in various levels
     await writeFile(join(baseDir, 'deep', '.m5nvrc'), JSON.stringify({ level: 'deep' }));
     await writeFile(join(baseDir, 'deep', 'nested', '.m5nvrc'), JSON.stringify({ level: 'nested' }));
     await writeFile(join(baseDir, 'deep', 'nested', 'dir', '.m5nvrc'), JSON.stringify({ level: 'dir' }));
 
-    // Load config from deepest directory (should NOT find any parent configs)
-    const result = await loadConfig({ cwd: deepDir });
+    // Load config from deepest directory with isolated M5NV_HOME
+    // This ensures we don't accidentally pick up user config from other tests
+    const result = await loadConfig({ cwd: deepDir, env: { M5NV_HOME: fakeM5nvHome } });
 
     assert.strictEqual(result, null, 'Should not load config from any parent directories');
 
