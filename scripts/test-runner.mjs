@@ -25,6 +25,7 @@ class TestRunner {
         'BoundaryValidator Tests',
         'Registry Cache Manager Tests',
         'Environment Module Tests',
+        'Environment Tools Tests',
         'Error Classes Tests',
         'Template Ignore Tests',
         'Error Handler Tests',
@@ -275,6 +276,12 @@ class TestRunner {
         command: ['--test', './tests/environment/environment.test.mjs'],
         description: 'Environment object factory and test utilities',
         homeSuffix: 'environment'
+      },
+      {
+        name: 'Environment Tools Tests',
+        command: ['--test', './tests/environment/tools.test.mjs'],
+        description: 'L2 tools API (files, json, text, templates, placeholders, inputs, options)',
+        homeSuffix: 'environment-tools'
       },
       {
         name: 'Error Classes Tests',

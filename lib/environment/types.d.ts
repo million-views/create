@@ -161,6 +161,9 @@ export interface JsonApi {
   /** Read and parse a JSON file */
   read<T = unknown>(path: string): Promise<T>;
 
+  /** Write data to a JSON file with proper formatting */
+  write(path: string, data: unknown): Promise<void>;
+
   /** Deep-merge an object into a JSON file */
   merge(path: string, patch: object): Promise<void>;
 
