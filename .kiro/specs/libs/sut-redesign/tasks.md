@@ -195,32 +195,32 @@
 ### Task 3.7: Verify validation domain
 - [x] Run full test suite: `npm test`
 - [x] All tests must pass
-- [ ] Commit: "refactor(lib): extract validation domain"
+- [x] Commit: "refactor(lib): extract validation domain"
 
 ---
 
 ## Phase 4: Placeholder Domain (Week 3)
 
 ### Task 4.1: Create lib/placeholder/ structure
-- [ ] Create `lib/placeholder/` directory
-- [ ] Create `lib/placeholder/index.mts` (empty facade)
+- [x] Create `lib/placeholder/` directory
+- [x] Create `lib/placeholder/index.mts` (empty facade)
 
 ### Task 4.2: Migrate placeholder modules
-- [ ] Create `lib/placeholder/resolve.mts`
+- [x] Create `lib/placeholder/resolve.mts`
   - Move from placeholder-resolver.mjs
   - Rename `resolvePlaceholders()` → `resolve()`
-- [ ] Create `lib/placeholder/format.mts`
+- [x] Create `lib/placeholder/format.mts`
   - Move from placeholder-formats.mjs
   - Rename functions to remove "placeholder" prefix
-- [ ] Create `lib/placeholder/canonical.mts`
+- [x] Create `lib/placeholder/canonical.mts`
   - Move from canonical-variables.mjs
   - Rename `canonicalizeVariables()` → `canonicalize()`
-- [ ] Create `lib/placeholder/schema.mts`
+- [x] Create `lib/placeholder/schema.mts`
   - Move from placeholder-schema.mjs
   - Rename `normalizePlaceholders()` → `normalize()`
 
 ### Task 4.3: Create placeholder facade
-- [ ] Update `lib/placeholder/index.mts`:
+- [x] Update `lib/placeholder/index.mts`:
   ```javascript
   export { resolve } from './resolve.mjs';
   export * as format from './format.mjs';
@@ -229,12 +229,12 @@
   ```
 
 ### Task 4.4: Create re-export shims
-- [ ] Update old placeholder-*.mjs files to re-export from new location
-- [ ] Update canonical-variables.mjs to re-export from new location
+- [x] Update old placeholder-*.mjs files to re-export from new location
+- [x] Update canonical-variables.mjs to re-export from new location
 
 ### Task 4.5: Verify placeholder domain
-- [ ] Run full test suite: `npm test`
-- [ ] All tests must pass
+- [x] Run full test suite: `npm test`
+- [x] All tests must pass
 - [ ] Commit: "refactor(lib): extract placeholder domain"
 
 ---
