@@ -35,9 +35,9 @@
   - They should be in environment/tools.test.mjs
   - setup-runtime.test.mjs should focus on L3 sandbox only
 
-### Task 1.5: TypeScript definitions (deferred)
-- [ ] Create `lib/environment/types.d.ts` when extracting full tools
-- [ ] For now, JSDoc provides the type information
+### Task 1.5: TypeScript definitions
+- [x] Create `lib/environment/types.d.ts` with complete type definitions
+- [x] Includes Context, Tools, all sub-APIs, Environment, and test utilities
 
 ## Phase 2: Migrate Consumers (Incremental)
 
@@ -55,7 +55,7 @@
 
 ### Task 3.1: Dead code removed
 - [x] Removed `lib/text-utils.mjs` (duplicate, unused)
-- [*] Future: Consolidate lib/utils/text.mjs with setup-runtime text API
+- [x] Reviewed `lib/utils/text.mjs` - NOT duplicate (standalone utility for scripts, not setup runtime)
 
 ### Task 3.2: Add to test runner
 - [x] Add Environment Module tests to test-runner.mjs
@@ -63,7 +63,7 @@
 
 ### Task 3.3: Documentation
 - [x] Document Environment module in docs/reference/environment.md
-- [x] Update ARCHITECTURE.md with Environment module
+- [x] ARCHITECTURE.md removed (content duplicated in docs/)
 
 ## Current Status
 
