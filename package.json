@@ -34,7 +34,7 @@
     "README.md"
   ],
   "engines": {
-    "node": ">=22.0.0"
+    "node": ">=23.0.0"
   },
   "keywords": [
     "scaffold",
@@ -98,6 +98,7 @@
     "test:make-template:restore": "node scripts/test-runner.mjs --suite \"Make-Template Restore Tests\"",
     "test:make-template:test": "node scripts/test-runner.mjs --suite \"Make-Template Test Command Tests\"",
     "test:make-template:validate": "node scripts/test-runner.mjs --suite \"Make-Template Validate Tests\"",
+    "typecheck": "tsc --noEmit",
     "docs:gen-cli-ref": "node ./scripts/generate-cli-reference.mjs",
     "validate": "npm run schema:check && node ./scripts/comprehensive-validation.mjs",
     "validate:docs": "node ./scripts/validate-docs.mjs",
