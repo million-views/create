@@ -88,6 +88,29 @@ test('SecurityGate - Layer 1: Input Validation Gate', async (t) => {
     assert.deepEqual(result1, result2);
   });
 
+  await t.test('clearCache() removes cached validations', async () => {
+    const gate = new SecurityGate();
+
+    const inputs = {
+      projectDirectory: 'test-project',
+      template: 'react'
+    };
+
+    // First call - validates and caches
+    await gate.enforce(inputs);
+
+    // Verify cache has entry
+    const statsBefore = gate.getCacheStats();
+    assert.ok(statsBefore.size > 0, 'Cache should have entries');
+
+    // Clear cache
+    gate.clearCache();
+
+    // Verify cache is empty
+    const statsAfter = gate.getCacheStats();
+    assert.equal(statsAfter.size, 0, 'Cache should be empty after clear');
+  });
+
   await t.test('detects abuse patterns (repeated failures)', async () => {
     const gate = new SecurityGate();
 

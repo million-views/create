@@ -21,7 +21,7 @@ class TestRunner {
     this.suiteGroups = {
       // Unit tests: Core components and infrastructure (L2/L3)
       'unit': [
-        'Security Tests',
+        'Security Functions Tests',
         'BoundaryValidator Tests',
         'Registry Cache Manager Tests',
         'Environment Module Tests',
@@ -30,6 +30,9 @@ class TestRunner {
         'Template Ignore Tests',
         'Error Handler Tests',
         'Placeholder Resolver Tests',
+        'Placeholder Schema Tests',
+        'Template Manifest Validator Tests',
+        'Template Validator Extended Tests',
         'Selection Validator Tests',
         'Path Resolver Tests',
         'Template Validator Tests',
@@ -254,10 +257,10 @@ class TestRunner {
   getAllTestDefinitions() {
     return [
       {
-        name: 'Security Tests',
-        command: ['--test', './tests/shared/security.test.mjs'],
-        description: 'Security validation for new IDE and features parameters',
-        homeSuffix: 'security'
+        name: 'Security Functions Tests',
+        command: ['--test', './tests/security/security-functions.test.mjs'],
+        description: 'L2 validation functions coverage (package identity, paths, repos, branches)',
+        homeSuffix: 'security-functions'
       },
       {
         name: 'BoundaryValidator Tests',
@@ -336,6 +339,24 @@ class TestRunner {
         command: ['--test', './tests/shared/template-validator.test.mjs'],
         description: 'Runtime manifest validation aligned with schema constraints',
         homeSuffix: 'template-validator'
+      },
+      {
+        name: 'Placeholder Schema Tests',
+        command: ['--test', './tests/validators/placeholder-schema.test.mjs'],
+        description: 'Placeholder normalization and type validation',
+        homeSuffix: 'placeholder-schema'
+      },
+      {
+        name: 'Template Manifest Validator Tests',
+        command: ['--test', './tests/validators/template-manifest-validator.test.mjs'],
+        description: 'Template manifest validation for V1 schema',
+        homeSuffix: 'template-manifest-validator'
+      },
+      {
+        name: 'Template Validator Extended Tests',
+        command: ['--test', './tests/validators/template-validator-extended.test.mjs'],
+        description: 'Extended template validator domain and runtime validation',
+        homeSuffix: 'template-validator-extended'
       },
       {
         name: 'Options Processor Tests',

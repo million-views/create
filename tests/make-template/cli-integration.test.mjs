@@ -92,8 +92,13 @@ const invalidTemplateDomain = {
 };
 
 test('make-template CLI validate integration', async (t) => {
-  const tempDir = join(__dirname, '../fixtures/temp-make-template-test');
-  await mkdir(tempDir, { recursive: true });
+  // Use tmp/ for transient test artifacts (per AGENTS.md)
+  // Add process.pid to ensure test isolation when running under c8 coverage
+  const tempDir = join(__dirname, '../../tmp/test-make-template-validate-' + process.pid);
+
+  t.before(async () => {
+    await mkdir(tempDir, { recursive: true });
+  });
 
   t.after(async () => {
     await rm(tempDir, { recursive: true, force: true });

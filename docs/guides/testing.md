@@ -54,6 +54,37 @@ This project follows a **zero-mock philosophy**:
 
 **THE SOLUTION**: A structured pyramid with clear responsibilities at each layer.
 
+### The Test Pyramid Shape
+
+**CRITICAL INSIGHT**: The test pyramid should be **inverted** relative to the SUT layers. Lower layers need **fewer** tests, not more.
+
+```text
+WRONG (Common Anti-Pattern):        CORRECT (Target Shape):
+                                    
+     /\        L5: Few tests            ______      L5: MOST tests (user workflows)
+    /  \       L3/L4: Medium             \  /       L3/L4: Medium (contracts)
+   /____\      L2: MANY tests             \/        L2: FEWEST tests (core only)
+```
+
+**Why fewer tests at lower layers?**
+- **L5 E2E tests** validate complete user workflows - this is what users care about
+- **L3/L4 tests** verify orchestrator contracts and CLI behavior - integration points
+- **L2 unit tests** should be MINIMAL - only irreducible core logic that can't be exercised through higher layers
+- **L1 tests** should be TINY - thin wrappers need minimal testing
+
+**The Key Principle**:
+
+> **Greedy unit tests are a SYMPTOM of poorly designed SUT, not the root cause.**
+>
+> If you need 1000 lines of tests to cover a module, the module is doing too much.
+> A well-designed SUT with a small, focused API needs fewer tests at every layer.
+
+**When you see an inverted pyramid (too many L2 tests)**:
+1. **Don't reorganize tests first** - that's treating the symptom
+2. **Examine the SUT** - is the API surface too large? Are there overlapping modules?
+3. **Consolidate/simplify the SUT** - merge modules, reduce public API
+4. **Then the tests naturally shrink** - fewer APIs = fewer tests needed
+
 ### The Layered Testing Model
 
 **CRITICAL PRINCIPLE**: Tests at layer N can ONLY call functions at layer N (of SUT). They cannot reach down to N-1, N-2, etc.
