@@ -1,5 +1,5 @@
 import path from 'path';
-import { File } from '../../../../lib/utils/file.mjs';
+import { File } from '../../../../lib/util/file.mjs';
 import { ErrorContext, ErrorSeverity, handleError } from '../../../../lib/error-handler.mjs';
 import { processJSONFile } from '../../../../lib/templatize-json.mjs';
 import { processMarkdownFile } from '../../../../lib/templatize-markdown.mjs';

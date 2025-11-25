@@ -2,7 +2,7 @@ import { Command } from '../../../../lib/cli/command.js';
 import { testHelp } from './help.js';
 import { spawn } from 'child_process';
 import path from 'path';
-import { File } from '../../../../lib/utils/file.mjs';
+import { File } from '../../../../lib/util/file.mjs';
 import { ContextualError, ErrorContext, ErrorSeverity, handleError } from '../../../../lib/error-handler.mjs';
 
 export class TestCommand extends Command {

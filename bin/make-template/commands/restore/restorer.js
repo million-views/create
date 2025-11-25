@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { File } from '../../../../lib/utils/file.mjs';
+import { File } from '../../../../lib/util/file.mjs';
 import { ContextualError, ErrorContext, ErrorSeverity, handleError } from '../../../../lib/error-handler.mjs';
 
 export class Restorer {

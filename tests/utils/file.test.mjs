@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { mkdtemp, writeFile, mkdir, chmod, rm, readFile } from 'fs/promises';
 import { join } from 'path';
 import { tmpdir } from 'os';
-import { File } from '../../lib/utils/file.mjs';
+import { File } from '../../lib/util/file.mjs';
 
 /**
  * L1 Tests for lib/utils/file.mjs

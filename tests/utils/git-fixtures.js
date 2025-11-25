@@ -6,7 +6,7 @@
  */
 
 import { GitFixtureManager } from '../helpers/git-fixtures.mjs';
-import { Shell } from '../../lib/utils/shell.mjs';
+import { Shell } from '../../lib/util/shell.mjs';
 
 /**
  * Check if git is available in the system

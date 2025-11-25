@@ -4,7 +4,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { sanitizeErrorMessage, validateAllInputs } from '../../../lib/security.mjs';
-import { File } from '../../../lib/utils/file.mjs';
+import { File } from '../../../lib/util/file.mjs';
 import { createTemplateIgnoreSet, shouldIgnoreTemplateEntry } from '../../../lib/template-ignore.mjs';
 import { createSetupTools, loadSetupScript } from './setup-runtime.mjs';
 import { ContextualError, ErrorContext, ErrorSeverity } from '../../../lib/error-handler.mjs';

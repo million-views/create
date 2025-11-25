@@ -2,7 +2,7 @@
 
 import fs from 'fs';
 import path from 'path';
-import { File } from '../../../lib/utils/file.mjs';
+import { File } from '../../../lib/util/file.mjs';
 import {
   shouldIgnoreTemplateEntry, createTemplateIgnoreSet
 } from '../../../lib/template-ignore.mjs';

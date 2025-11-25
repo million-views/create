@@ -2,8 +2,8 @@
 
 import fs from 'fs/promises';
 import path from 'path';
-import { File } from '../../../lib/utils/file.mjs';
-import { Shell } from '../../../lib/utils/shell.mjs';
+import { File } from '../../../lib/util/file.mjs';
+import { Shell } from '../../../lib/util/shell.mjs';
 import { resolveCacheDirectory } from '../../../lib/path-resolver.mjs';
 
 /**

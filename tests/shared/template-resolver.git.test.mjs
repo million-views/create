@@ -8,7 +8,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { TemplateResolver } from '../../bin/create-scaffold/modules/template-resolver.mjs';
 import { CacheManager } from '../../bin/create-scaffold/modules/cache-manager.mjs';
-import { File } from '../../lib/utils/file.mjs';
+import { File } from '../../lib/util/file.mjs';
 import { GitFixtureManager } from '../helpers/git-fixtures.mjs';
 
 class FixtureCacheManager extends CacheManager {
