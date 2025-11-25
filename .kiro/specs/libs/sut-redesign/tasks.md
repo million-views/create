@@ -29,102 +29,102 @@
 ## Phase 0: TypeScript Setup (Day 1)
 
 ### Task 0.1: Update tsconfig.json for type-stripping
-- [ ] Update tsconfig.json to include lib/ directory
-- [ ] Set `"verbatimModuleSyntax": true` (required for type-stripping)
-- [ ] Set `"allowImportingTsExtensions": true`
-- [ ] Add `"noEmit": true` (already set, verify)
-- [ ] Consider `"erasableSyntaxOnly": true` if available in TS version
+- [x] Update tsconfig.json to include lib/ directory
+- [x] Set `"verbatimModuleSyntax": true` (required for type-stripping)
+- [x] Set `"allowImportingTsExtensions": true`
+- [x] Add `"noEmit": true` (already set, verify)
+- [x] Consider `"erasableSyntaxOnly": true` if available in TS version
 
 ### Task 0.2: Update package.json
-- [ ] Update `engines.node` to `>=23.0.0` (type-stripping stable)
-- [ ] Note: Node 25 has type-stripping enabled by default - no flag needed
-- [ ] Add type-check script: `"typecheck": "tsc --noEmit"`
+- [x] Update `engines.node` to `>=23.0.0` (type-stripping stable)
+- [x] Note: Node 25 has type-stripping enabled by default - no flag needed
+- [x] Add type-check script: `"typecheck": "tsc --noEmit"`
 
 ### Task 0.3: Create lib/types.mts
-- [ ] Create shared type definitions file
-- [ ] Import types from existing types/*.ts files
-- [ ] Define common interfaces (ValidationResult, etc.)
+- [x] Create shared type definitions file
+- [x] Import types from existing types/*.ts files
+- [x] Define common interfaces (ValidationResult, etc.)
 
 ### Task 0.4: Verify TypeScript setup
-- [ ] Create a test .mts file in lib/
-- [ ] Verify it runs with `node lib/test.mts` (no flags needed in Node 25)
-- [ ] Verify `npm run typecheck` catches type errors
-- [ ] Delete test file
-- [ ] Commit: "build: configure type-strippable TypeScript"
+- [x] Create a test .mts file in lib/
+- [x] Verify it runs with `node lib/test.mts` (no flags needed in Node 25)
+- [x] Verify `npm run typecheck` catches type errors
+- [x] Delete test file
+- [x] Commit: "build: configure type-strippable TypeScript"
 
 ---
 
 ## Phase 1: Foundation - Error Domain (Week 1)
 
 ### Task 1.1: Create lib/error/ directory structure
-- [ ] Create `lib/error/` directory
-- [ ] Create `lib/error/index.mts` (empty facade)
+- [x] Create `lib/error/` directory
+- [x] Create `lib/error/index.mts` (empty facade)
 
 ### Task 1.2: Extract ValidationError
-- [ ] Create `lib/error/validation.mts` with ValidationError class
-- [ ] Add TypeScript types for constructor options
-- [ ] Class should match current behavior exactly
-- [ ] Add JSDoc + TypeScript documentation
+- [x] Create `lib/error/validation.mts` with ValidationError class
+- [x] Add TypeScript types for constructor options
+- [x] Class should match current behavior exactly
+- [x] Add JSDoc + TypeScript documentation
 
 ### Task 1.3: Extract ContextualError
-- [ ] Create `lib/error/contextual.mts` with ContextualError
-- [ ] Define `ErrorContext` as union type (NOT enum)
-- [ ] Define `ErrorSeverity` as union type (NOT enum)
-- [ ] Move from `lib/error-handler.mjs`
+- [x] Create `lib/error/contextual.mts` with ContextualError
+- [x] Define `ErrorContext` as union type (NOT enum)
+- [x] Define `ErrorSeverity` as union type (NOT enum)
+- [x] Move from `lib/error-handler.mjs`
 
 ### Task 1.4: Extract boundary errors
-- [ ] Create `lib/error/boundary.mts` with ViolationError (was BoundaryViolationError)
-- [ ] Create `lib/error/gate.mts` with GateError (was SecurityGateError)
-- [ ] Names follow contextual naming: directory is "error", module is "boundary"/"gate"
-- [ ] Add proper TypeScript types
+- [x] Create `lib/error/boundary.mts` with ViolationError (was BoundaryViolationError)
+- [x] Create `lib/error/gate.mts` with GateError (was SecurityGateError)
+- [x] Names follow contextual naming: directory is "error", module is "boundary"/"gate"
+- [x] Add proper TypeScript types
 
 ### Task 1.5: Create error facade
-- [ ] Update `lib/error/index.mts` to export all error classes
-- [ ] Export types using `export type { ... }`
-- [ ] Verify exports match design.md
+- [x] Update `lib/error/index.mts` to export all error classes
+- [x] Export types using `export type { ... }`
+- [x] Verify exports match design.md
 
 ### Task 1.6: Create re-export shims
-- [ ] Update `lib/security.mjs` to re-export ValidationError from `./error/index.mjs`
-- [ ] Update `lib/error-handler.mjs` to re-export from `./error/index.mjs`
-- [ ] Update `lib/security-gate.mjs` to re-export GateError from `./error/index.mjs`
-- [ ] Update `lib/boundary-validator.mjs` to re-export ViolationError from `./error/index.mjs`
-- [ ] Note: Shims remain .mjs for backward compatibility during migration
+- [x] Update `lib/security.mjs` to re-export ValidationError from `./error/index.mjs`
+- [x] Update `lib/error-handler.mjs` to re-export from `./error/index.mjs`
+- [x] Update `lib/security-gate.mjs` to re-export GateError from `./error/index.mjs`
+- [x] Update `lib/boundary-validator.mjs` to re-export ViolationError from `./error/index.mjs`
+- [x] Note: Shims remain .mjs for backward compatibility during migration
 
 ### Task 1.7: Verify error domain
-- [ ] Run `npm run typecheck` - no type errors
-- [ ] Run full test suite: `npm test`
-- [ ] All tests must pass
-- [ ] Commit: "refactor(lib): extract error domain with TypeScript"
+- [x] Run `npm run typecheck` - no type errors
+- [x] Run full test suite: `npm test`
+- [x] All tests must pass
+- [x] Commit: "refactor(lib): extract error domain with TypeScript"
 
 ---
 
 ## Phase 2: Security Domain Decomposition (Week 1-2)
 
 ### Task 2.1: Create lib/security/ directory structure
-- [ ] Create `lib/security/` directory
-- [ ] Create `lib/security/index.mts` (empty facade)
+- [x] Create `lib/security/` directory
+- [x] Create `lib/security/index.mts` (empty facade)
 
 ### Task 2.2: Extract sanitizers
-- [ ] Create `lib/security/sanitize.mts`
-- [ ] Move `sanitizePath()` → export as `path()`
-- [ ] Move `sanitizeBranchName()` → export as `branch()`
-- [ ] Move `sanitizeErrorMessage()` → export as `error()`
-- [ ] Add internal `_createSecureTempDir()` (was `createSecureTempDir`)
+- [x] Create `lib/security/sanitize.mts`
+- [x] Move `sanitizePath()` → export as `path()`
+- [x] Move `sanitizeBranchName()` → export as `branch()`
+- [x] Move `sanitizeErrorMessage()` → export as `error()`
+- [x] Add internal `_createSecureTempDir()` (was `createSecureTempDir`)
 
 ### Task 2.3: Extract Gate class
-- [ ] Create `lib/security/gate.mts`
-- [ ] Move SecurityGate → export as `Gate`
-- [ ] Update internal imports to use error domain
-- [ ] Remove "Security" prefix per naming conventions
+- [x] Create `lib/security/gate.mts`
+- [x] Move SecurityGate → export as `Gate`
+- [x] Update internal imports to use error domain
+- [x] Remove "Security" prefix per naming conventions
 
 ### Task 2.4: Move Boundary class
-- [ ] Create `lib/security/boundary.mts`
-- [ ] Move BoundaryValidator → export as `Boundary`
-- [ ] Remove "Validator" suffix (it's in security domain, boundary enforcement is implied)
-- [ ] Update to import ViolationError from error domain
+- [x] Create `lib/security/boundary.mts`
+- [x] Move BoundaryValidator → export as `Boundary`
+- [x] Remove "Validator" suffix (it's in security domain, boundary enforcement is implied)
+- [x] Update to import ViolationError from error domain
 
 ### Task 2.5: Create security facade
-- [ ] Update `lib/security/index.mts`:
+- [x] Update `lib/security/index.mts`:
   ```javascript
   export * as sanitize from './sanitize.mjs';
   export { Gate } from './gate.mjs';
@@ -132,13 +132,13 @@
   ```
 
 ### Task 2.6: Create security re-export shims
-- [ ] Update `lib/security.mts` to re-export sanitize functions from `./security/index.mts`
-- [ ] Update `lib/security-gate.mts` to re-export Gate from `./security/index.mts`
-- [ ] Update `lib/boundary-validator.mts` to re-export Boundary from `./security/index.mts`
+- [x] Update `lib/security.mts` to re-export sanitize functions from `./security/index.mts`
+- [x] Update `lib/security-gate.mts` to re-export Gate from `./security/index.mts`
+- [x] Update `lib/boundary-validator.mts` to re-export Boundary from `./security/index.mts`
 
 ### Task 2.7: Verify security domain
-- [ ] Run full test suite: `npm test`
-- [ ] All tests must pass
+- [x] Run full test suite: `npm test`
+- [x] All tests must pass
 - [ ] Commit: "refactor(lib): extract security domain"
 
 ---

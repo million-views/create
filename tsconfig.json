@@ -10,10 +10,12 @@
     "noEmit": true,
     "verbatimModuleSyntax": true,
     "allowImportingTsExtensions": true,
-    "erasableSyntaxOnly": true
+    "erasableSyntaxOnly": true,
+    "allowJs": true
   },
   "include": [
     "types/**/*.ts",
-    "lib/**/*.mts"
+    "lib/**/*.mts",
+    "lib/**/*.mjs"
   ]
 }

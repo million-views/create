@@ -15,9 +15,11 @@ Monorepo environments require different levels of guidance depending on whether 
 **Documents**:
 - `greenfield-development.md` - Development philosophy
 - `nodejs-runtime-focus.md` - Core Node.js runtime requirements
+- `typescript-guidelines.md` - Type-strippable TypeScript patterns
 - `workspace-safety.md` - File operation safety
 - `security-guidelines.md` - Security requirements
 - `multi-level-validation.md` - Validation framework
+- `naming-conventions.md` - Naming patterns and contextual naming
 - `diataxis-documentation.md` - Documentation framework
 - `templates/` - Documentation templates (content-guidelines.md, explanation-template.md, etc.)
 
