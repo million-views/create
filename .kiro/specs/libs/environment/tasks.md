@@ -35,10 +35,15 @@
   - Context factory and validation
   - Tools factory and isTools() guard
   - All test utilities
-- [*] Future: Move tools API tests from setup-runtime.test.mjs
-  - The tools.files, tools.json, tools.text tests are L2 tests
-  - They should be in environment/tools.test.mjs
-  - setup-runtime.test.mjs should focus on L3 sandbox only
+- [x] Create `tests/environment/tools.test.mjs` (49 tests)
+  - tools.files API tests
+  - tools.json API tests  
+  - tools.text API tests
+  - tools.templates API tests
+  - tools.placeholders API tests
+  - tools.inputs API tests
+  - tools.options API tests
+- [x] setup-runtime.test.mjs now focuses on L3 sandbox only (9 tests)
 
 ### Task 1.5: TypeScript definitions
 - [x] Create `lib/environment/types.d.ts` with complete type definitions
@@ -77,18 +82,24 @@
 - Full Environment module with all tool APIs extracted
 - setup-runtime.mjs reduced from 1190 to 161 lines (86% reduction)
 - TypeScript definitions for complete API surface
-- 45 unit tests for Environment module
-- All 38 test suites passing
+- 94 unit tests for Environment module (45 core + 49 tools)
+- L2 tools tests in environment/tools.test.mjs
+- L3 sandbox tests in setup-runtime.test.mjs (9 tests)
+- All 39 test suites passing
 
-**Deferred:**
-- [*] Move L2 tools API tests from setup-runtime.test.mjs to environment/tools.test.mjs
+**SUT Enhancements (during test extraction):**
+- Added tools.json.write() for creating new JSON files
+- Enhanced addToArray() to spread array values
+- Added mergeKey support to mergeArray() for upsert behavior
 
 ## Acceptance Criteria
 
 - [x] `lib/environment/` module exports createContext, createTools
 - [x] `lib/environment/testing.mjs` exports createTestContext, createTestTools, createTestEnvironment
-- [x] Environment module has 45 unit tests, all passing
-- [x] Full test suite (38 suites) passes
+- [x] Environment module has 94 unit tests, all passing
+- [x] Full test suite (39 suites) passes
 - [x] setup-runtime.test.mjs uses Environment test utilities
 - [x] Environment tests added to test-runner.mjs
 - [x] setup-runtime.mjs slimmed to sandbox-only logic
+- [x] L2 tools tests moved to environment/tools.test.mjs
+- [x] L3 sandbox tests remain in setup-runtime.test.mjs
