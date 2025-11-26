@@ -2,10 +2,9 @@
 
 import { describe, it, beforeEach } from 'node:test';
 import assert from 'node:assert';
-import path from 'path';
+import { join } from 'node:path';
 import { CacheManager } from '../../bin/create-scaffold/modules/cache-manager.mts';
 import { resolveCacheDirectory } from '../../lib/util/index.mts';
-import { TEST_TMP_BASE } from '../helpers/temp-dir.mjs';
 
 describe('CacheManager', () => {
   let cacheManager;
@@ -13,7 +12,7 @@ describe('CacheManager', () => {
 
   beforeEach(() => {
     // Create a temporary cache directory for testing (under project's tmp/)
-    tempCacheDir = path.join(TEST_TMP_BASE, 'unit-tests', 'cache-manager-test-' + Date.now());
+    tempCacheDir = join(process.cwd(), 'tmp', 'unit-tests', 'cache-manager-test-' + Date.now());
     cacheManager = new CacheManager(tempCacheDir);
   });
 
@@ -102,13 +101,13 @@ describe('CacheManager', () => {
     it('resolveRepoDirectory generates correct paths for main branch', () => {
       const result = cacheManager.resolveRepoDirectory('user/repo', null);
       assert.equal(result.repoHash, 'https/user-repo');
-      assert.equal(result.repoDir, path.join(tempCacheDir, 'https', 'user-repo'));
+      assert.equal(result.repoDir, join(tempCacheDir, 'https', 'user-repo'));
     });
 
     it('resolveRepoDirectory generates correct paths for custom branch', () => {
       const result = cacheManager.resolveRepoDirectory('user/repo', 'develop');
       assert.equal(result.repoHash, 'https/user-repo-develop');
-      assert.equal(result.repoDir, path.join(tempCacheDir, 'https', 'user-repo-develop'));
+      assert.equal(result.repoDir, join(tempCacheDir, 'https', 'user-repo-develop'));
     });
 
     it('resolveRepoDirectory handles master branch as default', () => {

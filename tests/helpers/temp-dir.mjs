@@ -8,20 +8,13 @@
  * 1. Test artifacts are contained within the project
  * 2. They are covered by .gitignore
  * 3. Easy cleanup and inspection during development
+ *
+ * PATTERN: Use join(process.cwd(), 'tmp', ...) for test directories
+ * This is the same pattern used by E2E tests (see tests/e2e/test-helpers.mjs)
  */
 
 import fs from 'node:fs/promises';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const PROJECT_ROOT = path.resolve(__dirname, '..', '..');
-
-/**
- * Base directory for all test temporary files
- * Uses project's tmp/ folder instead of system /tmp
- */
-export const TEST_TMP_BASE = path.join(PROJECT_ROOT, 'tmp');
+import { join } from 'node:path';
 
 /**
  * Create a unique temp directory for a test
@@ -34,7 +27,7 @@ export async function createTempDir(prefix, category = 'tests') {
   const timestamp = Date.now();
   const random = Math.random().toString(36).slice(2, 8);
   const dirName = `${prefix}-${timestamp}-${random}`;
-  const tempDir = path.join(TEST_TMP_BASE, category, dirName);
+  const tempDir = join(process.cwd(), 'tmp', category, dirName);
 
   await fs.mkdir(tempDir, { recursive: true });
   return tempDir;
@@ -62,11 +55,4 @@ export async function createTempDirWithCleanup(t, prefix, category = 'tests') {
   }
 
   return tempDir;
-}
-
-/**
- * Get the project root directory
- */
-export function getProjectRoot() {
-  return PROJECT_ROOT;
 }

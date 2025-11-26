@@ -20,10 +20,9 @@ import assert from 'node:assert';
 import { mkdir, writeFile, rm } from 'node:fs/promises';
 import { join } from 'node:path';
 import { loadConfig } from '../../bin/create-scaffold/modules/config-loader.mts';
-import { TEST_TMP_BASE } from '../helpers/temp-dir.mjs';
 
 test('Config discovery does NOT walk up directory tree', async (t) => {
-  const baseDir = join(TEST_TMP_BASE, 'unit-tests', `config-discovery-test-${Date.now()}`);
+  const baseDir = join(process.cwd(), 'tmp', 'unit-tests', `config-discovery-test-${Date.now()}`);
   // Create an isolated empty M5NV_HOME to prevent picking up test-runner's HOME config
   const isolatedM5nvHome = join(baseDir, 'isolated-m5nv-home');
   await mkdir(isolatedM5nvHome, { recursive: true });
@@ -108,7 +107,7 @@ test('Config discovery does NOT walk up directory tree', async (t) => {
 });
 
 test('Config discovery search order', async (t) => {
-  const baseDir = join(TEST_TMP_BASE, 'unit-tests', `config-order-test-${Date.now()}`);
+  const baseDir = join(process.cwd(), 'tmp', 'unit-tests', `config-order-test-${Date.now()}`);
 
   await t.test('checks cwd/.m5nvrc first', async () => {
     const testDir = join(baseDir, 'cwd-first');
