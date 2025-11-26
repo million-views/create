@@ -2,9 +2,8 @@
 
 import { describe, test, beforeEach, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtemp, rm } from 'fs/promises';
-import { join, isAbsolute } from 'path';
-import { tmpdir } from 'os';
+import { mkdir, rm } from 'node:fs/promises';
+import { join, isAbsolute } from 'node:path';
 import { BoundaryValidator } from '../../../lib/security/index.mts';
 import { ViolationError as BoundaryViolationError } from '../../../lib/error/index.mts';
 
@@ -28,8 +27,9 @@ describe('BoundaryValidator', () => {
   let validator;
 
   beforeEach(async () => {
-    // Create isolated test directory
-    testRoot = await mkdtemp(join(tmpdir(), 'boundary-test-'));
+    // Create isolated test directory (using project's tmp/, not system tmpdir)
+    testRoot = join(process.cwd(), 'tmp', 'unit-tests', `boundary-test-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`);
+    await mkdir(testRoot, { recursive: true });
     validator = new BoundaryValidator(testRoot);
   });
 

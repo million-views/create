@@ -1,23 +1,50 @@
 #!/usr/bin/env node
 
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+/**
+ * L2 Tests for Template Validator
+ *
+ * These are pure data-in/data-out tests - no filesystem access needed.
+ * All fixtures are inlined as JavaScript objects.
+ */
+
 import { strict as assert } from 'node:assert';
-import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
 import { validateTemplateManifest } from '../../../lib/validation/index.mts';
 import { ValidationError } from '../../../lib/error/index.mts';
 import { TemplateValidator } from '../../../lib/validation/template-validator.mts';
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const repoRoot = path.resolve(__dirname, '../../..');
-
-async function loadFixture(name) {
-  const filePath = path.join(repoRoot, 'tests', 'fixtures', name, 'template.json');
-  const raw = await readFile(filePath, 'utf8');
-  return JSON.parse(raw);
-}
+// Inlined fixture (originally from tests/fixtures/placeholder-template/template.json)
+const placeholderTemplateFixture = {
+  schemaVersion: '1.0.0',
+  id: 'test/placeholder-template',
+  name: 'Placeholder Template',
+  description: 'Fixture demonstrating placeholder resolution',
+  placeholderFormat: 'unicode',
+  setup: {
+    authoringMode: 'wysiwyg'
+  },
+  placeholders: {
+    PACKAGE_NAME: {
+      default: 'my-project',
+      description: 'Name of the generated project',
+      required: true
+    },
+    API_TOKEN: {
+      default: '',
+      description: 'API token used for configuration',
+      required: true,
+      sensitive: true
+    },
+    MAX_WORKERS: {
+      default: '4',
+      description: 'Maximum number of workers'
+    }
+  },
+  handoff: [
+    'Review README.md for token replacements'
+  ]
+};
 
 test('TemplateValidator comprehensive validation', async (t) => {
   const validator = new TemplateValidator();
@@ -236,8 +263,8 @@ test('TemplateValidator comprehensive validation', async (t) => {
   });
 });
 
-test('validateTemplateManifest returns normalized values for valid template', async () => {
-  const manifest = await loadFixture('placeholder-template');
+test('validateTemplateManifest returns normalized values for valid template', () => {
+  const manifest = placeholderTemplateFixture;
   const result = validateTemplateManifest(manifest);
 
   assert.equal(result.authoringMode, 'wysiwyg');

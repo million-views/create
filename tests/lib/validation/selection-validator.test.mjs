@@ -1,13 +1,9 @@
 #!/usr/bin/env node
 
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { strict as assert } from 'node:assert';
 import test from 'node:test';
 
 import { SelectionValidator } from '../../../lib/validation/selection-validator.mts';
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // Test fixtures
 const validTemplate = {

@@ -1,14 +1,20 @@
 #!/usr/bin/env node
 
 /**
- * Unit tests for path-resolver module
- * Tests M5NV_HOME environment variable and path resolution
+ * L1 Tests for path resolution utilities
+ *
+ * These are L1 (Low-Level Wrappers) tests - they test thin wrappers around
+ * Node.js os and path APIs. Per testing.md, L1 tests MAY use L0 (raw Node.js
+ * APIs) for test setup/teardown/verification.
+ *
+ * The SUT (resolveHomeDirectory, etc.) calls os.homedir() internally,
+ * so we need os.homedir() to verify fallback behavior.
  */
 
 import { test } from 'node:test';
 import assert from 'node:assert';
-import path from 'node:path';
-import os from 'node:os';
+import { join } from 'node:path';
+import { homedir } from 'node:os';
 import {
   resolveHomeDirectory,
   resolveM5nvBase,
@@ -33,9 +39,9 @@ test('resolveHomeDirectory', async (t) => {
     assert.strictEqual(resolveHomeDirectory(env), '/home/user');
   });
 
-  await t.test('falls back to os.homedir()', () => {
+  await t.test('falls back to homedir()', () => {
     const env = {};
-    assert.strictEqual(resolveHomeDirectory(env), os.homedir());
+    assert.strictEqual(resolveHomeDirectory(env), homedir());
   });
 });
 
@@ -57,7 +63,7 @@ test('resolveM5nvBase', async (t) => {
 
   await t.test('uses default home directory when no env vars set', () => {
     const env = {};
-    const expected = path.join(os.homedir(), '.m5nv');
+    const expected = join(homedir(), '.m5nv');
     assert.strictEqual(resolveM5nvBase(env), expected);
   });
 });
