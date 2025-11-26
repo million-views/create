@@ -7,7 +7,6 @@
 
 import { spawn } from 'child_process';
 import { performance } from 'perf_hooks';
-import os from 'os';
 import path from 'path';
 import fs from 'fs/promises';
 
@@ -15,7 +14,8 @@ class TestRunner {
   constructor() {
     this.results = [];
     this.totalStartTime = performance.now();
-    this.homeBaseDir = path.join(os.tmpdir(), 'create-scaffold-test-homes');
+    // Use project tmp/ for M5NV_HOME isolation instead of system tmpdir
+    this.m5nvBaseDir = path.join(process.cwd(), 'tmp', 'test-m5nv-homes');
 
     // Define test suite groups organized by test pyramid levels
     this.suiteGroups = {
@@ -100,17 +100,17 @@ class TestRunner {
     console.log(`   ${description}`);
 
     const startTime = performance.now();
-    const homeDir = path.join(
-      this.homeBaseDir,
+    const m5nvHome = path.join(
+      this.m5nvBaseDir,
       (homeSuffix || name).toLowerCase().replace(/[^a-z0-9]+/g, '-')
     );
 
-    await fs.rm(homeDir, { recursive: true, force: true });
-    await fs.mkdir(homeDir, { recursive: true });
+    await fs.rm(m5nvHome, { recursive: true, force: true });
+    await fs.mkdir(m5nvHome, { recursive: true });
 
     try {
       const args = Array.isArray(command) ? command : [command];
-      await this.execCommand('node', args, homeDir);
+      await this.execCommand('node', args, m5nvHome);
       const duration = Math.round(performance.now() - startTime);
       console.log(`✅ ${name} - ${duration}ms`);
       this.results.push({ name, status: 'PASSED', duration });
@@ -122,17 +122,19 @@ class TestRunner {
       this.results.push({ name, status: 'FAILED', duration, error: error.message });
       return false;
     } finally {
-      await fs.rm(homeDir, { recursive: true, force: true }).catch(() => { });
+      await fs.rm(m5nvHome, { recursive: true, force: true }).catch(() => { });
     }
   }
 
-  async execCommand(command, args, homeDir) {
+  async execCommand(command, args, m5nvHome) {
     return new Promise((resolve, reject) => {
       const child = spawn(command, args, {
         stdio: ['inherit', 'inherit', 'inherit'],
         env: {
           ...process.env,
-          HOME: homeDir
+          // Use M5NV_HOME instead of HOME to isolate config discovery
+          // This prevents test pollution without hijacking the entire HOME directory
+          M5NV_HOME: m5nvHome
         }
       });
 
@@ -179,8 +181,8 @@ class TestRunner {
   async runAll() {
     console.log('🚀 Running Complete Test Suite for @m5nv/create-scaffold');
     console.log('='.repeat(60));
-    await fs.rm(this.homeBaseDir, { recursive: true, force: true });
-    await fs.mkdir(this.homeBaseDir, { recursive: true });
+    await fs.rm(this.m5nvBaseDir, { recursive: true, force: true });
+    await fs.mkdir(this.m5nvBaseDir, { recursive: true });
 
     const tests = this.getAllTestDefinitions();
 
@@ -242,8 +244,8 @@ class TestRunner {
       process.exit(1);
     }
 
-    await fs.rm(this.homeBaseDir, { recursive: true, force: true });
-    await fs.mkdir(this.homeBaseDir, { recursive: true });
+    await fs.rm(this.m5nvBaseDir, { recursive: true, force: true });
+    await fs.mkdir(this.m5nvBaseDir, { recursive: true });
 
     const passed = await this.runTest(matchingTest);
     this.printSummary();
