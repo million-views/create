@@ -19,11 +19,14 @@ import { test } from 'node:test';
 import assert from 'node:assert';
 import { mkdir, writeFile, rm } from 'node:fs/promises';
 import { join } from 'node:path';
-import { tmpdir } from 'os';
 import { loadConfig } from '../../bin/create-scaffold/modules/config-loader.mts';
+import { TEST_TMP_BASE } from '../helpers/temp-dir.mjs';
 
 test('Config discovery does NOT walk up directory tree', async (t) => {
-  const baseDir = join(tmpdir(), `config-discovery-test-${Date.now()}`);
+  const baseDir = join(TEST_TMP_BASE, 'unit-tests', `config-discovery-test-${Date.now()}`);
+  // Create an isolated empty M5NV_HOME to prevent picking up test-runner's HOME config
+  const isolatedM5nvHome = join(baseDir, 'isolated-m5nv-home');
+  await mkdir(isolatedM5nvHome, { recursive: true });
 
   await t.test('does not load config from parent directory', async () => {
     // Setup: parent/.m5nvrc and parent/child/
@@ -36,11 +39,9 @@ test('Config discovery does NOT walk up directory tree', async (t) => {
     await writeFile(join(parentDir, '.m5nvrc'), JSON.stringify(parentConfig));
 
     // Load config from child (should NOT find parent config)
-    const result = await loadConfig({ cwd: childDir });
+    const result = await loadConfig({ cwd: childDir, env: { M5NV_HOME: isolatedM5nvHome } });
 
     assert.strictEqual(result, null, 'Should not load config from parent directory');
-
-    await rm(baseDir, { recursive: true, force: true });
   });
 
   await t.test('does not load config from grandparent directory', async () => {
@@ -55,11 +56,9 @@ test('Config discovery does NOT walk up directory tree', async (t) => {
     await writeFile(join(grandparentDir, '.m5nvrc'), JSON.stringify(grandparentConfig));
 
     // Load config from child (should NOT find grandparent config)
-    const result = await loadConfig({ cwd: childDir });
+    const result = await loadConfig({ cwd: childDir, env: { M5NV_HOME: isolatedM5nvHome } });
 
     assert.strictEqual(result, null, 'Should not load config from grandparent directory');
-
-    await rm(baseDir, { recursive: true, force: true });
   });
 
   await t.test('loads config ONLY from current directory', async () => {
@@ -75,12 +74,10 @@ test('Config discovery does NOT walk up directory tree', async (t) => {
     await writeFile(join(childDir, '.m5nvrc'), JSON.stringify(childConfig));
 
     // Load config from child (should load child config, NOT parent)
-    const result = await loadConfig({ cwd: childDir });
+    const result = await loadConfig({ cwd: childDir, env: { M5NV_HOME: isolatedM5nvHome } });
 
     assert.notStrictEqual(result, null);
     assert.strictEqual(result.defaults.repo, 'https://github.com/child/repo.git');
-
-    await rm(baseDir, { recursive: true, force: true });
   });
 
   await t.test('only checks cwd then user config (no intermediate paths)', async () => {
@@ -102,13 +99,16 @@ test('Config discovery does NOT walk up directory tree', async (t) => {
     const result = await loadConfig({ cwd: deepDir, env: { M5NV_HOME: fakeM5nvHome } });
 
     assert.strictEqual(result, null, 'Should not load config from any parent directories');
+  });
 
+  // Cleanup at the end of all subtests
+  t.after(async () => {
     await rm(baseDir, { recursive: true, force: true });
   });
 });
 
 test('Config discovery search order', async (t) => {
-  const baseDir = join(tmpdir(), `config-order-test-${Date.now()}`);
+  const baseDir = join(TEST_TMP_BASE, 'unit-tests', `config-order-test-${Date.now()}`);
 
   await t.test('checks cwd/.m5nvrc first', async () => {
     const testDir = join(baseDir, 'cwd-first');
@@ -123,8 +123,6 @@ test('Config discovery search order', async (t) => {
     assert.notStrictEqual(result, null);
     assert.strictEqual(result.defaults.repo, 'https://github.com/cwd/test.git');
     assert.strictEqual(result.path, join(testDir, '.m5nvrc'));
-
-    await rm(baseDir, { recursive: true, force: true });
   });
 
   await t.test('falls back to user config when cwd config missing', async () => {
@@ -148,7 +146,10 @@ test('Config discovery search order', async (t) => {
 
     assert.notStrictEqual(result, null);
     assert.strictEqual(result.defaults.repo, 'https://github.com/user/test.git');
+  });
 
+  // Cleanup at the end of all subtests
+  t.after(async () => {
     await rm(baseDir, { recursive: true, force: true });
   });
 });
