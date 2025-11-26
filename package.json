@@ -11,6 +11,8 @@
   "exports": {
     ".": "./bin/create-scaffold/index.mjs",
     "./make-template": "./bin/make-template/index.mjs",
+    "./lib": "./lib/index.mts",
+    "./lib/*": "./lib/*",
     "./schema/template.json": "./schema/template.json",
     "./schema/template.v1.json": "./schema/template.v1.json",
     "./schema/selection.json": "./schema/selection.json",
@@ -26,6 +28,7 @@
   },
   "files": [
     "bin",
+    "lib",
     "schema",
     "types",
     "scripts",

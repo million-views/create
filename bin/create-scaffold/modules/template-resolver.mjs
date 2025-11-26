@@ -4,8 +4,9 @@ import path from 'node:path';
 import fs from 'node:fs/promises';
 import {
   ContextualError, ErrorContext, ErrorSeverity
-} from '../../../lib/error-handler.mjs';
-import { sanitizePath, validateRepoUrl } from '../../../lib/security.mjs';
+} from '@m5nv/create-scaffold/lib/error/index.mts';
+import { sanitize } from '@m5nv/create-scaffold/lib/security/index.mts';
+import { cli } from '@m5nv/create-scaffold/lib/validation/index.mts';
 import { CacheManager } from './cache-manager.mjs';
 
 /**
@@ -196,7 +197,7 @@ export class TemplateResolver {
     if (templateUrl.startsWith('/') || templateUrl.startsWith('./') || templateUrl.startsWith('../') || templateUrl.startsWith('~')) {
       // Validate local paths for security (path traversal prevention)
       try {
-        sanitizePath(templateUrl);
+        sanitize.path(templateUrl);
       } catch (error) {
         throw new ContextualError(`Invalid template path: ${error.message}`, {
           context: ErrorContext.USER_INPUT,
@@ -232,7 +233,7 @@ export class TemplateResolver {
         const hashIndex = templateUrl.indexOf('#');
         urlToValidate = templateUrl.substring(0, hashIndex);
       }
-      validateRepoUrl(urlToValidate);
+      cli.repoUrl(urlToValidate);
       return templateUrl;
     } catch (error) {
       throw new ContextualError(`Invalid template URL format: ${templateUrl}`, {

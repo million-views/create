@@ -1,5 +1,3 @@
-#!/usr/bin/env node
-
 /**
  * Path Resolver - Centralized M5NV home and cache directory resolution
  *
@@ -10,17 +8,24 @@
  *
  * This module ensures all tools use the same path resolution logic,
  * enabling hermetic testing and custom installation locations.
+ *
+ * @module lib/util/path
  */
 
-import os from 'os';
-import path from 'path';
+import os from 'node:os';
+import nodePath from 'node:path';
+
+/**
+ * Environment variables type
+ */
+type EnvVars = Record<string, string | undefined>;
 
 /**
  * Resolve the user's home directory
- * @param {Record<string, string>} [env] - Environment variables (defaults to process.env)
- * @returns {string} - Home directory path
+ * @param env - Environment variables (defaults to process.env)
+ * @returns Home directory path
  */
-export function resolveHomeDirectory(env = process.env) {
+export function resolveHomeDirectory(env: EnvVars = process.env): string {
   // Try standard environment variables first
   const home = env.HOME || env.USERPROFILE;
   if (home) {
@@ -39,10 +44,10 @@ export function resolveHomeDirectory(env = process.env) {
  * 1. M5NV_HOME environment variable (for testing and custom installations)
  * 2. ~/.m5nv (default)
  *
- * @param {Record<string, string>} [env] - Environment variables (defaults to process.env)
- * @returns {string} - M5NV base directory path
+ * @param env - Environment variables (defaults to process.env)
+ * @returns M5NV base directory path
  */
-export function resolveM5nvBase(env = process.env) {
+export function resolveM5nvBase(env: EnvVars = process.env): string {
   // If M5NV_HOME is set, use it directly (absolute path expected)
   if (env.M5NV_HOME) {
     return env.M5NV_HOME;
@@ -50,35 +55,35 @@ export function resolveM5nvBase(env = process.env) {
 
   // Default: ~/.m5nv
   const homeDir = resolveHomeDirectory(env);
-  return path.join(homeDir, '.m5nv');
+  return nodePath.join(homeDir, '.m5nv');
 }
 
 /**
  * Resolve the cache base directory for Git repositories
- * @param {Record<string, string>} [env] - Environment variables (defaults to process.env)
- * @returns {string} - Cache directory path
+ * @param env - Environment variables (defaults to process.env)
+ * @returns Cache directory path
  */
-export function resolveCacheDirectory(env = process.env) {
+export function resolveCacheDirectory(env: EnvVars = process.env): string {
   const m5nvBase = resolveM5nvBase(env);
-  return path.join(m5nvBase, 'cache');
+  return nodePath.join(m5nvBase, 'cache');
 }
 
 /**
  * Resolve the cache directory for template metadata (registry cache)
- * @param {Record<string, string>} [env] - Environment variables (defaults to process.env)
- * @returns {string} - Template cache directory path
+ * @param env - Environment variables (defaults to process.env)
+ * @returns Template cache directory path
  */
-export function resolveTemplateCacheDirectory(env = process.env) {
+export function resolveTemplateCacheDirectory(env: EnvVars = process.env): string {
   const cacheBase = resolveCacheDirectory(env);
-  return path.join(cacheBase, 'templates');
+  return nodePath.join(cacheBase, 'templates');
 }
 
 /**
  * Resolve the user configuration file path
- * @param {Record<string, string>} [env] - Environment variables (defaults to process.env)
- * @returns {string} - User config file path
+ * @param env - Environment variables (defaults to process.env)
+ * @returns User config file path
  */
-export function resolveUserConfigPath(env = process.env) {
+export function resolveUserConfigPath(env: EnvVars = process.env): string {
   const m5nvBase = resolveM5nvBase(env);
-  return path.join(m5nvBase, 'rc.json');
+  return nodePath.join(m5nvBase, 'rc.json');
 }

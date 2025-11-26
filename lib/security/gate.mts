@@ -10,8 +10,8 @@
  */
 
 import { ValidationError, GateError } from '../error/index.mts';
-import { getAuditLogger } from '../security-audit-logger.mjs';
-import { validateAllInputs } from '../security.mjs';
+import { getAuditLogger } from './audit.mjs';
+import { allInputs as validateAllInputs } from '../validation/cli/input.mts';
 
 /**
  * Options for Gate constructor.

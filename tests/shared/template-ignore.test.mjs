@@ -13,7 +13,7 @@ import {
   createTemplateIgnoreSet,
   shouldIgnoreTemplateEntry,
   stripIgnoredFromTree
-} from '../../lib/template-ignore.mjs';
+} from '../../lib/template/index.mts';
 
 describe('Template Ignore Logic', () => {
   describe('createTemplateIgnoreSet', () => {

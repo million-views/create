@@ -1,8 +1,8 @@
-import { Command } from '../../../../lib/cli/command.js';
+import { Command } from '@m5nv/create-scaffold/lib/cli/command.js';
 import { initHelp } from './help.js';
 import fs from 'fs';
 import { join } from 'path';
-import { generateConfigFile } from '../../../../lib/templatize-config.mjs';
+import { generateConfigFile } from '@m5nv/create-scaffold/lib/templatize/index.mts';
 
 export class InitCommand extends Command {
   constructor() {

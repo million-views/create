@@ -1,21 +1,21 @@
-#!/usr/bin/env node
-
 /**
- * Centralized error handling utilities for consistent user experience
- * Provides standardized error formatting, context, and suggestions
+ * Error Handler Module
+ *
+ * Centralized error handling utilities for consistent user experience.
+ * Provides standardized error formatting, context, and suggestions.
+ *
+ * @module lib/error/handler
  */
 
-import { sanitizeErrorMessage, ValidationError } from './security.mjs';
-import { ArgumentError, PreflightError } from './error-classes.mjs';
-
-// Import and re-export ContextualError from the error domain for backward compatibility
-import { ContextualError } from './error/index.mts';
-export { ContextualError };
+import { error as sanitizeError } from '../security/sanitize.mts';
+import { ValidationError } from './validation.mts';
+import { ContextualError } from './contextual.mts';
+import { ArgumentError, PreflightError } from './classes.mts';
+import type { ErrorContext as ErrorContextType, ErrorSeverity as ErrorSeverityType } from '../types.mts';
 
 /**
- * Error context types for better error categorization
- * NOTE: These constants are maintained for backward compatibility.
- * New code should use the union type from lib/types.mts
+ * Error context types for better error categorization.
+ * Use these constants for runtime values.
  */
 export const ErrorContext = {
   VALIDATION: 'validation',
@@ -24,28 +24,42 @@ export const ErrorContext = {
   TEMPLATE: 'template',
   CONFIGURATION: 'configuration',
   RUNTIME: 'runtime',
-  USER_INPUT: 'user_input'
-};
+  USER_INPUT: 'user_input',
+  SECURITY: 'security'
+} as const satisfies Record<string, ErrorContextType>;
 
 /**
- * Error severity levels
- * NOTE: These constants are maintained for backward compatibility.
- * New code should use the union type from lib/types.mts
+ * Error severity levels.
+ * Use these constants for runtime values.
  */
 export const ErrorSeverity = {
-  LOW: 'low',       // Minor issues, warnings
-  MEDIUM: 'medium', // Recoverable errors
-  HIGH: 'high',     // Critical errors requiring user action
-  FATAL: 'fatal'    // System-level failures
-};
+  LOW: 'low',
+  MEDIUM: 'medium',
+  HIGH: 'high',
+  FATAL: 'fatal'
+} as const satisfies Record<string, ErrorSeverityType>;
+
+/**
+ * Options for formatting error messages
+ */
+export interface FormatErrorOptions {
+  /** Include suggestions in output */
+  includeSuggestions?: boolean;
+  /** Include technical details in output */
+  includeTechnical?: boolean;
+  /** Maximum number of suggestions to show */
+  maxSuggestions?: number;
+}
 
 /**
  * Format error message with consistent styling and context
- * @param {Error} error - The error to format
- * @param {object} options - Formatting options
- * @returns {string} - Formatted error message
  */
-export function formatErrorMessage(error, options = {}) {
+export function formatErrorMessage(error: Error & {
+  context?: ErrorContextType;
+  userFriendlyMessage?: string;
+  technicalDetails?: string;
+  suggestions?: string[];
+}, options: FormatErrorOptions = {}): string {
   const {
     includeSuggestions = true,
     includeTechnical = false,
@@ -82,29 +96,28 @@ export function formatErrorMessage(error, options = {}) {
 
 /**
  * Get appropriate emoji for error context
- * @param {string} context - Error context
- * @returns {string} - Emoji for the context
  */
-function getContextEmoji(context) {
-  const emojiMap = {
-    [ErrorContext.VALIDATION]: '🔍',
-    [ErrorContext.NETWORK]: '🌐',
-    [ErrorContext.FILESYSTEM]: '📁',
-    [ErrorContext.TEMPLATE]: '📋',
-    [ErrorContext.CONFIGURATION]: '⚙️',
-    [ErrorContext.RUNTIME]: '⚡',
-    [ErrorContext.USER_INPUT]: '👤'
+function getContextEmoji(context: ErrorContextType): string {
+  const emojiMap: Record<ErrorContextType, string> = {
+    validation: '🔍',
+    network: '🌐',
+    filesystem: '📁',
+    template: '📋',
+    configuration: '⚙️',
+    runtime: '⚡',
+    user_input: '👤',
+    security: '🔒'
   };
 
   return emojiMap[context] || '❌';
 }
 
 /**
- * Create user-friendly error messages for common scenarios
+ * Error message factory for common scenarios
  */
 export const ErrorMessages = {
   // Template resolution errors
-  templateNotFound: (template) => new ContextualError(
+  templateNotFound: (template: string) => new ContextualError(
     `Template "${template}" not found`,
     {
       context: ErrorContext.TEMPLATE,
@@ -118,7 +131,7 @@ export const ErrorMessages = {
     }
   ),
 
-  templateInvalidUrl: (url, reason) => new ContextualError(
+  templateInvalidUrl: (url: string, reason: string) => new ContextualError(
     `Invalid template URL: ${url}`,
     {
       context: ErrorContext.TEMPLATE,
@@ -134,7 +147,7 @@ export const ErrorMessages = {
   ),
 
   // Validation errors
-  validationFailed: (field, reason) => new ContextualError(
+  validationFailed: (field: string, reason: string) => new ContextualError(
     `Invalid ${field}: ${reason}`,
     {
       context: ErrorContext.VALIDATION,
@@ -148,7 +161,7 @@ export const ErrorMessages = {
   ),
 
   // Network errors
-  networkError: (operation, reason) => new ContextualError(
+  networkError: (operation: string, reason: string) => new ContextualError(
     `Network error during ${operation}`,
     {
       context: ErrorContext.NETWORK,
@@ -163,7 +176,7 @@ export const ErrorMessages = {
   ),
 
   // Filesystem errors
-  filesystemError: (operation, path, reason) => new ContextualError(
+  filesystemError: (operation: string, path: string, reason: string) => new ContextualError(
     `File system error during ${operation}`,
     {
       context: ErrorContext.FILESYSTEM,
@@ -178,7 +191,7 @@ export const ErrorMessages = {
   ),
 
   // Configuration errors
-  configError: (setting, reason) => new ContextualError(
+  configError: (setting: string, reason: string) => new ContextualError(
     `Configuration error: ${setting}`,
     {
       context: ErrorContext.CONFIGURATION,
@@ -193,7 +206,7 @@ export const ErrorMessages = {
   ),
 
   // Generic errors with context
-  genericError: (message, context = ErrorContext.RUNTIME) => new ContextualError(
+  genericError: (message: string, context: ErrorContextType = ErrorContext.RUNTIME) => new ContextualError(
     message,
     {
       context,
@@ -207,7 +220,7 @@ export const ErrorMessages = {
   ),
 
   // CLI-specific errors
-  unknownCommand: (command) => new ContextualError(
+  unknownCommand: (command: string) => new ContextualError(
     `Unknown command: ${command}`,
     {
       context: ErrorContext.USER_INPUT,
@@ -222,7 +235,7 @@ export const ErrorMessages = {
     }
   ),
 
-  missingRequiredArgument: (argument, command) => new ContextualError(
+  missingRequiredArgument: (argument: string, command: string) => new ContextualError(
     `Missing required argument: ${argument}`,
     {
       context: ErrorContext.USER_INPUT,
@@ -235,7 +248,7 @@ export const ErrorMessages = {
     }
   ),
 
-  invalidArgumentValue: (argument, value, expected) => new ContextualError(
+  invalidArgumentValue: (argument: string, value: string, expected: string) => new ContextualError(
     `Invalid value for ${argument}: "${value}"`,
     {
       context: ErrorContext.USER_INPUT,
@@ -248,7 +261,7 @@ export const ErrorMessages = {
     }
   ),
 
-  commandValidationFailed: (command, reason) => new ContextualError(
+  commandValidationFailed: (command: string, reason: string) => new ContextualError(
     `Command validation failed for "${command}": ${reason}`,
     {
       context: ErrorContext.VALIDATION,
@@ -264,12 +277,32 @@ export const ErrorMessages = {
 };
 
 /**
- * Handle errors consistently across the application
- * @param {Error} error - The error to handle
- * @param {object} options - Handling options
- * @returns {number} - Exit code
+ * Logger interface for error handling
  */
-export function handleError(error, options = {}) {
+interface ErrorLogger {
+  logError(error: Error, options?: { operation?: string | null }): Promise<void>;
+}
+
+/**
+ * Options for handleError function
+ */
+export interface HandleErrorOptions {
+  /** Logger instance for error logging */
+  logger?: ErrorLogger | null;
+  /** Operation context for logging */
+  operation?: string | null;
+  /** Whether to exit the process */
+  exit?: boolean;
+  /** Include suggestions in output */
+  includeSuggestions?: boolean;
+  /** Include technical details in output */
+  includeTechnical?: boolean;
+}
+
+/**
+ * Handle errors consistently across the application
+ */
+export function handleError(error: Error, options: HandleErrorOptions = {}): number {
   const {
     logger = null,
     operation = null,
@@ -286,7 +319,7 @@ export function handleError(error, options = {}) {
   }
 
   // Format and display the error
-  const formattedError = formatErrorMessage(error, {
+  const formattedError = formatErrorMessage(error as Parameters<typeof formatErrorMessage>[0], {
     includeSuggestions,
     includeTechnical
   });
@@ -304,10 +337,8 @@ export function handleError(error, options = {}) {
 
 /**
  * Get appropriate exit code for different error types
- * @param {Error} error - The error
- * @returns {number} - Exit code
  */
-function getExitCodeForError(error) {
+function getExitCodeForError(error: Error): number {
   // Argument/validation errors
   if (error instanceof ValidationError || error instanceof ArgumentError) {
     return 1;
@@ -350,30 +381,44 @@ function getExitCodeForError(error) {
 
 /**
  * Wrap async operations with consistent error handling
- * @param {Function} operation - Async operation to wrap
- * @param {object} options - Error handling options
- * @returns {Promise} - Result of the operation
  */
-export async function withErrorHandling(operation, options = {}) {
+export async function withErrorHandling<T>(
+  operation: () => Promise<T>,
+  options: HandleErrorOptions = {}
+): Promise<T | number> {
   try {
     return await operation();
   } catch (error) {
-    return handleError(error, options);
+    return handleError(error as Error, options);
   }
 }
 
 /**
- * Create a contextual error from a generic error
- * @param {Error} originalError - Original error
- * @param {object} contextOptions - Context options
- * @returns {ContextualError} - Contextual error
+ * Options for contextualizing errors
  */
-export function contextualizeError(originalError, contextOptions = {}) {
+export interface ContextualizeErrorOptions {
+  /** Error context */
+  context?: ErrorContextType;
+  /** Error severity */
+  severity?: ErrorSeverityType;
+  /** Suggestions for fixing the error */
+  suggestions?: string[];
+  /** User-friendly message override */
+  userFriendlyMessage?: string;
+}
+
+/**
+ * Create a contextual error from a generic error
+ */
+export function contextualizeError(
+  originalError: Error,
+  contextOptions: ContextualizeErrorOptions = {}
+): ContextualError {
   if (originalError instanceof ContextualError) {
     return originalError;
   }
 
-  const sanitizedMessage = sanitizeErrorMessage(originalError.message);
+  const sanitizedMessage = sanitizeError(originalError.message);
 
   return new ContextualError(sanitizedMessage, {
     context: contextOptions.context || ErrorContext.RUNTIME,

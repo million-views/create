@@ -1,22 +1,21 @@
 import fs from 'fs/promises';
 import path from 'path';
-import { SecurityGate } from '../../../../lib/security-gate.mjs';
+import { SecurityGate } from '@m5nv/create-scaffold/lib/security/index.mts';
 import { CacheManager } from '../../modules/cache-manager.mjs';
 import { TemplateResolver } from '../../modules/template-resolver.mjs';
-import { Logger } from '../../../../lib/logger.mjs';
+import { Logger } from '@m5nv/create-scaffold/lib/util/index.mts';
 import { DryRunEngine } from '../../modules/dry-run-engine.mjs';
-import { Shell } from '../../../../lib/util/shell.mjs';
-import { File } from '../../../../lib/util/file.mjs';
-import { createTemplateIgnoreSet, stripIgnoredFromTree } from '../../../../lib/template-ignore.mjs';
-import { loadTemplateMetadataFromPath } from '../../../../lib/template-discovery.mjs';
+import { Shell } from '@m5nv/create-scaffold/lib/util/shell.mjs';
+import { File } from '@m5nv/create-scaffold/lib/util/file.mjs';
+import { createTemplateIgnoreSet, stripIgnoredFromTree, loadTemplateMetadataFromPath } from '@m5nv/create-scaffold/lib/template/index.mts';
 import { normalizeOptions } from '../../modules/options-processor.mjs';
-import { resolvePlaceholders } from '../../../../lib/placeholder-resolver.mjs';
+import { resolvePlaceholders } from '@m5nv/create-scaffold/lib/placeholder/index.mts';
 import { loadConfig } from '../../modules/config-loader.mjs';
 import {
   handleError,
   contextualizeError,
   ErrorContext
-} from '../../../../lib/error-handler.mjs';
+} from '@m5nv/create-scaffold/lib/error/index.mts';
 
 // Import guided setup workflow
 import { GuidedSetupWorkflow } from '../../modules/guided-setup-workflow.mjs';

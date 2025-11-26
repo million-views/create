@@ -1,12 +1,16 @@
 import path from 'path';
-import { File } from '../../../../lib/util/file.mjs';
-import { ErrorContext, ErrorSeverity, handleError } from '../../../../lib/error-handler.mjs';
-import { processJSONFile } from '../../../../lib/templatize-json.mjs';
-import { processMarkdownFile } from '../../../../lib/templatize-markdown.mjs';
-import { processJSXFile } from '../../../../lib/templatize-jsx.mjs';
-import { processHTMLFile } from '../../../../lib/templatize-html.mjs';
-import { loadConfig, loadConfigFromFile, getPatternsForFile } from '../../../../lib/templatize-config.mjs';
-import { formatPlaceholder as formatPlaceholderToken, normalizeFormat } from '../../../../lib/placeholder-formats.mjs';
+import { File } from '@m5nv/create-scaffold/lib/util/file.mjs';
+import { ErrorContext, ErrorSeverity, handleError } from '@m5nv/create-scaffold/lib/error/index.mts';
+import {
+  processJSONFile,
+  processMarkdownFile,
+  processJSXFile,
+  processHTMLFile,
+  loadConfig,
+  loadConfigFromFile,
+  getPatternsForFile
+} from '@m5nv/create-scaffold/lib/templatize/index.mts';
+import { formatPlaceholder as formatPlaceholderToken, normalizeFormat } from '@m5nv/create-scaffold/lib/placeholder/format.mjs';
 
 export class Converter {
   constructor(options) {

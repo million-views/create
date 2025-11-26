@@ -26,7 +26,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { tmpdir } from 'node:os';
 import { TemplateResolver } from '../../bin/create-scaffold/modules/template-resolver.mjs';
-import { ContextualError } from '../../lib/error-handler.mjs';
+import { ContextualError } from '../../lib/error/index.mts';
 
 /**
  * Test double for CacheManager that uses real filesystem but controlled behavior.

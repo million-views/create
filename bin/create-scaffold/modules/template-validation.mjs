@@ -3,7 +3,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 
-import { sanitizeErrorMessage } from '../../../../lib/security.mjs';
+import { sanitize } from '@m5nv/create-scaffold/lib/security/index.mts';
 import { validateManifest } from './validators/manifest-validator.mjs';
 import { validateSetupScript } from './validators/setup-lint.mjs';
 import { validateRequiredFiles } from './validators/required-files.mjs';
@@ -15,7 +15,7 @@ export async function runTemplateValidation({ targetPath }) {
   try {
     stats = await fs.stat(resolvedPath);
   } catch (error) {
-    const message = sanitizeErrorMessage(error?.message ?? String(error));
+    const message = sanitize.error(error?.message ?? String(error));
     const result = {
       name: 'location',
       status: 'fail',
@@ -57,7 +57,7 @@ export async function runTemplateValidation({ targetPath }) {
       const result = await validator({ targetPath: resolvedPath });
       results.push(result);
     } catch (error) {
-      const message = sanitizeErrorMessage(error?.message ?? String(error));
+      const message = sanitize.error(error?.message ?? String(error));
       results.push({
         name: validator.name || 'validator',
         status: 'fail',

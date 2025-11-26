@@ -1,6 +1,6 @@
-import { Command } from '../../../../../lib/cli/command.js';
+import { Command } from '@m5nv/create-scaffold/lib/cli/command.js';
 import { configValidateHelp } from './help.js';
-import { loadConfigFromFile } from '../../../../../lib/templatize-config.mjs';
+import { loadConfigFromFile } from '@m5nv/create-scaffold/lib/templatize/index.mts';
 
 export class ConfigValidateCommand extends Command {
   constructor() {

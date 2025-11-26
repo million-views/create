@@ -6,7 +6,7 @@
 
 import { test } from 'node:test';
 import assert from 'node:assert';
-import { processJSONFile } from '../lib/templatize-json.mjs';
+import { processJSONFile } from '../lib/templatize/index.mts';
 
 // Test fixtures
 const testFixtures = {

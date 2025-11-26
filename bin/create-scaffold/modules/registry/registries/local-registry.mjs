@@ -7,7 +7,7 @@
 
 import path from 'path';
 import { BaseRegistry } from './base-registry.mjs';
-import { TemplateDiscovery, loadTemplateMetadataFromPath } from '../../../../lib/template-discovery.mjs';
+import { TemplateDiscovery, loadTemplateMetadataFromPath } from '@m5nv/create-scaffold/lib/template/index.mts';
 
 /**
  * Local filesystem template registry

@@ -1,4 +1,4 @@
-import { Command } from '../../../../lib/cli/command.js';
+import { Command } from '@m5nv/create-scaffold/lib/cli/command.js';
 import { convertHelp } from './help.js';
 import { Converter } from './converter.js';
 import { validateProjectPath } from './validator.js';

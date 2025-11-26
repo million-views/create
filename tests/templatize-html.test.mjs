@@ -6,7 +6,7 @@
 
 import { test } from 'node:test';
 import assert from 'node:assert';
-import { processHTMLFile } from '../lib/templatize-html.mjs';
+import { processHTMLFile } from '../lib/templatize/index.mts';
 
 // Test fixtures
 const testFixtures = {

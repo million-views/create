@@ -1,9 +1,9 @@
-import { Command } from '../../../../lib/cli/command.js';
+import { Command } from '@m5nv/create-scaffold/lib/cli/command.js';
 import { testHelp } from './help.js';
 import { spawn } from 'child_process';
 import path from 'path';
-import { File } from '../../../../lib/util/file.mjs';
-import { ContextualError, ErrorContext, ErrorSeverity, handleError } from '../../../../lib/error-handler.mjs';
+import { File } from '@m5nv/create-scaffold/lib/util/file.mjs';
+import { ContextualError, ErrorContext, ErrorSeverity, handleError } from '@m5nv/create-scaffold/lib/error/index.mts';
 
 export class TestCommand extends Command {
   constructor() {

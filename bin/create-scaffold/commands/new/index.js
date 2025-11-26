@@ -1,7 +1,8 @@
-import { Command } from '../../../../lib/cli/command.js';
+import { Command } from '@m5nv/create-scaffold/lib/cli/command.js';
 import { newHelp } from './help.js';
 import { Scaffolder } from './scaffolder.js';
-import { SecurityGate, SecurityGateError } from '../../../../lib/security-gate.mjs';
+import { SecurityGate } from '@m5nv/create-scaffold/lib/security/index.mts';
+import { GateError as SecurityGateError } from '@m5nv/create-scaffold/lib/error/index.mts';
 
 export class NewCommand extends Command {
   #securityGate;

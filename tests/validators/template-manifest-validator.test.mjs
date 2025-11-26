@@ -11,8 +11,8 @@
 import { strict as assert } from 'node:assert';
 import test from 'node:test';
 
-import { validateTemplateManifest } from '../../lib/template-manifest-validator.mjs';
-import { ValidationError } from '../../lib/security.mjs';
+import { validateTemplateManifest } from '../../lib/validation/index.mts';
+import { ValidationError } from '../../lib/error/index.mts';
 
 // =============================================================================
 // Test Suite: validateTemplateManifest - Input Validation

@@ -9,7 +9,7 @@ import { EventEmitter } from 'events';
 import fs from 'fs/promises';
 import path from 'path';
 import crypto from 'crypto';
-import { resolveTemplateCacheDirectory } from '../../../../lib/path-resolver.mjs';
+import { resolveTemplateCacheDirectory } from '@m5nv/create-scaffold/lib/util/index.mts';
 
 /**
  * Registry Cache Manager for template metadata

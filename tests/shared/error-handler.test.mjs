@@ -11,7 +11,7 @@ import {
   handleError,
   withErrorHandling,
   contextualizeError
-} from '../../lib/error-handler.mjs';
+} from '../../lib/error/index.mts';
 
 describe('Error Handler', () => {
   describe('Constants', () => {

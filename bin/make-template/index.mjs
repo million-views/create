@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { Router } from '../../lib/cli/router.js';
+import { Router } from '@m5nv/create-scaffold/lib/cli/router.js';
 import { ConvertCommand } from './commands/convert/index.js';
 import { RestoreCommand } from './commands/restore/index.js';
 import { InitCommand } from './commands/init/index.js';

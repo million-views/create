@@ -1,6 +1,6 @@
-import { Command } from '../../../../lib/cli/command.js';
+import { Command } from '@m5nv/create-scaffold/lib/cli/command.js';
 import { validateHelp } from './help.js';
-import { TemplateValidator } from '../../../../lib/validation/template-validator.mjs';
+import { TemplateValidator } from '@m5nv/create-scaffold/lib/validation/template-validator.mjs';
 import fs from 'fs/promises';
 
 export class ValidateCommand extends Command {

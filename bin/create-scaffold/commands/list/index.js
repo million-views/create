@@ -1,4 +1,4 @@
-import { Command } from '../../../../lib/cli/command.js';
+import { Command } from '@m5nv/create-scaffold/lib/cli/command.js';
 import { listHelp } from './help.js';
 import { RegistryFetcher } from './registry-fetcher.js';
 

@@ -13,8 +13,8 @@
 
 import fs from 'fs/promises';
 import vm from 'vm';
-import { createTools } from '../../../lib/environment/tools/index.mjs';
-import { SetupSandboxError } from '../../../lib/environment/utils.mjs';
+import { createTools } from '@m5nv/create-scaffold/lib/environment/tools/index.mjs';
+import { SetupSandboxError } from '@m5nv/create-scaffold/lib/environment/utils.mjs';
 
 // Re-export for backward compatibility
 export { SetupSandboxError };

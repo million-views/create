@@ -1,8 +1,8 @@
-import { Command } from '../../../../lib/cli/command.js';
+import { Command } from '@m5nv/create-scaffold/lib/cli/command.js';
 import { validateHelp } from './help.js';
-import { TemplateValidator } from '../../../../lib/validation/template-validator.mjs';
-import { SecurityGate, SecurityGateError } from '../../../../lib/security-gate.mjs';
-import { BoundaryValidator } from '../../../../lib/boundary-validator.mjs';
+import { TemplateValidator } from '@m5nv/create-scaffold/lib/validation/template-validator.mjs';
+import { SecurityGate, BoundaryValidator } from '@m5nv/create-scaffold/lib/security/index.mts';
+import { GateError as SecurityGateError } from '@m5nv/create-scaffold/lib/error/index.mts';
 import { stat } from 'fs/promises';
 import { basename } from 'path';
 

@@ -62,6 +62,15 @@ lib/
 │   ├── discover.mjs       # Template discovery
 │   └── ignore.mjs         # Template ignore utilities
 │
+├── environment/           # Environment Domain (pre-existing)
+│   ├── index.mjs          # Domain facade
+│   ├── context.mjs        # Environment context
+│   ├── testing.mjs        # Testing utilities
+│   ├── utils.mjs          # Environment utilities
+│   ├── types.d.ts         # Type definitions
+│   └── tools/             # Environment tools
+│       └── ...            # Tool implementations
+│
 └── util/                  # Utility Domain
     ├── index.mts          # Domain facade
     ├── file.mjs           # File utilities
@@ -119,37 +128,34 @@ The public facade exports approximately **15 items** (well under the 30 limit):
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│                     Application Layer                    │
-│              (bin/create-scaffold, bin/make-template)    │
+│                     Application Layer                   │
+│              (bin/create-scaffold, bin/make-template)   │
 └────────────────────────────┬────────────────────────────┘
                              │
                              ▼
 ┌─────────────────────────────────────────────────────────┐
-│                    lib/index.mts                         │
-│                   (Public Facade)                        │
-└────────────────────────────┬────────────────────────────┘
-                             │
-         ┌───────────────────┼───────────────────┐
-         ▼                   ▼                   ▼
-┌─────────────┐     ┌─────────────┐     ┌─────────────┐
-│  template/  │     │ templatize/ │     │ validation/ │
-│             │     │             │     │             │
-└──────┬──────┘     └──────┬──────┘     └──────┬──────┘
-       │                   │                   │
-       └───────────────────┼───────────────────┘
-                           │
-                           ▼
-┌─────────────────────────────────────────────────────────┐
-│                placeholder/  │  security/  │  util/     │
-│                  (Foundation Layer)                      │
+│                    lib/index.mts                        │
+│                   (Public Facade)                       │
 └────────────────────────────┬────────────────────────────┘
                              │
                              ▼
 ┌─────────────────────────────────────────────────────────┐
-│                        error/                            │
-│                   (Base Error Types)                     │
+│                    Domain Modules                       │
+│    (template, templatize, validation, environment, ...) │
+└────────────────────────────┬────────────────────────────┘
+                             │
+                             ▼
+┌─────────────────────────────────────────────────────────┐
+│                   Foundation Layer                      │
+│          (placeholder, security, util, error, ...)      │
 └─────────────────────────────────────────────────────────┘
 ```
+
+**Layer Rules:**
+- Application Layer imports only from Public Facade
+- Domain Modules may import from Foundation Layer
+- Foundation Layer modules are standalone (only error/ as dependency)
+- No circular dependencies between domains
 
 ## TypeScript Configuration
 

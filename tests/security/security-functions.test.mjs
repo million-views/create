@@ -9,32 +9,41 @@
 
 import test from 'node:test';
 import assert from 'node:assert/strict';
+
+// Package identity functions
 import {
-  // Package identity functions
   getPackageName,
   generateInstallationInstructions,
   generatePackageValidationError,
   validatePackageName,
-  validatePackageIdentity,
+  validatePackageIdentity
+} from '../../lib/security/identity.mts';
 
-  // Core validation functions
-  ValidationError,
+// Error types
+import { ValidationError } from '../../lib/error/index.mts';
+
+// Sanitization functions
+import {
   sanitizePath,
-  validateRepoUrl,
   sanitizeBranchName,
+  sanitizeErrorMessage
+} from '../../lib/security/sanitize.mts';
+
+// CLI validation functions
+import {
+  validateRepoUrl,
   validateTemplateName,
   validateProjectDirectory,
-  sanitizeErrorMessage,
-
-  // Parameter validation
   validateIdeParameter,
   validateAuthoringMode,
   validateAuthorAssetsDir,
-  validateDimensionsMetadata,
   validateLogFilePath,
   validateCacheTtl,
   validateAllInputs
-} from '../../lib/security.mjs';
+} from '../../lib/validation/cli/index.mts';
+
+// Domain validation
+import { validateDimensionsMetadata } from '../../lib/validation/domain/dimension.mts';
 
 // =============================================================================
 // Package Identity Functions (Low coverage area)

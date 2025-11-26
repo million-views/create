@@ -6,8 +6,16 @@
  * @module lib/validation/schema
  */
 
-// Template schema validation
+// Template schema validation (authoring)
 export { TemplateValidator } from './template-validator.mjs';
 
 // Selection schema validation
 export { SelectionValidator } from './selection-validator.mjs';
+
+// Template manifest validation (runtime)
+export {
+  validate as validateManifest,
+  validateTemplateManifest
+} from './manifest.mts';
+
+export type { ManifestResult } from './manifest.mts';

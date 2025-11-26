@@ -2,10 +2,9 @@
 
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { SecurityGate, SecurityGateError } from '../../lib/security-gate.mjs';
-import { BoundaryValidator, BoundaryViolationError } from '../../lib/boundary-validator.mjs';
-import { SecurityAuditLogger } from '../../lib/security-audit-logger.mjs';
-import { ValidationError } from '../../lib/security.mjs';
+import { SecurityGate, BoundaryValidator } from '../../lib/security/index.mts';
+import { GateError as SecurityGateError, ViolationError as BoundaryViolationError, ValidationError } from '../../lib/error/index.mts';
+import { SecurityAuditLogger } from '../../lib/security/audit.mjs';
 
 // Architectural Tests for Defense-in-Depth Security
 
@@ -277,7 +276,7 @@ test('Defense-in-Depth: Layer Independence', async (t) => {
     );
 
     // Even if Layer 1 was bypassed, validation functions still catch it
-    const { validateRepoUrl } = await import('../../lib/security.mjs');
+    const { validateRepoUrl } = await import('../../lib/validation/cli/input.mts');
     assert.throws(
       () => validateRepoUrl(injection),
       ValidationError

@@ -5,7 +5,7 @@ import assert from 'node:assert';
 import path from 'path';
 import os from 'os';
 import { CacheManager } from '../../bin/create-scaffold/modules/cache-manager.mjs';
-import { resolveCacheDirectory } from '../../lib/path-resolver.mjs';
+import { resolveCacheDirectory } from '../../lib/util/index.mts';
 
 describe('CacheManager', () => {
   let cacheManager;

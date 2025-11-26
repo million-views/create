@@ -3,8 +3,8 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 
-import { validateTemplateManifest } from '../../../../lib/template-manifest-validator.mjs';
-import { sanitizeErrorMessage } from '../../../../lib/security.mjs';
+import { validateTemplateManifest } from '@m5nv/create-scaffold/lib/validation/index.mts';
+import { sanitize } from '@m5nv/create-scaffold/lib/security/index.mts';
 
 const NAME = 'manifest';
 
@@ -19,7 +19,7 @@ export async function validateManifest({ targetPath }) {
     if (error && error.code === 'ENOENT') {
       issues.push('template.json not found. Ensure the template root includes template.json.');
     } else {
-      const message = sanitizeErrorMessage(error?.message ?? String(error));
+      const message = sanitize.error(error?.message ?? String(error));
       issues.push(`Unable to read template.json: ${message}`);
     }
     return createResult('fail', issues);
@@ -29,7 +29,7 @@ export async function validateManifest({ targetPath }) {
   try {
     manifest = JSON.parse(raw);
   } catch (error) {
-    const message = sanitizeErrorMessage(error?.message ?? String(error));
+    const message = sanitize.error(error?.message ?? String(error));
     issues.push(`template.json is not valid JSON: ${message}`);
     return createResult('fail', issues);
   }
@@ -37,7 +37,7 @@ export async function validateManifest({ targetPath }) {
   try {
     validateTemplateManifest(manifest);
   } catch (error) {
-    const message = sanitizeErrorMessage(error?.message ?? String(error));
+    const message = sanitize.error(error?.message ?? String(error));
     const scope = error?.field ? `${error.field}: ${message}` : message;
     issues.push(`Manifest validation failed: ${scope}`);
     return createResult('fail', issues);

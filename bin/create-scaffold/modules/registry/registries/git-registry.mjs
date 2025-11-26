@@ -6,7 +6,7 @@
  */
 
 import { BaseRegistry } from './base-registry.mjs';
-import { TemplateDiscovery } from '../../../../lib/template-discovery.mjs';
+import { TemplateDiscovery } from '@m5nv/create-scaffold/lib/template/index.mts';
 
 /**
  * Git repository template registry

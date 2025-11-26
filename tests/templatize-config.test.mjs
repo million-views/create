@@ -5,7 +5,7 @@ import assert from 'node:assert';
 import fs from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
-import { loadConfig, validateConfig, generateConfigFile, getPatternsForFile, DEFAULT_CONFIG } from '../lib/templatize-config.mjs';
+import { loadConfig, validateConfig, generateConfigFile, getPatternsForFile, DEFAULT_CONFIG } from '../lib/templatize/index.mts';
 
 describe('TemplatizeConfig', () => {
   describe('loadConfig', () => {

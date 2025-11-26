@@ -1,4 +1,4 @@
-import { Command } from '../../../../lib/cli/command.js';
+import { Command } from '@m5nv/create-scaffold/lib/cli/command.js';
 import { hintsHelp } from './help.js';
 
 export class HintsCommand extends Command {

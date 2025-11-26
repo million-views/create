@@ -2,12 +2,11 @@
 
 import fs from 'fs';
 import path from 'path';
-import { File } from '../../../lib/util/file.mjs';
+import { File } from '@m5nv/create-scaffold/lib/util/file.mjs';
 import {
-  shouldIgnoreTemplateEntry, createTemplateIgnoreSet
-} from '../../../lib/template-ignore.mjs';
-import { loadTemplateMetadataFromPath } from '../../../lib/template-discovery.mjs';
-import { extractPlaceholders as extractPlaceholdersWithFormat } from '../../../lib/placeholder-formats.mjs';
+  shouldIgnoreTemplateEntry, createTemplateIgnoreSet, loadTemplateMetadataFromPath
+} from '@m5nv/create-scaffold/lib/template/index.mts';
+import { extractPlaceholders as extractPlaceholdersWithFormat } from '@m5nv/create-scaffold/lib/placeholder/format.mjs';
 
 /**
  * Dry Run Engine module

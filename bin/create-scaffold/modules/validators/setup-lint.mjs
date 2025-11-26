@@ -5,7 +5,7 @@ import path from 'node:path';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 
-import { sanitizeErrorMessage } from '../../../../lib/security.mjs';
+import { sanitize } from '@m5nv/create-scaffold/lib/security/index.mts';
 
 const NAME = 'setupScript';
 const SETUP_FILENAME = '_setup.mjs';
@@ -26,7 +26,7 @@ export async function validateSetupScript({ targetPath }) {
     if (error && error.code === 'ENOENT') {
       return createResult('warn', ['Optional setup script not found. Add _setup.mjs if personalization is required.']);
     }
-    const message = sanitizeErrorMessage(error?.message ?? String(error));
+    const message = sanitize.error(error?.message ?? String(error));
     return createResult('fail', [`Unable to inspect _setup.mjs: ${message}`]);
   }
 
@@ -38,7 +38,7 @@ export async function validateSetupScript({ targetPath }) {
   try {
     source = await fs.readFile(setupPath, 'utf8');
   } catch (error) {
-    const message = sanitizeErrorMessage(error?.message ?? String(error));
+    const message = sanitize.error(error?.message ?? String(error));
     return createResult('fail', [`Unable to read _setup.mjs: ${message}`]);
   }
 
@@ -83,7 +83,7 @@ export async function validateSetupScript({ targetPath }) {
     const raw = typeof error?.stderr === 'string'
       ? error.stderr
       : error?.stderr?.toString?.('utf8');
-    const sanitized = sanitizeErrorMessage(raw?.trim() || error?.message || String(error));
+    const sanitized = sanitize.error(raw?.trim() || error?.message || String(error));
     errors.push(`Setup script contains syntax errors: ${sanitized}`);
   }
 

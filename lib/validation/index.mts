@@ -17,3 +17,7 @@ export * as domain from './domain/index.mts';
 
 // CLI validators
 export * as cli from './cli/index.mts';
+
+// Legacy re-exports for backward compatibility during migration
+export { validateTemplateManifest } from './schema/manifest.mts';
+export type { ManifestResult } from './schema/manifest.mts';

@@ -1,5 +1,5 @@
 import { CacheManager } from '../../modules/cache-manager.mjs';
-import { TemplateDiscovery } from '../../../../lib/template-discovery.mjs';
+import { TemplateDiscovery } from '@m5nv/create-scaffold/lib/template/index.mts';
 import { loadConfig } from '../../modules/config-loader.mjs';
 
 export class RegistryFetcher {

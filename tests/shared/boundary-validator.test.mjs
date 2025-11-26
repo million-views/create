@@ -5,7 +5,8 @@ import assert from 'node:assert/strict';
 import { mkdtemp, rm } from 'fs/promises';
 import { join, isAbsolute } from 'path';
 import { tmpdir } from 'os';
-import { BoundaryValidator, BoundaryViolationError } from '../../lib/boundary-validator.mjs';
+import { BoundaryValidator } from '../../lib/security/index.mts';
+import { ViolationError as BoundaryViolationError } from '../../lib/error/index.mts';
 
 /**
  * L1 Tests for BoundaryValidator

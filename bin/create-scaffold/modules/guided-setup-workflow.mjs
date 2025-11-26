@@ -3,11 +3,12 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { sanitizeErrorMessage, validateAllInputs } from '../../../lib/security.mjs';
-import { File } from '../../../lib/util/file.mjs';
-import { createTemplateIgnoreSet, shouldIgnoreTemplateEntry } from '../../../lib/template-ignore.mjs';
+import { sanitize } from '@m5nv/create-scaffold/lib/security/index.mts';
+import { cli } from '@m5nv/create-scaffold/lib/validation/index.mts';
+import { File } from '@m5nv/create-scaffold/lib/util/file.mjs';
+import { createTemplateIgnoreSet, shouldIgnoreTemplateEntry } from '@m5nv/create-scaffold/lib/template/index.mts';
 import { createSetupTools, loadSetupScript } from './setup-runtime.mjs';
-import { ContextualError, ErrorContext, ErrorSeverity } from '../../../lib/error-handler.mjs';
+import { ContextualError, ErrorContext, ErrorSeverity } from '@m5nv/create-scaffold/lib/error/index.mts';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -615,7 +616,7 @@ export class GuidedSetupWorkflow {
    * Handle step errors with recovery options
    */
   async #handleStepError(stepName, error, _currentIndex, _totalSteps) {
-    const errorMessage = sanitizeErrorMessage(error.message);
+    const errorMessage = sanitize.error(error.message);
     this.workflowState.errors.push({
       step: stepName,
       error: errorMessage,
@@ -681,7 +682,7 @@ export class GuidedSetupWorkflow {
    */
   async #handleWorkflowError(error) {
     await this.prompt.write('\n💥 Setup workflow failed!\n');
-    await this.prompt.write(`Error: ${sanitizeErrorMessage(error.message)}\n`);
+    await this.prompt.write(`Error: ${sanitize.error(error.message)}\n`);
 
     // Save final state
     this.workflowState.endTime = new Date().toISOString();
@@ -810,7 +811,7 @@ export class GuidedSetupWorkflow {
   async #executeValidation() {
     // Perform security validation on all inputs
     try {
-      validateAllInputs({
+      cli.allInputs({
         projectDirectory: this.projectDirectory,
         template: this.templateName
       });
@@ -987,7 +988,7 @@ export class GuidedSetupWorkflow {
       const placeholderFormat = this.metadata?.placeholderFormat || 'unicode';
 
       // Import the format utility
-      const { createTokenPattern } = await import('../../../lib/placeholder-formats.mjs');
+      const { createTokenPattern } = await import('../../../lib/placeholder/format.mjs');
 
       // Replace each placeholder using the correct format
       for (const [key, value] of Object.entries(placeholders)) {

@@ -6,8 +6,8 @@ import { strict as assert } from 'node:assert';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
-import { validateTemplateManifest } from '../../lib/template-manifest-validator.mjs';
-import { ValidationError } from '../../lib/security.mjs';
+import { validateTemplateManifest } from '../../lib/validation/index.mts';
+import { ValidationError } from '../../lib/error/index.mts';
 import { TemplateValidator } from '../../lib/validation/template-validator.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));

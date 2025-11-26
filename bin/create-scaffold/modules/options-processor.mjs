@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { ValidationError } from '../../../lib/security.mjs';
+import { ValidationError } from '@m5nv/create-scaffold/lib/error/index.mts';
 
 /**
  * Normalize CLI-supplied options against template dimensions.

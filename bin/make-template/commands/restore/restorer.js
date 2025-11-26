@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
-import { File } from '../../../../lib/util/file.mjs';
-import { ContextualError, ErrorContext, ErrorSeverity, handleError } from '../../../../lib/error-handler.mjs';
+import { File } from '@m5nv/create-scaffold/lib/util/file.mjs';
+import { ContextualError, ErrorContext, ErrorSeverity, handleError } from '@m5nv/create-scaffold/lib/error/index.mts';
 
 export class Restorer {
   constructor(options) {

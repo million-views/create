@@ -26,3 +26,18 @@ export {
 } from './option.mts';
 
 export type { SupportedIde, AuthoringMode } from './option.mts';
+
+// CLI input validators
+export {
+  repoUrl,
+  templateName,
+  projectDirectory,
+  allInputs,
+  // Legacy names
+  validateRepoUrl,
+  validateTemplateName,
+  validateProjectDirectory,
+  validateAllInputs
+} from './input.mts';
+
+export type { AllInputs, ValidatedInputs } from './input.mts';

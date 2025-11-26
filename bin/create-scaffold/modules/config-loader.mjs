@@ -2,12 +2,10 @@
 
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import {
-  validateRepoUrl,
-  sanitizeBranchName,
-  ValidationError
-} from '../../../lib/security.mjs';
-import { resolveUserConfigPath } from '../../../lib/path-resolver.mjs';
+import { sanitize } from '@m5nv/create-scaffold/lib/security/index.mts';
+import { cli } from '@m5nv/create-scaffold/lib/validation/index.mts';
+import { ValidationError } from '@m5nv/create-scaffold/lib/error/index.mts';
+import { resolveUserConfigPath } from '@m5nv/create-scaffold/lib/util/index.mts';
 
 const CONFIG_FILENAME = '.m5nvrc';
 const PLACEHOLDER_TOKEN_PATTERN = /^[A-Z0-9_]+$/;
@@ -190,7 +188,7 @@ function sanitizeRepoField(value, filePath) {
   }
 
   try {
-    return validateRepoUrl(trimmed);
+    return cli.repoUrl(trimmed);
   } catch (error) {
     if (error instanceof ValidationError) {
       throw wrapValidationError(
@@ -226,7 +224,7 @@ function sanitizeBranchField(value, filePath) {
   }
 
   try {
-    return sanitizeBranchName(trimmed);
+    return sanitize.branch(trimmed);
   } catch (error) {
     if (error instanceof ValidationError) {
       throw wrapValidationError(
