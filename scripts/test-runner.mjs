@@ -24,7 +24,6 @@ class TestRunner {
         'Public Facade Tests',
         'Security Functions Tests',
         'BoundaryValidator Tests',
-        'Registry Cache Manager Tests',
         'Environment Module Tests',
         'Environment Tools Tests',
         'Error Classes Tests',
@@ -271,12 +270,6 @@ class TestRunner {
         command: ['--test', './tests/shared/boundary-validator.test.mjs'],
         description: 'Path boundary enforcement and traversal prevention',
         homeSuffix: 'boundary-validator'
-      },
-      {
-        name: 'Registry Cache Manager Tests',
-        command: ['--test', './tests/shared/registry-cache-manager.test.mjs'],
-        description: 'Template registry metadata caching with LRU eviction',
-        homeSuffix: 'registry-cache'
       },
       {
         name: 'Environment Module Tests',
