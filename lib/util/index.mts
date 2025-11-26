@@ -1,7 +1,7 @@
 /**
  * Util Domain Facade
  *
- * Exports utility modules for file, shell, text, path, and logging operations.
+ * Exports utility modules for file, shell, path, and logging operations.
  *
  * @module lib/util
  */
@@ -11,9 +11,6 @@ export { File } from './file.mts';
 
 // Shell utilities
 export { Shell } from './shell.mts';
-
-// Text utilities
-export { Text } from './text.mts';
 
 // Path resolution utilities
 export {

@@ -10,9 +10,43 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { Text } from '../lib/util/text.mts';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+/**
+ * Replace content between start and end markers in a file.
+ * @param {string} filePath - Path to the file
+ * @param {string} start - Start marker
+ * @param {string} end - End marker
+ * @param {string} block - Replacement content
+ */
+async function replaceBetween(filePath, start, end, block) {
+  const content = await fs.readFile(filePath, 'utf8');
+
+  const startIndex = content.indexOf(start);
+  if (startIndex === -1) {
+    throw new Error(`Start marker "${start}" not found in ${filePath}`);
+  }
+  const startEnd = startIndex + start.length;
+  const endIndex = content.indexOf(end, startEnd);
+  if (endIndex === -1) {
+    throw new Error(`End marker "${end}" not found in ${filePath}`);
+  }
+
+  const before = content.slice(0, startEnd);
+  const after = content.slice(endIndex);
+
+  // Normalize block: ensure leading and trailing newlines
+  let replacement = Array.isArray(block) ? block.join('\n') : block;
+  if (replacement.length > 0) {
+    if (!replacement.startsWith('\n')) replacement = '\n' + replacement;
+    if (!replacement.endsWith('\n')) replacement = replacement + '\n';
+  } else {
+    replacement = '\n';
+  }
+
+  await fs.writeFile(filePath, before + replacement + after, 'utf8');
+}
 const ROOT_DIR = path.resolve(__dirname, '..');
 const CLI_REF_PATH = path.join(ROOT_DIR, 'docs', 'reference', 'cli-reference.md');
 
@@ -266,7 +300,7 @@ async function generateCliReference() {
     const startMarker = `<!-- AUTO-GENERATED: ${tool} commands -->`;
     const endMarker = `<!-- END AUTO-GENERATED: ${tool} commands -->`;
 
-    await Text.replaceBetween(CLI_REF_PATH, startMarker, endMarker, toolContent);
+    await replaceBetween(CLI_REF_PATH, startMarker, endMarker, toolContent);
   }
   console.log('✅ CLI reference updated successfully');
 }
