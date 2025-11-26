@@ -4,8 +4,9 @@
 /**
  * Environment Utilities
  *
- * Shared utility functions used by tool implementations.
- * These are internal utilities - not part of the public API.
+ * Policy-bound utility functions for the environment layer.
+ * Pure primitives are imported from lib/primitives and wrapped
+ * with policy-specific error handling where needed.
  *
  * @module lib/environment/utils
  * @internal
@@ -14,6 +15,25 @@
 import fs from 'fs/promises';
 import path from 'path';
 import { shouldIgnoreTemplateEntry } from '../template/index.mts';
+
+// Re-export pure primitives for convenience
+export {
+  escapeRegExp,
+  toPosix,
+  globToRegExp,
+  deepMerge,
+  deepEqual,
+  ensureLeadingNewline,
+  ensureTrailingNewline
+} from '../primitives/index.mts';
+
+// Import primitives for internal use
+import {
+  normalizeTextInput as primitiveNormalizeTextInput,
+  escapeRegExp,
+  globToRegExp,
+  toPosix
+} from '../primitives/index.mts';
 
 export const UTF8 = 'utf8';
 export const DEFAULT_SELECTOR = '**/*';
@@ -29,6 +49,21 @@ export class SetupSandboxError extends Error {
 }
 
 /**
+ * Normalize text input with policy-specific error messages.
+ * Wraps the primitive with SetupSandboxError for consistent error handling.
+ * @param {string | string[]} input - Input to normalize
+ * @param {string} label - Label for error messages
+ * @returns {string}
+ */
+export function normalizeTextInput(input, label) {
+  try {
+    return primitiveNormalizeTextInput(input);
+  } catch (error) {
+    throw new SetupSandboxError(`${label}: ${error.message}`);
+  }
+}
+
+/**
  * Check if a template entry should be included during copy operations.
  * @param {string} source - Source path
  * @returns {boolean}
@@ -39,24 +74,6 @@ export function includeTemplateCopyEntry(source) {
     return true;
   }
   return !shouldIgnoreTemplateEntry(name);
-}
-
-/**
- * Escape special regex characters in a string.
- * @param {string} value - String to escape
- * @returns {string}
- */
-export function escapeRegExp(value) {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
-
-/**
- * Convert a path to POSIX format.
- * @param {string} relativePath - Path to convert
- * @returns {string}
- */
-export function toPosix(relativePath) {
-  return relativePath.split(path.sep).join('/');
 }
 
 /**
@@ -118,58 +135,6 @@ export async function walkFiles(root, directory, collector) {
 }
 
 /**
- * Convert a glob pattern to a RegExp.
- * @param {string} pattern - Glob pattern
- * @returns {RegExp}
- */
-export function globToRegExp(pattern) {
-  const normalizedPattern = pattern.split(path.sep).join('/');
-  let regex = '';
-  let i = 0;
-
-  while (i < normalizedPattern.length) {
-    const char = normalizedPattern[i];
-
-    if (char === '*') {
-      if (normalizedPattern[i + 1] === '*') {
-        if (normalizedPattern[i + 2] === '/') {
-          regex += '(?:[^/]+/)*';
-          i += 3;
-          continue;
-        }
-        regex += '.*';
-        i += 2;
-        continue;
-      }
-      regex += '[^/]*';
-      i++;
-      continue;
-    }
-
-    if (char === '?') {
-      regex += '[^/]';
-      i++;
-      continue;
-    }
-
-    if (char === '{') {
-      const endBrace = normalizedPattern.indexOf('}', i);
-      if (endBrace !== -1) {
-        const alternatives = normalizedPattern.slice(i + 1, endBrace).split(',');
-        regex += '(?:' + alternatives.map(escapeRegExp).join('|') + ')';
-        i = endBrace + 1;
-        continue;
-      }
-    }
-
-    regex += escapeRegExp(char);
-    i++;
-  }
-
-  return new RegExp(`^${regex}$`);
-}
-
-/**
  * Find files matching a selector pattern.
  * @param {string} root - Root directory
  * @param {string | string[]} selector - Glob pattern(s)
@@ -198,101 +163,4 @@ export function validateReplacements(replacements) {
       throw new SetupSandboxError(`Replacement value for "${key}" must be a string`);
     }
   }
-}
-
-/**
- * Deep merge two objects.
- * @param {object} target - Target object
- * @param {object} source - Source object to merge
- * @returns {object} Merged object
- */
-export function deepMerge(target, source) {
-  if (typeof source !== 'object' || source === null || Array.isArray(source)) {
-    return source;
-  }
-
-  const output = { ...target };
-
-  for (const [key, value] of Object.entries(source)) {
-    if (value === undefined) {
-      continue;
-    }
-
-    if (
-      typeof value === 'object' &&
-      value !== null &&
-      !Array.isArray(value) &&
-      typeof output[key] === 'object' &&
-      output[key] !== null &&
-      !Array.isArray(output[key])
-    ) {
-      output[key] = deepMerge(output[key], value);
-    } else {
-      output[key] = value;
-    }
-  }
-
-  return output;
-}
-
-/**
- * Deep equality check.
- * @param {unknown} a - First value
- * @param {unknown} b - Second value
- * @returns {boolean}
- */
-export function deepEqual(a, b) {
-  if (a === b) return true;
-  if (typeof a !== typeof b) return false;
-  if (typeof a !== 'object' || a === null || b === null) return false;
-  if (Array.isArray(a) !== Array.isArray(b)) return false;
-
-  if (Array.isArray(a)) {
-    if (a.length !== b.length) return false;
-    return a.every((val, i) => deepEqual(val, b[i]));
-  }
-
-  const keysA = Object.keys(a);
-  const keysB = Object.keys(b);
-  if (keysA.length !== keysB.length) return false;
-  return keysA.every(key => deepEqual(a[key], b[key]));
-}
-
-/**
- * Normalize text input (string or array) to a single string.
- * @param {string | string[]} input - Input to normalize
- * @param {string} label - Label for error messages
- * @returns {string}
- */
-export function normalizeTextInput(input, label) {
-  if (Array.isArray(input)) {
-    for (const line of input) {
-      if (typeof line !== 'string') {
-        throw new SetupSandboxError(`${label} array entries must be strings`);
-      }
-    }
-    return input.join('\n');
-  }
-  if (typeof input !== 'string') {
-    throw new SetupSandboxError(`${label} must be a string or array of strings`);
-  }
-  return input;
-}
-
-/**
- * Ensure text has a leading newline.
- * @param {string} block - Text block
- * @returns {string}
- */
-export function ensureLeadingNewline(block) {
-  return block.startsWith('\n') ? block : `\n${block}`;
-}
-
-/**
- * Ensure text has a trailing newline.
- * @param {string} block - Text block
- * @returns {string}
- */
-export function ensureTrailingNewline(block) {
-  return block.endsWith('\n') ? block : `${block}\n`;
 }
