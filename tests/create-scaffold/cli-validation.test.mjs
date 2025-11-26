@@ -9,7 +9,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execCLI as runCLI } from '../utils/cli.js';
-import { TestEnvironment, OutputValidator, TestRunner } from '../shared/cli-test-utils.mjs';
+import { TestEnvironment, OutputValidator, TestRunner } from '../helpers/cli-test-utils.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

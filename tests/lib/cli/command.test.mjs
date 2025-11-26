@@ -2,7 +2,7 @@
 
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import { Command } from '../../lib/cli/command.mts';
+import { Command } from '../../../lib/cli/command.mts';
 
 // Test help configuration
 const testHelp = {

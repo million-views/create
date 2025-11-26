@@ -24,7 +24,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
 import { PassThrough } from 'node:stream';
-import { resolvePlaceholders, PlaceholderResolutionError } from '../../lib/placeholder/index.mts';
+import { resolvePlaceholders, PlaceholderResolutionError } from '../../../lib/placeholder/index.mts';
 
 // Test double: Prompt adapter that provides controlled responses via DI
 // This uses the function's designed promptAdapter parameter, not mocking

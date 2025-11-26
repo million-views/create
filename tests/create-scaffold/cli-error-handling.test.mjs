@@ -10,7 +10,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execCLI as runCLI } from '../utils/cli.js';
 import { getResourceSnapshot as snapshotResources } from '../utils/resources.js';
-import { TestEnvironment, TemplateRepository, TestRunner, ResourceMonitor } from '../shared/cli-test-utils.mjs';
+import { TestEnvironment, TemplateRepository, TestRunner, ResourceMonitor } from '../helpers/cli-test-utils.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

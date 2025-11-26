@@ -15,7 +15,7 @@ import {
   resolveCacheDirectory,
   resolveTemplateCacheDirectory,
   resolveUserConfigPath
-} from '../../lib/util/index.mts';
+} from '../../../lib/util/index.mts';
 
 test('resolveHomeDirectory', async (t) => {
   await t.test('returns HOME from environment', () => {

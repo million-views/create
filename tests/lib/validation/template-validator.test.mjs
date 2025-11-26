@@ -6,12 +6,12 @@ import { strict as assert } from 'node:assert';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
-import { validateTemplateManifest } from '../../lib/validation/index.mts';
-import { ValidationError } from '../../lib/error/index.mts';
-import { TemplateValidator } from '../../lib/validation/template-validator.mts';
+import { validateTemplateManifest } from '../../../lib/validation/index.mts';
+import { ValidationError } from '../../../lib/error/index.mts';
+import { TemplateValidator } from '../../../lib/validation/template-validator.mts';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const repoRoot = path.resolve(__dirname, '../..');
+const repoRoot = path.resolve(__dirname, '../../..');
 
 async function loadFixture(name) {
   const filePath = path.join(repoRoot, 'tests', 'fixtures', name, 'template.json');

@@ -267,7 +267,7 @@ class TestRunner {
       },
       {
         name: 'BoundaryValidator Tests',
-        command: ['--test', './tests/shared/boundary-validator.test.mjs'],
+        command: ['--test', './tests/lib/security/boundary-validator.test.mjs'],
         description: 'Path boundary enforcement and traversal prevention',
         homeSuffix: 'boundary-validator'
       },
@@ -285,7 +285,7 @@ class TestRunner {
       },
       {
         name: 'Error Classes Tests',
-        command: ['--test', './tests/shared/error-classes.test.mjs'],
+        command: ['--test', './tests/lib/error/error-classes.test.mjs'],
         description: 'Custom error class instantiation and properties',
         homeSuffix: 'error-classes'
       },
@@ -297,31 +297,31 @@ class TestRunner {
       },
       {
         name: 'Template Ignore Tests',
-        command: ['--test', './tests/shared/template-ignore.test.mjs'],
+        command: ['--test', './tests/lib/template/template-ignore.test.mjs'],
         description: 'Template artifact filtering and tree output sanitization',
         homeSuffix: 'template-ignore'
       },
       {
         name: 'Error Handler Tests',
-        command: ['--test', './tests/shared/error-handler.test.mjs'],
+        command: ['--test', './tests/lib/error/error-handler.test.mjs'],
         description: 'Error formatting and contextual error handling',
         homeSuffix: 'error-handler'
       },
       {
         name: 'Placeholder Resolver Tests',
-        command: ['--test', './tests/shared/placeholder-resolver.test.mjs'],
+        command: ['--test', './tests/lib/placeholder/placeholder-resolver.test.mjs'],
         description: 'Placeholder resolution and merging logic',
         homeSuffix: 'placeholder-resolver'
       },
       {
         name: 'Selection Validator Tests',
-        command: ['--test', './tests/shared/selection-validator.test.mjs'],
+        command: ['--test', './tests/lib/validation/selection-validator.test.mjs'],
         description: 'Template selection validation logic',
         homeSuffix: 'selection-validator'
       },
       {
         name: 'Path Resolver Tests',
-        command: ['--test', './tests/shared/path-resolver.test.mjs'],
+        command: ['--test', './tests/lib/util/path-resolver.test.mjs'],
         description: 'Path resolution and M5NV_HOME handling',
         homeSuffix: 'path-resolver'
       },
@@ -333,13 +333,13 @@ class TestRunner {
       },
       {
         name: 'Template Schema Build Tests',
-        command: ['--test', './tests/shared/schema-build.test.mjs'],
+        command: ['--test', './tests/scripts/schema-build.test.mjs'],
         description: 'Deterministic generation of schema types and runtime stubs',
         homeSuffix: 'schema-build'
       },
       {
         name: 'Template Validator Tests',
-        command: ['--test', './tests/shared/template-validator.test.mjs'],
+        command: ['--test', './tests/lib/validation/template-validator.test.mjs'],
         description: 'Runtime manifest validation aligned with schema constraints',
         homeSuffix: 'template-validator'
       },
@@ -363,31 +363,31 @@ class TestRunner {
       },
       {
         name: 'Options Processor Tests',
-        command: ['--test', './tests/shared/options-processor.test.mjs'],
+        command: ['--test', './tests/create-scaffold/options-processor.test.mjs'],
         description: 'Template dimension option normalization used by create-scaffold commands',
         homeSuffix: 'options-processor'
       },
       {
         name: 'Config Loader Tests',
-        command: ['--test', './tests/shared/config-loader.test.mjs', './tests/shared/config-loader-templates.test.mjs', './tests/shared/config-discovery.test.mjs'],
+        command: ['--test', './tests/create-scaffold/config-loader.test.mjs', './tests/create-scaffold/config-loader-templates.test.mjs', './tests/create-scaffold/config-discovery.test.mjs'],
         description: '.m5nvrc discovery and normalization for create-scaffold defaults',
         homeSuffix: 'config-loader'
       },
       {
         name: 'CacheManager Tests',
-        command: ['--test', './tests/shared/cache-manager.test.mjs', './tests/shared/cache-manager.git.test.mjs'],
+        command: ['--test', './tests/create-scaffold/cache-manager.test.mjs', './tests/create-scaffold/cache-manager.git.test.mjs'],
         description: 'Cache URL normalization and git-backed operations',
         homeSuffix: 'cache-manager'
       },
       {
         name: 'TemplateResolver Tests',
-        command: ['--test', './tests/shared/template-resolver.test.mjs', './tests/shared/template-resolver.git.test.mjs'],
+        command: ['--test', './tests/create-scaffold/template-resolver.test.mjs', './tests/create-scaffold/template-resolver.git.test.mjs'],
         description: 'Template resolution and git-backed alias refresh',
         homeSuffix: 'template-resolver'
       },
       {
         name: 'Base Command Tests',
-        command: ['--test', './tests/cli/command.test.js', './tests/shared/command.test.mjs'],
+        command: ['--test', './tests/cli/command.test.js', './tests/lib/cli/command.test.mjs'],
         description: 'Command template method pattern and base command tests',
         homeSuffix: 'base-command'
       },
