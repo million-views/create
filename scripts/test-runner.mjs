@@ -21,6 +21,7 @@ class TestRunner {
     this.suiteGroups = {
       // Unit tests: Core components and infrastructure (L2/L3)
       'unit': [
+        'Public Facade Tests',
         'Security Functions Tests',
         'BoundaryValidator Tests',
         'Registry Cache Manager Tests',
@@ -256,6 +257,12 @@ class TestRunner {
 
   getAllTestDefinitions() {
     return [
+      {
+        name: 'Public Facade Tests',
+        command: ['--test', './tests/lib/facade.test.mts'],
+        description: 'lib/index.mts public API and namespace exports',
+        homeSuffix: 'public-facade'
+      },
       {
         name: 'Security Functions Tests',
         command: ['--test', './tests/security/security-functions.test.mjs'],
