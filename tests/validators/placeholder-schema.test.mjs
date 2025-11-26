@@ -11,8 +11,8 @@
 import { strict as assert } from 'node:assert';
 import test from 'node:test';
 
-import { normalizePlaceholders, supportedPlaceholderTypes } from '../../lib/placeholder/index.mts';
-import { ValidationError } from '../../lib/error/index.mts';
+import { normalizePlaceholders, supportedPlaceholderTypes } from '@m5nv/create-scaffold/lib/placeholder/schema.mts';
+import { ValidationError } from '@m5nv/create-scaffold/lib/error/validation.mts';
 
 // =============================================================================
 // Test Suite: normalizePlaceholders - Entry Validation

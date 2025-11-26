@@ -1,29 +1,40 @@
 #!/usr/bin/env node
 
+/**
+ * L2 Tests for Templatize Config
+ *
+ * Tests config loading, validation, and generation for the templatize module.
+ * Uses project's tmp/ folder instead of system tmpdir for test isolation.
+ */
+
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
 import fs from 'node:fs/promises';
-import { tmpdir } from 'node:os';
-import path from 'node:path';
-import { loadConfig, validateConfig, generateConfigFile, getPatternsForFile, DEFAULT_CONFIG } from '../lib/templatize/index.mts';
+import { join } from 'node:path';
+import { loadConfig, validateConfig, generateConfigFile, getPatternsForFile, DEFAULT_CONFIG } from '@m5nv/create-scaffold/lib/templatize/strategy/config.mts';
+
+// Helper to create unique temp directories
+function tempDir(suffix) {
+  return join(process.cwd(), 'tmp', 'unit-tests', `templatize-${suffix}-${Date.now()}`);
+}
 
 describe('TemplatizeConfig', () => {
   describe('loadConfig', () => {
     it('throws error when no .templatize.json exists', async () => {
-      const tempDir = path.join(tmpdir(), 'templatize-test-no-config');
-      await fs.mkdir(tempDir, { recursive: true });
+      const dir = tempDir('no-config');
+      await fs.mkdir(dir, { recursive: true });
 
       try {
-        assert.throws(() => loadConfig(tempDir), /Configuration file .templatize.json not found/);
+        assert.throws(() => loadConfig(dir), /Configuration file .templatize.json not found/);
       } finally {
-        await fs.rm(tempDir, { recursive: true, force: true });
+        await fs.rm(dir, { recursive: true, force: true });
       }
     });
 
     it('loads and validates .templatize.json when it exists', async () => {
-      const tempDir = path.join(tmpdir(), 'templatize-test-with-config');
-      const configPath = path.join(tempDir, '.templatize.json');
-      await fs.mkdir(tempDir, { recursive: true });
+      const dir = tempDir('with-config');
+      const configPath = join(dir, '.templatize.json');
+      await fs.mkdir(dir, { recursive: true });
 
       const customConfig = {
         version: '1.0',
@@ -42,33 +53,33 @@ describe('TemplatizeConfig', () => {
       await fs.writeFile(configPath, JSON.stringify(customConfig));
 
       try {
-        const config = loadConfig(tempDir);
+        const config = loadConfig(dir);
         assert.strictEqual(config.version, '1.0');
         assert.strictEqual(config.autoDetect, false);
         assert.strictEqual(config.rules['package.json'][0].placeholder, 'CUSTOM_NAME');
       } finally {
-        await fs.rm(tempDir, { recursive: true, force: true });
+        await fs.rm(dir, { recursive: true, force: true });
       }
     });
 
     it('throws on invalid JSON in config file', async () => {
-      const tempDir = path.join(tmpdir(), 'templatize-test-invalid-json');
-      const configPath = path.join(tempDir, '.templatize.json');
-      await fs.mkdir(tempDir, { recursive: true });
+      const dir = tempDir('invalid-json');
+      const configPath = join(dir, '.templatize.json');
+      await fs.mkdir(dir, { recursive: true });
 
       await fs.writeFile(configPath, '{ invalid json }');
 
       try {
-        assert.throws(() => loadConfig(tempDir), /Invalid JSON/);
+        assert.throws(() => loadConfig(dir), /Invalid JSON/);
       } finally {
-        await fs.rm(tempDir, { recursive: true, force: true });
+        await fs.rm(dir, { recursive: true, force: true });
       }
     });
 
     it('throws on invalid config structure', async () => {
-      const tempDir = path.join(tmpdir(), 'templatize-test-invalid-config');
-      const configPath = path.join(tempDir, '.templatize.json');
-      await fs.mkdir(tempDir, { recursive: true });
+      const dir = tempDir('invalid-config');
+      const configPath = join(dir, '.templatize.json');
+      await fs.mkdir(dir, { recursive: true });
 
       const invalidConfig = {
         version: '1.0',
@@ -78,9 +89,9 @@ describe('TemplatizeConfig', () => {
       await fs.writeFile(configPath, JSON.stringify(invalidConfig));
 
       try {
-        assert.throws(() => loadConfig(tempDir), /Configuration autoDetect must be a boolean/);
+        assert.throws(() => loadConfig(dir), /Configuration autoDetect must be a boolean/);
       } finally {
-        await fs.rm(tempDir, { recursive: true, force: true });
+        await fs.rm(dir, { recursive: true, force: true });
       }
     });
   });
@@ -124,13 +135,13 @@ describe('TemplatizeConfig', () => {
 
   describe('generateConfigFile', () => {
     it('creates .templatize.json with default config', async () => {
-      const tempDir = path.join(tmpdir(), 'templatize-test-generate');
-      await fs.mkdir(tempDir, { recursive: true });
+      const dir = tempDir('generate');
+      await fs.mkdir(dir, { recursive: true });
 
       try {
-        generateConfigFile(tempDir);
+        generateConfigFile(dir);
 
-        const configPath = path.join(tempDir, '.templatize.json');
+        const configPath = join(dir, '.templatize.json');
         const exists = await fs.access(configPath).then(() => true).catch(() => false);
         assert(exists, 'Config file should be created');
 
@@ -138,13 +149,13 @@ describe('TemplatizeConfig', () => {
         const config = JSON.parse(content);
         assert.deepStrictEqual(config, DEFAULT_CONFIG);
       } finally {
-        await fs.rm(tempDir, { recursive: true, force: true });
+        await fs.rm(dir, { recursive: true, force: true });
       }
     });
 
     it('merges overrides with default config', async () => {
-      const tempDir = path.join(tmpdir(), 'templatize-test-generate-overrides');
-      await fs.mkdir(tempDir, { recursive: true });
+      const dir = tempDir('generate-overrides');
+      await fs.mkdir(dir, { recursive: true });
 
       const overrides = {
         autoDetect: false,
@@ -160,9 +171,9 @@ describe('TemplatizeConfig', () => {
       };
 
       try {
-        generateConfigFile(tempDir, overrides);
+        generateConfigFile(dir, overrides);
 
-        const configPath = path.join(tempDir, '.templatize.json');
+        const configPath = join(dir, '.templatize.json');
         const content = await fs.readFile(configPath, 'utf8');
         const config = JSON.parse(content);
 
@@ -171,7 +182,7 @@ describe('TemplatizeConfig', () => {
         assert(config.rules['custom.txt'], 'Should include custom rules');
         assert.strictEqual(config.rules['custom.txt'][0].placeholder, 'CUSTOM_CONTENT');
       } finally {
-        await fs.rm(tempDir, { recursive: true, force: true });
+        await fs.rm(dir, { recursive: true, force: true });
       }
     });
   });

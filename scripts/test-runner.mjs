@@ -491,31 +491,31 @@ class TestRunner {
       },
       {
         name: 'Templatize JSX Tests',
-        command: ['--test', './tests/templatize-jsx.test.mjs'],
+        command: ['--test', './tests/lib/templatize/templatize-jsx.test.mjs'],
         description: 'JSX/TSX file templatization with AST parsing',
         homeSuffix: 'templatize-jsx'
       },
       {
         name: 'Templatize JSON Tests',
-        command: ['--test', './tests/templatize-json.test.mjs'],
+        command: ['--test', './tests/lib/templatize/templatize-json.test.mjs'],
         description: 'JSON file templatization with JSONPath support',
         homeSuffix: 'templatize-json'
       },
       {
         name: 'Templatize Markdown Tests',
-        command: ['--test', './tests/templatize-markdown.test.mjs'],
+        command: ['--test', './tests/lib/templatize/templatize-markdown.test.mjs'],
         description: 'Markdown file templatization with regex patterns',
         homeSuffix: 'templatize-markdown'
       },
       {
         name: 'Templatize HTML Tests',
-        command: ['--test', './tests/templatize-html.test.mjs'],
+        command: ['--test', './tests/lib/templatize/templatize-html.test.mjs'],
         description: 'HTML file templatization with DOM parsing',
         homeSuffix: 'templatize-html'
       },
       {
         name: 'Templatize Config Tests',
-        command: ['--test', './tests/templatize-config.test.mjs'],
+        command: ['--test', './tests/lib/templatize/templatize-config.test.mjs'],
         description: 'Configuration file templatization (YAML, TOML, INI)',
         homeSuffix: 'templatize-config'
       },

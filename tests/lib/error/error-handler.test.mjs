@@ -5,13 +5,13 @@ import assert from 'node:assert';
 import {
   ErrorContext,
   ErrorSeverity,
-  ContextualError,
   formatErrorMessage,
   ErrorMessages,
   handleError,
   withErrorHandling,
   contextualizeError
-} from '../../../lib/error/index.mts';
+} from '@m5nv/create-scaffold/lib/error/handler.mts';
+import { ContextualError } from '@m5nv/create-scaffold/lib/error/contextual.mts';
 
 describe('Error Handler', () => {
   describe('Constants', () => {

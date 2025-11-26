@@ -21,10 +21,8 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { rm, writeFile, mkdir } from 'node:fs/promises';
 import path from 'node:path';
-import {
-  createTestTools,
-  SetupSandboxError
-} from '../../lib/environment/index.mts';
+import { createTestTools } from '@m5nv/create-scaffold/lib/environment/testing.mts';
+import { SetupSandboxError } from '@m5nv/create-scaffold/lib/environment/utils.mts';
 import { createTempDir } from '../helpers/temp-dir.mjs';
 
 // Default test values for this test suite

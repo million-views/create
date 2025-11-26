@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { ListCommand } from '../../../bin/create-scaffold/commands/list/index.mts';
-import { captureOutput } from '../../helpers.js';
+import { ListCommand } from '@m5nv/create-scaffold/bin/create-scaffold/commands/list/index.mts';
+import { captureOutput } from '../../helpers/console-capture.js';
 
 describe('ListCommand', () => {
   it('shows help with --help flag', () => {

@@ -10,9 +10,9 @@
 import { strict as assert } from 'node:assert';
 import test from 'node:test';
 
-import { validateTemplateManifest } from '../../../lib/validation/index.mts';
-import { ValidationError } from '../../../lib/error/index.mts';
-import { TemplateValidator } from '../../../lib/validation/template-validator.mts';
+import { validateTemplateManifest } from '@m5nv/create-scaffold/lib/validation/schema/manifest.mts';
+import { ValidationError } from '@m5nv/create-scaffold/lib/error/validation.mts';
+import { TemplateValidator } from '@m5nv/create-scaffold/lib/validation/template-validator.mts';
 
 // Inlined fixture (originally from tests/fixtures/placeholder-template/template.json)
 const placeholderTemplateFixture = {

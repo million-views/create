@@ -21,16 +21,17 @@ import {
   isContext,
   ContextValidationError,
   DEFAULT_AUTHOR_ASSETS_DIR,
-  DEFAULT_AUTHORING_MODE,
-  createTools,
-  isTools,
+  DEFAULT_AUTHORING_MODE
+} from '@m5nv/create-scaffold/lib/environment/context.mts';
+import { createTools, isTools } from '@m5nv/create-scaffold/lib/environment/tools/index.mts';
+import {
   createTestContext,
   createTestTools,
   createTestEnvironment,
   createTestLogger,
   createSilentLogger,
   TEST_DEFAULTS
-} from '../../lib/environment/index.mts';
+} from '@m5nv/create-scaffold/lib/environment/testing.mts';
 
 describe('Environment Module', () => {
   describe('createContext()', () => {

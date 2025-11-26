@@ -2,8 +2,11 @@
 
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { SecurityGate, BoundaryValidator } from '../../lib/security/index.mts';
-import { GateError as SecurityGateError, ViolationError as BoundaryViolationError, ValidationError } from '../../lib/error/index.mts';
+import { SecurityGate } from '@m5nv/create-scaffold/lib/security/gate.mts';
+import { BoundaryValidator } from '@m5nv/create-scaffold/lib/security/boundary.mts';
+import { GateError as SecurityGateError } from '@m5nv/create-scaffold/lib/error/gate.mts';
+import { ViolationError as BoundaryViolationError } from '@m5nv/create-scaffold/lib/error/boundary.mts';
+import { ValidationError } from '@m5nv/create-scaffold/lib/error/validation.mts';
 import { SecurityAuditLogger } from '../../lib/security/audit.mts';
 
 // Architectural Tests for Defense-in-Depth Security

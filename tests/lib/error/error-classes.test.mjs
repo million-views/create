@@ -9,7 +9,7 @@
 
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { ArgumentError, PreflightError } from '../../../lib/error/index.mts';
+import { ArgumentError, PreflightError } from '@m5nv/create-scaffold/lib/error/classes.mts';
 
 describe('Error Classes', () => {
   describe('ArgumentError', () => {

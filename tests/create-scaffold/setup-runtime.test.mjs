@@ -25,10 +25,7 @@ import {
   loadSetupScript,
   SetupSandboxError
 } from '../../bin/create-scaffold/modules/setup-runtime.mts';
-import {
-  createTestContext,
-  createTestTools
-} from '../../lib/environment/index.mts';
+import { createTestContext, createTestTools } from '@m5nv/create-scaffold/lib/environment/testing.mts';
 import { createTempDir } from '../helpers/temp-dir.mjs';
 
 // Default test values for this test suite

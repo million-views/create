@@ -13,7 +13,7 @@ import {
   createTemplateIgnoreSet,
   shouldIgnoreTemplateEntry,
   stripIgnoredFromTree
-} from '../../../lib/template/index.mts';
+} from '@m5nv/create-scaffold/lib/template/ignore.mts';
 
 describe('Template Ignore Logic', () => {
   describe('createTemplateIgnoreSet', () => {

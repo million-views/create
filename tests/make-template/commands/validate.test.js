@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { ValidateCommand } from '../../../bin/make-template/commands/validate/index.mts';
-import { captureOutput } from '../../helpers.js';
+import { ValidateCommand } from '@m5nv/create-scaffold/bin/make-template/commands/validate/index.mts';
+import { captureOutput } from '../../helpers/console-capture.js';
 
 describe('ValidateCommand (make-template)', () => {
   it('shows help with --help flag', () => {

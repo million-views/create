@@ -4,7 +4,7 @@ import { describe, it, beforeEach } from 'node:test';
 import assert from 'node:assert';
 import { join } from 'node:path';
 import { CacheManager } from '../../bin/create-scaffold/modules/cache-manager.mts';
-import { resolveCacheDirectory } from '../../lib/util/index.mts';
+import { resolveCacheDirectory } from '@m5nv/create-scaffold/lib/util/path.mts';
 
 describe('CacheManager', () => {
   let cacheManager;

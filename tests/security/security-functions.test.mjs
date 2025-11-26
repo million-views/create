@@ -20,7 +20,7 @@ import {
 } from '../../lib/security/identity.mts';
 
 // Error types
-import { ValidationError } from '../../lib/error/index.mts';
+import { ValidationError } from '@m5nv/create-scaffold/lib/error/validation.mts';
 
 // Sanitization functions
 import {
@@ -29,18 +29,22 @@ import {
   sanitizeErrorMessage
 } from '../../lib/security/sanitize.mts';
 
-// CLI validation functions
+// CLI input validation functions
 import {
   validateRepoUrl,
   validateTemplateName,
   validateProjectDirectory,
+  validateAllInputs
+} from '@m5nv/create-scaffold/lib/validation/cli/input.mts';
+
+// CLI option validation functions
+import {
   validateIdeParameter,
   validateAuthoringMode,
   validateAuthorAssetsDir,
   validateLogFilePath,
-  validateCacheTtl,
-  validateAllInputs
-} from '../../lib/validation/cli/index.mts';
+  validateCacheTtl
+} from '@m5nv/create-scaffold/lib/validation/cli/option.mts';
 
 // Domain validation
 import { validateDimensionsMetadata } from '../../lib/validation/domain/dimension.mts';

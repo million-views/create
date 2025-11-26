@@ -11,6 +11,7 @@
   "exports": {
     ".": "./bin/create-scaffold/index.mts",
     "./make-template": "./bin/make-template/index.mts",
+    "./bin/*": "./bin/*",
     "./lib/*": "./lib/*",
     "./schema/template.json": "./schema/template.json",
     "./schema/template.v1.json": "./schema/template.v1.json",

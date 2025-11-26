@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { NewCommand } from '../../../bin/create-scaffold/commands/new/index.mts';
-import { captureOutputAsync, mockExitAsync } from '../../helpers.js';
+import { NewCommand } from '@m5nv/create-scaffold/bin/create-scaffold/commands/new/index.mts';
+import { captureOutputAsync, mockExitAsync } from '../../helpers/console-capture.js';
 
 describe('NewCommand', () => {
   it('requires project-name argument', async () => {

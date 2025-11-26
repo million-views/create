@@ -6,7 +6,7 @@
 
 import { test } from 'node:test';
 import assert from 'node:assert';
-import { processJSONFile } from '../lib/templatize/index.mts';
+import { processJSONFile } from '@m5nv/create-scaffold/lib/templatize/strategy/json.mts';
 
 // Test fixtures
 const testFixtures = {
