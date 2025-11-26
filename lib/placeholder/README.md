@@ -34,7 +34,7 @@ const normalized = placeholder.schema.normalize(placeholderConfig);
 
 ## Module Structure
 
-```
+```text
 placeholder/
 ├── index.mts      # Domain facade
 ├── resolve.mjs    # Placeholder resolution

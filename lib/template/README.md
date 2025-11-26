@@ -39,7 +39,7 @@ const cleanTree = template.stripIgnoredFromTree(treeOutput, ignoreSet);
 
 ## Module Structure
 
-```
+```text
 template/
 ├── index.mts      # Domain facade
 ├── discover.mjs   # Template discovery

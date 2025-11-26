@@ -11,7 +11,6 @@
   "exports": {
     ".": "./bin/create-scaffold/index.mts",
     "./make-template": "./bin/make-template/index.mts",
-    "./lib": "./lib/index.mts",
     "./lib/*": "./lib/*",
     "./schema/template.json": "./schema/template.json",
     "./schema/template.v1.json": "./schema/template.v1.json",
@@ -86,7 +85,7 @@
     "schema:build": "node ./scripts/build-template-schema.mjs",
     "schema:check": "node ./scripts/build-template-schema.mjs --check && tsc --noEmit --project tsconfig.json",
     "test": "node ./scripts/test-runner.mjs",
-    "test:coverage": "c8 --reporter=json-summary --reporter=text --reports-dir tmp/c8-baseline npm test",
+    "test:coverage": "c8 --all --src lib --src bin --extension .mts --extension .mjs --extension .js --reporter=json-summary --reporter=text --reports-dir tmp/c8-baseline npm test",
     "test:unit": "node ./scripts/test-runner.mjs --suite unit",
     "test:integration": "node ./scripts/test-runner.mjs --suite integration",
     "test:system": "node ./scripts/test-runner.mjs --suite system",

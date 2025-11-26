@@ -3,13 +3,13 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
 import fs from 'node:fs/promises';
-import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { TemplateResolver } from '../../bin/create-scaffold/modules/template-resolver.mts';
 import { CacheManager } from '../../bin/create-scaffold/modules/cache-manager.mts';
 import { File } from '../../lib/util/file.mts';
 import { GitFixtureManager } from '../helpers/git-fixtures.mjs';
+import { createTempDir } from '../helpers/temp-dir.mjs';
 
 class FixtureCacheManager extends CacheManager {
   constructor(cacheDir, repoMap) {
@@ -33,7 +33,7 @@ class FixtureCacheManager extends CacheManager {
 }
 
 async function createCacheDir(testContext) {
-  const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'template-resolver-git-cache-'));
+  const dir = await createTempDir('template-resolver-git-cache', 'git-tests');
   if (testContext?.after) {
     testContext.after(async () => {
       await File.safeCleanup(dir);

@@ -37,7 +37,7 @@ throw new error.GateError('Repository access denied');
 
 ## Module Structure
 
-```
+```text
 error/
 ├── index.mts        # Domain facade
 ├── validation.mts   # ValidationError class

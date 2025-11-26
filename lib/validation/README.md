@@ -29,7 +29,7 @@ const options = validation.cli.validateOptions(cliArgs);
 
 ## Module Structure
 
-```
+```text
 validation/
 ├── index.mts          # Domain facade
 ├── schema/            # JSON Schema validators
@@ -83,7 +83,7 @@ namespace cli {
 
 ## Validation Flow
 
-```
+```text
 User Input
     │
     ▼

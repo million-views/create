@@ -2,8 +2,30 @@
 node_modules/
 dist/
 prompts/
+tmp/
 *.log
 npm-debug.log*
 .DS_Store
 .tmp-m5nv-create-*/
 package-lock.json
+
+# Test coverage and reports
+*.lcov
+coverage/
+.nyc_output/
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Test artifacts and generated directories
+test-*/
+.tmp-*/
+*.tmp/
+*.selection.json
+
+# Build artifacts
+*.tgz
+*.tar.gz

@@ -34,7 +34,7 @@ boundary.validate('/etc/passwd'); // Throws ViolationError
 
 ## Module Structure
 
-```
+```text
 security/
 ├── index.mts      # Domain facade
 ├── sanitize.mts   # Input sanitization utilities

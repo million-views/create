@@ -4,10 +4,10 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import path from 'node:path';
 import fs from 'node:fs/promises';
-import os from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { execCLI } from '../utils/cli.js';
 import { GitFixtureManager } from '../helpers/git-fixtures.mjs';
+import { createTempDir } from '../helpers/temp-dir.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -25,10 +25,10 @@ async function assertPathMissing(targetPath) {
 }
 
 test('dry-run CLI preview with local template path', async (t) => {
-  const workingDir = await fs.mkdtemp(path.join(os.tmpdir(), 'dry-run-local-workdir-'));
+  const workingDir = await createTempDir('dry-run-local-workdir', 'e2e-tests');
   const projectName = `dryrunlocal${Date.now()}`;
   const projectDir = path.join(workingDir, projectName);
-  const m5nvHome = await fs.mkdtemp(path.join(os.tmpdir(), 'm5nv-home-local-'));
+  const m5nvHome = await createTempDir('m5nv-home-local', 'e2e-tests');
 
   t.after(async () => {
     await fs.rm(workingDir, { recursive: true, force: true }).catch(() => { });
@@ -54,10 +54,10 @@ test('dry-run CLI preview with local template path', async (t) => {
 test('dry-run CLI preview with cached repository template', async (t) => {
   const fixtureManager = await GitFixtureManager.create(t);
   const repo = await fixtureManager.createBareRepo('simple-template');
-  const workingDir = await fs.mkdtemp(path.join(os.tmpdir(), 'dry-run-remote-workdir-'));
+  const workingDir = await createTempDir('dry-run-remote-workdir', 'e2e-tests');
   const projectName = `dryrunremote${Date.now()}`;
   const projectDir = path.join(workingDir, projectName);
-  const m5nvHome = await fs.mkdtemp(path.join(os.tmpdir(), 'm5nv-home-remote-'));
+  const m5nvHome = await createTempDir('m5nv-home-remote', 'e2e-tests');
   const remoteUrl = `https://example.com/templates/${path.basename(fileURLToPath(repo.repoUrl))}`;
   const gitConfigPath = path.join(workingDir, 'gitconfig');
   const gitConfigContent = `[url "${repo.repoUrl}"]\n\tinsteadOf = ${remoteUrl}\n`;

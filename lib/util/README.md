@@ -31,7 +31,7 @@ const truncated = util.Text.truncate(longText, 100);
 
 ## Module Structure
 
-```
+```text
 util/
 ├── index.mts    # Domain facade
 ├── file.mjs     # File utilities

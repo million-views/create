@@ -44,7 +44,7 @@ const result = templatize.strategy.json(content, config);
 
 ## Module Structure
 
-```
+```text
 templatize/
 ├── index.mts          # Domain facade
 └── strategy/          # File-type strategies

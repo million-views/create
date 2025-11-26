@@ -13,7 +13,7 @@ The library follows a **domain-driven design** approach with clear boundaries be
 
 ## Directory Structure
 
-```
+```text
 lib/
 ├── index.mts              # Public facade - single entry point
 ├── types.mts              # Shared type definitions
@@ -80,33 +80,44 @@ lib/
 
 ## Public API
 
-All public exports are available through namespace imports:
+Imports use direct domain paths for explicit dependencies and better tree-shaking:
 
 ```typescript
-import { error, security, validation, placeholder, templatize, template, util } from '@m5nv/create';
-
 // Error handling
-throw new error.ValidationError('Invalid input');
+import { ValidationError, ContextualError } from '@m5nv/create-scaffold/lib/error/index.mts';
+throw new ValidationError('Invalid input');
 
 // Security validation
-const gate = new security.Gate();
-const boundary = new security.Boundary(baseDir);
+import { Gate, Boundary, sanitize } from '@m5nv/create-scaffold/lib/security/index.mts';
+const gate = new Gate();
+const boundary = new Boundary(baseDir);
 
 // Validation
-const result = validation.schema.validateManifest(manifest);
+import { schema } from '@m5nv/create-scaffold/lib/validation/index.mts';
+const result = schema.validateManifest(manifest);
 
 // Placeholder resolution
-const resolved = placeholder.resolve(template, values);
+import { resolve } from '@m5nv/create-scaffold/lib/placeholder/index.mts';
+const resolved = resolve(template, values);
 
 // File templatization
-const changes = templatize.json(content, config);
+import { strategy } from '@m5nv/create-scaffold/lib/templatize/index.mts';
+const changes = strategy.json(content, config);
 
 // Template discovery
-const discovery = new template.TemplateDiscovery(cacheManager);
+import { TemplateDiscovery } from '@m5nv/create-scaffold/lib/template/index.mts';
+const discovery = new TemplateDiscovery(cacheManager);
 
 // Utilities
-const content = await util.File.read(path);
+import { File } from '@m5nv/create-scaffold/lib/util/index.mts';
+const content = await File.read(path);
 ```
+
+**Why direct imports over barrel files:**
+- Explicit dependencies - clear what each module needs
+- Better tree-shaking - bundlers can eliminate unused code
+- Faster IDE performance - fewer files to parse
+- No circular dependency risks - import graph is explicit
 
 ### Export Count
 
@@ -126,7 +137,7 @@ The public facade exports approximately **15 items** (well under the 30 limit):
 
 ### Dependency Hierarchy
 
-```
+```text
 ┌─────────────────────────────────────────────────────────┐
 │                     Application Layer                   │
 │              (bin/create-scaffold, bin/make-template)   │
@@ -201,10 +212,9 @@ const { ValidationError } = error;
 
 Tests are organized to mirror the lib/ structure:
 
-```
+```text
 tests/
 ├── lib/                   # Domain-specific tests
-│   ├── facade.test.mts    # Public facade tests
 │   ├── error/             # Error domain tests
 │   ├── security/          # Security domain tests
 │   ├── validation/        # Validation domain tests

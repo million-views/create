@@ -3,17 +3,17 @@
 import { describe, it, beforeEach } from 'node:test';
 import assert from 'node:assert';
 import path from 'path';
-import os from 'os';
 import { CacheManager } from '../../bin/create-scaffold/modules/cache-manager.mts';
 import { resolveCacheDirectory } from '../../lib/util/index.mts';
+import { TEST_TMP_BASE } from '../helpers/temp-dir.mjs';
 
 describe('CacheManager', () => {
   let cacheManager;
   let tempCacheDir;
 
   beforeEach(() => {
-    // Create a temporary cache directory for testing
-    tempCacheDir = path.join(os.tmpdir(), 'cache-manager-test-' + Date.now());
+    // Create a temporary cache directory for testing (under project's tmp/)
+    tempCacheDir = path.join(TEST_TMP_BASE, 'unit-tests', 'cache-manager-test-' + Date.now());
     cacheManager = new CacheManager(tempCacheDir);
   });
 

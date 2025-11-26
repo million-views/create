@@ -14,7 +14,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert';
 import { join } from 'node:path';
-import { readFile, writeFile, mkdir, access } from 'node:fs/promises';
+import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import {
   createTestEnvironment,
   execCLI,

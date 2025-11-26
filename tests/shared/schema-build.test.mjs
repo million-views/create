@@ -1,19 +1,19 @@
 #!/usr/bin/env node
 
-import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { strict as assert } from 'node:assert';
-import { mkdir, mkdtemp, readFile, writeFile, cp } from 'node:fs/promises';
+import { mkdir, readFile, writeFile, cp } from 'node:fs/promises';
 import test from 'node:test';
 
 import { buildTemplateSchema } from '../../scripts/build-template-schema.mjs';
+import { createTempDir } from '../helpers/temp-dir.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(__dirname, '../..');
 
 async function createIsolatedWorkspace() {
-  const tmpDir = await mkdtemp(path.join(os.tmpdir(), 'schema-build-'));
+  const tmpDir = await createTempDir('schema-build', 'unit-tests');
   await mkdir(path.join(tmpDir, 'schema'), { recursive: true });
   await cp(path.join(repoRoot, 'schema', 'template.v1.json'), path.join(tmpDir, 'schema', 'template.v1.json'));
   await cp(path.join(repoRoot, 'schema', 'template.json'), path.join(tmpDir, 'schema', 'template.json'));

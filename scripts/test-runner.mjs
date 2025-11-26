@@ -69,6 +69,9 @@ class TestRunner {
         'Resource Leak Tests',
         'E2E Hermetic Isolation Tests',
         'E2E Tutorial Workflows Tests',
+        'E2E Sprint 1 Tutorial Gap Tests',
+        'E2E Sprint 2 Tutorial Gap Tests',
+        'E2E Sprint 3 Tutorial Gap Tests',
         'E2E Guided Workflow Tests'
       ],
       // Tool-specific groupings for targeted testing
@@ -258,15 +261,9 @@ class TestRunner {
   getAllTestDefinitions() {
     return [
       {
-        name: 'Public Facade Tests',
-        command: ['--test', './tests/lib/facade.test.mts'],
-        description: 'lib/index.mts public API and namespace exports',
-        homeSuffix: 'public-facade'
-      },
-      {
         name: 'Security Functions Tests',
-        command: ['--test', './tests/security/security-functions.test.mjs'],
-        description: 'L2 validation functions coverage (package identity, paths, repos, branches)',
+        command: ['--test', './tests/security/security-functions.test.mjs', './tests/security/defense-in-depth.test.mjs'],
+        description: 'L2 validation functions and defense-in-depth security tests',
         homeSuffix: 'security-functions'
       },
       {
@@ -298,6 +295,12 @@ class TestRunner {
         command: ['--test', './tests/shared/error-classes.test.mjs'],
         description: 'Custom error class instantiation and properties',
         homeSuffix: 'error-classes'
+      },
+      {
+        name: 'Logger Tests',
+        command: ['--test', './tests/create-scaffold/logger.test.mjs'],
+        description: 'Logging utility and formatting',
+        homeSuffix: 'logger'
       },
       {
         name: 'Template Ignore Tests',
@@ -361,8 +364,8 @@ class TestRunner {
       },
       {
         name: 'Template Validator Extended Tests',
-        command: ['--test', './tests/validators/template-validator-extended.test.mjs'],
-        description: 'Extended template validator domain and runtime validation',
+        command: ['--test', './tests/validators/template-validator-extended.test.mjs', './tests/validators/required-files.test.mjs', './tests/validators/setup-lint.test.mjs'],
+        description: 'Extended template validator, required files, and setup lint',
         homeSuffix: 'template-validator-extended'
       },
       {
@@ -378,21 +381,21 @@ class TestRunner {
         homeSuffix: 'config-loader'
       },
       {
-        name: 'CacheManager Git Tests',
-        command: ['--test', './tests/shared/cache-manager.git.test.mjs'],
-        description: 'Git-backed cache population, TTL, and cleanup validation',
-        homeSuffix: 'cache-manager-git'
+        name: 'CacheManager Tests',
+        command: ['--test', './tests/shared/cache-manager.test.mjs', './tests/shared/cache-manager.git.test.mjs'],
+        description: 'Cache URL normalization and git-backed operations',
+        homeSuffix: 'cache-manager'
       },
       {
-        name: 'TemplateResolver Git Tests',
-        command: ['--test', './tests/shared/template-resolver.git.test.mjs'],
-        description: 'Git-backed template resolution and alias refresh validation',
-        homeSuffix: 'template-resolver-git'
+        name: 'TemplateResolver Tests',
+        command: ['--test', './tests/shared/template-resolver.test.mjs', './tests/shared/template-resolver.git.test.mjs'],
+        description: 'Template resolution and git-backed alias refresh',
+        homeSuffix: 'template-resolver'
       },
       {
         name: 'Base Command Tests',
-        command: ['--test', './tests/cli/command.test.js'],
-        description: 'Command template method pattern tests',
+        command: ['--test', './tests/cli/command.test.js', './tests/shared/command.test.mjs'],
+        description: 'Command template method pattern and base command tests',
         homeSuffix: 'base-command'
       },
       {
@@ -408,9 +411,27 @@ class TestRunner {
         homeSuffix: 'resource'
       },
       {
+        name: 'Setup Runtime Tests',
+        command: ['--test', './tests/create-scaffold/setup-runtime.test.mjs', './tests/create-scaffold/guided-setup-workflow.test.mjs'],
+        description: 'Setup runtime and guided workflow orchestration',
+        homeSuffix: 'setup-runtime'
+      },
+      {
+        name: 'Template URL Integration Tests',
+        command: ['--test', './tests/create-scaffold/template-url-integration.test.mjs'],
+        description: 'Template URL parsing and parameter handling',
+        homeSuffix: 'template-url'
+      },
+      {
+        name: 'File Utilities Tests',
+        command: ['--test', './tests/utils/file.test.mjs'],
+        description: 'L1 file operation wrappers and utilities',
+        homeSuffix: 'file-utils'
+      },
+      {
         name: 'Create-Scaffold New Tests',
-        command: ['--test', './tests/create-scaffold/commands/new.test.js'],
-        description: 'Create-scaffold new command unit tests',
+        command: ['--test', './tests/create-scaffold/commands/new.test.js', './tests/create-scaffold/commands/new.router.test.js'],
+        description: 'Create-scaffold new command unit and router tests',
         homeSuffix: 'create-scaffold-new'
       },
       {
@@ -421,14 +442,14 @@ class TestRunner {
       },
       {
         name: 'Create-Scaffold List Tests',
-        command: ['--test', './tests/create-scaffold/commands/list.test.js'],
-        description: 'Create-scaffold list command unit tests',
+        command: ['--test', './tests/create-scaffold/commands/list.test.js', './tests/create-scaffold/commands/list.router.test.js'],
+        description: 'Create-scaffold list command unit and router tests',
         homeSuffix: 'create-scaffold-list'
       },
       {
         name: 'Create-Scaffold Validate Tests',
-        command: ['--test', './tests/create-scaffold/commands/validate.test.js'],
-        description: 'Create-scaffold validate command unit tests',
+        command: ['--test', './tests/create-scaffold/commands/validate.test.js', './tests/create-scaffold/commands/validate.router.test.js'],
+        description: 'Create-scaffold validate command unit and router tests',
         homeSuffix: 'create-scaffold-validate'
       },
       {
@@ -463,7 +484,7 @@ class TestRunner {
       },
       {
         name: 'Make-Template Validate Tests',
-        command: ['--test', './tests/make-template/cli-integration.test.mjs'],
+        command: ['--test', './tests/make-template/cli-integration.test.mjs', './tests/make-template/commands/validate.test.js'],
         description: 'Template validation and schema compliance',
         homeSuffix: 'make-template-validate'
       },
@@ -498,6 +519,12 @@ class TestRunner {
         homeSuffix: 'templatize-html'
       },
       {
+        name: 'Templatize Config Tests',
+        command: ['--test', './tests/templatize-config.test.mjs'],
+        description: 'Configuration file templatization (YAML, TOML, INI)',
+        homeSuffix: 'templatize-config'
+      },
+      {
         name: 'E2E Hermetic Isolation Tests',
         command: ['--test', './tests/e2e/hermetic-isolation.test.mjs'],
         description: 'End-to-end hermetic test environment validation',
@@ -510,10 +537,34 @@ class TestRunner {
         homeSuffix: 'e2e-workflows'
       },
       {
+        name: 'E2E Sprint 1 Tutorial Gap Tests',
+        command: ['--test', './tests/e2e/sprint1-tutorial-gaps.test.mjs'],
+        description: 'Selection files, gates validation, and validate command',
+        homeSuffix: 'e2e-sprint1'
+      },
+      {
+        name: 'E2E Sprint 2 Tutorial Gap Tests',
+        command: ['--test', './tests/e2e/sprint2-tutorial-gaps.test.mjs'],
+        description: 'Dimension scaffolding, placeholder overrides, make-template test',
+        homeSuffix: 'e2e-sprint2'
+      },
+      {
+        name: 'E2E Sprint 3 Tutorial Gap Tests',
+        command: ['--test', './tests/e2e/sprint3-tutorial-gaps.test.mjs'],
+        description: 'CLI command structure validation',
+        homeSuffix: 'e2e-sprint3'
+      },
+      {
         name: 'E2E Guided Workflow Tests',
         command: ['--test', './tests/e2e/guided-workflow.test.mjs'],
         description: 'Guided workflow coverage for setup runtime and sandbox enforcement',
         homeSuffix: 'e2e-guided-workflow'
+      },
+      {
+        name: 'Test Infrastructure Tests',
+        command: ['--test', './tests/utils/cli-runner.test.js', './tests/utils/interactive-simulator.test.mjs'],
+        description: 'Test utility validation (CLI runner, interactive simulator)',
+        homeSuffix: 'test-infra'
       }
     ];
   }

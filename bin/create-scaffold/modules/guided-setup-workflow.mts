@@ -1182,9 +1182,9 @@ export class GuidedSetupWorkflow {
         }
       };
 
-      // Write selection.json to current working directory with template-specific name
+      // Write selection.json to the project directory with template-specific name
       const selectionFilename = `${this.templateName}.selection.json`;
-      const selectionPath = path.join(process.cwd(), selectionFilename);
+      const selectionPath = path.join(this.resolvedProjectDirectory, selectionFilename);
       await fs.writeFile(selectionPath, JSON.stringify(selection, null, 2));
 
       this.logger.info(`✅ Generated ${selectionFilename} at ${selectionPath}`);

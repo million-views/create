@@ -19,9 +19,8 @@
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtemp, rm, writeFile, mkdir } from 'node:fs/promises';
+import { rm, writeFile, mkdir } from 'node:fs/promises';
 import path from 'node:path';
-import os from 'node:os';
 import {
   loadSetupScript,
   SetupSandboxError
@@ -30,6 +29,7 @@ import {
   createTestContext,
   createTestTools
 } from '../../lib/environment/index.mts';
+import { createTempDir } from '../helpers/temp-dir.mjs';
 
 // Default test values for this test suite
 const TEST_PROJECT_NAME = 'runtime-app';
@@ -46,8 +46,8 @@ const TEST_OPTIONS = {
   byDimension: { features: ['docs'] }
 };
 
-async function createProjectFixture(prefix = 'setup-runtime-project-') {
-  const projectDir = await mkdtemp(path.join(os.tmpdir(), prefix));
+async function createProjectFixture(prefix = 'setup-runtime-project') {
+  const projectDir = await createTempDir(prefix, 'unit-tests');
   await writeFile(path.join(projectDir, 'README.md'), '# Starter\n');
   await writeFile(path.join(projectDir, 'package.json'), JSON.stringify({
     name: 'starter-app',

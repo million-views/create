@@ -4,30 +4,25 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import os from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { spawn } from 'node:child_process';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const CLI_PATH = path.join(__dirname, '..', '..', 'bin', 'create-scaffold', 'index.mts');
+const PROJECT_ROOT = path.join(__dirname, '..', '..');
 
 test('GuidedSetupWorkflow - selection.json generation integration', async (t) => {
   let tempDir;
-  let originalCwd;
 
   t.beforeEach(async () => {
-    // Create a temporary directory for testing
-    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'test-selection-gen-'));
-    originalCwd = process.cwd();
-    process.chdir(tempDir);
+    // Create a temporary directory under project's tmp/e2e-tests/ (not system /tmp)
+    const timestamp = Date.now();
+    tempDir = path.join(PROJECT_ROOT, 'tmp', 'e2e-tests', `selection-gen-${timestamp}`);
+    await fs.mkdir(tempDir, { recursive: true });
   });
 
   t.afterEach(async () => {
-    // Restore original working directory
-    if (originalCwd) {
-      process.chdir(originalCwd);
-    }
     // Clean up temp directory
     if (tempDir) {
       try {
@@ -38,7 +33,7 @@ test('GuidedSetupWorkflow - selection.json generation integration', async (t) =>
     }
   });
 
-  await t.test('generates template-specific selection.json file in cwd', async () => {
+  await t.test('generates template-specific selection.json file in project directory', async () => {
     // Create a minimal template for testing
     const templateDir = path.join(tempDir, 'test-template');
     await fs.mkdir(templateDir, { recursive: true });
@@ -99,10 +94,11 @@ export default async function setup({ ctx, tools }) {
     // Should succeed
     assert.equal(result.exitCode, 0, `CLI should succeed, but got stderr: ${result.stderr}`);
 
-    // Check that selection.json was created with correct name
-    const selectionPath = path.join(tempDir, 'test-template.selection.json');
+    // Check that selection.json was created in the project directory with correct name
+    const projectDir = path.join(tempDir, 'test-output');
+    const selectionPath = path.join(projectDir, 'test-template.selection.json');
     const exists = await fs.access(selectionPath).then(() => true).catch(() => false);
-    assert(exists, 'selection.json should be created with template-specific name in cwd');
+    assert(exists, 'selection.json should be created with template-specific name in project directory');
 
     // Verify the content structure
     const content = JSON.parse(await fs.readFile(selectionPath, 'utf8'));
@@ -151,10 +147,11 @@ export default async function setup({ ctx, tools }) {
 
     assert.equal(result.exitCode, 0, 'CLI should succeed');
 
-    // Check that the correct filename was used
-    const selectionPath = path.join(tempDir, 'another-template.selection.json');
+    // Check that the correct filename was used in the project directory
+    const projectDir = path.join(tempDir, 'another-output');
+    const selectionPath = path.join(projectDir, 'another-template.selection.json');
     const exists = await fs.access(selectionPath).then(() => true).catch(() => false);
-    assert(exists, 'should create another-template.selection.json');
+    assert(exists, 'should create another-template.selection.json in project directory');
 
     // Verify it contains the correct template reference
     const content = JSON.parse(await fs.readFile(selectionPath, 'utf8'));

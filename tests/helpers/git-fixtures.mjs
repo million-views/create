@@ -1,9 +1,9 @@
 import fs from 'node:fs/promises';
-import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { File } from '../../lib/util/file.mts';
 import { Shell } from '../../lib/util/shell.mts';
+import { createTempDir } from './temp-dir.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const FIXTURE_ROOT = path.resolve(__dirname, '../fixtures/git-repos/templates');
@@ -41,7 +41,7 @@ export function resolveGitFixturePath(fixtureName) {
 export class GitFixtureManager {
   static async create(testContext = null, options = {}) {
     const prefix = options.prefix ?? 'git-fixture';
-    const baseDir = await fs.mkdtemp(path.join(os.tmpdir(), `${prefix}-`));
+    const baseDir = await createTempDir(prefix, 'git-tests');
     const manager = new GitFixtureManager(baseDir, options);
 
     if (testContext?.after) {

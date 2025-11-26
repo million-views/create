@@ -3,14 +3,14 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
 import fs from 'node:fs/promises';
-import os from 'node:os';
 import path from 'node:path';
 import { CacheManager } from '../../bin/create-scaffold/modules/cache-manager.mts';
 import { File } from '../../lib/util/file.mts';
 import { GitFixtureManager } from '../helpers/git-fixtures.mjs';
+import { createTempDir } from '../helpers/temp-dir.mjs';
 
 async function createCacheManager(testContext) {
-  const cacheDir = await fs.mkdtemp(path.join(os.tmpdir(), 'cache-manager-git-cache-'));
+  const cacheDir = await createTempDir('cache-manager-git-cache', 'git-tests');
   if (testContext?.after) {
     testContext.after(async () => {
       await File.safeCleanup(cacheDir);

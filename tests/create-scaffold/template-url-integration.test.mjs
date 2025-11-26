@@ -5,10 +5,10 @@ import assert from 'node:assert';
 import { spawn } from 'child_process';
 import path from 'path';
 import fs from 'fs/promises';
-import os from 'os';
+import { createTempDir } from '../helpers/temp-dir.mjs';
 
 test('Template URL CLI Integration', async (t) => {
-  const testDir = path.join(os.tmpdir(), 'create-scaffold-test-' + Date.now());
+  const testDir = await createTempDir('create-scaffold-test', 'e2e-tests');
   let createdProjectDir = null;
 
   await t.test('accepts --template flag', async () => {
