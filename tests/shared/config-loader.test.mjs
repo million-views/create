@@ -8,7 +8,7 @@ import path from 'node:path';
 import { ValidationError } from '../../lib/error/index.mts';
 import {
   loadConfig
-} from '../../bin/create-scaffold/modules/config-loader.mjs';
+} from '../../bin/create-scaffold/modules/config-loader.mts';
 import { resolveUserConfigPath } from '../../lib/util/index.mts';
 
 // Constants from config-loader.mjs (not exported)

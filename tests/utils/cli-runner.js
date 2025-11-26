@@ -31,8 +31,8 @@ const PROJECT_ROOT = path.resolve(__dirname, '../..');
  * CLI entry point paths
  */
 const CLI_PATHS = {
-  'create-scaffold': path.join(PROJECT_ROOT, 'bin/create-scaffold/index.mjs'),
-  'make-template': path.join(PROJECT_ROOT, 'bin/make-template/index.mjs')
+  'create-scaffold': path.join(PROJECT_ROOT, 'bin/create-scaffold/index.mts'),
+  'make-template': path.join(PROJECT_ROOT, 'bin/make-template/index.mts')
 };
 
 /**

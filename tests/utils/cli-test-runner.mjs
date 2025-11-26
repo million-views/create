@@ -30,7 +30,7 @@ export class CLITestRunner {
    */
   async execWithSimulation(args, simulator) {
     return new Promise((resolve, reject) => {
-      const cliPath = path.join(__dirname, '../../bin/create-scaffold/index.mjs');
+      const cliPath = path.join(__dirname, '../../bin/create-scaffold/index.mts');
       const child = spawn('node', [cliPath, ...args], {
         cwd: this.options.cwd,
         stdio: ['pipe', 'pipe', 'pipe'],

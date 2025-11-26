@@ -25,7 +25,7 @@ import os from 'node:os';
 import {
   createTestTools,
   SetupSandboxError
-} from '../../lib/environment/index.mjs';
+} from '../../lib/environment/index.mts';
 
 // Default test values for this test suite
 const TEST_PROJECT_NAME = 'runtime-app';

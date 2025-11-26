@@ -57,7 +57,7 @@ export async function createTestEnvironment(testName) {
  */
 export function execCLI(tool, args, options = {}) {
   const { env, cwd = process.cwd() } = options;
-  const command = `node ${join(CLI_PATH, tool, 'index.mjs')} ${args.join(' ')}`;
+  const command = `node ${join(CLI_PATH, tool, 'index.mts')} ${args.join(' ')}`;
 
   try {
     const result = execSync(command, {

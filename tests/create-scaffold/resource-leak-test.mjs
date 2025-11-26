@@ -9,7 +9,7 @@ import { detectResourceLeaks, getResourceSnapshot } from '../utils/resources.js'
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const CLI_PATH = path.join(__dirname, '..', '..', 'bin', 'create-scaffold', 'index.mjs');
+const CLI_PATH = path.join(__dirname, '..', '..', 'bin', 'create-scaffold', 'index.mts');
 
 async function runLeakScenario({ name, args, expectedMessage }) {
   const before = await getResourceSnapshot();

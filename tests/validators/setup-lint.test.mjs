@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 import { tmpdir } from 'os';
 import { join } from 'path';
 import { mkdtemp, rm, writeFile, mkdir } from 'fs/promises';
-import { validateSetupScript } from '../../bin/create-scaffold/modules/validators/setup-lint.mjs';
+import { validateSetupScript } from '../../bin/create-scaffold/modules/validators/setup-lint.mts';
 
 test.describe('Setup Lint Validator', () => {
   let tempDir;

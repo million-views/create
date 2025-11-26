@@ -24,8 +24,8 @@ const PROJECT_ROOT = join(__dirname, '../../..');
  * - Asserts exit codes and output messages
  *
  * Coverage Target:
- * - bin/create-scaffold/commands/new/index.js: 89.91% → 95%+
- * - bin/create-scaffold/commands/new/scaffolder.js: 80.33% → 85%+
+ * - bin/create-scaffold/commands/new/index.mts: 89.91% → 95%+
+ * - bin/create-scaffold/commands/new/scaffolder.mts: 80.33% → 85%+
  *
  * Focus: Critical edge cases that existing tests may miss
  */

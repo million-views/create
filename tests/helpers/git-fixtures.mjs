@@ -2,8 +2,8 @@ import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { File } from '../../lib/util/file.mjs';
-import { Shell } from '../../lib/util/shell.mjs';
+import { File } from '../../lib/util/file.mts';
+import { Shell } from '../../lib/util/shell.mts';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const FIXTURE_ROOT = path.resolve(__dirname, '../fixtures/git-repos/templates');

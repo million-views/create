@@ -20,7 +20,7 @@ const TEST_TIMEOUT = 60000; // Longer timeout for conversion operations
 
 // Helper function to execute CLI commands
 async function execCLI(args, options = {}) {
-  const scriptPath = join(process.cwd(), 'bin/make-template/index.mjs');
+  const scriptPath = join(process.cwd(), 'bin/make-template/index.mts');
   const cwd = options.cwd || process.cwd();
 
   // Use execSync with proper shell command

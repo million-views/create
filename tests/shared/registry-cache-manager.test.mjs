@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 import { mkdtemp, rm } from 'fs/promises';
 import { join } from 'path';
 import { tmpdir } from 'os';
-import { RegistryCacheManager } from '../../bin/create-scaffold/modules/registry/cache-manager.mjs';
+import { RegistryCacheManager } from '../../bin/create-scaffold/modules/registry/cache-manager.mts';
 
 /**
  * L3 Integration Tests for Registry Cache Manager

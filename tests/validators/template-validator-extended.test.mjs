@@ -11,7 +11,7 @@
 import { strict as assert } from 'node:assert';
 import test from 'node:test';
 
-import { TemplateValidator } from '../../lib/validation/template-validator.mjs';
+import { TemplateValidator } from '../../lib/validation/template-validator.mts';
 
 // =============================================================================
 // Test Suite: Schema Validation Methods

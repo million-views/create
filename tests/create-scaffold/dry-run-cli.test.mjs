@@ -12,7 +12,7 @@ import { GitFixtureManager } from '../helpers/git-fixtures.mjs';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const ROOT_DIR = path.resolve(__dirname, '..', '..');
-const CLI_ENTRY = path.join(ROOT_DIR, 'bin', 'create-scaffold', 'index.mjs');
+const CLI_ENTRY = path.join(ROOT_DIR, 'bin', 'create-scaffold', 'index.mts');
 const LOCAL_TEMPLATE = path.join(ROOT_DIR, 'tests', 'fixtures', 'features-demo-template');
 
 async function assertPathMissing(targetPath) {

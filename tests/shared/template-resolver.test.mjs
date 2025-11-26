@@ -25,7 +25,7 @@ import assert from 'node:assert';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { tmpdir } from 'node:os';
-import { TemplateResolver } from '../../bin/create-scaffold/modules/template-resolver.mjs';
+import { TemplateResolver } from '../../bin/create-scaffold/modules/template-resolver.mts';
 import { ContextualError } from '../../lib/error/index.mts';
 
 /**

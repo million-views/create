@@ -10,7 +10,7 @@
  */
 
 import { ValidationError, GateError } from '../error/index.mts';
-import { getAuditLogger } from './audit.mjs';
+import { getAuditLogger } from './audit.mts';
 import { allInputs as validateAllInputs } from '../validation/cli/input.mts';
 
 /**

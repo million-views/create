@@ -4,7 +4,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { SecurityGate, BoundaryValidator } from '../../lib/security/index.mts';
 import { GateError as SecurityGateError, ViolationError as BoundaryViolationError, ValidationError } from '../../lib/error/index.mts';
-import { SecurityAuditLogger } from '../../lib/security/audit.mjs';
+import { SecurityAuditLogger } from '../../lib/security/audit.mts';
 
 // Architectural Tests for Defense-in-Depth Security
 

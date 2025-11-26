@@ -6,7 +6,7 @@ import fs from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { ValidationError } from '../../lib/error/index.mts';
-import { loadConfig } from '../../bin/create-scaffold/modules/config-loader.mjs';
+import { loadConfig } from '../../bin/create-scaffold/modules/config-loader.mts';
 
 const CONFIG_FILENAME = '.m5nvrc';
 

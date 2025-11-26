@@ -10,8 +10,8 @@ import {
   createTestProject,
   verifyIsolation
 } from './test-helpers.mjs';
-import { GuidedSetupWorkflow } from '../../bin/create-scaffold/modules/guided-setup-workflow.mjs';
-import { CacheManager } from '../../bin/create-scaffold/modules/cache-manager.mjs';
+import { GuidedSetupWorkflow } from '../../bin/create-scaffold/modules/guided-setup-workflow.mts';
+import { CacheManager } from '../../bin/create-scaffold/modules/cache-manager.mts';
 
 const LONG_TIMEOUT = 180000; // 3 minutes for full guided flows
 

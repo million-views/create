@@ -7,16 +7,16 @@
  */
 
 // JSON strategy
-export { processJSONFile as json } from './json.mjs';
+export { processJSONFile as json } from './json.mts';
 
 // Markdown strategy
-export { processMarkdownFile as markdown } from './markdown.mjs';
+export { processMarkdownFile as markdown } from './markdown.mts';
 
 // HTML strategy
-export { processHTMLFile as html } from './html.mjs';
+export { processHTMLFile as html } from './html.mts';
 
 // JSX/TSX strategy
-export { processJSXFile as jsx } from './jsx.mjs';
+export { processJSXFile as jsx } from './jsx.mts';
 
 // Config strategy
 export {
@@ -27,11 +27,11 @@ export {
   getPatternsForFile,
   validateConfig,
   loadConfigFromFile
-} from './config.mjs';
+} from './config.mts';
 
 // Legacy re-exports for backward compatibility
-export { processJSONFile } from './json.mjs';
-export { processMarkdownFile } from './markdown.mjs';
-export { processHTMLFile } from './html.mjs';
-export { processJSXFile } from './jsx.mjs';
-export { loadConfig } from './config.mjs';
+export { processJSONFile } from './json.mts';
+export { processMarkdownFile } from './markdown.mts';
+export { processHTMLFile } from './html.mts';
+export { processJSXFile } from './jsx.mts';
+export { loadConfig } from './config.mts';

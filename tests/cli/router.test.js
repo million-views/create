@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { Router } from '../../lib/cli/router.js';
-import { Command } from '../../lib/cli/command.js';
+import { Router } from '../../lib/cli/router.mts';
+import { Command } from '../../lib/cli/command.mts';
 
 class TestCommand extends Command {
   constructor() {

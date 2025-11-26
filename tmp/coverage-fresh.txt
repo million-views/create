@@ -1,0 +1,1602 @@
+
+> @m5nv/create-scaffold@0.6.0 test:coverage
+> c8 --reporter=json-summary --reporter=text --reports-dir tmp/c8-baseline npm test
+
+
+> @m5nv/create-scaffold@0.6.0 test
+> node ./scripts/test-runner.mjs
+
+🚀 Running Complete Test Suite for @m5nv/create-scaffold
+============================================================
+
+🧪 Security Tests
+   Security validation for new IDE and features parameters
+✔ Options parameter rejects path traversal attempts (2.398363ms)
+✔ Options parameter rejects injection attempts (0.40836ms)
+✔ Options parameter rejects null byte injection (0.292984ms)
+✔ Options parameter rejects malicious combinations (0.372513ms)
+✔ Options parameter guards against resource exhaustion (0.308061ms)
+✔ validateAllInputs processes safe payloads correctly (2.034786ms)
+✔ validateAllInputs accumulates multiple validation failures (0.431065ms)
+✔ validateAllInputs ignores undefined optional parameters (0.15476ms)
+✔ Validation functions do not expose environment variables (0.2871ms)
+✔ Validation functions do not leak system paths or IP addresses (1.146077ms)
+✔ Input sanitization withstands Unicode and encoded attacks (0.249523ms)
+ℹ tests 11
+ℹ suites 0
+ℹ pass 11
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 144.384271
+✅ Security Tests - 228ms
+
+🧪 BoundaryValidator Tests
+   Path boundary enforcement and traversal prevention
+▶ BoundaryValidator
+  ▶ Construction
+    ✔ creates validator with absolute allowed root (7.142796ms)
+    ✔ resolves relative allowed root to absolute (0.990295ms)
+  ✔ Construction (9.133568ms)
+  ▶ validatePath() - Valid Paths
+    ✔ allows paths within allowed root (1.455037ms)
+    ✔ allows absolute paths within allowed root (0.823964ms)
+    ✔ allows path exactly at root (0.752172ms)
+    ✔ allows nested paths (0.776413ms)
+    ✔ normalizes redundant path segments (0.746014ms)
+  ✔ validatePath() - Valid Paths (4.915957ms)
+  ▶ validatePath() - Path Traversal Prevention
+    ✔ blocks ../ traversal out of root (3.260622ms)
+    ✔ blocks multiple ../ traversals (1.056822ms)
+    ✔ blocks traversal via allowed path then escape (0.783938ms)
+    ✔ blocks absolute paths outside root (2.006819ms)
+    ✔ allows ../ that stays within root (0.873935ms)
+  ✔ validatePath() - Path Traversal Prevention (8.298098ms)
+  ▶ validatePath() - Null Byte Injection Prevention
+    ✔ blocks null byte in path (1.229318ms)
+    ✔ blocks null byte at start (0.72669ms)
+    ✔ blocks null byte at end (0.625433ms)
+  ✔ validatePath() - Null Byte Injection Prevention (2.753465ms)
+  ▶ validatePath() - Input Validation
+    ✔ rejects non-string input (0.939784ms)
+    ✔ rejects null input (0.684286ms)
+    ✔ rejects undefined input (0.720513ms)
+    ✔ rejects object input (0.636855ms)
+  ✔ validatePath() - Input Validation (3.219513ms)
+  ▶ validatePath() - Error Details
+    ✔ error includes operation name (1.216484ms)
+    ✔ error includes user path (0.749284ms)
+    ✔ error includes resolved path for traversal (1.784996ms)
+    ✔ error includes allowed root (0.638272ms)
+  ✔ validatePath() - Error Details (4.607054ms)
+  ▶ validatePaths() - Batch Validation
+    ✔ validates multiple paths (0.949493ms)
+    ✔ throws on first invalid path (0.681304ms)
+    ✔ handles empty array (0.565979ms)
+  ✔ validatePaths() - Batch Validation (2.371712ms)
+  ▶ getBasename()
+    ✔ extracts basename from path (1.020395ms)
+    ✔ extracts basename from absolute path (0.686272ms)
+    ✔ handles path with no directory (0.591035ms)
+    ✔ blocks traversal attempts in getBasename (0.643734ms)
+  ✔ getBasename() (3.140757ms)
+  ▶ getAllowedRoot()
+    ✔ returns allowed root path (1.301453ms)
+    ✔ returns absolute path (0.669163ms)
+  ✔ getAllowedRoot() (2.119716ms)
+  ▶ Security Edge Cases
+    ✔ blocks Windows-style absolute path on Unix (2.152097ms)
+    ✔ handles empty string gracefully (0.683948ms)
+    ✔ handles path with spaces (0.598694ms)
+    ✔ handles path with unicode characters (0.59973ms)
+    ✔ blocks symlink-like patterns (..../ which is valid filename) (0.56974ms)
+  ✔ Security Edge Cases (4.834277ms)
+  ▶ BoundaryViolationError
+    ✔ is instance of Error (0.870733ms)
+    ✔ has correct name (0.570518ms)
+    ✔ stores custom properties (0.550957ms)
+  ✔ BoundaryViolationError (2.1511ms)
+✔ BoundaryValidator (48.622096ms)
+ℹ tests 40
+ℹ suites 12
+ℹ pass 40
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1161.91098
+✅ BoundaryValidator Tests - 1247ms
+
+🧪 Registry Cache Manager Tests
+   Template registry metadata caching with LRU eviction
+▶ RegistryCacheManager
+  ▶ Initialization
+    ✔ initializes successfully and creates cache directory (7.479701ms)
+    ✔ emits initialized event on successful init (1.520834ms)
+    ✔ handles initialization failure gracefully (1.279571ms)
+    ✔ does not reinitialize if already initialized (1.246867ms)
+  ✔ Initialization (12.761232ms)
+  ▶ Basic Cache Operations
+    ✔ set() stores data in memory cache (6.825154ms)
+    ✔ set() emits cache:set event with key and size (4.281211ms)
+    ✔ get() returns null for non-existent key (1.092049ms)
+    ✔ get() emits cache:miss for non-existent key (0.985879ms)
+    ✔ get() emits cache:hit for existing key (2.481554ms)
+    ✔ delete() removes entry from memory cache (3.229839ms)
+    ✔ delete() emits cache:deleted event (2.791461ms)
+    ✔ clear() removes all cache entries (5.050679ms)
+    ✔ clear() emits cache:cleared event with count (4.68352ms)
+  ✔ Basic Cache Operations (32.038184ms)
+  ▶ TTL and Expiration
+    ✔ expired entries are automatically removed on get() (156.02227ms)
+    ✔ get() emits cache:expired for expired entries (105.498392ms)
+    ✔ cleanup() removes all expired entries (108.738435ms)
+    ✔ cleanup() emits cache:cleanup event with count (108.841509ms)
+  ✔ TTL and Expiration (479.505609ms)
+  ▶ Disk Persistence
+    ✔ set() persists entry to disk (7.007773ms)
+    ✔ getStats() reflects persisted entries (3.695473ms)
+    ✔ cache survives reinitialization from disk (3.865871ms)
+    ✔ corrupted cache is handled gracefully on reinitialization (3.6334ms)
+  ✔ Disk Persistence (18.512532ms)
+  ▶ LRU Eviction
+    ✔ evicts old entries when cache size limit is reached (5.008873ms)
+    ✔ eviction emits cache:evicted event (4.654836ms)
+  ✔ LRU Eviction (9.845389ms)
+  ▶ Cache Statistics
+    ✔ getStats() returns current cache statistics (4.580357ms)
+    ✔ getStats() counts expired entries correctly (105.3549ms)
+  ✔ Cache Statistics (110.153963ms)
+  ▶ Cache Disabled Mode
+    ✔ operations are no-ops when cache is disabled (1.56388ms)
+  ✔ Cache Disabled Mode (1.727963ms)
+  ▶ Shutdown
+    ✔ shutdown() saves metadata and emits event (3.573719ms)
+    ✔ shutdown() persists cache state to disk (5.852507ms)
+  ✔ Shutdown (9.664455ms)
+  ▶ Additional Edge Cases
+    ✔ delete() handles non-existent entry gracefully (1.636163ms)
+    ✔ clear() handles empty cache (1.947257ms)
+    ✔ get() updates lastAccessed timestamp for LRU (13.568736ms)
+    ✔ set() with custom TTL overrides default maxAge (3.054372ms)
+    ✔ getStats() calculates hit rate correctly (2.477726ms)
+    ✔ loadFromDisk() returns null for non-existent file (1.196431ms)
+  ✔ Additional Edge Cases (24.282109ms)
+✔ RegistryCacheManager (699.575478ms)
+ℹ tests 34
+ℹ suites 10
+ℹ pass 34
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 840.7377
+✅ Registry Cache Manager Tests - 915ms
+
+🧪 Environment Module Tests
+   Environment object factory and test utilities
+▶ Environment Module
+  ▶ createContext()
+    ✔ should create a context with required parameters (1.622001ms)
+    ✔ should use custom cwd when provided (0.159246ms)
+    ✔ should accept custom authoring mode (0.116231ms)
+    ✔ should accept custom authorAssetsDir (0.109566ms)
+    ✔ should freeze inputs and constants (0.771359ms)
+    ✔ should freeze the entire context object (0.30156ms)
+    ✔ should throw ContextValidationError for missing projectName (0.204074ms)
+    ✔ should throw ContextValidationError for empty projectName (0.140013ms)
+    ✔ should throw ContextValidationError for missing projectDirectory (0.280351ms)
+    ✔ should throw ContextValidationError for invalid authoring mode (0.143187ms)
+  ✔ createContext() (4.989682ms)
+  ▶ isContext()
+    ✔ should return true for valid context (0.192897ms)
+    ✔ should return false for null (0.092294ms)
+    ✔ should return false for undefined (0.066657ms)
+    ✔ should return false for object missing required properties (0.085615ms)
+    ✔ should return false for object with wrong types (0.101018ms)
+    ✔ should return true for manually constructed valid object (0.094048ms)
+  ✔ isContext() (0.827876ms)
+  ▶ ContextValidationError
+    ✔ should have correct name (0.122348ms)
+    ✔ should include message (0.093537ms)
+    ✔ should be instanceof Error (0.158395ms)
+  ✔ ContextValidationError (0.493189ms)
+  ▶ DEFAULT_AUTHOR_ASSETS_DIR
+    ✔ should equal __scaffold__ (0.087248ms)
+  ✔ DEFAULT_AUTHOR_ASSETS_DIR (0.157926ms)
+  ▶ DEFAULT_AUTHORING_MODE
+    ✔ should equal wysiwyg (0.097775ms)
+  ✔ DEFAULT_AUTHORING_MODE (0.158516ms)
+✔ Environment Module (7.308126ms)
+▶ Testing Utilities
+  ▶ TEST_DEFAULTS
+    ✔ should have expected default values (0.117421ms)
+    ✔ should be frozen (0.121136ms)
+  ✔ TEST_DEFAULTS (0.372949ms)
+  ▶ createTestContext()
+    ✔ should create a valid context with defaults (0.225623ms)
+    ✔ should allow overriding projectName (0.113284ms)
+    ✔ should allow overriding inputs (0.113356ms)
+    ✔ should allow overriding multiple properties (0.107113ms)
+  ✔ createTestContext() (0.723883ms)
+  ▶ createTestLogger()
+    ✔ should create a logger with info and warn methods (0.207466ms)
+    ✔ should capture info calls (0.320407ms)
+    ✔ should capture warn calls (0.167933ms)
+    ✔ should keep info and warn calls separate (0.085948ms)
+  ✔ createTestLogger() (0.92151ms)
+  ▶ createSilentLogger()
+    ✔ should create a logger with info and warn methods (0.174387ms)
+    ✔ should not throw when called (0.179302ms)
+  ✔ createSilentLogger() (0.446359ms)
+✔ Testing Utilities (2.681699ms)
+▶ Tools Module
+  ▶ createTools()
+    ✔ should create tools with required projectDirectory (0.769854ms)
+    ✔ should create tools with custom inputs (0.183545ms)
+  ✔ createTools() (1.088575ms)
+  ▶ isTools()
+    ✔ should return true for valid tools object (0.186068ms)
+    ✔ should return false for null (0.067827ms)
+    ✔ should return false for undefined (0.059929ms)
+    ✔ should return false for object missing required APIs (0.075941ms)
+  ✔ isTools() (0.521891ms)
+  ▶ createTestTools()
+    ✔ should create tools with defaults (0.239176ms)
+    ✔ should throw if projectDirectory is missing (0.251601ms)
+  ✔ createTestTools() (0.561091ms)
+  ▶ createTestEnvironment()
+    ✔ should create both ctx and tools (0.22226ms)
+    ✔ should use consistent values between ctx and tools (0.123158ms)
+    ✔ should throw if projectDirectory is missing (0.120818ms)
+    ✔ should return frozen environment object (0.13437ms)
+  ✔ createTestEnvironment() (0.727605ms)
+✔ Tools Module (32.061018ms)
+ℹ tests 45
+ℹ suites 16
+ℹ pass 45
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 154.544158
+✅ Environment Module Tests - 226ms
+
+🧪 Environment Tools Tests
+   L2 tools API (files, json, text, templates, placeholders, inputs, options)
+▶ tools.files API
+  ✔ copy() copies files and directories (15.632084ms)
+  ✔ move() renames files (4.856451ms)
+  ✔ remove() deletes files (4.327781ms)
+  ✔ write() creates new files (5.23943ms)
+✔ tools.files API (31.471208ms)
+▶ tools.json API
+  ✔ read() returns parsed JSON (3.425659ms)
+  ✔ set() updates nested paths (4.918844ms)
+  ✔ set() supports array index notation in path (5.400041ms)
+  ✔ addToArray() appends items (4.544803ms)
+  ✔ remove() deletes JSON keys (2.960492ms)
+  ✔ update() applies transform function (6.494639ms)
+  ✔ mergeArray() merges array items by key (4.593192ms)
+✔ tools.json API (32.845875ms)
+▶ tools.text API
+  ✔ replace() substitutes content (5.871234ms)
+  ✔ insertAfter() inserts content after marker (5.023301ms)
+  ✔ insertAfter() requires non-empty marker (2.853208ms)
+  ✔ insertAfter() throws when target file not found (2.096423ms)
+  ✔ insertAfter() throws when marker not found (3.672251ms)
+  ✔ replaceBetween() replaces content between markers (3.688167ms)
+  ✔ replaceBetween() requires non-empty start and end markers (4.518089ms)
+  ✔ replaceBetween() throws when start marker not found (3.310591ms)
+  ✔ replaceBetween() throws when end marker not found (3.837794ms)
+  ✔ ensureBlock() is idempotent (4.41412ms)
+  ✔ appendLines() adds lines to file (4.705371ms)
+  ✔ insertAfter() requires block entries to be strings (2.84168ms)
+  ✔ replaceBetween() requires block to be string or string array (4.151509ms)
+  ✔ replace() with ensureMatch throws if no match found (3.609095ms)
+  ✔ replace() allows no match when ensureMatch is false (3.988215ms)
+  ✔ replace() requires replacement value to be a string (8.315668ms)
+  ✔ replace() handles file not found errors (2.717742ms)
+✔ tools.text API (70.517783ms)
+▶ tools.templates API
+  ✔ renderString() applies placeholder replacements (3.826902ms)
+  ✔ renderFile() renders template with data (6.098892ms)
+  ✔ copy() copies template assets to project (10.306998ms)
+  ✔ renderString() requires template string (3.216721ms)
+  ✔ renderString() requires data object (2.522886ms)
+  ✔ renderFile() requires data object (2.962297ms)
+✔ tools.templates API (29.483393ms)
+▶ tools.placeholders API
+  ✔ applyInputs() replaces placeholders in files (5.551576ms)
+  ✔ replaceAll() replaces custom placeholders (5.388704ms)
+  ✔ replaceInFile() replaces placeholders in single file (3.946045ms)
+  ✔ replaceAll() requires replacements object (3.194209ms)
+  ✔ replaceAll() requires string replacement values (2.258888ms)
+✔ tools.placeholders API (20.627233ms)
+▶ tools.inputs API
+  ✔ get() returns input value with fallback (2.750752ms)
+  ✔ all() returns frozen clone of all inputs (2.523462ms)
+✔ tools.inputs API (5.421545ms)
+▶ tools.options API
+  ✔ when() executes callback if option enabled (3.13887ms)
+  ✔ when() skips callback if option not enabled (1.965487ms)
+  ✔ has() checks if default dimension includes value (2.106438ms)
+  ✔ in() checks if dimension includes value (2.086032ms)
+  ✔ require() throws if value not selected (2.37958ms)
+  ✔ list() returns options for dimension (3.802577ms)
+  ✔ raw() returns raw option strings (2.296245ms)
+  ✔ dimensions() returns byDimension clone (1.84001ms)
+✔ tools.options API (20.034735ms)
+ℹ tests 49
+ℹ suites 7
+ℹ pass 49
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 329.846222
+✅ Environment Tools Tests - 400ms
+
+🧪 Error Classes Tests
+   Custom error class instantiation and properties
+▶ Error Classes
+  ▶ ArgumentError
+    ✔ creates error with message only (1.615783ms)
+    ✔ creates error with field option (0.17105ms)
+    ✔ creates error with suggestions option (0.145303ms)
+    ✔ creates error with both field and suggestions (0.167892ms)
+    ✔ handles empty options object (0.137684ms)
+    ✔ handles undefined field in options (0.318138ms)
+    ✔ handles null suggestions in options (0.163346ms)
+    ✔ handles undefined suggestions in options (0.124655ms)
+    ✔ preserves error stack trace (0.354251ms)
+  ✔ ArgumentError (4.561472ms)
+  ▶ PreflightError
+    ✔ creates error with message only (0.265569ms)
+    ✔ creates error with code parameter (0.136108ms)
+    ✔ creates error with numeric code (0.954743ms)
+    ✔ creates error with null code explicitly (0.103165ms)
+    ✔ creates error with undefined code (defaults to null) (0.110167ms)
+    ✔ handles empty string code (0.123106ms)
+    ✔ preserves error stack trace (0.131578ms)
+    ✔ supports instanceof checks (0.091103ms)
+  ✔ PreflightError (2.153933ms)
+  ▶ Error Class Interactions
+    ✔ distinguishes between ArgumentError and PreflightError (0.134394ms)
+    ✔ both error types are instanceof Error (0.09755ms)
+    ✔ can be thrown and caught (0.544734ms)
+    ✔ can be caught as generic Error (0.209592ms)
+  ✔ Error Class Interactions (1.145956ms)
+✔ Error Classes (8.617577ms)
+ℹ tests 21
+ℹ suites 4
+ℹ pass 21
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 132.204051
+✅ Error Classes Tests - 202ms
+
+🧪 Template Ignore Tests
+   Template artifact filtering and tree output sanitization
+▶ Template Ignore Logic
+  ▶ createTemplateIgnoreSet
+    ✔ returns default set when no options provided (1.229666ms)
+    ✔ returns default set when empty options object provided (0.237872ms)
+    ✔ adds authorAssetsDir to ignore set (0.306978ms)
+    ✔ trims whitespace from authorAssetsDir (0.222397ms)
+    ✔ ignores empty authorAssetsDir after trimming (0.205287ms)
+    ✔ ignores non-string authorAssetsDir (0.127595ms)
+    ✔ adds extra entries to ignore set (0.251723ms)
+    ✔ trims whitespace from extra entries (0.113629ms)
+    ✔ ignores empty extra entries after trimming (0.223994ms)
+    ✔ ignores non-string extra entries (0.236246ms)
+    ✔ combines authorAssetsDir and extra entries (0.139491ms)
+    ✔ handles non-array extra option gracefully (0.084511ms)
+    ✔ returns default set when all additions are invalid (0.098951ms)
+  ✔ createTemplateIgnoreSet (6.684181ms)
+  ▶ shouldIgnoreTemplateEntry
+    ✔ returns true for default ignored entries (0.168622ms)
+    ✔ returns false for non-ignored entries (0.085302ms)
+    ✔ returns false for non-string input (0.082823ms)
+    ✔ uses custom ignore set when provided (0.078435ms)
+    ✔ is case-sensitive (0.070427ms)
+  ✔ shouldIgnoreTemplateEntry (0.64801ms)
+  ▶ stripIgnoredFromTree
+    ✔ removes ignored entries from tree text (exact match after trim) (0.321994ms)
+    ✔ removes entries ending with space + ignored name (0.110032ms)
+    ✔ removes entries ending with forward slash + ignored name (0.096137ms)
+    ✔ removes entries ending with backslash + ignored name (0.089314ms)
+    ✔ returns empty string for empty input (0.065656ms)
+    ✔ returns input unchanged for non-string input (0.070621ms)
+    ✔ uses custom ignore set when provided (0.087124ms)
+    ✔ handles entries with spaces in tree output (0.085026ms)
+    ✔ removes template.json from tree (0.090747ms)
+    ✔ preserves lines that partially match ignored entries (0.082091ms)
+    ✔ handles tree with mixed indentation (0.087688ms)
+    ✔ trims final result (0.081277ms)
+  ✔ stripIgnoredFromTree (1.554589ms)
+  ▶ Integration Scenarios
+    ✔ filters template tree with custom author assets (0.131108ms)
+    ✔ filters tree with OS-specific artifacts (0.119704ms)
+  ✔ Integration Scenarios (0.337637ms)
+✔ Template Ignore Logic (9.984959ms)
+ℹ tests 32
+ℹ suites 5
+ℹ pass 32
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 139.158421
+✅ Template Ignore Tests - 211ms
+
+🧪 Error Handler Tests
+   Error formatting and contextual error handling
+
+❌ Test error
+▶ Error Handler
+  ▶ Constants
+    ✔ should export ErrorContext constants (0.799245ms)
+    ✔ should export ErrorSeverity constants (0.123259ms)
+  ✔ Constants (1.791488ms)
+  ▶ ContextualError Class
+    ✔ should create ContextualError with default values (0.878068ms)
+    ✔ should create ContextualError with custom values (0.263928ms)
+  ✔ ContextualError Class (1.253247ms)
+  ▶ formatErrorMessage()
+    ✔ should format basic error message (0.438756ms)
+    ✔ should include technical details when requested (0.117913ms)
+    ✔ should include suggestions when available (0.175641ms)
+    ✔ should limit suggestions to maxSuggestions (0.153768ms)
+    ✔ should exclude suggestions when includeSuggestions is false (0.184073ms)
+  ✔ formatErrorMessage() (1.307562ms)
+  ▶ ErrorMessages
+    ✔ should create templateNotFound error (0.334045ms)
+    ✔ should create templateInvalidUrl error (0.20145ms)
+    ✔ should create validationFailed error (0.116337ms)
+    ✔ should create networkError error (0.123395ms)
+    ✔ should create filesystemError error (0.12116ms)
+    ✔ should create configError error (0.123498ms)
+    ✔ should create genericError error (0.121783ms)
+    ✔ should create genericError with custom context (0.080159ms)
+    ✔ should create unknownCommand error (0.102379ms)
+    ✔ should create missingRequiredArgument error (0.116635ms)
+    ✔ should create invalidArgumentValue error (0.115348ms)
+    ✔ should create commandValidationFailed error (0.113153ms)
+  ✔ ErrorMessages (1.966375ms)
+  ▶ handleError()
+    ✔ should format and display error without exiting (0.288638ms)
+    ✔ should include technical details when requested (0.152167ms)
+  ✔ handleError() (0.518939ms)
+  ▶ withErrorHandling()
+    ✔ should return result when operation succeeds (0.152796ms)
+    ✔ should handle errors and return exit code (0.979497ms)
+  ✔ withErrorHandling() (1.21356ms)
+  ▶ contextualizeError()
+    ✔ should return ContextualError unchanged (0.167727ms)
+    ✔ should convert generic Error to ContextualError (0.601526ms)
+    ✔ should apply custom context options (0.194291ms)
+  ✔ contextualizeError() (1.090387ms)
+✔ Error Handler (10.704122ms)
+ℹ tests 28
+ℹ suites 8
+ℹ pass 28
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 139.135485
+✅ Error Handler Tests - 208ms
+
+🧪 Placeholder Resolver Tests
+   Placeholder resolution and merging logic
+▶ Placeholder Resolver
+  ▶ resolvePlaceholders() - Main Function
+    ✔ should return empty result for empty definitions (2.061497ms)
+    ✔ should return empty result for null definitions (0.140923ms)
+    ✔ should resolve from default values (0.275579ms)
+    ✔ should resolve from config defaults (0.33244ms)
+    ✔ should resolve from environment variables (0.139054ms)
+    ✔ should resolve from CLI flags (0.290526ms)
+    ✔ should prioritize sources correctly (flag > env > config > default) (0.230128ms)
+    ✔ should handle unknown tokens in config defaults (0.266839ms)
+    ✔ should handle unknown tokens in flag inputs (0.173565ms)
+    ✔ should deduplicate unknown tokens (0.161146ms)
+    ✔ should handle sensitive placeholders (0.158146ms)
+  ✔ resolvePlaceholders() - Main Function (5.377127ms)
+  ▶ Type Coercion
+    ✔ should coerce string values (0.203849ms)
+    ✔ should coerce number values from strings (0.144583ms)
+    ✔ should coerce number values from numbers (0.123799ms)
+    ✔ should coerce boolean values from strings (0.257194ms)
+    ✔ should coerce boolean values from booleans (0.115518ms)
+    ✔ should reject invalid number values (0.575145ms)
+    ✔ should reject empty number values (0.153987ms)
+    ✔ should reject invalid boolean values (0.156899ms)
+    ✔ should handle null and undefined values (0.217142ms)
+  ✔ Type Coercion (2.244569ms)
+  ▶ Interactive Prompting
+    ✔ should prompt for required missing placeholders when interactive (0.276316ms)
+    ✔ should not prompt when noInputPrompts is true (0.177883ms)
+    ✔ should not prompt when interactive is false (0.172554ms)
+    ✔ should handle multiple required prompts (0.180835ms)
+    ✔ should coerce prompted values (0.148503ms)
+  ✔ Interactive Prompting (1.163257ms)
+  ▶ Required Field Validation
+    ✔ should throw error for missing required placeholders when not interactive (0.199875ms)
+    ✔ should accept missing optional placeholders (0.137447ms)
+    ✔ should verify all required placeholders are resolved after prompting (0.090357ms)
+  ✔ Required Field Validation (0.575833ms)
+  ▶ Input Validation
+    ✔ should reject non-string flag inputs (0.293081ms)
+    ✔ should reject malformed flag inputs without equals (0.166101ms)
+    ✔ should reject flag inputs with empty token names (0.147605ms)
+    ✔ should handle config defaults that are not strings (0.136228ms)
+    ✔ should handle config defaults without equals (0.112975ms)
+  ✔ Input Validation (1.039707ms)
+  ▶ TTY Detection
+    ✔ should detect interactive mode from TTY streams (0.365428ms)
+    ✔ should not be interactive when streams are not TTY (0.19609ms)
+  ✔ TTY Detection (0.666635ms)
+  ▶ Edge Cases and Error Handling
+    ✔ should handle empty config defaults array (0.27891ms)
+    ✔ should handle null config defaults (0.111864ms)
+    ✔ should handle empty flag inputs array (0.109996ms)
+    ✔ should handle null env object (0.10623ms)
+    ✔ should handle definitions with duplicate tokens (0.22763ms)
+    ✔ should preserve order of report entries (0.272155ms)
+  ✔ Edge Cases and Error Handling (1.689479ms)
+  ▶ Integration Tests
+    ✔ should handle complex resolution with all sources (0.542946ms)
+    ✔ should build correct placeholders array from resolved values (0.177376ms)
+  ✔ Integration Tests (0.864333ms)
+✔ Placeholder Resolver (14.618739ms)
+ℹ tests 43
+ℹ suites 9
+ℹ pass 43
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 157.650087
+✅ Placeholder Resolver Tests - 228ms
+
+🧪 Selection Validator Tests
+   Template selection validation logic
+✔ SelectionValidator validates valid selection successfully (9.156117ms)
+✔ SelectionValidator generates correct derived flags (0.892074ms)
+✔ SelectionValidator rejects invalid selection schema (1.10545ms)
+✔ SelectionValidator enforces feature dependencies (1.031193ms)
+✔ SelectionValidator validates dimension values exist (0.883723ms)
+✔ SelectionValidator enforces gates constraints (0.891917ms)
+✔ SelectionValidator handles missing template gracefully (0.792038ms)
+✔ SelectionValidator handles file-based validation (0.575308ms)
+✔ SelectionValidator caches schema files (1.090423ms)
+✔ SelectionValidator provides detailed error messages (0.702796ms)
+✔ SelectionValidator handles empty selections (0.726572ms)
+✔ SelectionValidator validates feature array handling (0.71725ms)
+✔ SelectionValidator handles template with no gates (0.727028ms)
+✔ SelectionValidator handles template with no feature specs (0.888401ms)
+ℹ tests 14
+ℹ suites 0
+ℹ pass 14
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 140.400088
+✅ Selection Validator Tests - 220ms
+
+🧪 Path Resolver Tests
+   Path resolution and M5NV_HOME handling
+▶ resolveHomeDirectory
+  ✔ returns HOME from environment (1.628833ms)
+  ✔ returns USERPROFILE on Windows (0.12183ms)
+  ✔ prioritizes HOME over USERPROFILE (0.121174ms)
+  ✔ falls back to os.homedir() (0.148684ms)
+✔ resolveHomeDirectory (3.275121ms)
+▶ resolveM5nvBase
+  ✔ returns M5NV_HOME when set (0.164445ms)
+  ✔ returns ~/.m5nv when M5NV_HOME not set (0.130654ms)
+  ✔ prioritizes M5NV_HOME over HOME (0.132626ms)
+  ✔ uses default home directory when no env vars set (0.135696ms)
+✔ resolveM5nvBase (1.004372ms)
+▶ resolveCacheDirectory
+  ✔ returns M5NV_HOME/cache when M5NV_HOME set (0.15574ms)
+  ✔ returns ~/.m5nv/cache when M5NV_HOME not set (0.107538ms)
+✔ resolveCacheDirectory (0.516705ms)
+▶ resolveTemplateCacheDirectory
+  ✔ returns M5NV_HOME/cache/templates when M5NV_HOME set (0.172182ms)
+  ✔ returns ~/.m5nv/cache/templates when M5NV_HOME not set (0.105391ms)
+✔ resolveTemplateCacheDirectory (0.52662ms)
+▶ resolveUserConfigPath
+  ✔ returns M5NV_HOME/rc.json when M5NV_HOME set (0.236402ms)
+  ✔ returns ~/.m5nv/rc.json when M5NV_HOME not set (0.217145ms)
+✔ resolveUserConfigPath (1.852244ms)
+▶ M5NV_HOME integration
+  ✔ all paths consistently use M5NV_HOME (0.297745ms)
+  ✔ all paths consistently use default ~/.m5nv (0.184523ms)
+✔ M5NV_HOME integration (0.919438ms)
+ℹ tests 22
+ℹ suites 0
+ℹ pass 22
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 136.630976
+✅ Path Resolver Tests - 205ms
+
+🧪 Functional Tests
+   Comprehensive end-to-end CLI behavior validation
+✔ Temporary directories are cleaned up on failure (138.338628ms)
+✔ Temp directory cleanup on verifyTemplate() failure (349.561723ms)
+✔ Temp directory cleanup on copyTemplate() failure (296.930816ms)
+✔ Temp directory cleanup on executeSetupScript() failure (363.980425ms)
+✔ Project directory cleanup when setup script fails after copy (362.432353ms)
+✔ Setup script file cleanup on execution failure (341.749372ms)
+✔ Git process timeout and cleanup behavior (135.645894ms)
+✔ Resource leak detection across multiple failure modes (419.940244ms)
+✔ Resource cleanup on process interruption (1.749255ms)
+✔ Setup script error handling with malformed setup scripts (1337.395553ms)
+✔ Placeholder prompts fail when required values missing with --yes (343.255834ms)
+✔ Successful template creation with local repository (1302.798987ms)
+✔ Setup script execution and cleanup (1290.185952ms)
+✔ Next steps include template-provided handoff instructions (1316.143535ms)
+✔ Next steps fall back to README guidance when metadata absent (1346.821641ms)
+✔ Setup script receives Environment_Object with correct properties (1258.977748ms)
+✔ Placeholder prompts accept env and flag overrides (1323.70087ms)
+✔ Author assets are staged for setup and removed afterwards (1315.241993ms)
+✔ Package name validation in success output (1261.036024ms)
+✔ Comprehensive resource management validation (253.0985ms)
+✔ npm create @m5nv/scaffold command simulation (140.488151ms)
+✔ npx @m5nv/create-scaffold command simulation (138.522023ms)
+✔ Command patterns validate correct usage (823.900289ms)
+✔ Help text displays correct package name and usage patterns (132.776903ms)
+✔ Error messages reference correct package name (130.753478ms)
+✔ Help flag displays usage information (129.933232ms)
+✔ Missing project directory shows error (127.192288ms)
+✔ Missing template flag shows error (149.075381ms)
+✔ Path traversal in project directory is blocked (132.342136ms)
+✔ Path traversal in template URL is blocked (151.723879ms)
+✔ Invalid characters in project directory are rejected (135.479192ms)
+✔ Invalid template URL format is rejected (140.918178ms)
+✔ Invalid template URL with injection characters is rejected (142.014267ms)
+✔ Git installation is verified (148.619216ms)
+✔ Existing directory conflict is detected (146.48755ms)
+✔ Nonexistent template is detected (142.479664ms)
+✔ Missing template in repository is detected (1544.208309ms)
+✔ Error messages are sanitized (133.010513ms)
+✔ File operations prevent symlink attacks (1145.381924ms)
+✔ Argument parsing supports short aliases (139.823711ms)
+ℹ tests 40
+ℹ suites 0
+ℹ pass 40
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 10535.116317
+✅ Functional Tests - 10611ms
+
+🧪 Template Schema Build Tests
+   Deterministic generation of schema types and runtime stubs
+✔ buildTemplateSchema generates TypeScript artifacts (18.949203ms)
+✔ buildTemplateSchema --check detects drift (11.887962ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 150.284631
+✅ Template Schema Build Tests - 225ms
+
+🧪 Template Validator Tests
+   Runtime manifest validation aligned with schema constraints
+▶ TemplateValidator comprehensive validation
+  ✔ validates complete v1.0.0 template successfully (2.741129ms)
+  ✔ rejects templates with invalid schema version (0.414708ms)
+  ✔ rejects templates with invalid ID format (0.313032ms)
+  ✔ validates dimensions schema correctly (0.305118ms)
+  ✔ validates gates reference existing dimensions (0.288274ms)
+  ✔ validates feature specs reference existing features (0.292368ms)
+  ✔ validates feature names follow pattern (0.218082ms)
+  ✔ validates hints reference existing features (0.274565ms)
+  ✔ validates lenient policy allows schema errors (0.21557ms)
+  ✔ handles malformed template gracefully (0.442857ms)
+✔ TemplateValidator comprehensive validation (9.044516ms)
+✓ Template validation successful
+Summary: All checks passed
+✔ validateTemplateManifest returns normalized values for valid template (12.02016ms)
+✔ validateTemplateManifest throws when name is missing (1.011822ms)
+✔ validateTemplateManifest enforces placeholder pattern (0.270939ms)
+✔ validateTemplateManifest rejects invalid placeholder structure (0.263623ms)
+✔ validateTemplateManifest adds canonical placeholders without duplication (0.157998ms)
+✔ validateTemplateManifest merges canonical and template placeholder metadata (0.217272ms)
+✔ validateTemplateManifest rejects unknown canonical variables (0.190931ms)
+▶ TemplateValidator consumption mode validation
+  ✔ validates basic template for consumption (0.225249ms)
+  ✔ rejects template missing required fields in consumption mode (0.183601ms)
+  ✔ validates template with optional fields in consumption mode (0.15031ms)
+  ✔ rejects invalid placeholders structure in consumption mode (0.139689ms)
+  ✔ rejects invalid files structure in consumption mode (0.139378ms)
+✔ TemplateValidator consumption mode validation (1.5318ms)
+▶ TemplateValidator output modes
+  ✔ structured output returns result object (0.160404ms)
+  ✔ console output does not affect return value (0.583805ms)
+✔ TemplateValidator output modes (1.056885ms)
+ℹ tests 27
+ℹ suites 0
+ℹ pass 27
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 163.31731
+✅ Template Validator Tests - 242ms
+
+🧪 Options Processor Tests
+   Template dimension option normalization used by create-scaffold commands
+▶ normalizeOptions
+  ▶ basic functionality
+    ✔ returns empty result for empty inputs (2.494922ms)
+    ✔ initializes dimensions with defaults (0.246634ms)
+    ✔ handles single-value dimensions without defaults (0.196136ms)
+    ✔ handles multi-value dimensions without defaults (0.170874ms)
+  ✔ basic functionality (4.175794ms)
+  ▶ explicit dimension assignment
+    ✔ handles single dimension assignment (0.264039ms)
+    ✔ handles multi-value dimension assignment (0.194483ms)
+    ✔ handles multiple values in multi-dimension (0.137334ms)
+    ✔ rejects multiple values for single dimension (0.538141ms)
+    ✔ rejects empty value assignment (0.196714ms)
+  ✔ explicit dimension assignment (1.544799ms)
+  ▶ catch-all dimension handling
+    ✔ uses capabilities as catch-all when present (0.191217ms)
+    ✔ uses first multi dimension as catch-all (0.122887ms)
+    ✔ treats unknown tokens as unknown when no catch-all (0.105422ms)
+  ✔ catch-all dimension handling (0.535899ms)
+  ▶ value validation
+    ✔ rejects unknown dimension (0.130911ms)
+    ✔ rejects invalid value for strict policy (0.165523ms)
+    ✔ warns for invalid value with warn policy (0.13005ms)
+  ✔ value validation (0.542126ms)
+  ▶ dependency enforcement
+    ✔ enforces single value dependencies (0.222315ms)
+    ✔ allows dependencies when satisfied (0.134184ms)
+    ✔ enforces multi-value dependencies (0.147451ms)
+  ✔ dependency enforcement (0.604997ms)
+  ▶ conflict enforcement
+    ✔ enforces single value conflicts (0.185148ms)
+    ✔ enforces multi-value conflicts (0.143432ms)
+  ✔ conflict enforcement (0.422771ms)
+  ▶ edge cases
+    ✔ handles whitespace in tokens (0.134333ms)
+    ✔ handles empty values in multi-assignment (0.103888ms)
+    ✔ maintains deterministic ordering for multi-values (0.097504ms)
+    ✔ handles undefined dimensions parameter (0.093594ms)
+    ✔ handles undefined rawTokens parameter (0.084594ms)
+  ✔ edge cases (0.644946ms)
+✔ normalizeOptions (10.086551ms)
+ℹ tests 25
+ℹ suites 8
+ℹ pass 25
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 141.766974
+✅ Options Processor Tests - 223ms
+
+🧪 Config Loader Tests
+   .m5nvrc discovery and normalization for create-scaffold defaults
+▶ Config discovery does NOT walk up directory tree
+  ✔ does not load config from parent directory (10.348645ms)
+  ✔ does not load config from grandparent directory (4.913208ms)
+  ✔ loads config ONLY from current directory (5.924289ms)
+  ✔ only checks cwd then user config (no intermediate paths) (7.201304ms)
+✔ Config discovery does NOT walk up directory tree (30.2623ms)
+▶ Config discovery search order
+  ✔ checks cwd/.m5nvrc first (3.493155ms)
+  ✔ falls back to user config when cwd config missing (4.202388ms)
+✔ Config discovery search order (8.363579ms)
+▶ Config discovery documentation
+  ✔ documented behavior: cwd then user config only (0.176087ms)
+✔ Config discovery documentation (0.471211ms)
+▶ ConfigLoader - Templates Normalization
+  ▶ normalizeTemplates - valid configurations
+    ✔ loads templates with single mapping (10.559906ms)
+    ✔ loads templates with multiple mappings (2.80112ms)
+    ✔ trims whitespace from template aliases and paths (2.738472ms)
+  ✔ normalizeTemplates - valid configurations (17.257099ms)
+  ▶ normalizeTemplates - validation errors
+    ✔ rejects templates as non-object (4.632724ms)
+    ✔ rejects templates as array (2.918458ms)
+    ✔ rejects empty template alias (2.604669ms)
+    ✔ rejects template config as non-object (2.41087ms)
+    ✔ rejects template config as array (2.450361ms)
+    ✔ rejects template config as null (3.803035ms)
+    ✔ rejects non-string template path (3.290931ms)
+    ✔ rejects empty template name (2.911924ms)
+    ✔ rejects empty template path (2.390953ms)
+  ✔ normalizeTemplates - validation errors (28.318517ms)
+  ▶ normalizeRegistries - edge cases
+    ✔ rejects non-object registry value that is not typed (3.63014ms)
+    ✔ rejects non-string template URL in registry mapping (2.556068ms)
+    ✔ rejects empty template name in registry mapping (3.021918ms)
+    ✔ rejects empty template URL in registry mapping (2.828676ms)
+    ✔ rejects git registry without url field (2.803166ms)
+    ✔ rejects local registry without path field (3.945479ms)
+  ✔ normalizeRegistries - edge cases (19.416905ms)
+✔ ConfigLoader - Templates Normalization (65.736025ms)
+▶ ConfigLoader
+  ▶ loadConfig
+    ✔ returns null when skip is true (1.09631ms)
+    ✔ returns null when no config files exist (7.004835ms)
+    ✔ loads project config file when it exists (5.407845ms)
+    ✔ loads user config when project config does not exist (2.798614ms)
+    ✔ prioritizes project config over user config (3.529952ms)
+  ✔ loadConfig (21.201311ms)
+  ▶ Configuration Validation
+    ✔ validates repo field (4.114355ms)
+    ✔ validates branch field (2.750525ms)
+    ✔ validates author field (2.853187ms)
+    ✔ validates placeholders field (2.443846ms)
+    ✔ validates registries field (3.617791ms)
+  ✔ Configuration Validation (16.280762ms)
+  ▶ Error Handling
+    ✔ throws on invalid JSON (5.372109ms)
+    ✔ throws on invalid repo URL (3.162026ms)
+    ✔ throws on invalid branch name (2.146285ms)
+    ✔ throws on invalid author object (2.33019ms)
+    ✔ throws on invalid placeholders object (2.262714ms)
+    ✔ throws on invalid placeholder token (2.21114ms)
+    ✔ throws on invalid registries object (3.320863ms)
+  ✔ Error Handling (21.335562ms)
+  ▶ Security Validation
+    ✔ rejects null bytes in author fields (3.058732ms)
+    ✔ rejects newlines in author fields (2.895361ms)
+    ✔ rejects null bytes in placeholder values (3.778845ms)
+  ✔ Security Validation (10.083547ms)
+  ▶ Path Resolution
+    ✔ handles Windows-style paths on Windows (0.187772ms)
+    ✔ handles Unix-style paths on Unix-like systems (1.771269ms)
+  ✔ Path Resolution (2.124935ms)
+  ▶ Product-Specific Configuration
+    ✔ loads product-specific registries (2.903861ms)
+    ✔ prioritizes product-specific registries over top-level (2.461635ms)
+  ✔ Product-Specific Configuration (5.577851ms)
+✔ ConfigLoader (77.520774ms)
+ℹ tests 52
+ℹ suites 11
+ℹ pass 52
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 205.086791
+✅ Config Loader Tests - 284ms
+
+🧪 CacheManager Git Tests
+   Git-backed cache population, TTL, and cleanup validation
+▶ CacheManager - git-backed operations
+  ✔ populateCache clones repo and writes metadata (376.294827ms)
+  ✔ ensureRepositoryCached reuses cached clone and logs cache hits (345.625368ms)
+  ✔ refreshCache re-clones repository and preserves TTL configuration (527.801068ms)
+  ✔ getCachedRepo returns null when cache entry is expired (352.412796ms)
+  ✔ clearExpiredEntries removes expired and corrupted caches (353.992223ms)
+✔ CacheManager - git-backed operations (1957.913292ms)
+ℹ tests 5
+ℹ suites 1
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2079.740443
+✅ CacheManager Git Tests - 2154ms
+
+🧪 TemplateResolver Git Tests
+   Git-backed template resolution and alias refresh validation
+▶ TemplateResolver - git-backed integration
+  ✔ resolveTemplate clones git repositories via direct URLs and reads metadata (304.302792ms)
+  ✔ resolveTemplate refreshes expired caches when resolving registry aliases (340.849903ms)
+  ✔ resolveTemplate handles GitHub shorthand with explicit branch (271.771718ms)
+  ✔ resolveTemplate uses cache on second access (299.890645ms)
+  ✔ validateTemplateUrl rejects null bytes (203.605401ms)
+  ✔ validateTemplateUrl rejects shell metacharacters (206.551258ms)
+  ✔ validateTemplateUrl rejects path traversal attempts (205.635104ms)
+  ✔ parseTemplateUrl handles local paths (199.820168ms)
+  ✔ parseTemplateUrl handles GitHub shorthand variations (201.624741ms)
+  ✔ parseTemplateUrl handles registry URLs (204.386157ms)
+  ✔ parseFullUrl handles GitHub URLs with tree paths (200.725286ms)
+  ✔ parseFullUrl handles GitHub URLs without tree paths (208.071037ms)
+  ✔ parseFullUrl handles tarball URLs (203.123203ms)
+  ✔ resolveToPath throws on unsupported github-archive type (239.741877ms)
+  ✔ resolveToPath throws on unsupported tarball type (254.920365ms)
+  ✔ resolveToPath throws on completely unsupported type (242.503334ms)
+  ✔ resolveRegistryAlias returns original URL when no config (220.986408ms)
+  ✔ resolveRegistryAlias handles legacy registries format (0.832669ms)
+  ✔ resolveRegistryAlias ignores non-legacy registry formats (0.726211ms)
+  ✔ resolveRegistryAlias returns original when template not in alias (0.704298ms)
+✔ TemplateResolver - git-backed integration (4013.274228ms)
+ℹ tests 20
+ℹ suites 1
+ℹ pass 20
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 4136.646328
+✅ TemplateResolver Git Tests - 4212ms
+
+🧪 Base Command Tests
+   Command template method pattern tests
+▶ Command
+  ✔ should show basic help (1.43847ms)
+  ✔ should show detailed help (0.3602ms)
+  ✔ should parse help flag (0.250874ms)
+  ✔ should execute help when --help provided (0.301477ms)
+  ✔ should parse custom arguments (0.183453ms)
+  ✔ should execute run method (0.250251ms)
+  ✔ should reject unknown arguments with error (0.559114ms)
+  ✔ should format option flags correctly (0.171907ms)
+  ✔ should require subclass to implement parseArg (0.16723ms)
+  ✔ should require subclass to implement run (0.229376ms)
+✔ Command (5.875689ms)
+ℹ tests 10
+ℹ suites 1
+ℹ pass 10
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 133.850769
+✅ Base Command Tests - 210ms
+
+🧪 Router Tests
+   Command dispatch router tests
+▶ Router
+  ✔ should show general help when no args provided (1.556761ms)
+  ✔ should show help with --help flag (0.24946ms)
+  ✔ should show version with --version flag (0.234248ms)
+  ✔ should route to command (0.391966ms)
+  ✔ should show error for unknown command (0.354766ms)
+  ✔ should show command help with help command (0.305682ms)
+✔ Router (4.703508ms)
+ℹ tests 6
+ℹ suites 1
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 123.362921
+✅ Router Tests - 194ms
+
+🧪 Resource Leak Tests
+   Resource management and cleanup validation
+✔ temp directory cleanup on invalid template (138.938099ms)
+✔ temp directory cleanup on invalid repository (128.858472ms)
+✔ temp directory cleanup on nonexistent repository (121.355698ms)
+✔ resource cleanup across multiple failure scenarios (344.705467ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 846.701691
+✅ Resource Leak Tests - 919ms
+
+🧪 Create-Scaffold New Tests
+   Create-scaffold new command unit tests
+▶ NewCommand
+  ✔ requires project-name argument (4.185951ms)
+
+🚀 Guided Project Setup
+══════════════════════════════════════════════════
+📁 Project: myapp
+📦 template: null
+🔗 Source: million-views/packages (main)
+📊 Progress: 0/12 steps
+
+
+❌ Initialization failed:
+   template path not resolved
+
+Recovery options:
+   1. Retry this step
+   2. Skip this step and continue
+   3. Abort the entire setup
+Choose an option:
+   1. Retry this step
+   2. Skip this step and continue
+   3. Abort the entire setup
+🔄 Initialization - Attempt 1/3
+
+❌ Validation failed:
+   Template not accessible
+
+💥 Setup workflow failed!
+Error: Template not accessible
+
+Cleanup options:
+   1. Clean up partial setup (recommended)
+   2. Leave files as-is for manual recovery
+   3. Show detailed error log
+Choose cleanup option:
+   1. Clean up partial setup (recommended)
+   2. Leave files as-is for manual recovery
+   3. Show detailed error log
+Partial setup cleaned up.
+  ✔ requires --template option (15.65936ms)
+  ✔ parses project name and template (0.204955ms)
+  ✔ shows help with --help flag (0.396075ms)
+  ▶ Integration Tests
+    ✔ handles placeholder arguments (1.154088ms)
+    ✔ handles cache options (0.165899ms)
+    ✔ handles configuration options (0.153928ms)
+    ✔ handles log file option (0.182916ms)
+  ✔ Integration Tests (1.960603ms)
+✔ NewCommand (24.051151ms)
+ℹ tests 8
+ℹ suites 2
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1171.86473
+✅ Create-Scaffold New Tests - 1247ms
+
+🧪 Dry Run CLI Tests
+   End-to-end dry-run previews for local and cached templates
+✔ dry-run CLI preview with local template path (1132.261051ms)
+✔ dry-run CLI preview with cached repository template (1372.253176ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2624.719138
+✅ Dry Run CLI Tests - 2702ms
+
+🧪 Create-Scaffold List Tests
+   Create-scaffold list command unit tests
+▶ ListCommand
+  ✔ shows help with --help flag (1.505292ms)
+  ✔ parses registry option (0.236279ms)
+  ✔ parses format option (0.135307ms)
+  ✔ parses verbose flag (0.120417ms)
+✔ ListCommand (3.419037ms)
+ℹ tests 4
+ℹ suites 1
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 131.70336
+✅ Create-Scaffold List Tests - 210ms
+
+🧪 Create-Scaffold Validate Tests
+   Create-scaffold validate command unit tests
+▶ ValidateCommand
+  ✔ requires template-path argument (4.857093ms)
+  ✔ shows help with --help flag (0.597415ms)
+  ✔ parses suggest flag (0.187344ms)
+✔ ValidateCommand (6.994847ms)
+ℹ tests 3
+ℹ suites 1
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1137.099028
+✅ Create-Scaffold Validate Tests - 1214ms
+
+🧪 Make-Template Init Tests
+   Template initialization and skeleton generation
+▶ make-template init command
+  ✔ init generates valid skeleton template.json (630.13426ms)
+  ✔ init with custom filename works (621.877469ms)
+  ✔ init fails when file already exists (590.142649ms)
+  ✔ init --help shows help text (609.891383ms)
+  ✔ init provides next steps guidance (612.745562ms)
+✔ make-template init command (3073.893505ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3197.436228
+✅ Make-Template Init Tests - 3276ms
+
+🧪 Make-Template Hints Tests
+   Template authoring guidance and hints display
+▶ make-template hints command
+  ✔ hints displays catalog header (623.050083ms)
+  ✔ hints shows comprehensive feature list (608.206999ms)
+  ✔ hints provides usage guidance (638.711397ms)
+  ✔ hints --help shows help text (614.629305ms)
+  ✔ hints shows template authoring context (599.361628ms)
+  ✔ hints output is well-formatted (606.906181ms)
+✔ make-template hints command (3697.66357ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3823.482928
+✅ Make-Template Hints Tests - 3903ms
+
+🧪 Make-Template Convert Tests
+   Project to template conversion functionality
+✔ convert --dry-run shows preview without changes (754.039583ms)
+❌ Project must have package.json: /Users/vijay/workspaces/ws-million-views/create/tmp/make-template-convert-no-package-1764095443738/empty-dir
+✔ convert requires package.json (660.346415ms)
+❌ This appears to be a development repository:
+   • Git repository (.git directory found)
+   • Node modules installed (node_modules directory found)
+
+💡 Use --yes to proceed anyway, or ensure you're converting a clean project directory.
+✔ convert detects development repository (745.825063ms)
+✔ convert succeeds with --yes flag on development repo (768.870071ms)
+✔ convert --help shows help text (761.264934ms)
+✔ convert creates template.json (765.539478ms)
+✔ convert creates undo log (696.507355ms)
+✔ convert handles existing undo log (766.400198ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 6053.560331
+✅ Make-Template Convert Tests - 6128ms
+
+🧪 Make-Template Restore Tests
+   Template to project restoration functionality
+✔ restore requires undo log (612.233109ms)
+✔ restore --dry-run shows preview without changes (626.899652ms)
+✔ restore --help shows help text (620.733608ms)
+✔ restore performs restoration (636.249143ms)
+✔ restore cleans up artifacts (630.28447ms)
+✔ restore handles missing files gracefully (684.116565ms)
+✔ restore --files option works (629.677105ms)
+✔ restore --files option parses comma-separated list (638.685314ms)
+✔ restore --placeholders-only option works (682.064082ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 9
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 5883.657082
+✅ Make-Template Restore Tests - 5972ms
+
+🧪 Make-Template Test Command Tests
+   Template testing with create-scaffold integration
+▶ make-template test command
+  ✔ test requires template path (593.143834ms)
+  ✔ test --help shows help text (614.974303ms)
+  ✔ test validates template exists (605.660837ms)
+  ✔ test validates template.json exists (603.070566ms)
+  ✔ test performs basic template validation (675.40504ms)
+  ✔ test --verbose provides detailed output (676.600051ms)
+  ✔ test --keep-temp preserves temporary directories (689.647777ms)
+  ✔ test handles invalid template gracefully (679.958052ms)
+  ✔ test shows progress indicators (697.347475ms)
+✔ make-template test command (5841.837094ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 10
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 5961.71795
+✅ Make-Template Test Command Tests - 6037ms
+
+🧪 Make-Template Validate Tests
+   Template validation and schema compliance
+▶ make-template CLI validate integration
+  ✔ validate validates valid template.json successfully (637.485799ms)
+  ✔ validate rejects invalid schema template.json (836.107548ms)
+  ✔ validate rejects invalid domain template.json (620.716056ms)
+  ✔ validate handles missing template.json file (593.406996ms)
+  ✔ validate defaults to template.json when no file specified (635.268054ms)
+  ✔ validate provides detailed error messages (622.684538ms)
+  ✔ validate shows warnings when present (607.53558ms)
+✔ make-template CLI validate integration (4560.382282ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 4679.049149
+✅ Make-Template Validate Tests - 4756ms
+
+🧪 Make-Template Config Validate Tests
+   .templatize.json configuration validation CLI coverage
+▶ make-template config validate command
+  ✔ validates default .templatize.json successfully (629.487091ms)
+  ✔ uses positional argument for custom config path (619.783642ms)
+  ✔ exits with failure for invalid JSON (601.620531ms)
+✔ make-template config validate command (1853.030755ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1969.004458
+✅ Make-Template Config Validate Tests - 2045ms
+
+🧪 Templatize JSX Tests
+   JSX/TSX file templatization with AST parsing
+▶ JSX Processor - Basic functionality
+  ✔ should process simple JSX with text content (10.851075ms)
+  ✔ should process JSX with attributes (2.229411ms)
+  ✔ should ignore JSX expressions (1.989809ms)
+  ✔ should respect allowMultiple flag (2.104752ms)
+  ✔ should handle skip comments (1.095466ms)
+  ✔ should handle malformed JSX gracefully (1.199832ms)
+  ✔ should return empty array for files without matches (0.727205ms)
+✔ JSX Processor - Basic functionality (22.42783ms)
+▶ JSX Processor - Edge cases
+  ✔ should handle empty JSX (0.272361ms)
+  ✔ should handle JSX fragments (0.784234ms)
+  ✔ should handle nested components (1.165657ms)
+✔ JSX Processor - Edge cases (2.698953ms)
+▶ JSX Processor - Selector specificity
+  ✔ should respect :first-child selectors (1.244459ms)
+  ✔ should handle class and data attribute selectors (1.088394ms)
+  ✔ should skip content within @template-skip regions (2.14347ms)
+  ✔ should handle // @template-skip comments in JS files (1.423108ms)
+✔ JSX Processor - Selector specificity (6.45125ms)
+ℹ tests 17
+ℹ suites 0
+ℹ pass 17
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 188.034501
+✅ Templatize JSX Tests - 266ms
+
+🧪 Templatize JSON Tests
+   JSON file templatization with JSONPath support
+▶ JSON Processor - Basic functionality
+  ✔ should process simple JSON with string values (3.916165ms)
+  ✔ should process nested JSON structures (1.35682ms)
+  ✔ should handle array elements with wildcards (0.588318ms)
+  ✔ should respect allowMultiple flag (0.455242ms)
+  ✔ should handle malformed JSON gracefully (0.17543ms)
+  ✔ should return empty array for files without matches (0.232436ms)
+  ✔ should handle empty JSON objects (0.167212ms)
+✔ JSON Processor - Basic functionality (8.644553ms)
+▶ JSON Processor - Edge cases
+  ✔ should handle complex nested structures (0.417914ms)
+  ✔ should handle mixed data types (0.384052ms)
+  ✔ should handle deeply nested paths (0.186354ms)
+✔ JSON Processor - Edge cases (1.375951ms)
+▶ JSON Processor - JSONPath validation
+  ✔ should handle invalid JSONPath gracefully (0.169229ms)
+  ✔ should handle non-existent paths (0.143726ms)
+  ✔ should validate JSONPath syntax (0.547736ms)
+  ✔ should skip content within // @template-skip regions (0.281466ms)
+✔ JSON Processor - JSONPath validation (1.751454ms)
+ℹ tests 17
+ℹ suites 0
+ℹ pass 17
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 137.461949
+✅ Templatize JSON Tests - 214ms
+
+🧪 Templatize Markdown Tests
+   Markdown file templatization with regex patterns
+▶ Templatize Markdown Tests
+  ▶ Markdown Processor - Basic functionality
+    ✔ should process simple markdown with heading content (4.804096ms)
+    ✔ should process markdown with multiple headings (0.909367ms)
+    ✔ should process frontmatter YAML (8.000401ms)
+    ✔ should respect allowMultiple flag (0.419025ms)
+    ✔ should handle skip comments (0.445588ms)
+    ✔ should handle malformed markdown gracefully (0.306159ms)
+    ✔ should return empty array for files without matches (0.259691ms)
+  ✔ Markdown Processor - Basic functionality (16.620867ms)
+  ▶ Markdown Processor - Edge cases
+    ✔ should handle empty markdown (0.209068ms)
+    ✔ should handle markdown with only frontmatter (0.50789ms)
+    ✔ should handle nested frontmatter structures (1.368166ms)
+  ✔ Markdown Processor - Edge cases (2.231326ms)
+  ▶ Markdown Processor - Content types
+    ✔ should handle code blocks (0.400072ms)
+    ✔ should handle inline code (0.286618ms)
+    ✔ should handle links (0.285413ms)
+    ✔ should handle images (0.278491ms)
+  ✔ Markdown Processor - Content types (1.386305ms)
+  ▶ Markdown Processor - Selector validation
+    ✔ should handle invalid selectors gracefully (0.227952ms)
+    ✔ should validate frontmatter paths (0.401414ms)
+    ✔ should skip content within <!-- @template-skip --> regions (0.740686ms)
+  ✔ Markdown Processor - Selector validation (1.483264ms)
+✔ Templatize Markdown Tests (22.391594ms)
+ℹ tests 17
+ℹ suites 5
+ℹ pass 17
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 199.262998
+✅ Templatize Markdown Tests - 275ms
+
+🧪 Templatize HTML Tests
+   HTML file templatization with DOM parsing
+▶ HTML Processor - Basic functionality
+  ✔ should process simple HTML with heading content (106.63613ms)
+  ✔ should process HTML with attributes (35.755195ms)
+  ✔ should respect allowMultiple flag (44.563198ms)
+  ✔ should skip content with existing placeholders (30.547701ms)
+  ✔ should handle malformed HTML gracefully (27.088701ms)
+  ✔ should return empty array for files without matches (21.678537ms)
+✔ HTML Processor - Basic functionality (268.151298ms)
+▶ HTML Processor - Edge cases
+  ✔ should handle empty HTML (24.977795ms)
+  ✔ should handle HTML with only text (29.911753ms)
+  ✔ should handle nested elements (34.055486ms)
+✔ HTML Processor - Edge cases (89.563004ms)
+▶ HTML Processor - Selector specificity
+  ✔ should handle class selectors (25.791906ms)
+  ✔ should handle complex selectors (8.271031ms)
+✔ HTML Processor - Selector specificity (34.46349ms)
+▶ HTML Processor - Selector validation
+  ✔ should handle invalid selectors gracefully (9.928929ms)
+  ✔ should validate selector syntax (7.803365ms)
+  ✔ should skip content within <!-- @template-skip --> regions (14.259069ms)
+✔ HTML Processor - Selector validation (32.539027ms)
+ℹ tests 18
+ℹ suites 0
+ℹ pass 18
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1056.007181
+✅ Templatize HTML Tests - 1134ms
+
+🧪 E2E Hermetic Isolation Tests
+   End-to-end hermetic test environment validation
+✔ M5NV_HOME isolation - make-template uses isolated environment (734.363116ms)
+✔ M5NV_HOME isolation - create-scaffold uses isolated environment (144.159508ms)
+✔ Multiple test environments are isolated from each other (1372.910349ms)
+✔ Test artifacts are confined to tmp/ directory (2.355477ms)
+✔ Cleanup removes all test artifacts (5.365152ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2382.081554
+✅ E2E Hermetic Isolation Tests - 2457ms
+
+🧪 E2E Tutorial Workflows Tests
+   End-to-end tutorial workflow integration tests
+✔ Tutorial: Getting Started - Verify CLI tools accessible (741.718538ms)
+✔ Tutorial: make-template - Basic React SPA workflow (2856.288646ms)
+✔ Tutorial: make-template - Marketing website with multiple placeholders (1408.256931ms)
+✔ Tutorial: create-scaffold - Scaffold from local template (1147.614036ms)
+✔ Tutorial: create-scaffold - Registry configuration and list (1309.341862ms)
+✔ Complete workflow: create → convert → scaffold → verify (3211.311826ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 10795.346473
+✅ E2E Tutorial Workflows Tests - 10872ms
+
+🧪 E2E Guided Workflow Tests
+   Guided workflow coverage for setup runtime and sandbox enforcement
+✅ Project created successfully!
+
+📂 Next steps:
+  cd guided-e2e-app
+  - Review README.md for additional instructions
+
+✔ Guided workflow executes setup runtime tools end-to-end (133.716156ms)
+✅ Project created successfully!
+
+📂 Next steps:
+  cd sandbox-app
+  - Review README.md for additional instructions
+
+✔ Guided workflow logs sandbox violations without blocking scaffolding (28.914099ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 311.674503
+✅ E2E Guided Workflow Tests - 397ms
+
+============================================================
+📊 TEST SUITE SUMMARY
+============================================================
+✅ Security Tests                 228ms
+✅ BoundaryValidator Tests        1247ms
+✅ Registry Cache Manager Tests   915ms
+✅ Environment Module Tests       226ms
+✅ Environment Tools Tests        400ms
+✅ Error Classes Tests            202ms
+✅ Template Ignore Tests          211ms
+✅ Error Handler Tests            208ms
+✅ Placeholder Resolver Tests     228ms
+✅ Selection Validator Tests      220ms
+✅ Path Resolver Tests            205ms
+✅ Functional Tests               10611ms
+✅ Template Schema Build Tests    225ms
+✅ Template Validator Tests       242ms
+✅ Options Processor Tests        223ms
+✅ Config Loader Tests            284ms
+✅ CacheManager Git Tests         2154ms
+✅ TemplateResolver Git Tests     4212ms
+✅ Base Command Tests             210ms
+✅ Router Tests                   194ms
+✅ Resource Leak Tests            919ms
+✅ Create-Scaffold New Tests      1247ms
+✅ Dry Run CLI Tests              2702ms
+✅ Create-Scaffold List Tests     210ms
+✅ Create-Scaffold Validate Tests 1214ms
+✅ Make-Template Init Tests       3276ms
+✅ Make-Template Hints Tests      3903ms
+✅ Make-Template Convert Tests    6128ms
+✅ Make-Template Restore Tests    5972ms
+✅ Make-Template Test Command Tests 6037ms
+✅ Make-Template Validate Tests   4756ms
+✅ Make-Template Config Validate Tests 2045ms
+✅ Templatize JSX Tests           266ms
+✅ Templatize JSON Tests          214ms
+✅ Templatize Markdown Tests      275ms
+✅ Templatize HTML Tests          1134ms
+✅ E2E Hermetic Isolation Tests   2457ms
+✅ E2E Tutorial Workflows Tests   10872ms
+✅ E2E Guided Workflow Tests      397ms
+============================================================
+📈 Results: 39 passed, 0 failed
+⏱️  Total time: 76700ms
+
+✅ All test suites passed!
+
+🎉 CLI tool is ready for production!
+---------------------------------------|---------|----------|---------|---------|-------------------
+File                                   | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s 
+---------------------------------------|---------|----------|---------|---------|-------------------
+All files                              |   79.75 |    73.49 |   85.88 |   79.75 |                   
+ bin/create-scaffold                   |     100 |      100 |     100 |     100 |                   
+  index.mjs                            |     100 |      100 |     100 |     100 |                   
+ bin/create-scaffold/commands/list     |   80.09 |    35.13 |     100 |   80.09 |                   
+  help.js                              |     100 |      100 |     100 |     100 |                   
+  index.js                             |   81.08 |       75 |     100 |   81.08 | 21-23,34-37       
+  registry-fetcher.js                  |   69.23 |    21.42 |     100 |   69.23 | ...02-103,105-106 
+ bin/create-scaffold/commands/new      |   85.53 |    79.71 |   76.92 |   85.53 |                   
+  help.js                              |     100 |      100 |     100 |     100 |                   
+  index.js                             |   89.91 |       88 |     100 |   89.91 | ...01-102,116-119 
+  scaffolder.js                        |   80.33 |    74.71 |   66.66 |   80.33 | ...75-383,438-449 
+ bin/create-scaffold/commands/validate |   64.22 |    66.66 |     100 |   64.22 |                   
+  help.js                              |     100 |      100 |     100 |     100 |                   
+  index.js                             |   52.17 |    63.63 |     100 |   52.17 | ...79,82-84,89-92 
+ bin/create-scaffold/modules           |   78.18 |    73.15 |   90.75 |   78.18 |                   
+  cache-manager.mjs                    |   81.39 |    60.81 |     100 |   81.39 | ...52-455,458-460 
+  config-loader.mjs                    |   80.54 |    81.29 |     100 |   80.54 | ...82-386,397-401 
+  dry-run-engine.mjs                   |   92.93 |       60 |     100 |   92.93 | ...70-271,277-278 
+  guided-setup-workflow.mjs            |   74.89 |    69.67 |   87.71 |   74.89 | ...1368,1386-1388 
+  options-processor.mjs                |   90.81 |     82.5 |     100 |   90.81 | ...,89-98,194-195 
+  setup-runtime.mjs                    |   91.87 |       56 |   71.42 |   91.87 | ...09-112,118-119 
+  template-resolver.mjs                |   68.38 |    79.46 |   84.61 |   68.38 | ...21-678,710-716 
+ bin/create-scaffold/modules/registry  |   97.55 |     87.3 |     100 |   97.55 |                   
+  cache-manager.mjs                    |   97.55 |     87.3 |     100 |   97.55 | ...18-219,284-285 
+ bin/make-template                     |     100 |      100 |     100 |     100 |                   
+  index.mjs                            |     100 |      100 |     100 |     100 |                   
+ ...-template/commands/config/validate |     100 |      100 |     100 |     100 |                   
+  help.js                              |     100 |      100 |     100 |     100 |                   
+  index.js                             |     100 |      100 |     100 |     100 |                   
+ bin/make-template/commands/convert    |   81.61 |    66.17 |   94.73 |   81.61 |                   
+  converter.js                         |   78.35 |    65.74 |   93.33 |   78.35 | ...48-549,556-557 
+  help.js                              |     100 |      100 |     100 |     100 |                   
+  index.js                             |   79.66 |    73.68 |     100 |   79.66 | ...26,28-29,56-59 
+  validator.js                         |   76.47 |       50 |     100 |   76.47 | ...11,18-19,24-25 
+ bin/make-template/commands/hints      |    98.6 |      100 |   66.66 |    98.6 |                   
+  help.js                              |     100 |      100 |     100 |     100 |                   
+  index.js                             |   98.47 |      100 |   66.66 |   98.47 | 10-11             
+ bin/make-template/commands/init       |      96 |    86.66 |     100 |      96 |                   
+  help.js                              |     100 |      100 |     100 |     100 |                   
+  index.js                             |   93.24 |    85.71 |     100 |   93.24 | 17-21             
+ bin/make-template/commands/restore    |   87.09 |    82.35 |     100 |   87.09 |                   
+  help.js                              |     100 |      100 |     100 |     100 |                   
+  index.js                             |   71.69 |    85.71 |     100 |   71.69 | 24-34,50-53       
+  restorer.js                          |   85.34 |    78.94 |     100 |   85.34 | ...00-111,113-114 
+ bin/make-template/commands/test       |   80.91 |    83.33 |     100 |   80.91 |                   
+  help.js                              |     100 |      100 |     100 |     100 |                   
+  index.js                             |   77.22 |    82.75 |     100 |   77.22 | ...84,191,199-202 
+ bin/make-template/commands/validate   |   85.27 |    76.92 |     100 |   85.27 |                   
+  help.js                              |     100 |      100 |     100 |     100 |                   
+  index.js                             |   78.65 |       76 |     100 |   78.65 | ...73,75-78,86-89 
+ lib                                   |   76.33 |    70.86 |    76.5 |   76.33 |                   
+  boundary-validator.mjs               |   77.27 |      100 |   72.72 |   77.27 | ...51-186,197-198 
+  error-classes.mjs                    |     100 |      100 |     100 |     100 |                   
+  error-handler.mjs                    |   97.19 |     86.2 |     100 |   97.19 | ...46-347,351-352 
+  logger.mjs                           |   61.34 |    44.44 |   42.85 |   61.34 | ...21-536,543-548 
+  path-resolver.mjs                    |     100 |      100 |     100 |     100 |                   
+  placeholder-formats.mjs              |    85.2 |    72.22 |      75 |    85.2 | ...37-238,245-250 
+  placeholder-resolver.mjs             |    81.6 |    86.74 |      60 |    81.6 | ...60-270,272-299 
+  placeholder-schema.mjs               |   59.75 |    37.03 |     100 |   59.75 | ...21-125,128-161 
+  security-audit-logger.mjs            |      75 |    77.77 |   66.66 |      75 | ...33-138,160-164 
+  security-gate.mjs                    |   84.73 |    71.87 |   83.33 |   84.73 | ...50-251,257-261 
+  security.mjs                         |   59.46 |    60.96 |   57.14 |   59.46 | ...1144,1146-1147 
+  template-discovery.mjs               |   62.41 |    42.59 |   64.28 |   62.41 | ...43-546,551-555 
+  template-ignore.mjs                  |   98.16 |    96.42 |     100 |   98.16 | 96-97             
+  template-manifest-validator.mjs      |   56.17 |     67.3 |     100 |   56.17 | ...88-189,200-201 
+  templatize-config.mjs                |   81.73 |       50 |   77.77 |   81.73 | ...46-347,400-427 
+  templatize-html.mjs                  |   82.28 |    75.55 |     100 |   82.28 | ...43-265,267-268 
+  templatize-json.mjs                  |   91.66 |    77.77 |     100 |   91.66 | ...22-123,150-152 
+  templatize-jsx.mjs                   |   91.43 |    75.75 |   92.85 |   91.43 | ...64-366,377-378 
+  templatize-markdown.mjs              |   96.08 |    85.29 |     100 |   96.08 | ...82-484,501-502 
+ lib/cli                               |   88.88 |     91.3 |    90.9 |   88.88 |                   
+  command.js                           |      84 |     90.9 |    87.5 |      84 | ...,71-85,144-145 
+  router.js                            |   95.49 |    91.66 |     100 |   95.49 | 39-41,50-51       
+ lib/environment                       |   95.71 |    83.87 |     100 |   95.71 |                   
+  context.mjs                          |   98.88 |     87.5 |     100 |   98.88 | 132-133           
+  index.mjs                            |     100 |      100 |     100 |     100 |                   
+  testing.mjs                          |     100 |      100 |     100 |     100 |                   
+  utils.mjs                            |   89.22 |    78.66 |     100 |   89.22 | ...18,250-252,257 
+ lib/environment/tools                 |   90.25 |    76.07 |   97.33 |   90.25 |                   
+  files.mjs                            |   90.29 |    72.22 |     100 |   90.29 | ...72,74-75,84-91 
+  index.mjs                            |     100 |      100 |      50 |     100 |                   
+  inputs.mjs                           |   95.55 |       75 |     100 |   95.55 | 29-30             
+  json.mjs                             |   86.31 |       75 |     100 |   86.31 | ...92-293,314-321 
+  logger.mjs                           |   95.23 |     87.5 |     100 |   95.23 | 19-20             
+  options.mjs                          |   88.09 |    64.81 |     100 |   88.09 | ...73-174,184-185 
+  placeholders.mjs                     |   92.17 |    66.66 |     100 |   92.17 | ...64-165,169-170 
+  templates.mjs                        |   93.69 |     87.5 |     100 |   93.69 | 33-37,42-43       
+  text.mjs                             |   89.21 |    82.69 |     100 |   89.21 | ...11-212,218-221 
+ lib/utils                             |   59.28 |    63.33 |   47.05 |   59.28 |                   
+  file.mjs                             |   52.47 |    59.09 |   43.75 |   52.47 | ...39-346,355-362 
+  shell.mjs                            |   89.15 |       75 |     100 |   89.15 | 43-45,62-63,75-78 
+ lib/validation                        |    64.3 |     74.4 |   83.87 |    64.3 |                   
+  selection-validator.mjs              |   86.81 |    69.49 |     100 |   86.81 | ...30-243,266-279 
+  template-validator.mjs               |   54.78 |    77.06 |   73.68 |   54.78 | ...59-915,926-950 
+ scripts                               |   85.77 |    53.03 |   84.21 |   85.77 |                   
+  build-template-schema.mjs            |   88.65 |       50 |    90.9 |   88.65 | ...64-374,378-379 
+  test-runner.mjs                      |   83.65 |    59.09 |      75 |   83.65 | ...52,499-511,514 
+---------------------------------------|---------|----------|---------|---------|-------------------

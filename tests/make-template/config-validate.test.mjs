@@ -8,7 +8,7 @@ import { tmpdir } from 'node:os';
 import { mkdtemp, writeFile, rm } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 
-const CLI_ENTRY = fileURLToPath(new URL('../../bin/make-template/index.mjs', import.meta.url));
+const CLI_ENTRY = fileURLToPath(new URL('../../bin/make-template/index.mts', import.meta.url));
 const TEST_TIMEOUT = 30000;
 
 function execCLI(args, options = {}) {

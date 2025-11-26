@@ -7,15 +7,15 @@
  */
 
 // Template discovery
-export { TemplateDiscovery, loadTemplateMetadataFromPath } from './discover.mjs';
+export { TemplateDiscovery, loadTemplateMetadataFromPath } from './discover.mts';
 
 // Template ignore utilities
 export {
   createTemplateIgnoreSet,
   shouldIgnoreTemplateEntry,
   stripIgnoredFromTree
-} from './ignore.mjs';
+} from './ignore.mts';
 
 // Convenient aliases
-export { TemplateDiscovery as Discover } from './discover.mjs';
-export { createTemplateIgnoreSet as ignore } from './ignore.mjs';
+export { TemplateDiscovery as Discover } from './discover.mts';
+export { createTemplateIgnoreSet as ignore } from './ignore.mts';

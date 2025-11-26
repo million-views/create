@@ -2,7 +2,7 @@
 
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import { normalizeOptions } from '../../bin/create-scaffold/modules/options-processor.mjs';
+import { normalizeOptions } from '../../bin/create-scaffold/modules/options-processor.mts';
 
 describe('normalizeOptions', () => {
   describe('basic functionality', () => {

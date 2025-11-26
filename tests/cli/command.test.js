@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { Command } from '../../lib/cli/command.js';
+import { Command } from '../../lib/cli/command.mts';
 
 const testHelp = {
   name: 'test',

@@ -20,7 +20,7 @@ const TEST_TIMEOUT = 60000;
 
 // Helper function to execute CLI commands
 function execCLI(args, options = {}) {
-  const command = `cd ${options.cwd} && node ${join(__dirname, '../../bin/make-template/index.mjs')} ${args.join(' ')}`;
+  const command = `cd ${options.cwd} && node ${join(__dirname, '../../bin/make-template/index.mts')} ${args.join(' ')}`;
   try {
     const result = execSync(command, {
       encoding: 'utf8',

@@ -24,8 +24,8 @@ const PROJECT_ROOT = join(__dirname, '../../..');
  * - Asserts exit codes and output messages
  *
  * Coverage Target:
- * - bin/create-scaffold/commands/list/index.js: 81.08% → 90%+
- * - bin/create-scaffold/commands/list/registry-fetcher.js: 69.23% → 80%+, branches 21.42% → 60%+
+ * - bin/create-scaffold/commands/list/index.mts: 81.08% → 90%+
+ * - bin/create-scaffold/commands/list/registry-fetcher.mts: 69.23% → 80%+, branches 21.42% → 60%+
  */
 
 // Test scenario matrix for list command

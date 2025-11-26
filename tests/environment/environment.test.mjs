@@ -30,7 +30,7 @@ import {
   createTestLogger,
   createSilentLogger,
   TEST_DEFAULTS
-} from '../../lib/environment/index.mjs';
+} from '../../lib/environment/index.mts';
 
 describe('Environment Module', () => {
   describe('createContext()', () => {

@@ -15,7 +15,7 @@ const CLI_PATH = join(process.cwd(), 'bin');
 
 // Execute real CLI commands
 function execCLI(tool, args, options = {}) {
-  const command = `node ${join(CLI_PATH, tool, 'index.mjs')} ${args.join(' ')}`;
+  const command = `node ${join(CLI_PATH, tool, 'index.mts')} ${args.join(' ')}`;
   try {
     const result = execSync(command, {
       encoding: 'utf8',

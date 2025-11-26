@@ -39,7 +39,7 @@ test('Template URL CLI Integration', async (t) => {
 
     return new Promise((resolve, reject) => {
       const child = spawn('node', [
-        'bin/create-scaffold/index.mjs',
+        'bin/create-scaffold/index.mts',
         'new',
         createdProjectDir,
         '--template', templateDir,

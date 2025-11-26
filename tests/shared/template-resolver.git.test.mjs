@@ -6,9 +6,9 @@ import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { TemplateResolver } from '../../bin/create-scaffold/modules/template-resolver.mjs';
-import { CacheManager } from '../../bin/create-scaffold/modules/cache-manager.mjs';
-import { File } from '../../lib/util/file.mjs';
+import { TemplateResolver } from '../../bin/create-scaffold/modules/template-resolver.mts';
+import { CacheManager } from '../../bin/create-scaffold/modules/cache-manager.mts';
+import { File } from '../../lib/util/file.mts';
 import { GitFixtureManager } from '../helpers/git-fixtures.mjs';
 
 class FixtureCacheManager extends CacheManager {

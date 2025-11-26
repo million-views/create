@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { strict as assert } from 'node:assert';
 import test from 'node:test';
 
-import { SelectionValidator } from '../../lib/validation/selection-validator.mjs';
+import { SelectionValidator } from '../../lib/validation/selection-validator.mts';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 

@@ -7,10 +7,10 @@
  */
 
 // Template schema validation (authoring)
-export { TemplateValidator } from './template-validator.mjs';
+export { TemplateValidator } from './template-validator.mts';
 
 // Selection schema validation
-export { SelectionValidator } from './selection-validator.mjs';
+export { SelectionValidator } from './selection-validator.mts';
 
 // Template manifest validation (runtime)
 export {

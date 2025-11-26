@@ -8,7 +8,7 @@ import test from 'node:test';
 
 import { validateTemplateManifest } from '../../lib/validation/index.mts';
 import { ValidationError } from '../../lib/error/index.mts';
-import { TemplateValidator } from '../../lib/validation/template-validator.mjs';
+import { TemplateValidator } from '../../lib/validation/template-validator.mts';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(__dirname, '../..');

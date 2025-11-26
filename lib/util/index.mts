@@ -7,13 +7,13 @@
  */
 
 // File utilities (high-level class)
-export { File } from './file.mjs';
+export { File } from './file.mts';
 
 // Shell utilities
-export { Shell } from './shell.mjs';
+export { Shell } from './shell.mts';
 
 // Text utilities
-export { Text } from './text.mjs';
+export { Text } from './text.mts';
 
 // Path resolution utilities
 export {
@@ -32,4 +32,4 @@ export { execCommand } from './command.mts';
 export type { ExecCommandOptions } from './command.mts';
 
 // Logger
-export { Logger } from './logger.mjs';
+export { Logger } from './logger.mts';

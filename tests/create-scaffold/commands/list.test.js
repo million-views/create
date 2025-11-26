@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { ListCommand } from '../../../bin/create-scaffold/commands/list/index.js';
+import { ListCommand } from '../../../bin/create-scaffold/commands/list/index.mts';
 import { captureOutput } from '../../helpers.js';
 
 describe('ListCommand', () => {

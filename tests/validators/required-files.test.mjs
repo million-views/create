@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 import { tmpdir } from 'os';
 import { join } from 'path';
 import { mkdtemp, rm, writeFile, mkdir } from 'fs/promises';
-import { validateRequiredFiles } from '../../bin/create-scaffold/modules/validators/required-files.mjs';
+import { validateRequiredFiles } from '../../bin/create-scaffold/modules/validators/required-files.mts';
 
 test.describe('Required Files Validator', () => {
   let tempDir;

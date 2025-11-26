@@ -20,7 +20,7 @@ import assert from 'node:assert';
 import { mkdir, writeFile, rm } from 'node:fs/promises';
 import { join } from 'node:path';
 import { tmpdir } from 'os';
-import { loadConfig } from '../../bin/create-scaffold/modules/config-loader.mjs';
+import { loadConfig } from '../../bin/create-scaffold/modules/config-loader.mts';
 
 test('Config discovery does NOT walk up directory tree', async (t) => {
   const baseDir = join(tmpdir(), `config-discovery-test-${Date.now()}`);

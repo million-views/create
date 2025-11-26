@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { ValidateCommand } from '../../../bin/make-template/commands/validate/index.js';
+import { ValidateCommand } from '../../../bin/make-template/commands/validate/index.mts';
 import { captureOutput } from '../../helpers.js';
 
 describe('ValidateCommand (make-template)', () => {

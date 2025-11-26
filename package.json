@@ -5,12 +5,12 @@
   "type": "module",
   "description": "[![npm version](https://badge.fury.io/js/@m5nv%2Fcreate-scaffold.svg)](https://badge.fury.io/js/@m5nv/create-scaffold)",
   "bin": {
-    "create-scaffold": "./bin/create-scaffold/index.mjs",
-    "make-template": "./bin/make-template/index.mjs"
+    "create-scaffold": "./bin/create-scaffold/index.mts",
+    "make-template": "./bin/make-template/index.mts"
   },
   "exports": {
-    ".": "./bin/create-scaffold/index.mjs",
-    "./make-template": "./bin/make-template/index.mjs",
+    ".": "./bin/create-scaffold/index.mts",
+    "./make-template": "./bin/make-template/index.mts",
     "./lib": "./lib/index.mts",
     "./lib/*": "./lib/*",
     "./schema/template.json": "./schema/template.json",
@@ -115,7 +115,7 @@
     "*.md": [
       "eslint --fix"
     ],
-    "bin/**/commands/**/help.js": [
+    "bin/**/commands/**/help.mts": [
       "node ./scripts/generate-cli-reference.mjs",
       "git add docs/reference/cli-reference.md"
     ]
