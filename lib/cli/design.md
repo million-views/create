@@ -884,6 +884,64 @@ Start with user stories and work backwards:
 
 The CLI should feel like **completing a sentence**, not navigating a menu.
 
+### Domain-First Design
+
+**Critical insight:** Before organizing commands, identify your **actual domains** (the fundamental activities your tool performs). Don't organize around targets—organize around actions.
+
+#### The Anti-Pattern: Target-Centric Organization
+
+```
+# Looks organized, but domains are fragmented:
+schema build           # building (domain 1)
+docs generate          # building (domain 1) - but looks different!
+validate docs          # linting (domain 2)
+validate code          # linting (domain 2)
+lint mocks             # linting (domain 2) - but separate namespace!
+```
+
+Problems:
+- "Building" is split across `schema` and `docs` namespaces
+- "Linting" is split across `validate` and `lint` namespaces
+- Inconsistent verb placement (`schema build` vs `validate docs`)
+
+#### The Pattern: Action-Centric Organization
+
+First, identify what your tool actually **does** (the verbs):
+1. **Build** - produce artifacts
+2. **Lint** - check/validate things
+
+Then organize targets under those actions:
+
+```
+# Clean two-domain structure:
+build schema           # build domain
+build docs             # build domain
+lint                   # lint domain (all)
+lint docs              # lint domain
+lint code              # lint domain
+lint mocks             # lint domain
+```
+
+Benefits:
+- Consistent verb-noun pattern throughout
+- Related operations grouped together
+- Discoverable: `build --help` shows all buildable things
+- Extensible: adding `build types` is obvious
+
+#### How to Identify Domains
+
+Ask: "What are the **fundamental activities** this tool performs?"
+
+| Tool Type | Typical Domains |
+|-----------|-----------------|
+| Build tool | `build`, `clean`, `watch` |
+| Linting tool | `lint`, `fix`, `ignore` |
+| Scaffolding tool | `scaffold`, `template` |
+| Package manager | `install`, `publish`, `run` |
+| Version control | `commit`, `branch`, `merge` |
+
+The domains should be **verbs** (actions), not nouns (targets). Targets become subcommands within domains.
+
 ---
 
 ## Configurable Terminology
