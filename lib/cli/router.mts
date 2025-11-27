@@ -6,9 +6,18 @@ interface GlobalOption {
   desc: string;
 }
 
+/**
+ * Routable interface - both Command and Router implement execute()
+ */
+interface Routable {
+  execute(args: string[]): Promise<unknown>;
+  showDetailedHelp(): void;
+  help?: { description: string };
+  description?: string;
+}
+
 export class Router {
-  commands: Record<string, Command> = {};
-  subcommands: Record<string, Record<string, Command>> = {};
+  commands: Record<string, Routable> = {};
   globalOptions: GlobalOption[] = [
     { short: '-h', long: '--help', desc: 'Print help' },
     { short: '-v', long: '--version', desc: 'Show version information' },
@@ -18,6 +27,24 @@ export class Router {
   version: string = '';
   description: string = '';
   examples: string[] = [];
+  
+  // Configurable terminology for help display
+  commandsLabel: string = 'COMMANDS';
+  commandsItemLabel: string = 'command';
+
+  /**
+   * Uniform interface - enables Router to be used as a command
+   */
+  async execute(args: string[]): Promise<void> {
+    return this.route(args);
+  }
+
+  /**
+   * Show detailed help (for when this Router is used as a nested command)
+   */
+  showDetailedHelp(): void {
+    this.showGeneralHelp();
+  }
 
   async route(args: string[]): Promise<void> {
     if (args.length === 0 || args[0] === '--help' || args[0] === '-h') {
@@ -31,34 +58,11 @@ export class Router {
     }
 
     const commandName = args[0];
-    const subcommandName = args[1];
-    let commandArgs = args.slice(1);
+    const commandArgs = args.slice(1);
 
-    // Check for subcommands first (command subcommand ...)
-    if (subcommandName && this.subcommands[commandName] && this.subcommands[commandName][subcommandName]) {
-      commandArgs = args.slice(2); // Skip both command and subcommand
-      const command = this.subcommands[commandName][subcommandName];
-      await command.execute(commandArgs);
-      return;
-    }
-
-    // Check for help on subcommands
-    if (commandName === 'help' && subcommandName) {
-      const helpTarget = args[2];
-      if (helpTarget && this.subcommands[subcommandName] && this.subcommands[subcommandName][helpTarget]) {
-        this.subcommands[subcommandName][helpTarget].showDetailedHelp();
-        return;
-      }
-    }
-
-    // Fall back to regular commands
+    // Handle 'help <target>' pattern
     if (commandName === 'help') {
-      const targetCommand = commandArgs[0];
-      if (targetCommand && this.commands[targetCommand]) {
-        this.commands[targetCommand].showDetailedHelp();
-      } else {
-        this.showGeneralHelp();
-      }
+      this.handleHelpCommand(commandArgs);
       return;
     }
 
@@ -70,30 +74,50 @@ export class Router {
       process.exit(1);
     }
 
+    // Uniform interface - works for Command or nested Router
     await command.execute(commandArgs);
+  }
+
+  /**
+   * Handle 'help <command> [subcommand]' pattern
+   */
+  handleHelpCommand(args: string[]): void {
+    if (args.length === 0) {
+      this.showGeneralHelp();
+      return;
+    }
+
+    const target = this.commands[args[0]];
+    if (!target) {
+      this.showGeneralHelp();
+      return;
+    }
+
+    // If target is a Router and there's a subcommand, delegate
+    if (args.length > 1 && 'commands' in target) {
+      const subRouter = target as Router;
+      const subTarget = subRouter.commands[args[1]];
+      if (subTarget) {
+        subTarget.showDetailedHelp();
+        return;
+      }
+    }
+
+    target.showDetailedHelp();
   }
 
   showGeneralHelp(): void {
     console.log(`${this.description}\n`);
     console.log(`USAGE:`);
-    console.log(`  ${this.toolName} <command> [options]`);
-    console.log(`  ${this.toolName} <command> <subcommand> [options]\n`);
+    console.log(`  ${this.toolName} <${this.commandsItemLabel}> [options]`);
+    console.log(`  ${this.toolName} <${this.commandsItemLabel}> <subcommand> [options]\n`);
 
-    console.log(`COMMANDS:`);
+    console.log(`${this.commandsLabel}:`);
     Object.entries(this.commands).forEach(([name, cmd]) => {
-      console.log(`  ${name.padEnd(15)} ${cmd.help.description}`);
+      // Handle both Command (has help.description) and Router (has description)
+      const desc = cmd.help?.description || cmd.description || '';
+      console.log(`  ${name.padEnd(15)} ${desc}`);
     });
-
-    // Show subcommands
-    if (Object.keys(this.subcommands).length > 0) {
-      console.log();
-      console.log(`SUBCOMMANDS:`);
-      Object.entries(this.subcommands).forEach(([cmd, subcmds]) => {
-        Object.entries(subcmds).forEach(([subcmd, subcmdInstance]) => {
-          console.log(`  ${cmd} ${subcmd}`.padEnd(15) + ` ${subcmdInstance.help.description}`);
-        });
-      });
-    }
     console.log();
 
     console.log(`GLOBAL OPTIONS:`);
@@ -116,6 +140,6 @@ export class Router {
       console.log();
     }
 
-    console.log(`See '${this.toolName} help <command>' for more information on a specific command.`);
+    console.log(`See '${this.toolName} help <${this.commandsItemLabel}>' for more information on a specific ${this.commandsItemLabel}.`);
   }
 }

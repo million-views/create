@@ -7,12 +7,12 @@ import { InitCommand } from './commands/init/index.mts';
 import { ValidateCommand } from './commands/validate/index.mts';
 import { HintsCommand } from './commands/hints/index.mts';
 import { TestCommand } from './commands/test/index.mts';
-import { ConfigValidateCommand } from './commands/config/validate/index.mts';
+import { ConfigRouter } from './commands/config/index.mts';
 
 class MakeTemplateRouter extends Router {
   constructor() {
     super();
-    this.toolName = '@m5nv/make-template';
+    this.toolName = 'make-template';
     this.description = 'Convert existing Node.js projects into reusable templates';
     this.commands = {
       convert: new ConvertCommand(),
@@ -20,12 +20,8 @@ class MakeTemplateRouter extends Router {
       init: new InitCommand(),
       validate: new ValidateCommand(),
       hints: new HintsCommand(),
-      test: new TestCommand()
-    };
-    this.subcommands = {
-      config: {
-        validate: new ConfigValidateCommand()
-      }
+      test: new TestCommand(),
+      config: new ConfigRouter()
     };
     this.version = '1.0.0';
     this.examples = [
