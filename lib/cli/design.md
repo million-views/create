@@ -730,18 +730,24 @@ When designing a CLI, you're not just organizing code—you're creating a **doma
 
 ### The Language Metaphor
 
-Think of your CLI as a language:
+Think of your CLI as a language with two valid sentence structures:
 
-| Linguistic Concept | CLI Equivalent | Example |
-|-------------------|----------------|---------|
-| Noun | Namespace/Target | `validate`, `schema`, `docs` |
-| Verb | Command/Action | `build`, `generate`, `check` |
-| Adjective/Adverb | Flag/Option | `--verbose`, `--strict` |
-| Object | Positional argument | `my-app`, `./path` |
+**Verb-first (imperative):** `<verb> <object> <adverbs>`
+- `build schema --check` → "build the schema with checking"
+- `lint docs --verbose` → "lint docs verbosely"
 
-**Natural sentence structure:** `<verb> <noun> <adverbs>`
-- `validate docs --verbose` → "validate docs verbosely"
-- `schema build --check` → "check that schema is built"
+**Noun-first (subject-focused):** `<subject> <verb> <adverbs>`
+- `template init --force` → "template: initialize forcefully"
+- `config validate --strict` → "config: validate strictly"
+
+| Linguistic Concept | Verb-First CLI | Noun-First CLI |
+|-------------------|----------------|----------------|
+| Subject/Namespace | Implicit (the tool) | First word: `template`, `config` |
+| Verb/Action | First word: `build`, `lint` | Second word: `init`, `validate` |
+| Object/Target | Second word: `schema`, `docs` | Third word or args |
+| Adjective/Adverb | Flags: `--verbose`, `--strict` | Flags: `--verbose`, `--strict` |
+
+**Choose one paradigm and apply it consistently throughout your CLI.**
 
 ### Semantic Coherence
 
@@ -826,14 +832,16 @@ This enables the natural pattern:
 - `validate docs` → run docs only
 - `validate code` → run code only
 
-### Namespace Naming Guidelines
+### Naming Guidelines
+
+These guidelines apply regardless of chosen paradigm:
 
 | Principle | Good | Bad | Why |
 |-----------|------|-----|-----|
 | **Nouns for targets** | `schema`, `docs`, `config` | `building`, `validating` | Targets are things, not actions |
 | **Verbs for actions** | `build`, `validate`, `generate` | `builder`, `validator` | Actions are verbs |
-| **Singular form** | `schema build` | `schemas build` | Cleaner, more command-like |
-| **Avoid redundancy** | `validate docs` | `validate-docs validate` | Don't repeat concepts |
+| **Singular form** | `build schema` | `build schemas` | Cleaner, more command-like |
+| **Avoid redundancy** | `lint docs` | `lint-docs lint` | Don't repeat concepts |
 | **Domain language** | `scaffold new` | `project create` | Match user mental model |
 
 ### Anti-Patterns to Avoid
@@ -875,96 +883,104 @@ This enables the natural pattern:
 
 Start with user stories and work backwards:
 
-| User Intent | Natural Expression | CLI Command |
-|-------------|-------------------|-------------|
-| "I want to check my docs" | "validate docs" | `validate docs` |
-| "I want to check everything" | "validate" or "check all" | `validate` (no args) |
-| "I want to build the schema" | "build schema" or "schema build" | `schema build` |
-| "I want verbose output" | "...but louder" | `--verbose` flag |
+| User Intent | Natural Expression | Verb-First CLI | Noun-First CLI |
+|-------------|-------------------|----------------|----------------|
+| "I want to check my docs" | "validate docs" | `lint docs` | `docs validate` |
+| "I want to check everything" | "validate all" | `lint` (no args) | `validate` (no args) |
+| "I want to build the schema" | "build schema" | `build schema` | `schema build` |
+| "I want verbose output" | "...but louder" | `--verbose` flag | `--verbose` flag |
 
 The CLI should feel like **completing a sentence**, not navigating a menu.
 
-### Domain-First Design
+### Consistency-First Design
 
-**Critical insight:** Before organizing commands, identify your **actual domains** (the fundamental activities your tool performs). Don't organize around targets—organize around actions.
+**Critical insight:** Choose a paradigm (verb-first or noun-first) and apply it consistently. Mixing paradigms is the primary source of CLI confusion.
 
-#### The Anti-Pattern: Target-Centric Organization
+#### The Anti-Pattern: Mixed Paradigms
 
 ```
-# Looks organized, but domains are fragmented:
-schema build           # building (domain 1)
-docs generate          # building (domain 1) - but looks different!
-validate docs          # linting (domain 2)
-validate code          # linting (domain 2)
-lint mocks             # linting (domain 2) - but separate namespace!
+# Looks organized, but paradigms are mixed:
+schema build           # noun-first (schema is subject)
+docs generate          # noun-first (docs is subject)
+validate docs          # verb-first (validate is action)
+lint mocks             # verb-first (lint is action)
 ```
 
 Problems:
-- "Building" is split across `schema` and `docs` namespaces
-- "Linting" is split across `validate` and `lint` namespaces
-- Inconsistent verb placement (`schema build` vs `validate docs`)
+- `schema build` (noun-first) vs `validate docs` (verb-first)
+- User can't predict command structure
+- Discoverability suffers
 
-#### The Pattern: Action-Centric Organization
+#### The Fix: Choose One Paradigm
 
-First, identify what your tool actually **does** (the verbs):
-1. **Build** - produce artifacts
-2. **Lint** - check/validate things
-
-Then organize targets under those actions:
-
+**Option A: Verb-First (imperative style)**
 ```
-# Clean two-domain structure:
-build schema           # build domain
-build docs             # build domain
-lint                   # lint domain (all)
-lint docs              # lint domain
-lint code              # lint domain
-lint mocks             # lint domain
+build schema           # verb: build, target: schema
+build docs             # verb: build, target: docs
+lint docs              # verb: lint, target: docs
+lint code              # verb: lint, target: code
+lint mocks             # verb: lint, target: mocks
 ```
 
-Benefits:
-- Consistent verb-noun pattern throughout
-- Related operations grouped together
-- Discoverable: `build --help` shows all buildable things
-- Extensible: adding `build types` is obvious
+**Option B: Noun-First (subject-focused style)**
+```
+schema build           # subject: schema, verb: build
+docs generate          # subject: docs, verb: generate
+docs validate          # subject: docs, verb: validate
+code lint              # subject: code, verb: lint
+mocks check            # subject: mocks, verb: check
+```
+
+Either paradigm works—the key is consistency.
 
 #### How to Identify Domains
 
-Ask: "What are the **fundamental areas of concern** this tool addresses?"
+Ask: "What is the **organizing principle** for this tool's commands?"
 
-A domain (or namespace) is a **subject area** that groups related operations. It's not a verb—it's a *container* for verbs.
+A domain is the **first-level grouping** in your CLI hierarchy. Depending on your chosen paradigm, domains can be:
 
-| Tool Type | Domains (Namespaces) | Operations within each |
-|-----------|---------------------|------------------------|
+**Verb-first paradigm** — domains are actions:
+| Tool Type | Domains (Actions) | Targets within each |
+|-----------|-------------------|---------------------|
 | Build tool | `build`, `clean`, `watch` | `schema`, `docs`, `types` |
 | Dev workflow | `lint`, `test`, `deploy` | `docs`, `code`, `mocks` |
+| Package manager | `install`, `publish`, `run` | package names, script names |
+
+**Noun-first paradigm** — domains are subject areas:
+| Tool Type | Domains (Subjects) | Operations within each |
+|-----------|-------------------|------------------------|
 | Scaffolding tool | `scaffold`, `template` | `new`, `list`, `convert` |
-| Package manager | `install`, `publish`, `run` | various targets |
-| Version control | `commit`, `branch`, `remote` | various targets |
+| Version control | `branch`, `remote`, `stash` | `create`, `delete`, `list` |
+| Cloud CLI | `compute`, `storage`, `network` | `create`, `list`, `delete` |
 
-**Structure:** `<domain> [<subdomain>...] <operation> [<args>] [<options>]`
+**Structure:** `<domain> <target-or-operation> [<args>] [<options>]`
 
-- **Domain/Subdomain** - The subject area (has agency, provides operations)
-- **Operation** - The verb (what you're doing)
-- **Args** - The objects (what you're operating on)
-- **Options** - The adjectives/adverbs (how you're doing it)
+- **Domain** - The organizing principle (verb-first: action; noun-first: subject area)
+- **Target/Operation** - What follows (verb-first: noun/target; noun-first: verb)
+- **Args** - Additional objects or values
+- **Options** - Modifiers (how to do it)
 
-**Example hierarchy:**
-```
+**Example hierarchies:**
+
+Verb-first:
+```text
 build schema --check
-│     │       └── option (adverb: "check that it's current")
-│     └── operation (verb: what to build)
-└── domain (namespace: building concerns)
+│     │       └── option (adverb: "with validation checking")
+│     └── target (noun: what to build)
+└── domain (verb: the action)
+```
 
+Noun-first:
+```text
 template config validate ./my-config.json --strict
 │        │      │        │                └── option (adverb)
-│        │      │        └── argument (object: what to validate)
-│        │      └── operation (verb)
-│        └── subdomain (nested namespace)
-└── domain (namespace: template authoring concerns)
+│        │      │        └── argument (object: which config)
+│        │      └── operation (verb: what to do)
+│        └── subdomain (nested subject area)
+└── domain (noun: subject area)
 ```
 
-Domains provide **agency**—they offer operations. Targets/arguments are **objects**—they're operated upon.
+The key insight: domains provide **structure**—they organize related commands. Whether they're verbs or nouns depends on your chosen paradigm.
 
 ---
 
