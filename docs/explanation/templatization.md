@@ -146,7 +146,7 @@ Extract text content from HTML elements using CSS selectors.
 ### Init Command
 
 ```bash
-npx -p @m5nv/create-scaffold make-template init
+make-template init
 # Creates template.json + .templatize.json with comprehensive defaults
 ```
 
@@ -154,10 +154,10 @@ npx -p @m5nv/create-scaffold make-template init
 
 ```bash
 # Apply templatization rules
-npx -p @m5nv/create-scaffold make-template convert . --yes
+make-template convert . --yes
 
 # Preview changes
-npx -p @m5nv/create-scaffold make-template convert . --dry-run
+make-template convert . --dry-run
 ```
 
 ### Scaffold Command

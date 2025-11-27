@@ -30,7 +30,7 @@ The easiest way to get started is to generate the default configuration:
 cd my-template-project
 
 # Initialize configuration files
-npx -p @m5nv/create-scaffold make-template init
+make-template init
 ```
 
 The `init` command creates both configuration files:
@@ -43,13 +43,13 @@ Once configured, convert your template:
 
 ```bash
 # Convert with default settings
-npx -p @m5nv/create-scaffold make-template convert .
+make-template convert .
 
 # Preview changes without making them
-npx -p @m5nv/create-scaffold make-template convert . --dry-run
+make-template convert . --dry-run
 
 # Convert without confirmation prompts (for automation)
-npx -p @m5nv/create-scaffold make-template convert . --yes
+make-template convert . --yes
 ```
 
 ## Configuration Structure
@@ -348,7 +348,7 @@ Test your configuration with sample data:
 
 ```bash
 # Create a test conversion
-npx -p @m5nv/create-scaffold make-template convert . --dry-run
+make-template convert . --dry-run
 
 # Check the output
 cat converted-files/
@@ -480,10 +480,10 @@ Check your configuration for errors:
 
 ```bash
 # Validate the .templatize.json configuration file
-npx -p @m5nv/create-scaffold make-template config validate
+make-template config validate
 
 # Validate a specific configuration file
-npx -p @m5nv/create-scaffold make-template config validate custom-config.json
+make-template config validate custom-config.json
 ```
 
 ### Debug Pattern Matching
@@ -492,7 +492,7 @@ Enable verbose output to see what's happening:
 
 ```bash
 # Enable verbose output during conversion
-npx -p @m5nv/create-scaffold make-template convert . --verbose
+make-template convert . --verbose
 ```
 
 This shows detailed information about:

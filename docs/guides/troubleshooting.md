@@ -481,7 +481,7 @@ Error: Cannot read undo log
 **Solution:** Delete the corrupted undo log and re-run conversion:
 ```bash
 rm .template-undo.json
-npx -p @m5nv/create-scaffold make-template convert . --yes
+make-template convert . --yes
 ```
 
 **Problem: Files modified after conversion**
@@ -497,7 +497,7 @@ Warning: File has been modified since conversion
 **Solution:** The default unicode format ⦃TOKEN⦄ is designed to avoid JSX conflicts. If you need a different format:
 ```bash
 # Use a specific format if unicode doesn't work for your use case
-npx -p @m5nv/create-scaffold make-template convert . --placeholder-format percent --yes
+make-template convert . --placeholder-format percent --yes
 
 # This produces %TOKEN% instead of the default ⦃TOKEN⦄
 ```
@@ -522,7 +522,7 @@ ls -la package.json
 **Solution:** Always run `init` inside the project you want to templatize:
 ```bash
 cd /path/to/your/project
-npx -p @m5nv/create-scaffold make-template init
+make-template init
 ```
 
 **Problem: Wrong directory**
@@ -538,8 +538,8 @@ Error: No package.json found
 **Solution:** Initialize configuration first:
 ```bash
 # In your project directory
-npx -p @m5nv/create-scaffold make-template init
-npx -p @m5nv/create-scaffold make-template convert . --yes
+make-template init
+make-template convert . --yes
 ```
 
 **Problem: Custom config path**
@@ -548,7 +548,7 @@ Error: Cannot find config file
 ```
 **Solution:** Specify correct path:
 ```bash
-npx -p @m5nv/create-scaffold make-template convert . --config path/to/.templatize.json --yes
+make-template convert . --config path/to/.templatize.json --yes
 ```
 
 ### How to Fix "Development Repository Warning" Error
@@ -557,7 +557,7 @@ npx -p @m5nv/create-scaffold make-template convert . --config path/to/.templatiz
 
 **Solution:** Use `--yes` flag for development repos:
 ```bash
-npx -p @m5nv/create-scaffold make-template convert . --yes
+make-template convert . --yes
 ```
 
 **Problem: Accidental conversion**

@@ -30,13 +30,25 @@ node --version && git --version && npm --version
 
 **Expected:** Versions for Node.js v22+, Git, and npm.
 
-## Verify CLI Tools
+## Install the Package
+
+Install globally to get both CLI tools:
+
+```bash
+npm install -g @m5nv/create-scaffold
+```
+
+This installs two commands:
+- `create-scaffold` - Scaffold new projects from templates
+- `make-template` - Convert projects into reusable templates
+
+## Verify Installation
 
 Test both tools are accessible:
 
 ```bash
-npx @m5nv/create-scaffold --help | head -5
-npx -p @m5nv/create-scaffold make-template --help | head -5
+create-scaffold --help | head -5
+make-template --help | head -5
 ```
 
 **Expected:** Help text for both commands.
@@ -44,7 +56,7 @@ npx -p @m5nv/create-scaffold make-template --help | head -5
 ## You're Ready!
 
 ✅ Environment verified  
-✅ CLI tools accessible  
+✅ Tools installed  
 
 **Next:** [Create your first template](make-template.md) or [scaffold from existing templates](create-scaffold.md)
 
@@ -52,4 +64,5 @@ npx -p @m5nv/create-scaffold make-template --help | head -5
 
 - **Node.js < v22**: Download latest from [nodejs.org](https://nodejs.org/)
 - **Git missing**: Install from [git-scm.com](https://git-scm.com/)
-- **CLI fails**: Check internet connection, clear npm cache: `npm cache clean --force`
+- **Permission errors**: Use `sudo npm install -g` or fix npm permissions
+- **Command not found**: Ensure npm global bin is in your PATH

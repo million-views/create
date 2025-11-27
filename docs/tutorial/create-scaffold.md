@@ -43,13 +43,13 @@ Registries are template repositories that auto-discover available templates. Con
 
 **List templates from a registry:**
 ```bash
-npx @m5nv/create-scaffold list --registry workshop
+create-scaffold list --registry workshop
 ```
 
 **Use templates from registries:**
 ```bash
-npx @m5nv/create-scaffold new my-marketing-site --template workshop/lawnmow-web
-npx @m5nv/create-scaffold new my-customer-app --template workshop/lawnmow-app
+create-scaffold new my-marketing-site --template workshop/lawnmow-web
+create-scaffold new my-customer-app --template workshop/lawnmow-app
 ```
 
 ## Example 1: Marketing Website
@@ -58,7 +58,7 @@ npx @m5nv/create-scaffold new my-customer-app --template workshop/lawnmow-app
 cd ..
 mkdir scaffolded-projects
 cd scaffolded-projects
-npx @m5nv/create-scaffold new greencare-site --template workshop/lawnmow-web
+create-scaffold new greencare-site --template workshop/lawnmow-web
 cd greencare-site
 npm install && npm run dev
 ```
@@ -67,7 +67,7 @@ npm install && npm run dev
 
 ```bash
 cd ..
-npx @m5nv/create-scaffold new sunshine-lawn --template workshop/lawnmow-web \
+create-scaffold new sunshine-lawn --template workshop/lawnmow-web \
   --placeholder BUSINESS_NAME="Sunshine Lawn Care" \
   --placeholder BUSINESS_TAGLINE="Serving Phoenix since 2015" \
   --placeholder CONTACT_EMAIL="mailto:hello@sunshinelawn.com"
@@ -79,7 +79,7 @@ npm install && npm run dev
 
 ```bash
 cd ..
-npx @m5nv/create-scaffold new greencare-app --template workshop/lawnmow-app \
+create-scaffold new greencare-app --template workshop/lawnmow-app \
   --selection '{}'
 cd greencare-app
 npm install && npm run dev
@@ -89,7 +89,7 @@ npm install && npm run dev
 
 ### CLI Flags
 ```bash
-npx @m5nv/create-scaffold new custom-site --template workshop/lawnmow-web \
+create-scaffold new custom-site --template workshop/lawnmow-web \
   --placeholder BUSINESS_NAME="ProMow Services" \
   --placeholder CONTACT_EMAIL="mailto:info@promow.com"
 ```
@@ -109,7 +109,7 @@ npx @m5nv/create-scaffold new custom-site --template workshop/lawnmow-web \
 ```bash
 CREATE_SCAFFOLD_PLACEHOLDER_PROJECT_NAME=MyLawnApp \
 CREATE_SCAFFOLD_PLACEHOLDER_CLOUDFLARE_ACCOUNT_ID=abc123 \
-npx @m5nv/create-scaffold new env-test --template workshop/lawnmow-app
+create-scaffold new env-test --template workshop/lawnmow-app
 ```
 
 ## Selection Files: Portable Configuration Recipes
@@ -173,12 +173,12 @@ cd ..
 mkdir configured-projects && cd configured-projects
 
 # Scaffold with standard configuration
-npx @m5nv/create-scaffold new standard-app \
+create-scaffold new standard-app \
   --template workshop/lawnmow-app \
   --selection ../standard-config.selection.json
 
 # Override specific values
-npx @m5nv/create-scaffold new custom-app \
+create-scaffold new custom-app \
   --template workshop/lawnmow-app \
   --selection ../standard-config.selection.json \
   --placeholder BUSINESS_NAME="Custom Lawn Services"
@@ -224,7 +224,7 @@ Team members scaffold with organization standards:
 
 ```bash
 # New developer joining the team
-npx @m5nv/create-scaffold new client-project \
+create-scaffold new client-project \
   --template workshop/lawnmow-app \
   --selection team-configs/enterprise-app.selection.json \
   --placeholder PACKAGE_NAME=acme-lawn \
@@ -242,12 +242,12 @@ npx @m5nv/create-scaffold new client-project \
 set -e
 
 echo "Testing minimal configuration..."
-npx @m5nv/create-scaffold new test-minimal \
+create-scaffold new test-minimal \
   --template ./lawnmow-app \
   --selection ./test-configs/minimal.selection.json
 
 echo "Testing full configuration..."
-npx @m5nv/create-scaffold new test-full \
+create-scaffold new test-full \
   --template ./lawnmow-app \
   --selection ./test-configs/full.selection.json
 
@@ -301,7 +301,7 @@ cat > minimal.selection.json << 'EOF'
 EOF
 
 # Minimal configuration (no extra features)
-npx @m5nv/create-scaffold new lawn-basic \
+create-scaffold new lawn-basic \
   --template workshop/lawnmow-app \
   --selection minimal.selection.json
 
@@ -321,7 +321,7 @@ cat > premium.selection.json << 'EOF'
 EOF
 
 # Full-featured configuration
-npx @m5nv/create-scaffold new lawn-premium \
+create-scaffold new lawn-premium \
   --template workshop/lawnmow-app \
   --selection premium.selection.json
 
@@ -376,7 +376,7 @@ cat > invalid.selection.json << 'EOF'
 EOF
 
 # This will FAIL because of gates (if configured)
-npx @m5nv/create-scaffold new invalid-combo \
+create-scaffold new invalid-combo \
   --template workshop/lawnmow-app \
   --selection invalid.selection.json
 
@@ -391,10 +391,10 @@ Before using a template, you can validate its configuration to catch issues earl
 
 ```bash
 # Validate a template directory
-npx @m5nv/create-scaffold validate ../lawnmow-app
+create-scaffold validate ../lawnmow-app
 
 # Validate and get fix suggestions
-npx @m5nv/create-scaffold validate ../lawnmow-app --suggest
+create-scaffold validate ../lawnmow-app --suggest
 ```
 
 **What validation checks:**

@@ -29,10 +29,12 @@ reinventing setup.
 
 ## Quick Examples
 
+> **First time?** Run `npm install -g @m5nv/create-scaffold` to get the CLI tools.
+
 ### 🚀 Scaffold a new project
 
 ```bash
-npm create @m5nv/scaffold my-app -- --template basic-react-spa
+create-scaffold new my-app --template basic-react-spa
 ```
 
 ### 🔄 Convert your project to a template
@@ -40,18 +42,18 @@ npm create @m5nv/scaffold my-app -- --template basic-react-spa
 ```bash
 # From within project
 cd my-project
-npx -p @m5nv/create-scaffold make-template init
-npx -p @m5nv/create-scaffold make-template convert
+make-template init
+make-template convert
 
 # Or with explicit path
-npx -p @m5nv/create-scaffold make-template init ./my-project
-npx -p @m5nv/create-scaffold make-template convert ./my-project
+make-template init ./my-project
+make-template convert ./my-project
 ```
 
 ### 📋 Reuse previous choices
 
 ```bash
-npm create @m5nv/scaffold my-app -- --template basic-react-spa --selection ./previous-choices.json
+create-scaffold new my-app --template basic-react-spa --selection ./previous-choices.json
 ```
 
 ## Key Benefits
@@ -111,18 +113,15 @@ Markdown, and HTML files.
 
 ## Installation & Setup
 
-Ready to get started? Follow our
-[comprehensive setup guide](docs/tutorial/getting-started.md) which covers:
-
-- Environment requirements (Node.js v22+, Git)
-- Installation options (global vs npx)
-- Verification steps
-- Quick environment check
+Install the package globally:
 
 ```bash
-# Quick install check
-node --version && git --version && npm --version
+npm install -g @m5nv/create-scaffold
 ```
+
+This gives you two commands: `create-scaffold` and `make-template`.
+
+📖 **[Complete setup guide](docs/tutorial/getting-started.md)** for environment requirements and troubleshooting.
 
 ## Real-World Examples
 
@@ -130,7 +129,7 @@ node --version && git --version && npm --version
 
 ```bash
 # New developer joins the team
-npm create @m5nv/scaffold onboarding-app -- --template company/react-fullstack
+create-scaffold new onboarding-app --template company/react-fullstack
 ```
 
 Project would be instantiated with all the best practices the org may have
@@ -144,12 +143,12 @@ authentication!
 ```bash
 # Convert your project to a reusable template
 cd my-awesome-project
-npx -p @m5nv/create-scaffold make-template init      # Create configuration files
-npx -p @m5nv/create-scaffold make-template convert   # Apply templatization
+make-template init      # Create configuration files
+make-template convert   # Apply templatization
 
 # Or specify path explicitly
-npx -p @m5nv/create-scaffold make-template init ./my-awesome-project
-npx -p @m5nv/create-scaffold make-template convert ./my-awesome-project
+make-template init ./my-awesome-project
+make-template convert ./my-awesome-project
 ```
 
 Automatically detects and templatizes JSX, JSON, Markdown, and HTML content.
@@ -160,12 +159,12 @@ Automatically detects and templatizes JSX, JSON, Markdown, and HTML content.
 
 ```bash
 # First time - interactive setup
-npm create @m5nv/scaffold my-app -- --template complex-microservice
+create-scaffold new my-app --template complex-microservice
 
 # Creates: complex-microservice.selection.json
 
 # Next time - instant recreation
-npm create @m5nv/scaffold my-other-app -- --template complex-microservice --selection ./complex-microservice.selection.json
+create-scaffold new my-other-app --template complex-microservice --selection ./complex-microservice.selection.json
 ```
 
 ## The Two Tools

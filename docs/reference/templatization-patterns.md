@@ -640,7 +640,7 @@ Use descriptive placeholder names that match your template's needs:
 The system provides a comprehensive default configuration that covers common templatization needs. You can generate this configuration using:
 
 ```bash
-npx -p @m5nv/create-scaffold make-template init
+make-template init
 ```
 
 This creates a `.templatize.json` file with patterns for:
@@ -685,7 +685,7 @@ The configuration system validates your `.templatize.json` file and provides hel
 - Use more specific selectors if needed
 
 **Invalid configuration:**
-- Run `npx -p @m5nv/create-scaffold make-template config validate` to check your config
+- Run `make-template config validate` to check your config
 - Check the error messages for specific validation failures
 - Compare with the examples in this reference
 
@@ -704,4 +704,4 @@ The convert command provides detailed output during processing, showing:
 
 For additional debugging, examine the generated files:
 - `template.json` - Contains all detected placeholders and their metadata
-- `.template-undo.json` - Records file operations for restoration via `npx -p @m5nv/create-scaffold make-template restore`
+- `.template-undo.json` - Records file operations for restoration via `make-template restore`

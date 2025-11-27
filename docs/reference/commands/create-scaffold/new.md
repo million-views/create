@@ -87,9 +87,10 @@ create-scaffold new my-app --template react-app --no-cache
 
 ## Notes
 
-Alternative invocations:
-  npm create @m5nv/scaffold my-app -- --template react-app
-  npx @m5nv/create-scaffold new my-app --template react-app
+First time? Install the package:
+  npm install -g @m5nv/create-scaffold
+
+Then use create-scaffold and make-template commands directly.
 
 ## See Also
 
