@@ -724,6 +724,168 @@ lib/cli/
 
 ---
 
+## Domain-Specific Language (DSL) Design
+
+When designing a CLI, you're not just organizing code—you're creating a **domain-specific language** that users will speak. Every command, subcommand, and flag is a word in this language. Thoughtful DSL design makes the difference between a CLI that feels intuitive and one that feels arbitrary.
+
+### The Language Metaphor
+
+Think of your CLI as a language:
+
+| Linguistic Concept | CLI Equivalent | Example |
+|-------------------|----------------|---------|
+| Noun | Namespace/Target | `validate`, `schema`, `docs` |
+| Verb | Command/Action | `build`, `generate`, `check` |
+| Adjective/Adverb | Flag/Option | `--verbose`, `--strict` |
+| Object | Positional argument | `my-app`, `./path` |
+
+**Natural sentence structure:** `<verb> <noun> <adverbs>`
+- `validate docs --verbose` → "validate docs verbosely"
+- `schema build --check` → "check that schema is built"
+
+### Semantic Coherence
+
+Commands and their options must make semantic sense together. Consider:
+
+```
+❌ WRONG: validate all --docs-only
+   "validate all but only docs" - contradictory
+   
+✅ RIGHT: validate docs
+   "validate docs" - clear and direct
+   
+✅ RIGHT: validate (no args) → runs all
+   "validate everything" - implicit scope
+```
+
+**Key principle:** If you find yourself adding flags that negate the command name, you need separate commands instead.
+
+### Designing Command Hierarchies
+
+#### When to use a namespace (Router):
+
+- Multiple related operations on a single **target/noun**
+- Example: `config` is a thing you `validate`, `show`, `edit`
+
+```
+config validate    # validate the config
+config show        # show the config
+config edit        # edit the config
+```
+
+#### When to use separate commands:
+
+- Different **targets/nouns** for the same operation
+- Example: `validate` is an action on different things
+
+```
+validate docs      # validate documentation
+validate code      # validate code
+validate           # validate all (default behavior)
+```
+
+#### When to use flags:
+
+- Modifying **how** an action is performed, not **what** it targets
+- Example: `--verbose`, `--strict`, `--dry-run`
+
+```
+✅ validate docs --verbose    # how to validate
+❌ validate --target=docs     # should be a subcommand
+```
+
+### Default Behavior Pattern
+
+Routers can provide sensible defaults when invoked without subcommands:
+
+```typescript
+class ValidateRouter extends Router {
+  constructor() {
+    super();
+    this.toolName = 'validate';
+    this.commands = {
+      docs: new ValidateDocsCommand(),
+      code: new ValidateCodeCommand()
+    };
+  }
+
+  // Override route() to handle no-subcommand case
+  async route(args) {
+    if (args.length === 0 || !this.commands[args[0]]) {
+      // No subcommand = run all validations
+      await this.runAll();
+      return;
+    }
+    return super.route(args);
+  }
+}
+```
+
+This enables the natural pattern:
+- `validate` → run all
+- `validate docs` → run docs only
+- `validate code` → run code only
+
+### Namespace Naming Guidelines
+
+| Principle | Good | Bad | Why |
+|-----------|------|-----|-----|
+| **Nouns for targets** | `schema`, `docs`, `config` | `building`, `validating` | Targets are things, not actions |
+| **Verbs for actions** | `build`, `validate`, `generate` | `builder`, `validator` | Actions are verbs |
+| **Singular form** | `schema build` | `schemas build` | Cleaner, more command-like |
+| **Avoid redundancy** | `validate docs` | `validate-docs validate` | Don't repeat concepts |
+| **Domain language** | `scaffold new` | `project create` | Match user mental model |
+
+### Anti-Patterns to Avoid
+
+#### 1. Flag-based dispatching (instead of commands)
+
+```
+❌ validate --type=docs --type=code
+✅ validate docs
+✅ validate code
+✅ validate (runs both)
+```
+
+#### 2. Mutually exclusive flags
+
+```
+❌ validate all --docs-only --code-only
+✅ validate docs
+✅ validate code
+```
+
+#### 3. Deep nesting for simple operations
+
+```
+❌ project template config schema validate
+✅ template config validate
+✅ schema validate
+```
+
+#### 4. Inconsistent verb placement
+
+```
+❌ docs generate / validate docs  (verb position varies)
+✅ docs generate / docs validate  (consistent: noun verb)
+✅ generate docs / validate docs  (consistent: verb noun)
+```
+
+### Mapping User Intent to Structure
+
+Start with user stories and work backwards:
+
+| User Intent | Natural Expression | CLI Command |
+|-------------|-------------------|-------------|
+| "I want to check my docs" | "validate docs" | `validate docs` |
+| "I want to check everything" | "validate" or "check all" | `validate` (no args) |
+| "I want to build the schema" | "build schema" or "schema build" | `schema build` |
+| "I want verbose output" | "...but louder" | `--verbose` flag |
+
+The CLI should feel like **completing a sentence**, not navigating a menu.
+
+---
+
 ## Configurable Terminology
 
 The framework uses generic internal terminology (`Router`, `Command`) but developers can present **domain-specific vocabulary** to their users in help text and documentation.

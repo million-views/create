@@ -4,13 +4,15 @@
  * Unified Build Scripts CLI - Dogfooding the @m5nv/cli micro-framework
  *
  * This demonstrates how the Router/Command architecture works for
- * build tooling scenarios with custom terminology.
+ * build tooling scenarios with custom terminology and DSL design.
  *
  * Usage:
  *   node scripts/cli.mjs schema build
  *   node scripts/cli.mjs schema build --check
  *   node scripts/cli.mjs docs generate
- *   node scripts/cli.mjs validate all
+ *   node scripts/cli.mjs validate           # runs all validations
+ *   node scripts/cli.mjs validate docs      # docs only
+ *   node scripts/cli.mjs validate code      # ast-grep only
  *   node scripts/cli.mjs lint mocks
  */
 
@@ -131,57 +133,11 @@ class DocsRouter extends Router {
 // Validate Commands
 // ============================================================
 
-class ValidateAllCommand extends Command {
-  constructor() {
-    super({
-      name: 'all',
-      description: 'Run comprehensive validation (docs + code analysis)',
-      usage: 'validate all [--docs-only] [--code-only]',
-      options: [
-        { long: '--docs-only', desc: 'Run only documentation validation' },
-        { long: '--code-only', desc: 'Run only code analysis' }
-      ],
-      examples: [
-        { cmd: 'validate all', desc: 'Run all validations' },
-        { cmd: 'validate all --docs-only', desc: 'Run only doc validation' }
-      ]
-    });
-  }
-
-  parseArg(arg, _args, i, parsed) {
-    if (arg === '--docs-only') {
-      parsed.docsOnly = true;
-      return i;
-    }
-    if (arg === '--code-only') {
-      parsed.codeOnly = true;
-      return i;
-    }
-  }
-
-  async run(parsed) {
-    const { runComprehensiveValidation } = await import('./comprehensive-validation.mjs');
-
-    try {
-      const { exitCode } = await runComprehensiveValidation({
-        docsOnly: parsed.docsOnly,
-        codeOnly: parsed.codeOnly
-      });
-      if (exitCode !== 0) {
-        process.exit(exitCode);
-      }
-    } catch (error) {
-      console.error(`❌ ${error.message}`);
-      process.exit(1);
-    }
-  }
-}
-
 class ValidateDocsCommand extends Command {
   constructor() {
     super({
       name: 'docs',
-      description: 'Validate documentation only',
+      description: 'Validate markdown documentation',
       usage: 'validate docs [--verbose]',
       options: [
         { long: '--verbose', desc: 'Enable verbose output' }
@@ -217,6 +173,35 @@ class ValidateDocsCommand extends Command {
   }
 }
 
+class ValidateCodeCommand extends Command {
+  constructor() {
+    super({
+      name: 'code',
+      description: 'Run code analysis (ast-grep)',
+      usage: 'validate code',
+      examples: [
+        { cmd: 'validate code', desc: 'Analyze code with ast-grep rules' }
+      ]
+    });
+  }
+
+  parseArg() {}
+
+  async run() {
+    const { runComprehensiveValidation } = await import('./comprehensive-validation.mjs');
+
+    try {
+      const { exitCode } = await runComprehensiveValidation({ codeOnly: true });
+      if (exitCode !== 0) {
+        process.exit(exitCode);
+      }
+    } catch (error) {
+      console.error(`❌ ${error.message}`);
+      process.exit(1);
+    }
+  }
+}
+
 class ValidateRouter extends Router {
   constructor() {
     super();
@@ -225,9 +210,38 @@ class ValidateRouter extends Router {
     this.commandsLabel = 'TARGETS';
     this.commandsItemLabel = 'target';
     this.commands = {
-      all: new ValidateAllCommand(),
-      docs: new ValidateDocsCommand()
+      docs: new ValidateDocsCommand(),
+      code: new ValidateCodeCommand()
     };
+  }
+
+  // Override route() to run all validations when no subcommand given
+  async route(args) {
+    // Handle explicit help requests normally
+    if (args.length > 0) {
+      const firstArg = args[0];
+      if (firstArg === '--help' || firstArg === '-h' || firstArg === 'help') {
+        return super.route(args);
+      }
+      // Handle known subcommands
+      if (this.commands[firstArg]) {
+        return super.route(args);
+      }
+    }
+
+    // No args or unknown first arg → run all validations
+    console.log('Running all validations (use "validate docs" or "validate code" for specific targets)\n');
+    const { runComprehensiveValidation } = await import('./comprehensive-validation.mjs');
+
+    try {
+      const { exitCode } = await runComprehensiveValidation({});
+      if (exitCode !== 0) {
+        process.exit(exitCode);
+      }
+    } catch (error) {
+      console.error(`❌ ${error.message}`);
+      process.exit(1);
+    }
   }
 }
 
@@ -303,7 +317,9 @@ class ScriptsRouter extends Router {
       'schema build',
       'schema build --check',
       'docs generate',
-      'validate all',
+      'validate',
+      'validate docs',
+      'validate code',
       'lint mocks'
     ];
   }
