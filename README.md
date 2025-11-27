@@ -40,12 +40,12 @@ npm create @m5nv/scaffold my-app -- --template basic-react-spa
 ```bash
 # From within project
 cd my-project
-npx @m5nv/make-template init
-npx @m5nv/make-template convert
+npx -p @m5nv/create-scaffold make-template init
+npx -p @m5nv/create-scaffold make-template convert
 
 # Or with explicit path
-npx @m5nv/make-template init ./my-project
-npx @m5nv/make-template convert ./my-project
+npx -p @m5nv/create-scaffold make-template init ./my-project
+npx -p @m5nv/create-scaffold make-template convert ./my-project
 ```
 
 ### 📋 Reuse previous choices
@@ -144,12 +144,12 @@ authentication!
 ```bash
 # Convert your project to a reusable template
 cd my-awesome-project
-npx @m5nv/make-template init      # Create configuration files
-npx @m5nv/make-template convert   # Apply templatization
+npx -p @m5nv/create-scaffold make-template init      # Create configuration files
+npx -p @m5nv/create-scaffold make-template convert   # Apply templatization
 
 # Or specify path explicitly
-npx @m5nv/make-template init ./my-awesome-project
-npx @m5nv/make-template convert ./my-awesome-project
+npx -p @m5nv/create-scaffold make-template init ./my-awesome-project
+npx -p @m5nv/create-scaffold make-template convert ./my-awesome-project
 ```
 
 Automatically detects and templatizes JSX, JSON, Markdown, and HTML content.

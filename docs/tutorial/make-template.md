@@ -94,7 +94,7 @@ you understand what's happening under the hood.
 Now let's use the automation to do this for us:
 
 ```bash
-npx make-template init
+npx -p @m5nv/create-scaffold make-template init
 ```
 
 This creates two configuration files:
@@ -139,7 +139,7 @@ default to 'basic-react-spa' if they don't provide a value."
 Now apply the transformations:
 
 ```bash
-npx make-template convert . --yes
+npx -p @m5nv/create-scaffold make-template convert . --yes
 ```
 
 This creates `.template-undo.json` with reverse mappings and updates your files
@@ -162,10 +162,10 @@ Before scaffolding manually, you can use the built-in test command to validate y
 
 ```bash
 # Test template functionality
-npx make-template test .
+npx -p @m5nv/create-scaffold make-template test .
 
 # Test with detailed output
-npx make-template test . --verbose
+npx -p @m5nv/create-scaffold make-template test . --verbose
 ```
 
 **What the test command does:**
@@ -203,7 +203,7 @@ This is an important feature: **templates are reversible**. Let's undo the conve
 
 ```bash
 cd ../basic-react-spa
-npx make-template restore --yes
+npx -p @m5nv/create-scaffold make-template restore --yes
 cat package.json | grep name
 ```
 
@@ -311,7 +311,7 @@ export default function Testimonials() {
 Marketing websites need structured configuration. Let's create configuration files:
 
 ```bash
-npx make-template init
+npx -p @m5nv/create-scaffold make-template init
 ```
 
 This creates `.templatize.json` and `template.json` files. Now edit `.templatize.json` to organize placeholders for marketing content:
@@ -446,13 +446,13 @@ Before running the conversion, validate your `.templatize.json` configuration to
 
 ```bash
 # Validate the configuration file
-npx make-template config validate
+npx -p @m5nv/create-scaffold make-template config validate
 
 # Validate a specific configuration file
-npx make-template config validate .templatize.json
+npx -p @m5nv/create-scaffold make-template config validate .templatize.json
 ```
 
-> **Note**: Configuration validation is automatically performed when you run `npx make-template convert`, so this step is optional. Use `config validate` when you want to verify your configuration without running the full conversion process.
+> **Note**: Configuration validation is automatically performed when you run `npx -p @m5nv/create-scaffold make-template convert`, so this step is optional. Use `config validate` when you want to verify your configuration without running the full conversion process.
 
 **What config validation checks:**
 - JSON syntax errors
@@ -493,7 +493,7 @@ Fix these issues before running conversion.
 Now run the conversion to apply your custom `.templatize.json` rules:
 
 ```bash
-npx make-template convert . --yes
+npx -p @m5nv/create-scaffold make-template convert . --yes
 ```
 
 This processes your source files using the custom rules you defined, replacing values with placeholders and generating the auto-numbered suffixes (`_0`, `_1`, `_2`) for `allowMultiple` rules.
@@ -602,7 +602,7 @@ Notice the `_0`, `_1`, `_2` suffixes? The system automatically numbered the plac
 ### Convert and Inspect
 
 ```bash
-npx make-template convert . --yes
+npx -p @m5nv/create-scaffold make-template convert . --yes
 ```
 
 Now look at the marketing components:
@@ -725,7 +725,7 @@ Now that you've created a more complex template with custom configuration, test 
 
 ```bash
 # Test the template
-npx make-template test . --verbose
+npx -p @m5nv/create-scaffold make-template test . --verbose
 ```
 
 **What gets validated:**
@@ -892,8 +892,8 @@ INSERT INTO service_types (name, description, base_price) VALUES
 ### Convert with Auto-Detection
 
 ```bash
-npx make-template init
-npx make-template convert . --yes
+npx -p @m5nv/create-scaffold make-template init
+npx -p @m5nv/create-scaffold make-template convert . --yes
 ```
 
 The auto-detection recognizes Cloudflare Workers patterns and automatically replaces infrastructure configurations with placeholders:

@@ -36,7 +36,7 @@ Test both tools are accessible:
 
 ```bash
 npx @m5nv/create-scaffold --help | head -5
-npx make-template --help | head -5
+npx -p @m5nv/create-scaffold make-template --help | head -5
 ```
 
 **Expected:** Help text for both commands.
