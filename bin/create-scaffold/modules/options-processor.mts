@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // @ts-nocheck
 
-import { ValidationError } from '@m5nv/create-scaffold/lib/error/index.mts';
+import { ValidationError } from '@m5nv/create-scaffold/lib/error/validation.mts';
 
 /**
  * Normalize CLI-supplied options against template dimensions.

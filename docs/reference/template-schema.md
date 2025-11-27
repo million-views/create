@@ -42,6 +42,8 @@ without `schemaVersion` are rejected.
   "id": "author/template-name",
   "name": "Template Name",
   "description": "Template description",
+  "placeholderFormat": "unicode",
+  "placeholders": {},
   "tags": ["tag1", "tag2"],
   "author": "Author Name",
   "license": "MIT",
@@ -73,39 +75,51 @@ without `schemaVersion` are rejected.
 
 ## Minimal Template
 
-The simplest valid template requires 4 fields:
+The simplest valid template requires 6 fields:
 
 ```json
 {
   "schemaVersion": "1.0.0",
   "id": "author/minimal-template",
   "name": "Minimal Template",
-  "description": "A minimal template example"
+  "description": "A minimal template example",
+  "placeholderFormat": "unicode",
+  "placeholders": {}
 }
 ```
 
 This minimal template:
 
 - Can be scaffolded immediately with `create-scaffold new`
+- Uses unicode placeholder format (`⦃TOKEN⦄`) for React/JSX compatibility
 - Contains no placeholders or advanced features
 - Serves as a foundation for progressive enhancement
 
 ## Top-Level Properties
 
-| Property        | Type       | Required | Description                                             |
-| --------------- | ---------- | -------- | ------------------------------------------------------- |
-| `schemaVersion` | `string`   | Yes      | Schema version (currently "1.0.0")                      |
-| `id`            | `string`   | Yes      | Unique identifier in format `author/template-name`      |
-| `name`          | `string`   | Yes      | Human-readable template name (1-120 chars)              |
-| `description`   | `string`   | Yes      | Detailed description (1-500 chars)                      |
-| `placeholders`  | `object`   | No       | Placeholder definitions with defaults and descriptions  |
-| `tags`          | `string[]` | No       | Categorization tags (lowercase, alphanumeric + hyphens) |
-| `author`        | `string`   | No       | Template author or organization name                    |
-| `license`       | `string`   | No       | License under which template is distributed             |
-| `handoff`       | `string[]` | No       | Post-scaffold instructions (max 240 chars each)         |
+| Property            | Type       | Required | Description                                                     |
+| ------------------- | ---------- | -------- | --------------------------------------------------------------- |
+| `schemaVersion`     | `string`   | Yes      | Schema version (currently "1.0.0")                              |
+| `id`                | `string`   | Yes      | Unique identifier in format `author/template-name`              |
+| `name`              | `string`   | Yes      | Human-readable template name (1-120 chars)                      |
+| `description`       | `string`   | Yes      | Detailed description (1-500 chars)                              |
+| `placeholderFormat` | `string`   | Yes      | Delimiter format: `unicode`, `mustache`, `dollar`, or `percent` |
+| `placeholders`      | `object`   | Yes      | Placeholder definitions (can be empty `{}`)                     |
+| `tags`              | `string[]` | No       | Categorization tags (lowercase, alphanumeric + hyphens)         |
+| `author`            | `string`   | No       | Template author or organization name                            |
+| `license`           | `string`   | No       | License under which template is distributed                     |
+| `handoff`           | `string[]` | No       | Post-scaffold instructions (max 240 chars each)                 |
 
-All templates require `schemaVersion`, `id`, `name`, and `description`. The
-`placeholders` field is optional.
+### Placeholder Formats
+
+| Format     | Syntax           | Best For                                        |
+| ---------- | ---------------- | ----------------------------------------------- |
+| `unicode`  | `⦃TOKEN⦄`        | React/JSX (default, avoids `{{}}` conflicts)    |
+| `mustache` | `{{TOKEN}}`      | General templates (conflicts with JSX)          |
+| `dollar`   | `$TOKEN$`        | Avoids conflicts with template literals         |
+| `percent`  | `%TOKEN%`        | Avoids conflicts with CSS/custom syntax         |
+
+Set via `make-template convert --placeholder-format <format>`.
 
 ## Setup Section
 

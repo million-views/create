@@ -7,7 +7,7 @@
  * @module lib/validation/cli/input
  */
 
-import { ValidationError } from '../../error/index.mts';
+import { ValidationError } from '../../error/validation.mts';
 
 /**
  * Validate and sanitize repository URLs to prevent malicious redirects.

@@ -4,8 +4,8 @@
 import fs from 'fs/promises';
 import path from 'path';
 import { File } from '../util/file.mts';
-import { sanitize } from '../security/index.mts';
-import { ValidationError } from '../error/index.mts';
+import * as sanitize from '../security/sanitize.mts';
+import { ValidationError } from '../error/validation.mts';
 import { validateDimensionsMetadata } from '../validation/domain/dimension.mts';
 import { validateAuthorAssetsDir } from '../validation/cli/option.mts';
 import { validateTemplateManifest } from '../validation/schema/manifest.mts';

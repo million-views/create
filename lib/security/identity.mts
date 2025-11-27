@@ -7,7 +7,7 @@
  * @module lib/security/identity
  */
 
-import { ValidationError } from '../error/index.mts';
+import { ValidationError } from '../error/validation.mts';
 
 /**
  * The current package name.

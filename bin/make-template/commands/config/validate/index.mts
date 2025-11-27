@@ -1,7 +1,7 @@
 // @ts-nocheck
 import { Command } from '@m5nv/create-scaffold/lib/cli/command.mts';
 import { configValidateHelp } from './help.mts';
-import { loadConfigFromFile } from '@m5nv/create-scaffold/lib/templatize/index.mts';
+import { loadConfigFromFile } from '@m5nv/create-scaffold/lib/templatize/strategy/config.mts';
 
 export class ConfigValidateCommand extends Command {
   constructor() {

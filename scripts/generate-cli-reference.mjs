@@ -1,34 +1,21 @@
 #!/usr/bin/env node
 
 /**
- * CLI Reference Auto-Generation Script
+ * CLI Reference Documentation Generator
  *
- * Generates CLI reference documentation from structured help files.
- * Preserves manual narrative content while auto-generating command reference sections.
+ * Generates per-command markdown files from structured help.mts files.
+ * Output: docs/reference/commands/{tool}/{command}.md
+ *
+ * Source of truth: bin/{tool}/commands/{command}/help.mts
  */
 
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { replaceBetween } from '../lib/primitives/text.mts';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-
-/**
- * Replace content between markers in a file (wrapper for file I/O).
- * @param {string} filePath - Path to the file
- * @param {string} start - Start marker
- * @param {string} end - End marker
- * @param {string} block - Replacement content
- */
-async function replaceInFile(filePath, start, end, block) {
-  const content = await fs.readFile(filePath, 'utf8');
-  const updated = replaceBetween(content, start, end, block);
-  await fs.writeFile(filePath, updated, 'utf8');
-}
-
 const ROOT_DIR = path.resolve(__dirname, '..');
-const CLI_REF_PATH = path.join(ROOT_DIR, 'docs', 'reference', 'cli-reference.md');
+const COMMANDS_DIR = path.join(ROOT_DIR, 'docs', 'reference', 'commands');
 
 /**
  * Load help data from all command help files
@@ -44,10 +31,10 @@ async function loadHelpFiles() {
     const commandDirs = await fs.readdir(commandsDir);
 
     for (const cmdDir of commandDirs) {
-      const helpPath = path.join(commandsDir, cmdDir, 'help.js');
+      const helpPath = path.join(commandsDir, cmdDir, 'help.mts');
 
       try {
-        // Check if help.js exists at command level
+        // Check if help.mts exists at command level
         await fs.access(helpPath);
 
         // Dynamic import of help file
@@ -57,30 +44,27 @@ async function loadHelpFiles() {
 
         helpData[tool][cmdDir] = helpContent;
       } catch (error) {
-        // Check if this is a subcommand structure (like config/init, config/validate)
+        // Check if this is a subcommand structure (like config/validate)
         try {
           const subCmdDir = path.join(commandsDir, cmdDir);
           const subDirs = await fs.readdir(subCmdDir);
 
           // Look for subcommand help files
           for (const subDir of subDirs) {
-            const subHelpPath = path.join(subCmdDir, subDir, 'help.js');
+            const subHelpPath = path.join(subCmdDir, subDir, 'help.mts');
             try {
               await fs.access(subHelpPath);
               const subHelpModule = await import(path.resolve(subHelpPath));
               const subHelpName = Object.keys(subHelpModule)[0];
               const subHelpContent = subHelpModule[subHelpName];
 
-              // Store as tool.command.subcommand
-              if (!helpData[tool][cmdDir]) {
-                helpData[tool][cmdDir] = {};
-              }
-              helpData[tool][cmdDir][subDir] = subHelpContent;
+              // Store as "command-subcommand" (e.g., "config-validate")
+              helpData[tool][`${cmdDir}-${subDir}`] = subHelpContent;
             } catch (_subError) {
               // Skip subcommands without help
             }
           }
-        } catch (_subError) {
+        } catch (_dirError) {
           console.warn(`Warning: Could not load help for ${tool}/${cmdDir}:`, error.message);
         }
       }
@@ -88,104 +72,6 @@ async function loadHelpFiles() {
   }
 
   return helpData;
-}
-
-/**
- * Generate markdown for a single command
- */
-function generateCommandMarkdown(tool, command, help) {
-  // Validate help structure
-  if (!help || typeof help !== 'object') {
-    console.warn(`Warning: Invalid help structure for ${tool}/${command}`);
-    return [`### \`${command}\` - Command help unavailable`, '', 'Command help could not be loaded.', ''];
-  }
-
-  if (!help.usage) {
-    console.warn(`Warning: Missing usage for ${tool}/${command}`);
-    help.usage = `${command} [options]`;
-  }
-
-  if (!help.description) {
-    console.warn(`Warning: Missing description for ${tool}/${command}`);
-    help.description = 'Command description unavailable';
-  }
-
-  const lines = [];
-
-  // Command header
-  lines.push(`### \`${command}\` - ${help.description}`);
-  lines.push('');
-
-  // Description
-  if (help.detailedDescription && help.detailedDescription.length > 0) {
-    lines.push(...help.detailedDescription);
-    lines.push('');
-  }
-
-  // Usage
-  lines.push('**Usage:**');
-  lines.push('');
-  lines.push('```bash');
-  lines.push(`${tool} ${help.usage}`);
-  lines.push('```');
-  lines.push('');
-
-  // Arguments (if any in usage)
-  const argsMatch = help.usage.match(/<[^>]+>/g);
-  if (argsMatch) {
-    lines.push('**Arguments:**');
-    argsMatch.forEach(arg => {
-      const argName = arg.slice(1, -1); // Remove < >
-      const description = getArgumentDescription(argName, help);
-      lines.push(`- \`${arg}\`: ${description}`);
-    });
-    lines.push('');
-  }
-
-  // Options
-  if (help.optionGroups && help.optionGroups.length > 0) {
-    lines.push('**Options:**');
-    lines.push('');
-
-    // Use table format for options
-    lines.push('| Option | Description |');
-    lines.push('|--------|-------------|');
-
-    for (const group of help.optionGroups) {
-      // Add group header if there are multiple groups
-      if (help.optionGroups.length > 1) {
-        lines.push(`| **${group.title}** | |`);
-      }
-
-      for (const option of group.options) {
-        const optionStr = formatOptionString(option);
-        const desc = option.desc + (option.detailed ? ` ${option.detailed.join(' ')}` : '');
-        lines.push(`| \`${optionStr}\` | ${desc} |`);
-      }
-    }
-    lines.push('');
-  }
-
-  // Examples
-  if (help.examples && help.examples.length > 0) {
-    lines.push('**Examples:**');
-    lines.push('');
-    for (const example of help.examples) {
-      lines.push('```bash');
-      lines.push(`# ${example.desc}`);
-      lines.push(example.cmd);
-      lines.push('```');
-      lines.push('');
-    }
-  }
-
-  // Footer (if present)
-  if (help.footer && help.footer.length > 0) {
-    lines.push(...help.footer);
-    lines.push('');
-  }
-
-  return lines.join('\n');
 }
 
 /**
@@ -208,92 +94,212 @@ function formatOptionString(option) {
 }
 
 /**
- * Get description for an argument
+ * Get list of related commands for "See Also" section
  */
-function getArgumentDescription(argName, help) {
-  // First, try to find argument descriptions in the help content
-  if (help.detailedDescription) {
-    // Look for patterns like "project-path: description" or "- project-path: description"
-    const argPatterns = [
-      new RegExp(`\\b${argName}\\b:\\s*([^\\n.!?]+[.!?]?)`, 'i'),
-      new RegExp(`-\\s*${argName}\\b:\\s*([^\\n.!?]+[.!?]?)`, 'i'),
-      new RegExp(`${argName}\\b[^\\n]*:\\s*([^\\n.!?]+[.!?]?)`, 'i')
-    ];
+function getRelatedCommands(tool, currentCommand, allCommands) {
+  const related = [];
 
-    for (const pattern of argPatterns) {
-      for (const desc of help.detailedDescription) {
-        const match = desc.match(pattern);
-        if (match) {
-          return match[1].trim();
+  // Common command relationships
+  const relationships = {
+    'create-scaffold': {
+      new: ['list', 'validate'],
+      list: ['new', 'validate'],
+      validate: ['new', 'list']
+    },
+    'make-template': {
+      init: ['convert', 'config-validate'],
+      convert: ['init', 'restore', 'config-validate'],
+      restore: ['convert', 'init'],
+      validate: ['init', 'config-validate'],
+      hints: ['init', 'convert'],
+      test: ['validate', 'convert'],
+      'config-validate': ['init', 'convert', 'validate']
+    }
+  };
+
+  const commandRelations = relationships[tool]?.[currentCommand] || [];
+
+  for (const rel of commandRelations) {
+    if (allCommands.includes(rel)) {
+      related.push(rel);
+    }
+  }
+
+  return related;
+}
+
+/**
+ * Generate markdown content for a single command
+ */
+function generateCommandMarkdown(tool, command, help, allCommands) {
+  const lines = [];
+
+  // Title
+  const displayCommand = command.replace('-', ' '); // config-validate -> config validate
+  lines.push(`# ${tool} ${displayCommand}`);
+  lines.push('');
+
+  // Description
+  lines.push(help.description);
+  lines.push('');
+
+  // Usage
+  lines.push('## Usage');
+  lines.push('');
+  lines.push('```bash');
+  lines.push(`${tool} ${help.usage}`);
+  lines.push('```');
+  lines.push('');
+
+  // Detailed description
+  if (help.detailedDescription && help.detailedDescription.length > 0) {
+    lines.push('## Description');
+    lines.push('');
+    for (const para of help.detailedDescription) {
+      if (para.startsWith('  ')) {
+        // Indented content - likely a list
+        lines.push(para);
+      } else if (para === '') {
+        lines.push('');
+      } else {
+        lines.push(para);
+      }
+    }
+    lines.push('');
+  }
+
+  // Options
+  if (help.optionGroups && help.optionGroups.length > 0) {
+    lines.push('## Options');
+    lines.push('');
+
+    for (const group of help.optionGroups) {
+      if (help.optionGroups.length > 1 && group.title) {
+        lines.push(`### ${group.title}`);
+        lines.push('');
+      }
+
+      if (group.options && group.options.length > 0) {
+        lines.push('| Option | Description |');
+        lines.push('|--------|-------------|');
+
+        for (const option of group.options) {
+          const optionStr = formatOptionString(option);
+          lines.push(`| \`${optionStr}\` | ${option.desc} |`);
+        }
+        lines.push('');
+
+        // Add detailed explanations if present
+        for (const option of group.options) {
+          if (option.detailed && option.detailed.length > 0) {
+            lines.push(...option.detailed);
+            lines.push('');
+          }
         }
       }
     }
   }
 
-  // Fallback to predefined descriptions
-  const descriptions = {
-    'project-name': 'Name of the directory to create for your project',
-    'project-path': 'Path to the project directory to convert',
-    'template-path': 'Path to the template directory to test',
-    'template-name': 'Template to use for project creation',
-    'config-file': 'Path to configuration file'
-  };
+  // Examples
+  if (help.examples && help.examples.length > 0) {
+    lines.push('## Examples');
+    lines.push('');
+    lines.push('```bash');
+    for (const example of help.examples) {
+      lines.push(`# ${example.desc}`);
+      lines.push(`${tool} ${example.cmd}`);
+      lines.push('');
+    }
+    // Remove trailing empty line inside code block
+    if (lines[lines.length - 1] === '') {
+      lines.pop();
+    }
+    lines.push('```');
+    lines.push('');
+  }
 
-  return descriptions[argName] || `The ${argName.replace(/-/g, ' ')}`;
+  // Footer (workflow tips, etc.)
+  if (help.footer && help.footer.length > 0) {
+    lines.push('## Notes');
+    lines.push('');
+    for (const line of help.footer) {
+      lines.push(line);
+    }
+    lines.push('');
+  }
+
+  // See Also
+  const related = getRelatedCommands(tool, command, allCommands);
+  if (related.length > 0) {
+    lines.push('## See Also');
+    lines.push('');
+    for (const rel of related) {
+      const relDisplay = rel.replace('-', ' ');
+      lines.push(`- [${relDisplay}](./${rel}.md)`);
+    }
+    lines.push('');
+  }
+
+  return lines.join('\n');
 }
 
 /**
- * Generate content for a specific tool
+ * Generate all command documentation files
  */
-function generateToolContent(tool, helpData) {
-  const sections = [];
-  sections.push(`## ${tool} Commands`);
-  sections.push('');
+async function generateCommandDocs() {
+  const helpData = await loadHelpFiles();
 
-  for (const [command, help] of Object.entries(helpData)) {
-    // Handle subcommands (like config)
-    if (typeof help === 'object' && !help.name) {
-      // This is a subcommand container (like config: {init: {...}, validate: {...}})
-      for (const [subcommand, subHelp] of Object.entries(help)) {
-        sections.push(generateCommandMarkdown(tool, `${command} ${subcommand}`, subHelp));
+  let generated = 0;
+  let errors = 0;
+
+  for (const [tool, commands] of Object.entries(helpData)) {
+    const toolDir = path.join(COMMANDS_DIR, tool);
+    const allCommands = Object.keys(commands);
+
+    // Ensure tool directory exists
+    await fs.mkdir(toolDir, { recursive: true });
+
+    for (const [command, help] of Object.entries(commands)) {
+      const outputPath = path.join(toolDir, `${command}.md`);
+
+      try {
+        const content = generateCommandMarkdown(tool, command, help, allCommands);
+        await fs.writeFile(outputPath, content, 'utf8');
+        console.log(`  ✓ ${tool}/${command}.md`);
+        generated++;
+      } catch (error) {
+        console.error(`  ✗ ${tool}/${command}: ${error.message}`);
+        errors++;
       }
-    } else {
-      // Regular command
-      sections.push(generateCommandMarkdown(tool, command, help));
     }
   }
 
-  return sections;
-}
-
-/**
- * Generate the complete CLI reference content
- */
-async function generateCliReference() {
-  const helpData = await loadHelpFiles();
-
-  // Generate content for each tool separately
-  const tools = ['create-scaffold', 'make-template'];
-
-  for (const tool of tools) {
-    const toolContent = generateToolContent(tool, helpData[tool]);
-    const startMarker = `<!-- AUTO-GENERATED: ${tool} commands -->`;
-    const endMarker = `<!-- END AUTO-GENERATED: ${tool} commands -->`;
-
-    await replaceInFile(CLI_REF_PATH, startMarker, endMarker, toolContent);
-  }
-  console.log('✅ CLI reference updated successfully');
+  return { generated, errors };
 }
 
 /**
  * Main execution
  */
 async function main() {
+  console.log('Generating CLI command documentation...\n');
+
   try {
-    await generateCliReference();
-    console.log('🎉 CLI reference generation complete!');
+    const { generated, errors } = await generateCommandDocs();
+
+    console.log('');
+    console.log(`✅ Generated ${generated} command files`);
+
+    if (errors > 0) {
+      console.log(`⚠️  ${errors} errors occurred`);
+    }
+
+    console.log('');
+    console.log('Output: docs/reference/commands/{tool}/{command}.md');
+    console.log('');
+    console.log('Note: Do not edit generated files directly.');
+    console.log('Edit source help.mts files in bin/{tool}/commands/{command}/');
   } catch (error) {
-    console.error('❌ Error generating CLI reference:', error);
+    console.error('❌ Error:', error);
     process.exit(1);
   }
 }
@@ -303,4 +309,4 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   main();
 }
 
-export { generateCliReference, loadHelpFiles, generateCommandMarkdown };
+export { generateCommandDocs, loadHelpFiles, generateCommandMarkdown };

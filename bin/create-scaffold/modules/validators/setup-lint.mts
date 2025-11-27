@@ -6,7 +6,7 @@ import path from 'node:path';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 
-import { sanitize } from '@m5nv/create-scaffold/lib/security/index.mts';
+import * as sanitize from '@m5nv/create-scaffold/lib/security/sanitize.mts';
 
 const NAME = 'setupScript';
 const SETUP_FILENAME = '_setup.mjs';

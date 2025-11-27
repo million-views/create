@@ -114,21 +114,19 @@ export const newHelp = {
       desc: 'Provide placeholder values'
     },
     {
-      cmd: 'new my-app --selection ./selection.json',
+      cmd: 'new my-app --template react-app --selection ./selection.json',
       desc: 'Use selection file for configuration'
     },
     {
       cmd: 'new my-app --template react-app --no-cache',
       desc: 'Skip cache and fetch fresh'
-    },
-    {
-      cmd: 'npm create @m5nv/scaffold my-app --template react-app',
-      desc: 'Use with npm create'
-    },
-    {
-      cmd: 'npx @m5nv/create-scaffold new my-app --template react-app',
-      desc: 'Use with npx'
     }
+  ],
+
+  footer: [
+    'Alternative invocations:',
+    '  npm create @m5nv/scaffold my-app -- --template react-app',
+    '  npx @m5nv/create-scaffold new my-app --template react-app'
   ]
 };
 

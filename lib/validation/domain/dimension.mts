@@ -7,7 +7,7 @@
  * @module lib/validation/domain/dimension
  */
 
-import { ValidationError } from '../../error/index.mts';
+import { ValidationError } from '../../error/validation.mts';
 
 /**
  * Dimension type (single selection or multi-selection).

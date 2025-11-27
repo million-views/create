@@ -68,9 +68,9 @@ class TestRunner {
         'Resource Leak Tests',
         'E2E Hermetic Isolation Tests',
         'E2E Tutorial Workflows Tests',
-        'E2E Sprint 1 Tutorial Gap Tests',
-        'E2E Sprint 2 Tutorial Gap Tests',
-        'E2E Sprint 3 Tutorial Gap Tests',
+        'E2E Selection and Validation Tests',
+        'E2E Dimensions and Placeholders Tests',
+        'E2E Edge Cases and Errors Tests',
         'E2E Guided Workflow Tests'
       ],
       // Tool-specific groupings for targeted testing
@@ -532,22 +532,22 @@ class TestRunner {
         homeSuffix: 'e2e-workflows'
       },
       {
-        name: 'E2E Sprint 1 Tutorial Gap Tests',
-        command: ['--test', './tests/e2e/sprint1-tutorial-gaps.test.mjs'],
+        name: 'E2E Selection and Validation Tests',
+        command: ['--test', './tests/e2e/selection-and-validation.test.mjs'],
         description: 'Selection files, gates validation, and validate command',
-        homeSuffix: 'e2e-sprint1'
+        homeSuffix: 'e2e-selection-validation'
       },
       {
-        name: 'E2E Sprint 2 Tutorial Gap Tests',
-        command: ['--test', './tests/e2e/sprint2-tutorial-gaps.test.mjs'],
+        name: 'E2E Dimensions and Placeholders Tests',
+        command: ['--test', './tests/e2e/dimensions-and-placeholders.test.mjs'],
         description: 'Dimension scaffolding, placeholder overrides, make-template test',
-        homeSuffix: 'e2e-sprint2'
+        homeSuffix: 'e2e-dimensions-placeholders'
       },
       {
-        name: 'E2E Sprint 3 Tutorial Gap Tests',
-        command: ['--test', './tests/e2e/sprint3-tutorial-gaps.test.mjs'],
-        description: 'CLI command structure validation',
-        homeSuffix: 'e2e-sprint3'
+        name: 'E2E Edge Cases and Errors Tests',
+        command: ['--test', './tests/e2e/edge-cases-and-errors.test.mjs'],
+        description: 'Edge cases, restore workflow, and error scenarios',
+        homeSuffix: 'e2e-edge-cases'
       },
       {
         name: 'E2E Guided Workflow Tests',

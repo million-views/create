@@ -4,12 +4,13 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { sanitize } from '@m5nv/create-scaffold/lib/security/index.mts';
-import { cli } from '@m5nv/create-scaffold/lib/validation/index.mts';
+import * as sanitize from '@m5nv/create-scaffold/lib/security/sanitize.mts';
+import * as cli from '@m5nv/create-scaffold/lib/validation/cli/input.mts';
 import { File } from '@m5nv/create-scaffold/lib/util/file.mts';
-import { createTemplateIgnoreSet, shouldIgnoreTemplateEntry } from '@m5nv/create-scaffold/lib/template/index.mts';
+import { createTemplateIgnoreSet, shouldIgnoreTemplateEntry } from '@m5nv/create-scaffold/lib/template/ignore.mts';
 import { createSetupTools, loadSetupScript } from './setup-runtime.mts';
-import { ContextualError, ErrorContext, ErrorSeverity } from '@m5nv/create-scaffold/lib/error/index.mts';
+import { ContextualError } from '@m5nv/create-scaffold/lib/error/contextual.mts';
+import { ErrorContext, ErrorSeverity } from '@m5nv/create-scaffold/lib/error/handler.mts';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -177,13 +178,13 @@ export class GuidedSetupWorkflow {
     if (this.selectionFilePath && Object.keys(this.workflowState.dimensionSelections).length === 0) {
       try {
         const loadedSelection = await this.#loadSelectionFile();
-        if (loadedSelection && loadedSelection.selections) {
+        if (loadedSelection && loadedSelection.choices) {
           // Validate that the loaded selection matches the current template
           if (loadedSelection.templateId === (this.metadata?.id || this.templateName) &&
-            loadedSelection.version === (this.metadata?.schemaVersion || '1.0.0')) {
+            loadedSelection.schemaVersion === (this.metadata?.schemaVersion || '1.0.0')) {
 
             // Validate the loaded selections against template constraints
-            const validationResult = await this.#validateLoadedSelections(loadedSelection.selections);
+            const validationResult = await this.#validateLoadedSelections(loadedSelection.choices);
             if (!validationResult.valid) {
               await this.prompt.write(`\n❌ Loaded selections are invalid:\n`);
               for (const error of validationResult.errors) {
@@ -191,7 +192,7 @@ export class GuidedSetupWorkflow {
               }
               await this.prompt.write(`\nProceeding with interactive selection\n`);
             } else {
-              this.workflowState.dimensionSelections = { ...loadedSelection.selections };
+              this.workflowState.dimensionSelections = { ...loadedSelection.choices };
               await this.prompt.write(`\n✅ Loaded and validated selections from ${this.selectionFilePath}\n`);
               return { success: true, message: 'Dimension selection loaded from file' };
             }
@@ -1158,9 +1159,10 @@ export class GuidedSetupWorkflow {
 
       // Build selection.json structure
       const selection = {
+        schemaVersion: this.metadata?.schemaVersion || '1.0.0',
         templateId: this.metadata?.id || `${this.templateName}`,
-        version: this.metadata?.schemaVersion || '1.0.0',
-        selections: {
+        timestamp: new Date().toISOString(),
+        choices: {
           deployment: dimensionSelections.deployment,
           features: Array.isArray(dimensionSelections.features)
             ? dimensionSelections.features
@@ -1173,7 +1175,7 @@ export class GuidedSetupWorkflow {
           payments: dimensionSelections.payments,
           analytics: dimensionSelections.analytics
         },
-        derived,
+        placeholders: {},
         metadata: {
           name: this.workflowState.projectDirectory || 'my-project',
           packageManager: 'npm', // Default, could be made configurable

@@ -8,4 +8,4 @@
  * @module lib/validation/selection-validator
  */
 
-export { SelectionValidator } from './schema/index.mts';
+export { SelectionValidator } from './schema/selection-validator.mts';

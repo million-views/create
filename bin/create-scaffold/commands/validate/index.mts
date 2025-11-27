@@ -2,8 +2,9 @@
 import { Command } from '@m5nv/create-scaffold/lib/cli/command.mts';
 import { validateHelp } from './help.mts';
 import { TemplateValidator } from '@m5nv/create-scaffold/lib/validation/template-validator.mts';
-import { SecurityGate, BoundaryValidator } from '@m5nv/create-scaffold/lib/security/index.mts';
-import { GateError as SecurityGateError } from '@m5nv/create-scaffold/lib/error/index.mts';
+import { SecurityGate } from '@m5nv/create-scaffold/lib/security/gate.mts';
+import { BoundaryValidator } from '@m5nv/create-scaffold/lib/security/boundary.mts';
+import { GateError as SecurityGateError } from '@m5nv/create-scaffold/lib/error/gate.mts';
 import { stat } from 'fs/promises';
 import { basename } from 'path';
 

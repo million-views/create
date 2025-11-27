@@ -4,9 +4,8 @@
 import fs from 'fs';
 import path from 'path';
 import { File } from '@m5nv/create-scaffold/lib/util/file.mts';
-import {
-  shouldIgnoreTemplateEntry, createTemplateIgnoreSet, loadTemplateMetadataFromPath
-} from '@m5nv/create-scaffold/lib/template/index.mts';
+import { shouldIgnoreTemplateEntry, createTemplateIgnoreSet } from '@m5nv/create-scaffold/lib/template/ignore.mts';
+import { loadTemplateMetadataFromPath } from '@m5nv/create-scaffold/lib/template/discover.mts';
 import { extractPlaceholders as extractPlaceholdersWithFormat } from '@m5nv/create-scaffold/lib/placeholder/format.mts';
 
 /**

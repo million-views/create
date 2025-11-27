@@ -50,21 +50,22 @@ const validTemplate = {
 const validSelection = {
   schemaVersion: '1.0.0',
   templateId: 'test/example-template',
-  version: '1.0.0',
-  selections: {
+  choices: {
     deployment: 'vercel',
     features: ['auth', 'database'],
     database: 'postgresql'
-  }
+  },
+  placeholders: {}
 };
 
 const invalidSelection = {
   schemaVersion: '1.0.0',
   // Missing templateId
-  selections: {
+  choices: {
     deployment: 'vercel',
     features: ['auth']
-  }
+  },
+  placeholders: {}
 };
 
 test('SelectionValidator validates valid selection successfully', async () => {
@@ -102,8 +103,8 @@ test('SelectionValidator enforces feature dependencies', async () => {
   // Selection with payments but missing auth (which payments needs)
   const invalidDeps = {
     ...validSelection,
-    selections: {
-      ...validSelection.selections,
+    choices: {
+      ...validSelection.choices,
       features: ['payments', 'database'] // payments needs auth, but auth not selected
     }
   };
@@ -119,8 +120,8 @@ test('SelectionValidator validates dimension values exist', async () => {
   // Selection with invalid dimension value
   const invalidValue = {
     ...validSelection,
-    selections: {
-      ...validSelection.selections,
+    choices: {
+      ...validSelection.choices,
       deployment: 'invalid-target' // Not in template dimensions
     }
   };
@@ -149,8 +150,8 @@ test('SelectionValidator enforces gates constraints', async () => {
   // Selection that violates the gate
   const violatingSelection = {
     ...validSelection,
-    selections: {
-      ...validSelection.selections,
+    choices: {
+      ...validSelection.choices,
       deployment: 'netlify' // Forbidden by gate
     }
   };
@@ -207,8 +208,8 @@ test('SelectionValidator handles empty selections', async () => {
   const emptySelection = {
     schemaVersion: '1.0.0',
     templateId: 'test/example-template',
-    version: '1.0.0',
-    selections: {}
+    choices: {},
+    placeholders: {}
   };
 
   const result = await validator.validate(emptySelection, validTemplate);
@@ -222,8 +223,8 @@ test('SelectionValidator validates feature array handling', async () => {
   // Test with single feature as string (should be converted to array)
   const stringFeature = {
     ...validSelection,
-    selections: {
-      ...validSelection.selections,
+    choices: {
+      ...validSelection.choices,
       features: 'auth' // String instead of array
     }
   };

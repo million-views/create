@@ -32,8 +32,8 @@ npm install
 npm test
 
 #Test CLI locally (package is not published yet)
-node bin/create-scaffold/index.mjs --help
-node bin/create-scaffold/index.mjs --experimental-placeholder-prompts
+node bin/create-scaffold/index.mts --help
+node bin/create-scaffold/index.mts --experimental-placeholder-prompts
 npx . new test-project react-vite
 
 #Optional: expose the create-scaffold binary globally
@@ -54,27 +54,27 @@ The codebase follows a modular architecture with clear separation of concerns:
 create/
 ├── bin/                           # CLI command entry points
 │   ├── create-scaffold/          # Create-scaffold command implementation
-│   │   ├── index.mjs             # Main create-scaffold entry point
+│   │   ├── index.mts             # Main create-scaffold entry point
 │   │   ├── commands/             # Individual create-scaffold subcommands
 │   │   │   ├── new/              # Project creation command
 │   │   │   ├── list/             # Template listing command
 │   │   │   └── validate/         # Template validation command
 │   │   └── modules/              # Shared create-scaffold modules
-│   │       ├── cache-manager.mjs # Template repository caching
-│   │       ├── config-loader.mjs # Configuration file loading
-│   │       ├── dry-run-engine.mjs # Preview mode operations
-│   │       ├── guided-setup-workflow.mjs # Interactive setup flow
-│   │       ├── options-processor.mjs # CLI argument processing
-│   │       ├── placeholder-resolver.mjs # Template variable substitution
+│   │       ├── cache-manager.mts # Template repository caching
+│   │       ├── config-loader.mts # Configuration file loading
+│   │       ├── dry-run-engine.mts # Preview mode operations
+│   │       ├── guided-setup-workflow.mts # Interactive setup flow
+│   │       ├── options-processor.mts # CLI argument processing
+│   │       ├── placeholder-resolver.mts # Template variable substitution
 │   │       ├── registry/         # Template registry management
-│   │       ├── security.mjs      # Input validation and security
-│   │       ├── setup-runtime.mjs # Template setup script execution
-│   │       ├── template-resolver.mjs # Template discovery and loading
-│   │       ├── template-validation.mjs # Template manifest validation
+│   │       ├── security.mts      # Input validation and security
+│   │       ├── setup-runtime.mts # Template setup script execution
+│   │       ├── template-resolver.mts # Template discovery and loading
+│   │       ├── template-validation.mts # Template manifest validation
 │   │       ├── utils/            # Shared utility functions
 │   │       └── validators/       # Input validation utilities
 │   └── make-template/            # Make-template command implementation
-│       ├── index.mjs             # Main make-template entry point
+│       ├── index.mts             # Main make-template entry point
 │       └── commands/             # Make-template subcommands
 ├── docs/                         # User and developer documentation
 ├── tests/                        # Comprehensive test suites
@@ -96,48 +96,48 @@ create/
 
 #### CLI Entry Points
 
-**Create-Scaffold (`bin/create-scaffold/index.mjs`)**:
+**Create-Scaffold (`bin/create-scaffold/index.mts`)**:
 - Main entry point for the create-scaffold command
 - Orchestrates argument parsing, validation, and command dispatch
 - Coordinates between subcommands and shared modules
 - Manages error handling and user feedback
 
-**Make-Template (`bin/make-template/index.mjs`)**:
+**Make-Template (`bin/make-template/index.mts`)**:
 - Main entry point for the make-template command
 - Handles template authoring and conversion workflows
 - Manages template validation and project-to-template operations
 
 #### Core Modules
 
-**Options Processor (`bin/create-scaffold/modules/options-processor.mjs`)**:
+**Options Processor (`bin/create-scaffold/modules/options-processor.mts`)**:
 - Processes and validates CLI arguments using native `util.parseArgs`
 - Supports all CLI options: `--help`, `--log-file`, `--dry-run`, `--no-cache`, `--experimental-placeholder-prompts`, `--yes`, `--cache-ttl`
 - Provides comprehensive help text and usage information
 
-**Guided Setup Workflow (`bin/create-scaffold/modules/guided-setup-workflow.mjs`)**:
+**Guided Setup Workflow (`bin/create-scaffold/modules/guided-setup-workflow.mts`)**:
 - Drives the interactive prompt workflow for template selection and input capture
 - Coordinates repository caching, catalog formatting, and placeholder prompts
 - Returns normalized arguments that continue through the CLI pipeline
 
-**Security Module (`bin/create-scaffold/modules/security.mjs`)**:
+**Security Module (`bin/create-scaffold/modules/security.mts`)**:
 - Validates all user inputs for security compliance
 - Prevents path traversal attacks (`../` sequences)
 - Blocks command injection in repository URLs and branch names
 - Sanitizes error messages to prevent information disclosure
 
-**Cache Manager (`bin/create-scaffold/modules/cache-manager.mjs`)**:
+**Cache Manager (`bin/create-scaffold/modules/cache-manager.mts`)**:
 - Manages local template repository caching in `~/.m5nv/cache`
 - Implements TTL-based cache expiration (24-hour default)
 - Provides cache bypass with `--no-cache` flag
 - Handles cache corruption recovery automatically
 
-**Template Resolver (`bin/create-scaffold/modules/template-resolver.mjs`)**:
+**Template Resolver (`bin/create-scaffold/modules/template-resolver.mts`)**:
 - Handles template discovery and loading from various sources
 - Supports local paths, git repositories, and registry lookups
 - Manages template metadata parsing and validation
 - Coordinates with cache manager for performance optimization
 
-**Setup Runtime (`bin/create-scaffold/modules/setup-runtime.mjs`)**:
+**Setup Runtime (`bin/create-scaffold/modules/setup-runtime.mts`)**:
 - Executes template setup scripts in isolated environments
 - Manages environment variable injection and script sandboxing
 - Handles setup script failures gracefully with user feedback
@@ -263,17 +263,17 @@ Test changes immediately without installation:
 
 ```bash
 #Test CLI directly during development
-node bin/create-scaffold/index.mjs --help
-node bin/create-scaffold/index.mjs new my-test-app react-vite
-node bin/create-scaffold/index.mjs new test-project myorg/templates --template custom
+node bin/create-scaffold/index.mts --help
+node bin/create-scaffold/index.mts new my-test-app react-vite
+node bin/create-scaffold/index.mts new test-project myorg/templates --template custom
 
 #Test specific scenarios
-node bin/create-scaffold/index.mjs list myorg/templates
-node bin/create-scaffold/index.mjs new test-app express --dry-run
+node bin/create-scaffold/index.mts list myorg/templates
+node bin/create-scaffold/index.mts new test-app express --dry-run
 
 #Test make-template commands
-node bin/make-template/index.mjs --help
-node bin/make-template/index.mjs init
+node bin/make-template/index.mts --help
+node bin/make-template/index.mts init
 ```
 
 ### 2. npm link (Global Binary)
@@ -384,13 +384,10 @@ npm run test:suite "Spec Compliance Tests"      # Debug spec violations
 
 ### Test specific functionality
 ```bash
-node tests/create-scaffold/cli.test.mjs
-node tests/shared/security.test.mjs
-...
-node tests/shared/cache-manager.test.mjs
-node tests/shared/logger.test.mjs
-node tests/shared/template-discovery.test.mjs
-...
+node tests/create-scaffold/cli-integration.test.mjs
+node tests/security/security-functions.test.mjs
+node tests/create-scaffold/cache-manager.test.mjs
+node tests/create-scaffold/logger.test.mjs
 ```
 
 ### Test Output Interpretation
@@ -443,7 +440,7 @@ npm run test:system             # Production: Full system validation (L4)
 npm test                        # All tests pass together
 
 # 4. Manual CLI validation (local execution)
-node bin/create-scaffold/index.mjs --help
+node bin/create-scaffold/index.mts --help
 npx . new test-release react-vite
 npm link
 create-scaffold new test-release react-vite
@@ -672,7 +669,7 @@ npm run test:integration
 # Full development workflow
 npm run lint          # Check code quality first
 npm run test:unit     # Quick validation of core changes
-node bin/create-scaffold/index.mjs --help  # Test CLI directly
+node bin/create-scaffold/index.mts --help  # Test CLI directly
 
 # After changes
 npm test             # Run complete test suite
@@ -701,12 +698,12 @@ npm run test:system        # Verify system behavior
 
 ```bash
 # Test specific scenarios during development
-node bin/create-scaffold/index.mjs new test-debug nonexistent  # Error handling
-node bin/create-scaffold/index.mjs new ../test hack            # Security validation
-node bin/create-scaffold/index.mjs new valid-project react --dry-run  # Preview mode
+node bin/create-scaffold/index.mts new test-debug nonexistent  # Error handling
+node bin/create-scaffold/index.mts new ../test hack            # Security validation
+node bin/create-scaffold/index.mts new valid-project react --dry-run  # Preview mode
 
 # Test with logging enabled
-node bin/create-scaffold/index.mjs new my-app react --log-file debug.log
+node bin/create-scaffold/index.mts new my-app react --log-file debug.log
 cat debug.log  # Review detailed operation logs
 ```
 
@@ -720,8 +717,8 @@ npm run test:system        # Debug end-to-end issues
 npm run test:suite "Security Tests"  # Debug specific security issues
 
 # Run individual test files for deep debugging
-node tests/create-scaffold/cli.test.mjs
-node tests/shared/security.test.mjs
+node tests/create-scaffold/cli-integration.test.mjs
+node tests/security/security-functions.test.mjs
 node tests/create-scaffold/cache-manager.test.mjs
 ```
 
@@ -742,7 +739,7 @@ node tests/create-scaffold/cache-manager.test.mjs
   ```bash
   chmod +x $(npm root -g)/.bin/create-scaffold
   ```
-### Verify bin file permissions: `chmod +x bin/create-scaffold/index.mjs bin/make-template/index.mjs`
+### Verify bin file permissions: `chmod +x bin/create-scaffold/index.mts bin/make-template/index.mts`
 
 **Permission issues during testing**:
 
@@ -763,11 +760,11 @@ node tests/create-scaffold/cache-manager.test.mjs
 
 ```bash
 # Test performance with large repositories
-time node bin/create-scaffold/index.mjs new perf-test large-template
+time node bin/create-scaffold/index.mts new perf-test large-template
 
 # Test cache performance
-node bin/create-scaffold/index.mjs new test1 react  # First run (clone)
-time node bin/create-scaffold/index.mjs new test2 react  # Second run (cached)
+node bin/create-scaffold/index.mts new test1 react  # First run (clone)
+time node bin/create-scaffold/index.mts new test2 react  # Second run (cached)
 
 # Test with multiple templates
 npm run test:integration  # Includes performance validation
@@ -786,7 +783,7 @@ See [CONTRIBUTING.md](../../CONTRIBUTING.md) for complete contribution guideline
 3. Follow test-first development: write tests, then implementation
 4. Ensure all tests pass: `npm test`
 5. Verify code quality: `npm run lint`
-6. Test locally: `node bin/create-scaffold/index.mjs`, `npx .`, or `create-scaffold` via `npm link`
+6. Test locally: `node bin/create-scaffold/index.mts`, `npx .`, or `create-scaffold` via `npm link`
 7. Submit pull request with clear description
 
 ### Contribution Standards
@@ -817,7 +814,7 @@ npm install
 # Verify setup
 npm test                       # Should pass all tests
 npm run lint                   # Should show zero warnings
-node bin/create-scaffold/index.mjs --help      # Should display help
+node bin/create-scaffold/index.mts --help      # Should display help
 
 # Test contribution workflow
 npm link
@@ -837,7 +834,7 @@ npm unlink -g @m5nv/create-scaffold
 npm run test:unit               # Check infrastructure
 npm run test:integration        # Check command functionality
 npm run test:system             # Focus on CLI behavior
-node tests/shared/security.test.mjs  # Verify security isn't compromised
+node tests/security/security-functions.test.mjs  # Verify security isn't compromised
 
 # Check specific failures
 npm test 2>&1 | grep -A 5 "FAILED"
@@ -858,8 +855,8 @@ create-scaffold new my-app react
 
 ```bash
 # Fix bin file permissions
-chmod +x bin/create-scaffold/index.mjs
-chmod +x bin/make-template/index.mjs
+chmod +x bin/create-scaffold/index.mts
+chmod +x bin/make-template/index.mts
 
 # Check test directory permissions
 ls -la tests/
@@ -895,7 +892,7 @@ npm run test:leaks              # Check for resource leaks
 
 ```bash
 # Profile memory usage
-node --inspect bin/create-scaffold/index.mjs new my-app react
+node --inspect bin/create-scaffold/index.mts new my-app react
 # Open chrome://inspect in Chrome
 
 # Check for memory leaks
@@ -909,9 +906,9 @@ time npm run test:system
 
 ```bash
 # Test security validations
-node bin/create-scaffold/index.mjs new "../evil" hack     # Should be blocked
-node bin/create-scaffold/index.mjs new "test; rm -rf /tmp" safe  # Should be blocked
-node bin/create-scaffold/index.mjs new test "hack; evil"  # Should be blocked
+node bin/create-scaffold/index.mts new "../evil" hack     # Should be blocked
+node bin/create-scaffold/index.mts new "test; rm -rf /tmp" safe  # Should be blocked
+node bin/create-scaffold/index.mts new test "hack; evil"  # Should be blocked
 ```
 
 **Cache Debugging**:
@@ -925,9 +922,9 @@ cat ~/.m5nv/cache/*/metadata.json
 rm -rf ~/.m5nv/cache/*
 
 # Test cache functionality
-node bin/create-scaffold/index.mjs new test1 react        # Should clone
-node bin/create-scaffold/index.mjs new test2 react        # Should use cache
-node bin/create-scaffold/index.mjs new test3 react --no-cache  # Should clone
+node bin/create-scaffold/index.mts new test1 react        # Should clone
+node bin/create-scaffold/index.mts new test2 react        # Should use cache
+node bin/create-scaffold/index.mts new test3 react --no-cache  # Should clone
 ```
 
 ## Additional Resources

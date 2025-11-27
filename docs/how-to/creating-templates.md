@@ -45,6 +45,7 @@ Start with a minimal template and add features as needed:
   "id": "author/minimal-template",
   "name": "Minimal Template",
   "description": "A minimal template example",
+  "placeholderFormat": "unicode",
   "placeholders": {
     "PROJECT_NAME": {
       "default": "my-project",
@@ -149,6 +150,8 @@ Switching modes later is as simple as updating `template.json`, but start with W
   "author": "Your Organization",
   "license": "MIT",
   "tags": ["portfolio", "full-stack", "cloudflare"],
+  "placeholderFormat": "unicode",
+  "placeholders": {},
   "handoff": ["npm install", "npm run dev"],
   "setup": {
     "authoring": "composable",
@@ -315,10 +318,10 @@ create-scaffold copies this directory into the project before `_setup.mjs` runs 
 4. **Lint your manifest before publishing.** If your template repo depends on @m5nv/create-scaffold, add `npm run schema:check` to CI. The command verifies both the JSON schema (`template.json`) and the generated TypeScript definition.
 5. **Run the CLI validator before commits and releases.**
   ```bash
-  create-scaffold --validate-template ./path/to/templates/portfolio-template
+  create-scaffold validate ./path/to/templates/portfolio-template
 
-  # Capture JSON output for CI assertions
-  create-scaffold --validate-template ./path/to/templates/portfolio-template --json
+  # Get fix suggestions
+  create-scaffold validate ./path/to/templates/portfolio-template --suggest
   ```
   The validator exits with code `1` when any manifest, required-file, or setup-script check fails, making it safe for local linting and CI pipelines.
 
@@ -389,7 +392,7 @@ Verify the template works correctly:
 1. Check that `{{PROJECT_NAME}}` placeholders were replaced
 2. Ensure all files were copied correctly
 3. Test that the project runs: `cd test-project && npm install && npm run dev`
-4. Run `create-scaffold --validate-template ./path/to/templates/basic-react-spa` against the template directory to confirm linting passes
+4. Run `create-scaffold validate ./path/to/templates/basic-react-spa` against the template directory to confirm linting passes
 
 ### Step 8: Publish your template repository
 

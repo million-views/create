@@ -9,7 +9,7 @@
 
 import nodePath from 'node:path';
 import os from 'node:os';
-import { ValidationError } from '../error/index.mts';
+import { ValidationError } from '../error/validation.mts';
 
 /**
  * Options for path sanitization.

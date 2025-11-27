@@ -33,6 +33,8 @@ Setup scripts (`_setup.mjs`) run in a secure Node.js VM sandbox with restricted 
 - Node built-ins (`fs`, `path`, `os`, `crypto`, etc.)
 - Direct filesystem access
 
+> **Note on Placeholder Formats**: Examples in this guide use `{{TOKEN}}` (mustache) format for clarity. Your actual templates should use the format declared in `template.json` via `placeholderFormat`. The default is `unicode` (`⦃TOKEN⦄`), which is recommended for React/JSX compatibility. The tools automatically use the format from your template manifest.
+
 ---
 
 ## Basic Placeholder Replacement

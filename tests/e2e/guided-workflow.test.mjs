@@ -93,8 +93,9 @@ async function runGuidedWorkflow({
   const selectionFilePath = join(testEnv.workspaceDir, `${templateJson.name}-selections.json`);
   await writeFile(selectionFilePath, stringify({
     templateId: templateJson.id,
-    version: templateJson.schemaVersion,
-    selections: selectionOverrides
+    schemaVersion: templateJson.schemaVersion,
+    choices: selectionOverrides,
+    placeholders: {}
   }));
 
   const optionTokens = Object.entries(selectionOverrides).map(([dimension, value]) => {
@@ -513,7 +514,7 @@ export default async function setup({ ctx, tools }) {
   await assertFileExists(selectionFilePath, 'selection file should be generated');
   const selectionContent = JSON.parse(await readFile(selectionFilePath, 'utf8'));
   assert.strictEqual(selectionContent.templateId, templateJson.id, 'Selection file should reference template id');
-  assert.deepStrictEqual(selectionContent.selections, {
+  assert.deepStrictEqual(selectionContent.choices, {
     deployment: 'node-basic',
     features: ['docs', 'testing']
   });
@@ -609,7 +610,7 @@ export default async function setup() {
   await assertFileExists(selectionFilePath, 'selection file should still be generated');
   const sandboxSelection = JSON.parse(await readFile(selectionFilePath, 'utf8'));
   assert.strictEqual(sandboxSelection.templateId, templateJson.id, 'selection file should reference sandbox template');
-  assert.deepStrictEqual(sandboxSelection.selections, { deployment: 'node-basic' }, 'selection file should capture deployment choice');
+  assert.deepStrictEqual(sandboxSelection.choices, { deployment: 'node-basic' }, 'selection file should capture deployment choice');
 
   await verifyIsolation(testEnv);
 }, { timeout: LONG_TIMEOUT });

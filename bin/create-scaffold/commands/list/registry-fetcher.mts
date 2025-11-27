@@ -1,6 +1,6 @@
 // @ts-nocheck
 import { CacheManager } from '../../modules/cache-manager.mts';
-import { TemplateDiscovery } from '@m5nv/create-scaffold/lib/template/index.mts';
+import { TemplateDiscovery } from '@m5nv/create-scaffold/lib/template/discover.mts';
 import { loadConfig } from '../../modules/config-loader.mts';
 
 export class RegistryFetcher {

@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 
 /**
- * E2E Tests: Sprint 2 - Tutorial Workflow Gaps (High Priority)
+ * E2E Tests: Dimensions and Placeholders
  *
- * Tests high priority gaps identified in tutorial coverage:
+ * Tests dimension-based scaffolding and placeholder handling:
  * 1. Dimension-based scaffolding via CLI with selection files
  * 2. Placeholder override precedence (CLI wins)
  * 3. make-template test command

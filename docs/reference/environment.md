@@ -16,42 +16,21 @@ last_updated: "2025-11-25"
 
 # Environment Reference
 
-## Module Location
+## Overview
 
-The Environment object is defined in `lib/environment/`. For programmatic access:
+Template setup scripts (`_setup.mjs`) receive an **Environment** object containing two properties:
 
-```javascript
-import {
-  createContext,     // Create a Context object
-  createTools,       // Create a Tools object
-  isContext,         // Type guard for Context
-  isTools,           // Type guard for Tools
-} from './lib/environment/index.mjs';
-
-// For testing
-import {
-  createTestContext,      // Context with test defaults
-  createTestTools,        // Tools with test defaults
-  createTestEnvironment,  // Complete { ctx, tools } pair
-  createTestLogger,       // Logger that captures calls
-  createSilentLogger,     // No-op logger
-  TEST_DEFAULTS           // Default test values
-} from './lib/environment/index.mjs';
-```
-
-## Setup Contract
-
-Template setup scripts (`_setup.mjs`) run inside a secure sandbox using Node.js VM. Every script must export a default `async` function that receives a single **Environment** object containing `{ ctx, tools }`.
+- **`ctx`** – immutable context describing the project being generated
+- **`tools`** – helper library for manipulating the scaffold
 
 ```javascript
 export default async function setup({ ctx, tools }) {
-  // ...
+  // ctx provides read-only project context
+  // tools provides all operations you need
 }
 ```
 
-- **`ctx`** – immutable context describing the project being generated.
-- **`tools`** – curated helper library for manipulating the scaffold without importing Node built-ins.
-- You can destructure the Environment object (recommended) or access it as a single parameter (e.g. `export default async function setup(environment)`).
+You can destructure (recommended) or access as a single parameter.
 
 ### Sandbox Restrictions
 

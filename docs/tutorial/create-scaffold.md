@@ -395,16 +395,10 @@ npx @m5nv/create-scaffold validate ../lawnmow-app
 
 # Validate and get fix suggestions
 npx @m5nv/create-scaffold validate ../lawnmow-app --suggest
-
-# Validate and auto-fix safe issues
-npx @m5nv/create-scaffold validate ../lawnmow-app --fix
-
-# Get machine-readable output for automation
-npx @m5nv/create-scaffold validate ../lawnmow-app --json
 ```
 
 **What validation checks:**
-- Required fields in `template.json` (name, schemaVersion, placeholders)
+- Required fields in `template.json` (schemaVersion, id, name, description, placeholderFormat, placeholders)
 - Dimension definitions and values
 - Gate constraints and references
 - Hint requirements and feature references

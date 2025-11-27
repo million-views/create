@@ -14,7 +14,7 @@
 
 import fs from 'fs/promises';
 import vm from 'vm';
-import { createTools } from '@m5nv/create-scaffold/lib/environment/tools/index.mts';
+import { createTools } from '@m5nv/create-scaffold/lib/environment/tools/create.mts';
 import { SetupSandboxError } from '@m5nv/create-scaffold/lib/environment/utils.mts';
 
 // Re-export for backward compatibility

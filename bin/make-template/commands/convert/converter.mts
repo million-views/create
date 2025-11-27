@@ -1,16 +1,12 @@
 // @ts-nocheck
 import path from 'path';
 import { File } from '@m5nv/create-scaffold/lib/util/file.mts';
-import { ErrorContext, ErrorSeverity, handleError } from '@m5nv/create-scaffold/lib/error/index.mts';
-import {
-  processJSONFile,
-  processMarkdownFile,
-  processJSXFile,
-  processHTMLFile,
-  loadConfig,
-  loadConfigFromFile,
-  getPatternsForFile
-} from '@m5nv/create-scaffold/lib/templatize/index.mts';
+import { ErrorContext, ErrorSeverity, handleError } from '@m5nv/create-scaffold/lib/error/handler.mts';
+import { loadConfig, loadConfigFromFile, getPatternsForFile } from '@m5nv/create-scaffold/lib/templatize/strategy/config.mts';
+import { processJSONFile } from '@m5nv/create-scaffold/lib/templatize/strategy/json.mts';
+import { processMarkdownFile } from '@m5nv/create-scaffold/lib/templatize/strategy/markdown.mts';
+import { processJSXFile } from '@m5nv/create-scaffold/lib/templatize/strategy/jsx.mts';
+import { processHTMLFile } from '@m5nv/create-scaffold/lib/templatize/strategy/html.mts';
 import { formatPlaceholder as formatPlaceholderToken, normalizeFormat } from '@m5nv/create-scaffold/lib/placeholder/format.mts';
 
 export class Converter {

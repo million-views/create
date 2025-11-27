@@ -3,11 +3,10 @@
 
 import path from 'node:path';
 import fs from 'node:fs/promises';
-import {
-  ContextualError, ErrorContext, ErrorSeverity
-} from '@m5nv/create-scaffold/lib/error/index.mts';
-import { sanitize } from '@m5nv/create-scaffold/lib/security/index.mts';
-import { cli } from '@m5nv/create-scaffold/lib/validation/index.mts';
+import { ContextualError } from '@m5nv/create-scaffold/lib/error/contextual.mts';
+import { ErrorContext, ErrorSeverity } from '@m5nv/create-scaffold/lib/error/handler.mts';
+import * as sanitize from '@m5nv/create-scaffold/lib/security/sanitize.mts';
+import * as cli from '@m5nv/create-scaffold/lib/validation/cli/input.mts';
 import { CacheManager } from './cache-manager.mts';
 
 /**

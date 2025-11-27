@@ -9,7 +9,7 @@
  */
 
 import { resolve, sep, basename } from 'node:path';
-import { ViolationError } from '../error/index.mts';
+import { ViolationError } from '../error/boundary.mts';
 import { getAuditLogger } from './audit.mts';
 
 /**

@@ -14,26 +14,26 @@
 
 import fs from 'fs/promises';
 import path from 'path';
-import { shouldIgnoreTemplateEntry } from '../template/index.mts';
+import { shouldIgnoreTemplateEntry } from '../template/ignore.mts';
 
 // Re-export pure primitives for convenience
 export {
   escapeRegExp,
   toPosix,
-  globToRegExp,
+  globToRegExp
+} from '../primitives/glob.mts';
+export {
   deepMerge,
-  deepEqual,
+  deepEqual
+} from '../primitives/object.mts';
+export {
   ensureLeadingNewline,
   ensureTrailingNewline
-} from '../primitives/index.mts';
+} from '../primitives/text.mts';
 
 // Import primitives for internal use
-import {
-  normalizeTextInput as primitiveNormalizeTextInput,
-  escapeRegExp,
-  globToRegExp,
-  toPosix
-} from '../primitives/index.mts';
+import { normalizeTextInput as primitiveNormalizeTextInput } from '../primitives/text.mts';
+import { escapeRegExp, globToRegExp, toPosix } from '../primitives/glob.mts';
 
 export const UTF8 = 'utf8';
 export const DEFAULT_SELECTOR = '**/*';

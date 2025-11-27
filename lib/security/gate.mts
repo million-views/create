@@ -9,7 +9,8 @@
  * @module lib/security/gate
  */
 
-import { ValidationError, GateError } from '../error/index.mts';
+import { ValidationError } from '../error/validation.mts';
+import { GateError } from '../error/gate.mts';
 import { getAuditLogger } from './audit.mts';
 import { allInputs as validateAllInputs } from '../validation/cli/input.mts';
 

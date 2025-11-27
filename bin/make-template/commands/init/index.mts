@@ -3,7 +3,7 @@ import { Command } from '@m5nv/create-scaffold/lib/cli/command.mts';
 import { initHelp } from './help.mts';
 import fs from 'fs';
 import { join } from 'path';
-import { generateConfigFile } from '@m5nv/create-scaffold/lib/templatize/index.mts';
+import { generateConfigFile } from '@m5nv/create-scaffold/lib/templatize/strategy/config.mts';
 
 export class InitCommand extends Command {
   constructor() {

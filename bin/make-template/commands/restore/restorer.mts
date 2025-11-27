@@ -2,7 +2,8 @@
 import fs from 'fs';
 import path from 'path';
 import { File } from '@m5nv/create-scaffold/lib/util/file.mts';
-import { ContextualError, ErrorContext, ErrorSeverity, handleError } from '@m5nv/create-scaffold/lib/error/index.mts';
+import { ContextualError } from '@m5nv/create-scaffold/lib/error/contextual.mts';
+import { ErrorContext, ErrorSeverity, handleError } from '@m5nv/create-scaffold/lib/error/handler.mts';
 
 export class Restorer {
   constructor(options) {

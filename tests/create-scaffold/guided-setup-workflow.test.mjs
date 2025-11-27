@@ -103,10 +103,9 @@ export default async function setup({ ctx, tools }) {
     // Verify the content structure
     const content = JSON.parse(await fs.readFile(selectionPath, 'utf8'));
     assert(content.templateId, 'should have templateId');
-    assert(content.version, 'should have version');
-    assert(content.selections, 'should have selections');
-    assert(content.metadata, 'should have metadata');
-    assert(content.metadata.createdAt, 'should have createdAt timestamp');
+    assert(content.schemaVersion, 'should have schemaVersion');
+    assert(content.choices, 'should have choices');
+    assert(content.placeholders, 'should have placeholders');
   });
 
   await t.test('selection.json filename includes template name', async () => {

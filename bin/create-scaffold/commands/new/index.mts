@@ -2,8 +2,8 @@
 import { Command } from '@m5nv/create-scaffold/lib/cli/command.mts';
 import { newHelp } from './help.mts';
 import { Scaffolder } from './scaffolder.mts';
-import { SecurityGate } from '@m5nv/create-scaffold/lib/security/index.mts';
-import { GateError as SecurityGateError } from '@m5nv/create-scaffold/lib/error/index.mts';
+import { SecurityGate } from '@m5nv/create-scaffold/lib/security/gate.mts';
+import { GateError as SecurityGateError } from '@m5nv/create-scaffold/lib/error/gate.mts';
 
 export class NewCommand extends Command {
   #securityGate;

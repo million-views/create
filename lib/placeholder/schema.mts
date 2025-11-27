@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // @ts-nocheck
 
-import { ValidationError } from '../error/index.mts';
+import { ValidationError } from '../error/validation.mts';
 
 // New schema supports 6 types: text, number, boolean, email, password, url
 // 'text' is the new default (replaces 'string' from old schema)

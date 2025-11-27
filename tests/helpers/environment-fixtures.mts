@@ -8,13 +8,13 @@
  * These utilities make it easy to create valid Environment, Context, and Tools
  * objects for testing without manually constructing all required properties.
  *
- * @module lib/environment/testing
+ * @module tests/helpers/environment-fixtures
  */
 
 import path from 'path';
 import os from 'os';
-import { createContext, DEFAULT_AUTHOR_ASSETS_DIR, DEFAULT_AUTHORING_MODE } from './context.mts';
-import { createTools } from './tools/index.mts';
+import { createContext, DEFAULT_AUTHOR_ASSETS_DIR, DEFAULT_AUTHORING_MODE } from '@m5nv/create-scaffold/lib/environment/context.mts';
+import { createTools } from '@m5nv/create-scaffold/lib/environment/tools/create.mts';
 
 /**
  * Default values for test environments.

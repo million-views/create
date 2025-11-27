@@ -94,19 +94,19 @@ export class SelectionValidator {
         });
       }
 
-      if (!selectionData.version) {
+      if (!selectionData.schemaVersion) {
         errors.push({
           type: 'SCHEMA_ERROR',
-          message: 'Missing required field: version',
-          path: ['version']
+          message: 'Missing required field: schemaVersion',
+          path: ['schemaVersion']
         });
       }
 
-      if (!selectionData.selections) {
+      if (!selectionData.choices) {
         errors.push({
           type: 'SCHEMA_ERROR',
-          message: 'Missing required field: selections',
-          path: ['selections']
+          message: 'Missing required field: choices',
+          path: ['choices']
         });
       }
 
@@ -130,23 +130,23 @@ export class SelectionValidator {
     const errors = [];
     const warnings = [];
 
-    const selections = selectionData.selections;
+    const choices = selectionData.choices;
     const dimensions = templateData.dimensions || {};
     const gates = templateData.gates || {};
     const featureSpecs = templateData.featureSpecs || {};
 
     // Validate domain compatibility (values exist in dimensions)
-    const domainResult = this.validateDomainCompatibility(selections, dimensions);
+    const domainResult = this.validateDomainCompatibility(choices, dimensions);
     errors.push(...domainResult.errors);
     warnings.push(...domainResult.warnings);
 
     // Validate gates (platform constraints)
-    const gatesResult = this.validateGatesCompatibility(selections, gates);
+    const gatesResult = this.validateGatesCompatibility(choices, gates);
     errors.push(...gatesResult.errors);
     warnings.push(...gatesResult.warnings);
 
     // Validate feature needs
-    const needsResult = this.validateFeatureNeeds(selections, featureSpecs);
+    const needsResult = this.validateFeatureNeeds(choices, featureSpecs);
     errors.push(...needsResult.errors);
     warnings.push(...needsResult.warnings);
 
@@ -348,56 +348,56 @@ export class SelectionValidator {
    * @returns {object} Derived flags
    */
   generateDerivedFlags(selectionData) {
-    const selections = selectionData.selections || {};
+    const choices = selectionData.choices || {};
 
     return {
-      needAuth: this.hasAuthFeatures(selections),
-      needDb: this.hasDatabase(selections),
-      needPayments: this.hasPayments(selections),
-      needStorage: this.hasStorage(selections)
+      needAuth: this.hasAuthFeatures(choices),
+      needDb: this.hasDatabase(choices),
+      needPayments: this.hasPayments(choices),
+      needStorage: this.hasStorage(choices)
     };
   }
 
   /**
-   * Check if selections include authentication features
-   * @param {object} selections - User selections
+   * Check if choices include authentication features
+   * @param {object} choices - User choices
    * @returns {boolean}
    */
-  hasAuthFeatures(selections) {
-    const authProviders = selections.auth || [];
-    const features = selections.features || [];
+  hasAuthFeatures(choices) {
+    const authProviders = choices.auth || [];
+    const features = choices.features || [];
 
     return authProviders.length > 0 ||
            features.some(f => f.includes('auth') || f.includes('login'));
   }
 
   /**
-   * Check if selections include database
-   * @param {object} selections - User selections
+   * Check if choices include database
+   * @param {object} choices - User choices
    * @returns {boolean}
    */
-  hasDatabase(selections) {
-    const database = selections.database;
+  hasDatabase(choices) {
+    const database = choices.database;
     return database && database !== 'none';
   }
 
   /**
-   * Check if selections include payments
-   * @param {object} selections - User selections
+   * Check if choices include payments
+   * @param {object} choices - User choices
    * @returns {boolean}
    */
-  hasPayments(selections) {
-    const payments = selections.payments;
+  hasPayments(choices) {
+    const payments = choices.payments;
     return Boolean(payments && payments !== 'none');
   }
 
   /**
-   * Check if selections include cloud storage
-   * @param {object} selections - User selections
+   * Check if choices include cloud storage
+   * @param {object} choices - User choices
    * @returns {boolean}
    */
-  hasStorage(selections) {
-    const storage = selections.storage;
+  hasStorage(choices) {
+    const storage = choices.storage;
     return Boolean(storage && storage !== 'none' && storage !== 'local');
   }
 }

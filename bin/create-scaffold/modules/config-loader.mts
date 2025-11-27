@@ -3,10 +3,10 @@
 
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { sanitize } from '@m5nv/create-scaffold/lib/security/index.mts';
-import { cli } from '@m5nv/create-scaffold/lib/validation/index.mts';
-import { ValidationError } from '@m5nv/create-scaffold/lib/error/index.mts';
-import { resolveUserConfigPath } from '@m5nv/create-scaffold/lib/util/index.mts';
+import * as sanitize from '@m5nv/create-scaffold/lib/security/sanitize.mts';
+import * as cli from '@m5nv/create-scaffold/lib/validation/cli/input.mts';
+import { ValidationError } from '@m5nv/create-scaffold/lib/error/validation.mts';
+import { resolveUserConfigPath } from '@m5nv/create-scaffold/lib/util/path.mts';
 
 const CONFIG_FILENAME = '.m5nvrc';
 const PLACEHOLDER_TOKEN_PATTERN = /^[A-Z0-9_]+$/;

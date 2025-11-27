@@ -7,7 +7,7 @@
  * @module lib/validation/cli/option
  */
 
-import { ValidationError } from '../../error/index.mts';
+import { ValidationError } from '../../error/validation.mts';
 
 /**
  * Supported IDE values.

@@ -21,7 +21,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { rm, writeFile, mkdir } from 'node:fs/promises';
 import path from 'node:path';
-import { createTestTools } from '@m5nv/create-scaffold/lib/environment/testing.mts';
+import { createTestTools } from '../helpers/environment-fixtures.mts';
 import { SetupSandboxError } from '@m5nv/create-scaffold/lib/environment/utils.mts';
 import { createTempDir } from '../helpers/temp-dir.mjs';
 

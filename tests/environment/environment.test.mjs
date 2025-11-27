@@ -23,7 +23,7 @@ import {
   DEFAULT_AUTHOR_ASSETS_DIR,
   DEFAULT_AUTHORING_MODE
 } from '@m5nv/create-scaffold/lib/environment/context.mts';
-import { createTools, isTools } from '@m5nv/create-scaffold/lib/environment/tools/index.mts';
+import { createTools, isTools } from '@m5nv/create-scaffold/lib/environment/tools/create.mts';
 import {
   createTestContext,
   createTestTools,
@@ -31,7 +31,7 @@ import {
   createTestLogger,
   createSilentLogger,
   TEST_DEFAULTS
-} from '@m5nv/create-scaffold/lib/environment/testing.mts';
+} from '../helpers/environment-fixtures.mts';
 
 describe('Environment Module', () => {
   describe('createContext()', () => {

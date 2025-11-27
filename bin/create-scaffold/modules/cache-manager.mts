@@ -5,7 +5,7 @@ import fs from 'fs/promises';
 import path from 'path';
 import { File } from '@m5nv/create-scaffold/lib/util/file.mts';
 import { Shell } from '@m5nv/create-scaffold/lib/util/shell.mts';
-import { resolveCacheDirectory } from '@m5nv/create-scaffold/lib/util/index.mts';
+import { resolveCacheDirectory } from '@m5nv/create-scaffold/lib/util/path.mts';
 
 /**
  * Git Repository Cache Manager

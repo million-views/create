@@ -226,6 +226,7 @@ conditional features.
   "id": "author/minimal-template",
   "name": "Minimal Template",
   "description": "A simple template",
+  "placeholderFormat": "unicode",
   "placeholders": {
     "PROJECT_NAME": { "default": "my-app", "description": "Project name" }
   }
@@ -240,6 +241,7 @@ conditional features.
   "id": "author/advanced-template",
   "name": "Advanced Template",
   "description": "Full-featured template",
+  "placeholderFormat": "unicode",
   "placeholders": {
     /* ... */
   },

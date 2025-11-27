@@ -7,8 +7,8 @@
  * @module lib/validation/schema/manifest
  */
 
-import { normalizePlaceholders } from '../../placeholder/index.mts';
-import { ValidationError } from '../../error/index.mts';
+import { normalizePlaceholders } from '../../placeholder/schema.mts';
+import { ValidationError } from '../../error/validation.mts';
 
 /**
  * Cache for validated manifests to avoid re-validation of the same object.

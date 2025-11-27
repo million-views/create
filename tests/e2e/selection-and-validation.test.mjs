@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 
 /**
- * E2E Tests: Sprint 1 - Tutorial Workflow Gaps
+ * E2E Tests: Selection Files and Validation
  *
- * Tests critical gaps identified in tutorial coverage:
+ * Tests selection file functionality and validation workflows:
  * 1. Selection files via CLI (--selection flag)
  * 2. Gates validation (reject invalid dimension combinations)
  * 3. create-scaffold validate command

@@ -1,22 +1,20 @@
 // @ts-nocheck
 import fs from 'fs/promises';
 import path from 'path';
-import { SecurityGate } from '@m5nv/create-scaffold/lib/security/index.mts';
+import { SecurityGate } from '@m5nv/create-scaffold/lib/security/gate.mts';
 import { CacheManager } from '../../modules/cache-manager.mts';
 import { TemplateResolver } from '../../modules/template-resolver.mts';
-import { Logger } from '@m5nv/create-scaffold/lib/util/index.mts';
+import { Logger } from '@m5nv/create-scaffold/lib/util/logger.mts';
 import { DryRunEngine } from '../../modules/dry-run-engine.mts';
 import { Shell } from '@m5nv/create-scaffold/lib/util/shell.mts';
 import { File } from '@m5nv/create-scaffold/lib/util/file.mts';
-import { createTemplateIgnoreSet, stripIgnoredFromTree, loadTemplateMetadataFromPath } from '@m5nv/create-scaffold/lib/template/index.mts';
+import { createTemplateIgnoreSet, stripIgnoredFromTree } from '@m5nv/create-scaffold/lib/template/ignore.mts';
+import { loadTemplateMetadataFromPath } from '@m5nv/create-scaffold/lib/template/discover.mts';
 import { normalizeOptions } from '../../modules/options-processor.mts';
-import { resolvePlaceholders } from '@m5nv/create-scaffold/lib/placeholder/index.mts';
+import { resolvePlaceholders } from '@m5nv/create-scaffold/lib/placeholder/resolve.mts';
 import { loadConfig } from '../../modules/config-loader.mts';
-import {
-  handleError,
-  contextualizeError,
-  ErrorContext
-} from '@m5nv/create-scaffold/lib/error/index.mts';
+import { handleError, contextualizeError } from '@m5nv/create-scaffold/lib/error/handler.mts';
+import { ErrorContext } from '@m5nv/create-scaffold/lib/error/handler.mts';
 
 // Import guided setup workflow
 import { GuidedSetupWorkflow } from '../../modules/guided-setup-workflow.mts';

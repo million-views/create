@@ -8,4 +8,4 @@
  * @module lib/validation/template-validator
  */
 
-export { TemplateValidator } from './schema/index.mts';
+export { TemplateValidator } from './schema/template-validator.mts';

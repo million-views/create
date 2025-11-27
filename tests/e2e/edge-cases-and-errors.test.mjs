@@ -1,7 +1,10 @@
 /**
- * Sprint 3: Medium Priority E2E Test Gaps
+ * E2E Tests: Edge Cases and Error Scenarios
  *
- * Tests edge cases, restore workflow, and error scenarios from tutorial documentation.
+ * Tests edge cases, restore workflow, and error handling:
+ * 1. Minimal template scaffolding
+ * 2. make-template restore workflow
+ * 3. Error scenarios for invalid inputs
  */
 
 import { describe, it, beforeEach, afterEach } from 'node:test';
