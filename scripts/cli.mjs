@@ -136,34 +136,44 @@ class ValidateAllCommand extends Command {
     super({
       name: 'all',
       description: 'Run comprehensive validation (docs + code analysis)',
-      usage: 'validate all',
+      usage: 'validate all [--docs-only] [--code-only]',
+      options: [
+        { long: '--docs-only', desc: 'Run only documentation validation' },
+        { long: '--code-only', desc: 'Run only code analysis' }
+      ],
       examples: [
-        { cmd: 'validate all', desc: 'Run all validations' }
+        { cmd: 'validate all', desc: 'Run all validations' },
+        { cmd: 'validate all --docs-only', desc: 'Run only doc validation' }
       ]
     });
   }
 
-  parseArg() {
-    // No arguments
+  parseArg(arg, _args, i, parsed) {
+    if (arg === '--docs-only') {
+      parsed.docsOnly = true;
+      return i;
+    }
+    if (arg === '--code-only') {
+      parsed.codeOnly = true;
+      return i;
+    }
   }
 
-  async run() {
-    // Import and run the validation script's main logic
-    const { spawn } = await import('node:child_process');
+  async run(parsed) {
+    const { runComprehensiveValidation } = await import('./comprehensive-validation.mjs');
 
-    return new Promise((resolve) => {
-      const child = spawn('node', ['scripts/comprehensive-validation.mjs'], {
-        stdio: 'inherit',
-        cwd: process.cwd()
+    try {
+      const { exitCode } = await runComprehensiveValidation({
+        docsOnly: parsed.docsOnly,
+        codeOnly: parsed.codeOnly
       });
-
-      child.on('close', (code) => {
-        if (code !== 0) {
-          process.exit(code);
-        }
-        resolve();
-      });
-    });
+      if (exitCode !== 0) {
+        process.exit(exitCode);
+      }
+    } catch (error) {
+      console.error(`❌ ${error.message}`);
+      process.exit(1);
+    }
   }
 }
 
@@ -172,31 +182,38 @@ class ValidateDocsCommand extends Command {
     super({
       name: 'docs',
       description: 'Validate documentation only',
-      usage: 'validate docs',
+      usage: 'validate docs [--verbose]',
+      options: [
+        { long: '--verbose', desc: 'Enable verbose output' }
+      ],
       examples: [
-        { cmd: 'validate docs', desc: 'Check markdown documentation' }
+        { cmd: 'validate docs', desc: 'Check markdown documentation' },
+        { cmd: 'validate docs --verbose', desc: 'Verbose validation output' }
       ]
     });
   }
 
-  parseArg() {}
+  parseArg(arg, _args, i, parsed) {
+    if (arg === '--verbose') {
+      parsed.verbose = true;
+      return i;
+    }
+  }
 
-  async run() {
-    const { spawn } = await import('node:child_process');
+  async run(parsed) {
+    const { validateDocumentation } = await import('./validate-docs.mjs');
 
-    return new Promise((resolve) => {
-      const child = spawn('node', ['scripts/validate-docs.mjs'], {
-        stdio: 'inherit',
-        cwd: process.cwd()
+    try {
+      const { exitCode } = await validateDocumentation({
+        verbose: parsed.verbose
       });
-
-      child.on('close', (code) => {
-        if (code !== 0) {
-          process.exit(code);
-        }
-        resolve();
-      });
-    });
+      if (exitCode !== 0) {
+        process.exit(exitCode);
+      }
+    } catch (error) {
+      console.error(`❌ ${error.message}`);
+      process.exit(1);
+    }
   }
 }
 
@@ -233,21 +250,17 @@ class LintMocksCommand extends Command {
   parseArg() {}
 
   async run() {
-    const { spawn } = await import('node:child_process');
+    const { lintTestMocks } = await import('./lint-test-mocks.mjs');
 
-    return new Promise((resolve) => {
-      const child = spawn('node', ['scripts/lint-test-mocks.mjs'], {
-        stdio: 'inherit',
-        cwd: process.cwd()
-      });
-
-      child.on('close', (code) => {
-        if (code !== 0) {
-          process.exit(code);
-        }
-        resolve();
-      });
-    });
+    try {
+      const { exitCode } = await lintTestMocks();
+      if (exitCode !== 0) {
+        process.exit(exitCode);
+      }
+    } catch (error) {
+      console.error(`❌ ${error.message}`);
+      process.exit(1);
+    }
   }
 }
 

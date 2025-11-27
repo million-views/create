@@ -224,8 +224,26 @@ async function runCodeAnalysis() {
 
 /**
  * Main validation function
+ * @param {Object} options - Validation options
+ * @param {boolean} [options.docsOnly] - Run only documentation validation
+ * @param {boolean} [options.codeOnly] - Run only code analysis
+ * @returns {Promise<{exitCode: number, results: Object}>} Validation results
  */
-async function runComprehensiveValidation() {
+export async function runComprehensiveValidation(options = {}) {
+  const { docsOnly, codeOnly } = options;
+
+  // Handle single-mode runs
+  if (docsOnly) {
+    const success = await runDocumentationValidation();
+    return { exitCode: success ? 0 : 1, results: { documentation: success } };
+  }
+
+  if (codeOnly) {
+    const success = await runCodeAnalysis();
+    return { exitCode: success ? 0 : 1, results: { codeAnalysis: success } };
+  }
+
+  // Full comprehensive validation
   console.log(colorize('🚀 Starting Comprehensive Project Validation', 'magenta'));
   console.log('='.repeat(60));
 
@@ -258,18 +276,20 @@ async function runComprehensiveValidation() {
 
   if (allPassed) {
     console.log(colorize('\n🎉 All validations passed!', 'green'));
-    process.exit(0);
+    return { exitCode: 0, results };
   } else {
     console.log(colorize('\n💥 Some validations failed', 'red'));
-    process.exit(1);
+    return { exitCode: 1, results };
   }
 }
 
-// Handle command line arguments
-const args = process.argv.slice(2);
+// Handle command line arguments when executed directly
+const isMainModule = import.meta.url === `file://${process.argv[1]}`;
+if (isMainModule) {
+  const args = process.argv.slice(2);
 
-if (args.includes('--help') || args.includes('-h')) {
-  console.log(`
+  if (args.includes('--help') || args.includes('-h')) {
+    console.log(`
 ${colorize('Comprehensive Validation Script', 'cyan')}
 
 This script runs both documentation validation and code analysis.
@@ -287,19 +307,16 @@ Examples:
   node scripts/comprehensive-validation.mjs --docs-only
   node scripts/comprehensive-validation.mjs --code-only
 `);
-  process.exit(0);
-}
+    process.exit(0);
+  }
 
-// Run specific validations based on arguments
-if (args.includes('--docs-only')) {
-  runDocumentationValidation().then(success => {
-    process.exit(success ? 0 : 1);
+  // Run specific validations based on arguments
+  const options = {
+    docsOnly: args.includes('--docs-only'),
+    codeOnly: args.includes('--code-only')
+  };
+
+  runComprehensiveValidation(options).then(({ exitCode }) => {
+    process.exit(exitCode);
   });
-} else if (args.includes('--code-only')) {
-  runCodeAnalysis().then(success => {
-    process.exit(success ? 0 : 1);
-  });
-} else {
-  // Run comprehensive validation
-  runComprehensiveValidation();
 }

@@ -281,8 +281,12 @@ function validateTerminology(filePath, content) {
 
 /**
  * Main validation function
+ * @param {Object} options - Validation options
+ * @param {boolean} [options.verbose] - Enable verbose output
+ * @returns {Promise<{exitCode: number, results: Object}>} Validation results
  */
-async function validateDocumentation() {
+export async function validateDocumentation(options = {}) {
+  const verbose = options.verbose ?? VERBOSE;
   console.log(colorize('🔍 Validating documentation following Kiro Methodology...', 'blue'));
 
   const isMethodology = await isMethodologyTemplate(process.cwd(), {
@@ -326,13 +330,13 @@ async function validateDocumentation() {
 
     // Skip validation of placeholder Diátaxis docs in methodology package
     if (isMethodology && isPlaceholderDiataxisDoc(file)) {
-      if (VERBOSE) {
+      if (verbose) {
         console.log(`Skipping placeholder doc: ${file}`);
       }
       continue;
     }
 
-    if (VERBOSE) {
+    if (verbose) {
       console.log(`Validating: ${file}`);
     }
 
@@ -361,17 +365,20 @@ async function validateDocumentation() {
     results.missingFrontmatter.length;
 
   if (totalIssues === 0) {
-    return 0;
+    return { exitCode: 0, results };
   } else {
     console.log('Run validation again after fixing issues.');
-    return 1;
+    return { exitCode: 1, results };
   }
 }
 
-// Run validation
-validateDocumentation().then(code => {
-  process.exit(code);
-}).catch(error => {
-  console.error(colorize(`Fatal error: ${error.message}`, 'red'));
-  process.exit(1);
-});
+// Run validation when executed directly
+const isMainModule = import.meta.url === `file://${process.argv[1]}`;
+if (isMainModule) {
+  validateDocumentation().then(({ exitCode }) => {
+    process.exit(exitCode);
+  }).catch(error => {
+    console.error(colorize(`Fatal error: ${error.message}`, 'red'));
+    process.exit(1);
+  });
+}

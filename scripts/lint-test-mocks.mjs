@@ -106,10 +106,17 @@ async function lintFile(filePath) {
   return issues;
 }
 
-async function main() {
+/**
+ * Main linting function
+ * @param {Object} options - Linting options
+ * @param {string} [options.testsDir] - Directory to scan for test files
+ * @returns {Promise<{exitCode: number, issues: Array}>} Lint results
+ */
+export async function lintTestMocks(options = {}) {
+  const targetDir = options.testsDir ?? testsDir;
   console.log('🔍 Scanning test files for mock patterns...\n');
 
-  const files = await findTestFiles(testsDir);
+  const files = await findTestFiles(targetDir);
   const allIssues = [];
 
   for (const file of files) {
@@ -120,7 +127,7 @@ async function main() {
   if (allIssues.length === 0) {
     console.log('✅ No suspicious mock patterns found!');
     console.log('   All test files follow zero-mock philosophy.\n');
-    process.exit(0);
+    return { exitCode: 0, issues: allIssues };
   }
 
   console.log(`⚠️  Found ${allIssues.length} potential mock pattern(s):\n`);
@@ -149,10 +156,16 @@ async function main() {
   console.log('   - If testing wrapping behavior, document why mock is appropriate');
   console.log('   - See docs/guides/testing.md for zero-mock philosophy\n');
 
-  process.exit(1);
+  return { exitCode: 1, issues: allIssues };
 }
 
-main().catch(err => {
-  console.error('Error:', err);
-  process.exit(1);
-});
+// Run when executed directly
+const isMainModule = import.meta.url === `file://${process.argv[1]}`;
+if (isMainModule) {
+  lintTestMocks().then(({ exitCode }) => {
+    process.exit(exitCode);
+  }).catch(err => {
+    console.error('Error:', err);
+    process.exit(1);
+  });
+}
