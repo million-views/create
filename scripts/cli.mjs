@@ -3,46 +3,47 @@
 /**
  * Unified Build Scripts CLI - Dogfooding the @m5nv/cli micro-framework
  *
- * This demonstrates how the Router/Command architecture works for
- * build tooling scenarios with custom terminology and DSL design.
+ * This demonstrates proper DSL design with two clear domains:
+ * - build: produce artifacts (schemas, docs)
+ * - lint: check/validate things (docs, code, mocks)
  *
  * Usage:
- *   node scripts/cli.mjs schema build
- *   node scripts/cli.mjs schema build --check
- *   node scripts/cli.mjs docs generate
- *   node scripts/cli.mjs validate           # runs all validations
- *   node scripts/cli.mjs validate docs      # docs only
- *   node scripts/cli.mjs validate code      # ast-grep only
- *   node scripts/cli.mjs lint mocks
+ *   node scripts/cli.mjs build schema          # generate schema TypeScript
+ *   node scripts/cli.mjs build schema --check  # verify schema is current
+ *   node scripts/cli.mjs build docs            # generate CLI reference docs
+ *   node scripts/cli.mjs lint                  # run all lints
+ *   node scripts/cli.mjs lint docs             # validate documentation
+ *   node scripts/cli.mjs lint code             # ast-grep analysis
+ *   node scripts/cli.mjs lint mocks            # check mock patterns
  */
 
 import { Router } from '../lib/cli/router.mts';
 import { Command } from '../lib/cli/command.mts';
 
 // ============================================================
-// Schema Commands
+// Build Commands
 // ============================================================
 
-class SchemaBuildCommand extends Command {
+class BuildSchemaCommand extends Command {
   constructor() {
     super({
-      name: 'build',
+      name: 'schema',
       description: 'Generate TypeScript artifacts from JSON schemas',
-      usage: 'schema build [--check]',
+      usage: 'build schema [--check]',
       options: [
         { long: '--check', desc: 'Verify generated files are up-to-date (CI mode)' }
       ],
       examples: [
-        { cmd: 'schema build', desc: 'Generate schema TypeScript files' },
-        { cmd: 'schema build --check', desc: 'Verify schemas are up-to-date' }
+        { cmd: 'build schema', desc: 'Generate schema TypeScript files' },
+        { cmd: 'build schema --check', desc: 'Verify schemas are up-to-date' }
       ]
     });
   }
 
-  parseArg(arg, args, i, parsed) {
+  parseArg(arg, _args, i, parsed) {
     if (arg === '--check') {
       parsed.check = true;
-      return i;  // Return current index to indicate we handled this arg
+      return i;
     }
   }
 
@@ -65,38 +66,19 @@ class SchemaBuildCommand extends Command {
   }
 }
 
-class SchemaRouter extends Router {
-  constructor() {
-    super();
-    this.toolName = 'schema';
-    this.description = 'Schema generation and validation tools';
-    this.commandsLabel = 'OPERATIONS';
-    this.commandsItemLabel = 'operation';
-    this.commands = {
-      build: new SchemaBuildCommand()
-    };
-  }
-}
-
-// ============================================================
-// Docs Commands
-// ============================================================
-
-class DocsGenerateCommand extends Command {
+class BuildDocsCommand extends Command {
   constructor() {
     super({
-      name: 'generate',
-      description: 'Generate CLI reference documentation from help files',
-      usage: 'docs generate',
+      name: 'docs',
+      description: 'Generate CLI reference documentation',
+      usage: 'build docs',
       examples: [
-        { cmd: 'docs generate', desc: 'Generate docs/reference/commands/*.md' }
+        { cmd: 'build docs', desc: 'Generate docs/reference/commands/*.md' }
       ]
     });
   }
 
-  parseArg() {
-    // No arguments
-  }
+  parseArg() {}
 
   async run() {
     const { generateCommandDocs } = await import('./generate-cli-reference.mjs');
@@ -116,35 +98,36 @@ class DocsGenerateCommand extends Command {
   }
 }
 
-class DocsRouter extends Router {
+class BuildRouter extends Router {
   constructor() {
     super();
-    this.toolName = 'docs';
-    this.description = 'Documentation generation tools';
-    this.commandsLabel = 'OPERATIONS';
-    this.commandsItemLabel = 'operation';
+    this.toolName = 'build';
+    this.description = 'Build artifacts (schemas, documentation)';
+    this.commandsLabel = 'TARGETS';
+    this.commandsItemLabel = 'target';
     this.commands = {
-      generate: new DocsGenerateCommand()
+      schema: new BuildSchemaCommand(),
+      docs: new BuildDocsCommand()
     };
   }
 }
 
 // ============================================================
-// Validate Commands
+// Lint Commands
 // ============================================================
 
-class ValidateDocsCommand extends Command {
+class LintDocsCommand extends Command {
   constructor() {
     super({
       name: 'docs',
       description: 'Validate markdown documentation',
-      usage: 'validate docs [--verbose]',
+      usage: 'lint docs [--verbose]',
       options: [
         { long: '--verbose', desc: 'Enable verbose output' }
       ],
       examples: [
-        { cmd: 'validate docs', desc: 'Check markdown documentation' },
-        { cmd: 'validate docs --verbose', desc: 'Verbose validation output' }
+        { cmd: 'lint docs', desc: 'Check markdown documentation' },
+        { cmd: 'lint docs --verbose', desc: 'Verbose validation output' }
       ]
     });
   }
@@ -173,14 +156,14 @@ class ValidateDocsCommand extends Command {
   }
 }
 
-class ValidateCodeCommand extends Command {
+class LintCodeCommand extends Command {
   constructor() {
     super({
       name: 'code',
       description: 'Run code analysis (ast-grep)',
-      usage: 'validate code',
+      usage: 'lint code',
       examples: [
-        { cmd: 'validate code', desc: 'Analyze code with ast-grep rules' }
+        { cmd: 'lint code', desc: 'Analyze code with ast-grep rules' }
       ]
     });
   }
@@ -201,53 +184,6 @@ class ValidateCodeCommand extends Command {
     }
   }
 }
-
-class ValidateRouter extends Router {
-  constructor() {
-    super();
-    this.toolName = 'validate';
-    this.description = 'Project validation tools';
-    this.commandsLabel = 'TARGETS';
-    this.commandsItemLabel = 'target';
-    this.commands = {
-      docs: new ValidateDocsCommand(),
-      code: new ValidateCodeCommand()
-    };
-  }
-
-  // Override route() to run all validations when no subcommand given
-  async route(args) {
-    // Handle explicit help requests normally
-    if (args.length > 0) {
-      const firstArg = args[0];
-      if (firstArg === '--help' || firstArg === '-h' || firstArg === 'help') {
-        return super.route(args);
-      }
-      // Handle known subcommands
-      if (this.commands[firstArg]) {
-        return super.route(args);
-      }
-    }
-
-    // No args or unknown first arg → run all validations
-    console.log('Running all validations (use "validate docs" or "validate code" for specific targets)\n');
-    const { runComprehensiveValidation } = await import('./comprehensive-validation.mjs');
-
-    try {
-      const { exitCode } = await runComprehensiveValidation({});
-      if (exitCode !== 0) {
-        process.exit(exitCode);
-      }
-    } catch (error) {
-      console.error(`❌ ${error.message}`);
-      process.exit(1);
-    }
-  }
-}
-
-// ============================================================
-// Lint Commands
-// ============================================================
 
 class LintMocksCommand extends Command {
   constructor() {
@@ -282,44 +218,73 @@ class LintRouter extends Router {
   constructor() {
     super();
     this.toolName = 'lint';
-    this.description = 'Code linting tools';
-    this.commandsLabel = 'CHECKS';
-    this.commandsItemLabel = 'check';
+    this.description = 'Lint and validate (docs, code, mocks)';
+    this.commandsLabel = 'TARGETS';
+    this.commandsItemLabel = 'target';
     this.commands = {
+      docs: new LintDocsCommand(),
+      code: new LintCodeCommand(),
       mocks: new LintMocksCommand()
     };
+  }
+
+  // Override route() to run all lints when no subcommand given
+  async route(args) {
+    // Handle explicit help requests normally
+    if (args.length > 0) {
+      const firstArg = args[0];
+      if (firstArg === '--help' || firstArg === '-h' || firstArg === 'help') {
+        return super.route(args);
+      }
+      // Handle known subcommands
+      if (this.commands[firstArg]) {
+        return super.route(args);
+      }
+    }
+
+    // No args → run all lints
+    console.log('Running all lints (use "lint docs", "lint code", or "lint mocks" for specific targets)\n');
+    const { runComprehensiveValidation } = await import('./comprehensive-validation.mjs');
+
+    try {
+      const { exitCode } = await runComprehensiveValidation({});
+      if (exitCode !== 0) {
+        process.exit(exitCode);
+      }
+    } catch (error) {
+      console.error(`❌ ${error.message}`);
+      process.exit(1);
+    }
   }
 }
 
 // ============================================================
-// Root Router (Super-Router)
+// Root Router
 // ============================================================
 
 class ScriptsRouter extends Router {
   constructor() {
     super();
     this.toolName = 'scripts';
-    this.description = 'Unified build and validation tools for @m5nv/create';
+    this.description = 'Build and lint tools for @m5nv/create';
     this.version = '1.0.0';
 
-    // Custom terminology for this domain
-    this.commandsLabel = 'TOOLS';
-    this.commandsItemLabel = 'tool';
+    // Two domains: build and lint
+    this.commandsLabel = 'COMMANDS';
+    this.commandsItemLabel = 'command';
 
     this.commands = {
-      schema: new SchemaRouter(),
-      docs: new DocsRouter(),
-      validate: new ValidateRouter(),
+      build: new BuildRouter(),
       lint: new LintRouter()
     };
 
     this.examples = [
-      'schema build',
-      'schema build --check',
-      'docs generate',
-      'validate',
-      'validate docs',
-      'validate code',
+      'build schema',
+      'build schema --check',
+      'build docs',
+      'lint',
+      'lint docs',
+      'lint code',
       'lint mocks'
     ];
   }
