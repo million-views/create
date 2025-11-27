@@ -930,17 +930,41 @@ Benefits:
 
 #### How to Identify Domains
 
-Ask: "What are the **fundamental activities** this tool performs?"
+Ask: "What are the **fundamental areas of concern** this tool addresses?"
 
-| Tool Type | Typical Domains |
-|-----------|-----------------|
-| Build tool | `build`, `clean`, `watch` |
-| Linting tool | `lint`, `fix`, `ignore` |
-| Scaffolding tool | `scaffold`, `template` |
-| Package manager | `install`, `publish`, `run` |
-| Version control | `commit`, `branch`, `merge` |
+A domain (or namespace) is a **subject area** that groups related operations. It's not a verb—it's a *container* for verbs.
 
-The domains should be **verbs** (actions), not nouns (targets). Targets become subcommands within domains.
+| Tool Type | Domains (Namespaces) | Operations within each |
+|-----------|---------------------|------------------------|
+| Build tool | `build`, `clean`, `watch` | `schema`, `docs`, `types` |
+| Dev workflow | `lint`, `test`, `deploy` | `docs`, `code`, `mocks` |
+| Scaffolding tool | `scaffold`, `template` | `new`, `list`, `convert` |
+| Package manager | `install`, `publish`, `run` | various targets |
+| Version control | `commit`, `branch`, `remote` | various targets |
+
+**Structure:** `<domain> [<subdomain>...] <operation> [<args>] [<options>]`
+
+- **Domain/Subdomain** - The subject area (has agency, provides operations)
+- **Operation** - The verb (what you're doing)
+- **Args** - The objects (what you're operating on)
+- **Options** - The adjectives/adverbs (how you're doing it)
+
+**Example hierarchy:**
+```
+build schema --check
+│     │       └── option (adverb: "check that it's current")
+│     └── operation (verb: what to build)
+└── domain (namespace: building concerns)
+
+template config validate ./my-config.json --strict
+│        │      │        │                └── option (adverb)
+│        │      │        └── argument (object: what to validate)
+│        │      └── operation (verb)
+│        └── subdomain (nested namespace)
+└── domain (namespace: template authoring concerns)
+```
+
+Domains provide **agency**—they offer operations. Targets/arguments are **objects**—they're operated upon.
 
 ---
 
