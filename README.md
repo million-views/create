@@ -29,7 +29,8 @@ reinventing setup.
 
 ## Quick Examples
 
-> **First time?** Run `npm install -g @m5nv/create-scaffold` to get the CLI tools.
+> **Install once:** `npm install -g @m5nv/create-scaffold`  
+> **Or try without installing:** `npx -p @m5nv/create-scaffold create-scaffold ...`
 
 ### 🚀 Scaffold a new project
 
