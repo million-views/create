@@ -20,7 +20,7 @@ const TEST_TIMEOUT = 30000;
 
 // Helper function to execute CLI commands
 function execCLI(args, options = {}) {
-  const command = `node ${join(__dirname, '../../bin/make-template/index.mts')} ${args.join(' ')}`;
+  const command = `node ${join(__dirname, '../../bin/create/index.mts')} ${args.join(' ')}`;
   try {
     const result = execSync(command, {
       encoding: 'utf8',
@@ -68,7 +68,7 @@ test('make-template init command', async (t) => {
     const testDir = join(baseTestDir, 'test1');
     await mkdir(testDir, { recursive: true });
 
-    const result = execCLI(['init'], { cwd: testDir });
+    const result = execCLI(['template', 'init'], { cwd: testDir });
 
     assert.strictEqual(result.exitCode, 0, 'Command should succeed');
     assert(result.stdout.includes('Generating skeleton template.json'), 'Should show generation message');
@@ -106,7 +106,7 @@ test('make-template init command', async (t) => {
     const customFile = 'my-template.json';
     await mkdir(testDir, { recursive: true });
 
-    const result = execCLI(['init', '--file', customFile], { cwd: testDir });
+    const result = execCLI(['template', 'init', '--file', customFile], { cwd: testDir });
 
     assert.strictEqual(result.exitCode, 0, 'Command should succeed');
     assert(result.stdout.includes(`Generating skeleton template.json at ${customFile}`), 'Should show custom filename');
@@ -128,7 +128,7 @@ test('make-template init command', async (t) => {
     // Create existing file
     await writeFile(templatePath, '{"existing": "content"}');
 
-    const result = execCLI(['init'], { cwd: testDir });
+    const result = execCLI(['template', 'init'], { cwd: testDir });
 
     assert.strictEqual(result.exitCode, 1, 'Command should fail');
     assert(result.stderr.includes('already exists. Cannot proceed with template initialization.'), 'Should show file exists error');
@@ -142,7 +142,7 @@ test('make-template init command', async (t) => {
     const testDir = join(baseTestDir, 'test4');
     await mkdir(testDir, { recursive: true });
 
-    const result = execCLI(['init', '--help'], { cwd: testDir });
+    const result = execCLI(['template', 'init', '--help'], { cwd: testDir });
 
     assert.strictEqual(result.exitCode, 0, 'Help command should succeed');
     assert(result.stdout.includes('Initialize template configuration files'), 'Should show command description');
@@ -154,11 +154,11 @@ test('make-template init command', async (t) => {
     const testDir = join(baseTestDir, 'test5');
     await mkdir(testDir, { recursive: true });
 
-    const result = execCLI(['init'], { cwd: testDir });
+    const result = execCLI(['template', 'init'], { cwd: testDir });
 
     assert(result.stdout.includes('Next steps'), 'Should show next steps');
     assert(result.stdout.includes('Edit template.json'), 'Should show editing step');
-    assert(result.stdout.includes('make-template validate'), 'Should mention validation');
+    assert(result.stdout.includes('template validate'), 'Should mention validation');
   });
 
   // Cleanup - more robust

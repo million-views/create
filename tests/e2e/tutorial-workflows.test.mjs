@@ -28,7 +28,7 @@ test('Tutorial: Getting Started - Verify CLI tools accessible', async (t) => {
   });
 
   // Test create-scaffold --help
-  const createScaffoldHelp = execCLI('create-scaffold', ['--help'], {
+  const createScaffoldHelp = execCLI('scaffold', ['--help'], {
     env: testEnv.env,
     cwd: testEnv.workspaceDir
   });
@@ -37,7 +37,7 @@ test('Tutorial: Getting Started - Verify CLI tools accessible', async (t) => {
   assert(createScaffoldHelp.stdout.includes('scaffold') || createScaffoldHelp.stdout.includes('create-scaffold'), 'Should show scaffold help');
 
   // Test make-template --help
-  const makeTemplateHelp = execCLI('make-template', ['--help'], {
+  const makeTemplateHelp = execCLI('template', ['--help'], {
     env: testEnv.env,
     cwd: testEnv.workspaceDir
   });
@@ -97,7 +97,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
   });
 
   // Step 1: Initialize template configuration
-  const initResult = execCLI('make-template', ['init'], {
+  const initResult = execCLI('template', ['init'], {
     env: testEnv.env,
     cwd: projectDir
   });
@@ -107,7 +107,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
   await assertFileExists(join(projectDir, 'template.json'), 'Should create template.json');
 
   // Step 2: Convert project to template
-  const convertResult = execCLI('make-template', ['convert', '--yes'], {
+  const convertResult = execCLI('template', ['convert', '--yes'], {
     env: testEnv.env,
     cwd: projectDir
   });
@@ -122,7 +122,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
   await assertFileExists(join(projectDir, '.template-undo.json'), 'Should create .template-undo.json');
 
   // Step 3: Test template validation
-  const validateResult = execCLI('make-template', ['validate'], {
+  const validateResult = execCLI('template', ['validate'], {
     env: testEnv.env,
     cwd: projectDir
   });
@@ -130,7 +130,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
   assert.strictEqual(validateResult.exitCode, 0, 'Template validation should succeed');
 
   // Step 4: Restore original project
-  const restoreResult = execCLI('make-template', ['restore'], {
+  const restoreResult = execCLI('template', ['restore'], {
     env: testEnv.env,
     cwd: projectDir
   });
@@ -264,7 +264,7 @@ test('Tutorial: make-template - Marketing website with multiple placeholders', a
   });
 
   // Initialize (will use existing .templatize.json)
-  const initResult = execCLI('make-template', ['init'], {
+  const initResult = execCLI('template', ['init'], {
     env: testEnv.env,
     cwd: projectDir
   });
@@ -272,7 +272,7 @@ test('Tutorial: make-template - Marketing website with multiple placeholders', a
   assert.strictEqual(initResult.exitCode, 0, 'make-template init should succeed');
 
   // Convert with custom config
-  const convertResult = execCLI('make-template', ['convert', '--yes'], {
+  const convertResult = execCLI('template', ['convert', '--yes'], {
     env: testEnv.env,
     cwd: projectDir
   });
@@ -387,7 +387,7 @@ test('Tutorial: create-scaffold - Scaffold from local template', async (t) => {
   await mkdir(projectsDir, { recursive: true });
 
   // Scaffold a new project from local template
-  const scaffoldResult = execCLI('create-scaffold', [
+  const scaffoldResult = execCLI('scaffold', [
     'new', 'my-test-project',
     '--template', templateDir,
     '--placeholder', 'PACKAGE_NAME=my-test-project',
@@ -471,7 +471,7 @@ test('Tutorial: create-scaffold - Registry configuration and list', async (t) =>
   });
 
   // Test list templates from registry
-  const listResult = execCLI('create-scaffold', [
+  const listResult = execCLI('scaffold', [
     'list',
     '--registry', 'workshop'
   ], {
@@ -492,7 +492,7 @@ test('Tutorial: create-scaffold - Registry configuration and list', async (t) =>
   assert(listResult.stdout.includes('Web service template'), 'Should list web-service template');
 
   // Scaffold using direct local path (registry shorthand resolution with typed registries needs fixing)
-  const scaffoldResult = execCLI('create-scaffold', [
+  const scaffoldResult = execCLI('scaffold', [
     'new', 'my-web-service',
     '--template', join(workshopDir, 'web-service'),
     '--placeholder', 'PACKAGE_NAME=my-web-service',
@@ -537,13 +537,13 @@ test('Complete workflow: create → convert → scaffold → verify', async (t) 
   });
 
   // Step 2: Initialize and convert to template
-  const initResult = execCLI('make-template', ['init'], {
+  const initResult = execCLI('template', ['init'], {
     env: testEnv.env,
     cwd: originalProjectDir
   });
   assert.strictEqual(initResult.exitCode, 0, 'Init should succeed');
 
-  const convertResult = execCLI('make-template', ['convert', '--yes'], {
+  const convertResult = execCLI('template', ['convert', '--yes'], {
     env: testEnv.env,
     cwd: originalProjectDir
   });
@@ -553,7 +553,7 @@ test('Complete workflow: create → convert → scaffold → verify', async (t) 
   const projectsDir = join(testEnv.workspaceDir, 'projects');
   const { mkdir: mkdir3 } = await import('node:fs/promises');
   await mkdir3(projectsDir, { recursive: true });
-  const scaffoldResult = execCLI('create-scaffold', [
+  const scaffoldResult = execCLI('scaffold', [
     'new', 'new-instance',
     '--template', originalProjectDir,
     '--placeholder', 'PACKAGE_NAME=new-instance',
@@ -575,7 +575,7 @@ test('Complete workflow: create → convert → scaffold → verify', async (t) 
   assert(readme.includes('original-project'), 'README should exist with content');
 
   // Step 5: Restore original project
-  const restoreResult = execCLI('make-template', ['restore'], {
+  const restoreResult = execCLI('template', ['restore'], {
     env: testEnv.env,
     cwd: originalProjectDir
   });

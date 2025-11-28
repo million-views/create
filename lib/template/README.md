@@ -112,7 +112,7 @@ The following entries are always ignored:
 | Entry | Reason |
 |-------|--------|
 | `.git` | Git repository data |
-| `.template-undo.json` | Make-template undo log |
+| `.template-undo.json` | Template undo log |
 | `.templatize.json` | Templatization config |
 | `node_modules` | Dependencies |
 | `template.json` | Template metadata |

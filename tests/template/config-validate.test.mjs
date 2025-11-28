@@ -8,7 +8,7 @@ import { tmpdir } from 'node:os';
 import { mkdtemp, writeFile, rm } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 
-const CLI_ENTRY = fileURLToPath(new URL('../../bin/make-template/index.mts', import.meta.url));
+const CLI_ENTRY = fileURLToPath(new URL('../../bin/create/index.mts', import.meta.url));
 const TEST_TIMEOUT = 30000;
 
 function execCLI(args, options = {}) {
@@ -81,7 +81,7 @@ test('make-template config validate command', async (t) => {
       { name: '.templatize.json', contents: stringify(validConfig) }
     ]);
 
-    const result = execCLI(['config', 'validate'], { cwd });
+    const result = execCLI(['template', 'config', 'validate'], { cwd });
 
     assert.equal(result.exitCode, 0);
     assert.match(result.stdout, /Configuration file is valid/);
@@ -92,7 +92,7 @@ test('make-template config validate command', async (t) => {
       { name: 'custom-templatize.json', contents: stringify(anotherValidConfig) }
     ]);
 
-    const result = execCLI(['config', 'validate', 'custom-templatize.json'], { cwd });
+    const result = execCLI(['template', 'config', 'validate', 'custom-templatize.json'], { cwd });
 
     assert.equal(result.exitCode, 0);
     assert.match(result.stdout, /Configuration file is valid/);
@@ -103,7 +103,7 @@ test('make-template config validate command', async (t) => {
       { name: '.templatize.json', contents: '{"version": }' }
     ]);
 
-    const result = execCLI(['config', 'validate'], { cwd });
+    const result = execCLI(['template', 'config', 'validate'], { cwd });
 
     assert.notEqual(result.exitCode, 0);
     assert.match(result.stderr + result.stdout, /Configuration validation failed/);

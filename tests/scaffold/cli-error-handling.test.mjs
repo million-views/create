@@ -14,7 +14,7 @@ import { TestEnvironment, TemplateRepository, TestRunner, ResourceMonitor } from
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const CLI_PATH = path.join(__dirname, '..', '..', 'bin', 'create-scaffold', 'index.mts');
+const CLI_PATH = path.join(__dirname, '..', '..', 'bin', 'create', 'index.mts');
 
 // Create test runner instance
 const runner = new TestRunner();
@@ -27,7 +27,7 @@ runner.createTest('Temporary directories are cleaned up on failure', async () =>
   runner.addTempPath(tempDir);
 
   // This should fail because the template doesn't exist
-  const result = await runCLI(CLI_PATH, ['new', tempDir, '--template', '/definitely/does/not/exist']);
+  const result = await runCLI(CLI_PATH, ['scaffold', 'new', tempDir, '--template', '/definitely/does/not/exist']);
   if (result.exitCode === 0) {
     throw new Error('CLI should have failed with nonexistent template');
   }
@@ -59,7 +59,7 @@ runner.createTest('Temp directory cleanup on verifyTemplate() failure', async ()
   await TemplateRepository.execCommand('git', ['add', '.'], { cwd: repoDir });
   await TemplateRepository.execCommand('git', ['commit', '-m', 'Remove template.json'], { cwd: repoDir });
 
-  const result = await runCLI(CLI_PATH, ['new', tempDir, '--template', repoDir + '/features-demo-template']);
+  const result = await runCLI(CLI_PATH, ['scaffold', 'new', tempDir, '--template', repoDir + '/features-demo-template']);
   if (result.exitCode === 0) {
     throw new Error('CLI should have failed template verification');
   }
@@ -88,7 +88,7 @@ runner.createTest('Temp directory cleanup on copyTemplate() failure', async () =
   // Make the destination read-only to cause copy failure
   await fs.chmod(tempDir, 0o444); // Read-only
 
-  const result = await runCLI(CLI_PATH, ['new', tempDir, '--template', repoDir + '/test-template']);
+  const result = await runCLI(CLI_PATH, ['scaffold', 'new', tempDir, '--template', repoDir + '/test-template']);
   if (result.exitCode === 0) {
     throw new Error('CLI should have failed during template copying');
   }
@@ -128,7 +128,7 @@ runner.createTest('Temp directory cleanup on executeSetupScript() failure', asyn
   await TemplateRepository.execCommand('git', ['add', '.'], { cwd: repoDir });
   await TemplateRepository.execCommand('git', ['commit', '-m', 'Add failing setup script'], { cwd: repoDir });
 
-  const result = await runCLI(CLI_PATH, ['new', tempDir, '--template', repoDir + '/features-demo-template']);
+  const result = await runCLI(CLI_PATH, ['scaffold', 'new', tempDir, '--template', repoDir + '/features-demo-template']);
   if (result.exitCode === 0) {
     throw new Error('CLI should have failed during setup script execution');
   }
@@ -169,7 +169,7 @@ runner.createTest('Project directory cleanup when setup script fails after copy'
   await TemplateRepository.execCommand('git', ['add', '.'], { cwd: repoDir });
   await TemplateRepository.execCommand('git', ['commit', '-m', 'Add failing setup script'], { cwd: repoDir });
 
-  const result = await runCLI(CLI_PATH, ['new', tempDir, '--template', repoDir + '/features-demo-template']);
+  const result = await runCLI(CLI_PATH, ['scaffold', 'new', tempDir, '--template', repoDir + '/features-demo-template']);
   if (result.exitCode === 0) {
     throw new Error('CLI should have failed during setup script execution');
   }
@@ -204,7 +204,7 @@ runner.createTest('Setup script file cleanup on execution failure', async () => 
   await TemplateRepository.execCommand('git', ['add', '.'], { cwd: repoDir });
   await TemplateRepository.execCommand('git', ['commit', '-m', 'Add failing setup script'], { cwd: repoDir });
 
-  const result = await runCLI(CLI_PATH, ['new', tempDir, '--template', repoDir + '/features-demo-template']);
+  const result = await runCLI(CLI_PATH, ['scaffold', 'new', tempDir, '--template', repoDir + '/features-demo-template']);
   if (result.exitCode === 0) {
     throw new Error('CLI should have failed during setup script execution');
   }
@@ -223,7 +223,7 @@ runner.createTest('Git process timeout and cleanup behavior', async () => {
   runner.addTempPath(tempDir);
 
   // Use a URL that will timeout (non-routable address)
-  const result = await runCLI(CLI_PATH, ['new', tempDir, '--template', 'https://192.0.2.1/nonexistent-repo.git'], { timeout: 5000 });
+  const result = await runCLI(CLI_PATH, ['scaffold', 'new', tempDir, '--template', 'https://192.0.2.1/nonexistent-repo.git'], { timeout: 5000 });
 
   // Should either timeout or fail gracefully
   if (result.exitCode === 0) {
@@ -306,7 +306,7 @@ runner.createTest('Setup script error handling with malformed setup scripts', as
   await TemplateRepository.execCommand('git', ['add', '.'], { cwd: repoDir });
   await TemplateRepository.execCommand('git', ['commit', '-m', 'Add malformed setup script'], { cwd: repoDir });
 
-  const result = await runCLI(CLI_PATH, ['new', 'test-malformed-setup', '--template', repoDir + '/features-demo-template'], { cwd: tempDir });
+  const result = await runCLI(CLI_PATH, ['scaffold', 'new', 'test-malformed-setup', '--template', repoDir + '/features-demo-template'], { cwd: tempDir });
 
   const output = result.stdout + result.stderr;
 
@@ -355,7 +355,7 @@ runner.createTest('Placeholder prompts fail when required values missing with --
   await TemplateRepository.execCommand('git', ['add', '.'], { cwd: repoDir });
   await TemplateRepository.execCommand('git', ['commit', '-m', 'Add template with required placeholder'], { cwd: repoDir });
 
-  const result = await runCLI(CLI_PATH, ['new', tempDir, '--template', repoDir + '/features-demo-template', '--yes']);
+  const result = await runCLI(CLI_PATH, ['scaffold', 'new', tempDir, '--template', repoDir + '/features-demo-template', '--yes']);
   if (result.exitCode === 0) {
     throw new Error('CLI should have failed with missing required placeholder and --yes');
   }

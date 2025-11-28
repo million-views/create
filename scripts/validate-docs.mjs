@@ -260,21 +260,17 @@ function validateTerminology(filePath, content) {
     const line = lines[i];
 
     // Check for incorrect references to old package name
-    if (line.includes('@m5nv/create') && !line.includes('@m5nv/create-scaffold')) {
-      results.errors.push(`file://${absolutePath}:${i + 1}:1: Incorrect reference to old package name '@m5nv/create' (should be '@m5nv/create-scaffold')`);
+    if (line.includes('@m5nv/create-scaffold')) {
+      results.errors.push(`file://${absolutePath}:${i + 1}:1: Incorrect reference to old package name '@m5nv/create-scaffold' (should be '@m5nv/create')`);
     }
 
-    // Check for incorrect tool references with package prefix
-    if (line.includes('@m5nv/make-template')) {
-      results.errors.push(`file://${absolutePath}:${i + 1}:1: Incorrect tool reference '@m5nv/make-template' (should be just 'make-template')`);
+    // Check for incorrect tool references (old CLI names)
+    if (line.match(/\bmake-template\b/) && !line.includes('template-')) {
+      results.warnings.push(`file://${absolutePath}:${i + 1}:1: Possibly outdated tool reference 'make-template' (consider 'create template')`);
     }
 
-    // Check for package references when tool is meant (context-dependent warnings)
-    // Only warn for specific problematic patterns, not general "provides tools" statements
-    const problematicPackageToolRegex =
-      /@m5nv\/create-scaffold\s+(?:is\s+)?(?:a\s+)?(?:CLI tool|command|executable)(?!s)/gi;
-    if (problematicPackageToolRegex.test(line)) {
-      results.warnings.push(`file://${absolutePath}:${i + 1}:1: Package reference '@m5nv/create-scaffold' used with singular tool terminology - consider if this should refer to the package or individual tool`);
+    if (line.match(/\bcreate-scaffold\b/)) {
+      results.warnings.push(`file://${absolutePath}:${i + 1}:1: Possibly outdated tool reference 'create-scaffold' (consider 'create scaffold')`);
     }
   }
 }

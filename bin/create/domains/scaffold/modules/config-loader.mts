@@ -134,7 +134,7 @@ function normalizeConfigPayload(payload, filePath) {
   }
 
   // Then check product-specific registries (new structure)
-  const productName = 'create-scaffold'; // This could be made configurable
+  const productName = 'scaffold'; // This could be made configurable
   if (payload[productName] && typeof payload[productName] === 'object' &&
     payload[productName].registries) {
     registries = payload[productName].registries;

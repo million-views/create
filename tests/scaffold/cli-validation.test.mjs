@@ -13,7 +13,7 @@ import { TestEnvironment, OutputValidator, TestRunner } from '../helpers/cli-tes
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const CLI_PATH = path.join(__dirname, '..', '..', 'bin', 'create-scaffold', 'index.mts');
+const CLI_PATH = path.join(__dirname, '..', '..', 'bin', 'create', 'index.mts');
 
 /**
  * Node.js test runner bridge that preserves existing helper semantics.
@@ -22,7 +22,7 @@ const runner = new TestRunner();
 
 // Test suite
 runner.createTest('Help flag displays usage information', async () => {
-  const result = await runCLI(CLI_PATH, ['--help']);
+  const result = await runCLI(CLI_PATH, ['scaffold', '--help']);
   if (result.exitCode !== 0) {
     throw new Error(`CLI exited with code ${result.exitCode}: ${result.stderr}`);
   }
@@ -34,7 +34,7 @@ runner.createTest('Help flag displays usage information', async () => {
 });
 
 runner.createTest('Missing project directory shows error', async () => {
-  const result = await runCLI(CLI_PATH, ['new']);
+  const result = await runCLI(CLI_PATH, ['scaffold', 'new']);
   if (result.exitCode === 0) {
     throw new Error('CLI should have failed with missing project directory');
   }
@@ -49,7 +49,7 @@ runner.createTest('Missing template flag shows error', async () => {
   const tempDir = await TestEnvironment.createTempDir();
   runner.addTempPath(tempDir);
 
-  const result = await runCLI(CLI_PATH, ['new', 'test-project'], { cwd: tempDir });
+  const result = await runCLI(CLI_PATH, ['scaffold', 'new', 'test-project'], { cwd: tempDir });
   if (result.exitCode === 0) {
     throw new Error('CLI should have failed with missing template flag');
   }
@@ -61,7 +61,7 @@ runner.createTest('Missing template flag shows error', async () => {
 });
 
 runner.createTest('Path traversal in project directory is blocked', async () => {
-  const result = await runCLI(CLI_PATH, ['new', '../../../etc', '--template', 'test']);
+  const result = await runCLI(CLI_PATH, ['scaffold', 'new', '../../../etc', '--template', 'test']);
   if (result.exitCode === 0) {
     throw new Error('CLI should have blocked path traversal attack');
   }
@@ -76,7 +76,7 @@ runner.createTest('Path traversal in template URL is blocked', async () => {
   const tempDir = await TestEnvironment.createTempDir();
   runner.addTempPath(tempDir);
 
-  const result = await runCLI(CLI_PATH, ['new', 'test-project', '--template', '../../../etc/passwd'], { cwd: tempDir });
+  const result = await runCLI(CLI_PATH, ['scaffold', 'new', 'test-project', '--template', '../../../etc/passwd'], { cwd: tempDir });
   if (result.exitCode === 0) {
     throw new Error('CLI should have blocked path traversal in template URL');
   }
@@ -88,7 +88,7 @@ runner.createTest('Path traversal in template URL is blocked', async () => {
 });
 
 runner.createTest('Invalid characters in project directory are rejected', async () => {
-  const result = await runCLI(CLI_PATH, ['new', 'test<>project', '--template', 'test']);
+  const result = await runCLI(CLI_PATH, ['scaffold', 'new', 'test<>project', '--template', 'test']);
   if (result.exitCode === 0) {
     throw new Error('CLI should have rejected invalid characters in project name');
   }
@@ -105,7 +105,7 @@ runner.createTest('Invalid template URL format is rejected', async () => {
 
   const projectName = `test-project-invalid-${Date.now()}`;
   // Use a URL with invalid protocol that fails validation immediately
-  const result = await runCLI(CLI_PATH, ['new', projectName, '--template', 'ftp://invalid-protocol.com/repo'], { cwd: tempDir });
+  const result = await runCLI(CLI_PATH, ['scaffold', 'new', projectName, '--template', 'ftp://invalid-protocol.com/repo'], { cwd: tempDir });
   if (result.exitCode === 0) {
     throw new Error('CLI should have rejected invalid template URL protocol');
   }
@@ -120,7 +120,7 @@ runner.createTest('Invalid template URL with injection characters is rejected', 
   const tempDir = await TestEnvironment.createTempDir();
   runner.addTempPath(tempDir);
 
-  const result = await runCLI(CLI_PATH, ['new', 'test-project', '--template', 'http://example.com;rm -rf /'], { cwd: tempDir });
+  const result = await runCLI(CLI_PATH, ['scaffold', 'new', 'test-project', '--template', 'http://example.com;rm -rf /'], { cwd: tempDir });
   if (result.exitCode === 0) {
     throw new Error('CLI should have rejected template URL with injection characters');
   }
@@ -137,7 +137,7 @@ runner.createTest('Git installation is verified', async () => {
 
   // Use a local path that doesn't exist to test git detection without network calls
   const nonexistentPath = path.join(tempDir, 'nonexistent-repo');
-  const result = await runCLI(CLI_PATH, ['new', 'test-project', '--template', nonexistentPath], { cwd: tempDir });
+  const result = await runCLI(CLI_PATH, ['scaffold', 'new', 'test-project', '--template', nonexistentPath], { cwd: tempDir });
 
   // The CLI should fail because the local path doesn't exist
   if (result.exitCode === 0) {
@@ -159,7 +159,7 @@ runner.createTest('Existing directory conflict is detected', async () => {
   await fs.mkdir(projectDir);
   await fs.writeFile(path.join(projectDir, 'existing-file.txt'), 'test content');
 
-  const result = await runCLI(CLI_PATH, ['new', 'test-project', '--template', 'test'], { cwd: tempDir });
+  const result = await runCLI(CLI_PATH, ['scaffold', 'new', 'test-project', '--template', 'test'], { cwd: tempDir });
   if (result.exitCode === 0) {
     throw new Error('CLI should have detected existing directory conflict');
   }
@@ -174,7 +174,7 @@ runner.createTest('Nonexistent template is detected', async () => {
   const tempDir = await TestEnvironment.createTempDir();
   runner.addTempPath(tempDir);
 
-  const result = await runCLI(CLI_PATH, ['new', 'test-project', '--template', '/definitely/does/not/exist'], { cwd: tempDir });
+  const result = await runCLI(CLI_PATH, ['scaffold', 'new', 'test-project', '--template', '/definitely/does/not/exist'], { cwd: tempDir });
   if (result.exitCode === 0) {
     throw new Error('CLI should have detected nonexistent template');
   }
@@ -199,14 +199,14 @@ runner.createTest('Missing template in repository is detected', async () => {
 
   // For local repositories, CLI doesn't validate template.json presence
   const projectName = `test-project-missing-${Date.now()}`;
-  const result = await runCLI(CLI_PATH, ['new', projectName, '--template', tempDir], { cwd: tempDir });
+  const result = await runCLI(CLI_PATH, ['scaffold', 'new', projectName, '--template', tempDir], { cwd: tempDir });
   if (result.exitCode !== 0) {
     throw new Error('CLI should succeed with local repo missing template.json');
   }
 });
 
 runner.createTest('Error messages are sanitized', async () => {
-  const result = await runCLI(CLI_PATH, ['new', 'test<>project', '--template', 'test']);
+  const result = await runCLI(CLI_PATH, ['scaffold', 'new', 'test<>project', '--template', 'test']);
   if (result.exitCode === 0) {
     throw new Error('CLI should have failed with invalid project name');
   }
@@ -239,7 +239,7 @@ runner.createTest('File operations prevent symlink attacks', async () => {
 
   // Use a unique project name to avoid conflicts
   const projectName = `test-project-${Date.now()}`;
-  const result = await runCLI(CLI_PATH, ['new', projectName, '--template', tempDir], { cwd: tempDir });
+  const result = await runCLI(CLI_PATH, ['scaffold', 'new', projectName, '--template', tempDir], { cwd: tempDir });
   // CLI currently does not check for symlinks, so it should succeed
   if (result.exitCode !== 0) {
     throw new Error(`CLI should succeed with symlinks in template (no symlink checking implemented). Exit code: ${result.exitCode}, Output: ${result.stdout + result.stderr}`);
@@ -250,7 +250,7 @@ runner.createTest('Argument parsing supports short aliases', async () => {
   const tempDir = await TestEnvironment.createTempDir();
   runner.addTempPath(tempDir);
 
-  const result = await runCLI(CLI_PATH, ['new', 'test-project', '-t', 'test'], { cwd: tempDir });
+  const result = await runCLI(CLI_PATH, ['scaffold', 'new', 'test-project', '-t', 'test'], { cwd: tempDir });
   if (result.exitCode === 0) {
     throw new Error('CLI should have failed with invalid template (but parsing should work)');
   }

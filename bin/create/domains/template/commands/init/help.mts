@@ -12,7 +12,7 @@ export const initHelp = {
     'This is the first step in converting a project to a template.',
     'Run this command in the project directory you want to templatize.',
     'After initialization, edit the configuration files to customize behavior,',
-    'then run \'make-template convert\' to apply the templatization.'
+    'then run \'template convert\' to apply the templatization.'
   ],
 
   optionGroups: [
@@ -41,12 +41,12 @@ export const initHelp = {
 
   footer: [
     'Typical workflow:',
-    '  1. make-template init                  # Create configuration files',
+    '  1. template init                  # Create configuration files',
     '  2. Edit template.json and .templatize.json  # Customize for your project',
-    '  3. make-template convert ./project     # Apply templatization',
+    '  3. template convert ./project     # Apply templatization',
     '',
     'Related commands:',
-    '  • make-template convert - Apply templatization to project',
-    '  • make-template config validate - Validate configuration files'
+    '  • template convert - Apply templatization to project',
+    '  • template config validate - Validate configuration files'
   ]
 };

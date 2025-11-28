@@ -65,7 +65,7 @@ describe('Sprint 3: Edge Cases and Error Scenarios', () => {
 
     // Scaffold from minimal template - pass placeholder value explicitly
     const result = execCLI(
-      'create-scaffold',
+      'scaffold',
       ['new', 'minimal-output', '--template', templateDir, '--placeholder', 'PROJECT_NAME=my-project', '--yes'],
       { cwd: outputDir, env: testEnv.env }
     );
@@ -107,7 +107,7 @@ describe('Sprint 3: Edge Cases and Error Scenarios', () => {
 
     // Try to scaffold - should fail
     const result = execCLI(
-      'create-scaffold',
+      'scaffold',
       ['new', 'existing-dir', '--template', templateDir, '--yes'],
       { cwd: outputParent, env: testEnv.env }
     );
@@ -150,7 +150,7 @@ describe('Sprint 3: Edge Cases and Error Scenarios', () => {
 
     // Scaffold - should succeed, pass placeholder explicitly
     const result = execCLI(
-      'create-scaffold',
+      'scaffold',
       ['new', 'empty-dir', '--template', templateDir, '--placeholder', 'TITLE=Hello', '--yes'],
       { cwd: outputParent, env: testEnv.env }
     );
@@ -183,7 +183,7 @@ describe('Sprint 3: Edge Cases and Error Scenarios', () => {
 
     // Step 1: Initialize template configuration (required before convert)
     const initResult = execCLI(
-      'make-template',
+      'template',
       ['init'],
       { cwd: projectDir, env: testEnv.env }
     );
@@ -192,7 +192,7 @@ describe('Sprint 3: Edge Cases and Error Scenarios', () => {
 
     // Step 2: Convert to template
     const convertResult = execCLI(
-      'make-template',
+      'template',
       ['convert', '--yes'],
       { cwd: projectDir, env: testEnv.env }
     );
@@ -210,7 +210,7 @@ describe('Sprint 3: Edge Cases and Error Scenarios', () => {
 
     // Step 3: Restore original files
     const restoreResult = execCLI(
-      'make-template',
+      'template',
       ['restore'],
       { cwd: projectDir, env: testEnv.env }
     );
@@ -235,7 +235,7 @@ describe('Sprint 3: Edge Cases and Error Scenarios', () => {
 
     // Try to restore - should fail gracefully
     const result = execCLI(
-      'make-template',
+      'template',
       ['restore', projectDir],
       { cwd: projectRoot, env: testEnv.env }
     );
@@ -265,7 +265,7 @@ describe('Sprint 3: Edge Cases and Error Scenarios', () => {
 
     // Try to validate
     const result = execCLI(
-      'create-scaffold',
+      'scaffold',
       ['validate', templateDir],
       { cwd: projectRoot, env: testEnv.env }
     );
@@ -298,7 +298,7 @@ describe('Sprint 3: Edge Cases and Error Scenarios', () => {
 
     // Try to validate
     const result = execCLI(
-      'create-scaffold',
+      'scaffold',
       ['validate', templateDir],
       { cwd: projectRoot, env: testEnv.env }
     );
@@ -321,7 +321,7 @@ describe('Sprint 3: Edge Cases and Error Scenarios', () => {
 
     // Try to validate
     const result = execCLI(
-      'create-scaffold',
+      'scaffold',
       ['validate', templateDir],
       { cwd: projectRoot, env: testEnv.env }
     );

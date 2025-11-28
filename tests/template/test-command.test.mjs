@@ -20,7 +20,7 @@ const TEST_TIMEOUT = 120000; // Longer timeout for testing operations
 
 // Helper function to execute CLI commands
 function execCLI(args, options = {}) {
-  const command = `node ${join(__dirname, '../../bin/make-template/index.mts')} ${args.join(' ')}`;
+  const command = `node ${join(__dirname, '../../bin/create/index.mts')} ${args.join(' ')}`;
   try {
     const result = execSync(command, {
       encoding: 'utf8',
@@ -119,14 +119,14 @@ test('make-template test command', async (t) => {
   const templateDir = join(testDir, 'template');
 
   await t.test('test requires template path', async () => {
-    const result = execCLI(['test']);
+    const result = execCLI(['template', 'test']);
 
     assert.strictEqual(result.exitCode, 1, 'Should fail without template path');
     assert(result.stdout.includes('Template path is required') || result.stderr.includes('Template path is required'), 'Should indicate missing template path');
   });
 
   await t.test('test --help shows help text', async () => {
-    const result = execCLI(['test', '--help']);
+    const result = execCLI(['template', 'test', '--help']);
 
     assert.strictEqual(result.exitCode, 0, 'Help command should succeed');
     assert(result.stdout.includes('test'), 'Should show command name');
@@ -138,7 +138,7 @@ test('make-template test command', async (t) => {
   });
 
   await t.test('test validates template exists', async () => {
-    const result = execCLI(['test', 'non-existent-template']);
+    const result = execCLI(['template', 'test', 'non-existent-template']);
 
     assert.strictEqual(result.exitCode, 1, 'Should fail with non-existent template');
     assert(result.stderr.includes('Template path does not exist'), 'Should indicate template path error');
@@ -147,7 +147,7 @@ test('make-template test command', async (t) => {
   await t.test('test validates template.json exists', async () => {
     await mkdir(templateDir, { recursive: true });
 
-    const result = execCLI(['test', templateDir], { cwd: testDir });
+    const result = execCLI(['template', 'test', templateDir], { cwd: testDir });
 
     // Test command validates template.json exists first
     assert(result.exitCode === 1, 'Should fail when template.json is missing');
@@ -157,7 +157,7 @@ test('make-template test command', async (t) => {
   await t.test('test performs basic template validation', async () => {
     await createTestTemplate(templateDir);
 
-    const result = execCLI(['test', templateDir], { cwd: testDir });
+    const result = execCLI(['template', 'test', templateDir], { cwd: testDir });
 
     // Test command may fail due to create-scaffold integration complexity in test environment
     // but should at least attempt validation
@@ -173,7 +173,7 @@ test('make-template test command', async (t) => {
   });
 
   await t.test('test --verbose provides detailed output', async () => {
-    const result = execCLI(['test', templateDir, '--verbose'], { cwd: testDir });
+    const result = execCLI(['template', 'test', templateDir, '--verbose'], { cwd: testDir });
 
     // Should show more detailed output
     assert(result.stdout.length > 0 || result.stderr.length > 0, 'Should produce output');
@@ -187,7 +187,7 @@ test('make-template test command', async (t) => {
   });
 
   await t.test('test --keep-temp preserves temporary directories', async () => {
-    const result = execCLI(['test', templateDir, '--keep-temp'], { cwd: testDir });
+    const result = execCLI(['template', 'test', templateDir, '--keep-temp'], { cwd: testDir });
 
     // Should indicate temp directories are kept
     if (result.exitCode === 0) {
@@ -203,7 +203,7 @@ test('make-template test command', async (t) => {
     // Create a template that might cause issues (empty template.json)
     await writeFile(join(templateDir, 'template.json'), '{}');
 
-    const result = execCLI(['test', templateDir], { cwd: testDir });
+    const result = execCLI(['template', 'test', templateDir], { cwd: testDir });
 
     // Test command should attempt to test regardless of template validity
     // create-scaffold is permissive and may succeed with minimal templates
@@ -213,7 +213,7 @@ test('make-template test command', async (t) => {
   });
 
   await t.test('test shows progress indicators', async () => {
-    const result = execCLI(['test', templateDir], { cwd: testDir });
+    const result = execCLI(['template', 'test', templateDir], { cwd: testDir });
 
     // Should show some form of progress or status
     assert(result.stdout.includes('🧪') || result.stdout.includes('Testing') ||

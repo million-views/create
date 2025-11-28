@@ -3,7 +3,7 @@
  * Placeholder Format Configuration
  *
  * Centralized configuration for all placeholder delimiter formats.
- * Ensures consistency across make-template conversion and create-scaffold replacement.
+ * Ensures consistency across template conversion and scaffold replacement.
  */
 
 /**

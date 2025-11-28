@@ -14,7 +14,7 @@ related_docs:
 last_updated: "2025-11-12"
 ---
 
-# Contributing to @m5nv/create-scaffold
+# Contributing to @m5nv/create
 
 If you care about craft then our code base may interest you enough to contribute. Zero dependencies, security-first design, and clean architecture are some of the dimensions we have strived hard to remain true to. If these interest you and align with your own principles then your contributions are welcome.
 
@@ -182,9 +182,9 @@ npm create @m5nv/scaffold test-app -- --dry-run --template express
 npm unlink  # Cleanup when done
 
 # Test specific scenarios
-node bin/create-scaffold/index.mjs --help                    # Help output
-node bin/create-scaffold/index.mjs new test --template nonexistent  # Error handling
-node bin/create-scaffold/index.mjs new ../evil --template hack      # Security validation
+node bin/create/index.mjs --help                    # Help output
+node bin/create/index.mjs new test --template nonexistent  # Error handling
+node bin/create/index.mjs new ../evil --template hack      # Security validation
 ```
 
 ### Codebase Architecture
@@ -192,7 +192,7 @@ node bin/create-scaffold/index.mjs new ../evil --template hack      # Security v
 ```text
 create/
 ├── bin/                           # Core CLI modules
-│   ├── create-scaffold/          # Main scaffold creation tool
+│   ├── create scaffold/          # Main scaffold creation tool
 │   │   ├── index.mjs             # CLI entry point and orchestration
 │   │   ├── argument-parser.mjs   # Native argument parsing
 │   │   ├── command-router.mjs    # Command routing logic
@@ -202,7 +202,7 @@ create/
 │   │   ├── setup-runtime.mjs     # Setup script execution environment
 │   │   ├── guided-setup-workflow.mjs # Interactive setup workflow
 │   │   └── ...                   # Additional CLI modules
-│   ├── make-template/            # Template creation tool
+│   ├── create template/            # Template creation tool
 │   └── shared/                   # Shared utilities across tools
 ├── docs/                         # User and developer documentation
 ├── test/                         # Comprehensive test suites

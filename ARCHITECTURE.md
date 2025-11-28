@@ -1,6 +1,6 @@
 # Architecture Overview
 
-This document describes the architecture of the `@m5nv/create` library, which provides the core functionality for the `create-scaffold` and `make-template` CLI tools.
+This document describes the architecture of the `@m5nv/create` library, which provides the core functionality for the unified `create` CLI tool.
 
 ## Design Philosophy
 
@@ -8,8 +8,7 @@ The library follows a **domain-driven design** approach with clear boundaries be
 
 1. **Single Entry Point**: All public exports are available through `lib/index.mts`
 2. **Namespace Organization**: Exports are organized into domain namespaces
-3. **Backward Compatibility**: Re-export shims maintain existing import paths
-4. **Type-Strippable TypeScript**: Uses Node.js 23+ native `.mts` execution
+3. **Type-Strippable TypeScript**: Uses Node.js 23+ native `.mts` execution
 
 ## Directory Structure
 
@@ -84,32 +83,32 @@ Imports use direct domain paths for explicit dependencies and better tree-shakin
 
 ```typescript
 // Error handling
-import { ValidationError, ContextualError } from '@m5nv/create-scaffold/lib/error/index.mts';
+import { ValidationError, ContextualError } from '@m5nv/create/lib/error/index.mts';
 throw new ValidationError('Invalid input');
 
 // Security validation
-import { Gate, Boundary, sanitize } from '@m5nv/create-scaffold/lib/security/index.mts';
+import { Gate, Boundary, sanitize } from '@m5nv/create/lib/security/index.mts';
 const gate = new Gate();
 const boundary = new Boundary(baseDir);
 
 // Validation
-import { schema } from '@m5nv/create-scaffold/lib/validation/index.mts';
+import { schema } from '@m5nv/create/lib/validation/index.mts';
 const result = schema.validateManifest(manifest);
 
 // Placeholder resolution
-import { resolve } from '@m5nv/create-scaffold/lib/placeholder/index.mts';
+import { resolve } from '@m5nv/create/lib/placeholder/index.mts';
 const resolved = resolve(template, values);
 
 // File templatization
-import { strategy } from '@m5nv/create-scaffold/lib/templatize/index.mts';
+import { strategy } from '@m5nv/create/lib/templatize/index.mts';
 const changes = strategy.json(content, config);
 
 // Template discovery
-import { TemplateDiscovery } from '@m5nv/create-scaffold/lib/template/index.mts';
+import { TemplateDiscovery } from '@m5nv/create/lib/template/index.mts';
 const discovery = new TemplateDiscovery(cacheManager);
 
 // Utilities
-import { File } from '@m5nv/create-scaffold/lib/util/index.mts';
+import { File } from '@m5nv/create/lib/util/index.mts';
 const content = await File.read(path);
 ```
 
@@ -140,7 +139,7 @@ The public facade exports approximately **15 items** (well under the 30 limit):
 ```text
 ┌─────────────────────────────────────────────────────────┐
 │                     Application Layer                   │
-│              (bin/create-scaffold, bin/make-template)   │
+│              (bin/create/domains/scaffold,template)      │
 └────────────────────────────┬────────────────────────────┘
                              │
                              ▼
@@ -193,21 +192,6 @@ Key features:
 - **`.mts` Extension**: TypeScript files use `.mts` for ESM modules
 - **`.mjs` Allowed**: JavaScript files use `.mjs` extension
 
-## Backward Compatibility
-
-Legacy import paths are maintained through re-export shims:
-
-```javascript
-// Old import (still works)
-import { ValidationError } from './lib/error-classes.mjs';
-
-// New import (preferred)
-import { ValidationError } from './lib/index.mts';
-// or
-import { error } from './lib/index.mts';
-const { ValidationError } = error;
-```
-
 ## Testing Strategy
 
 Tests are organized to mirror the lib/ structure:
@@ -224,8 +208,8 @@ tests/
 │   └── util/              # Utility domain tests
 │
 ├── e2e/                   # End-to-end workflow tests
-├── create-scaffold/       # CLI integration tests
-├── make-template/         # CLI integration tests
+├── scaffold/              # Scaffold domain CLI tests
+├── template/              # Template domain CLI tests
 └── shared/                # Shared test utilities
 ```
 

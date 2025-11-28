@@ -708,7 +708,7 @@ this.commands = {
 
 | Phase | Import |
 |-------|--------|
-| Current | `import { Router } from '@m5nv/create-scaffold/lib/cli/router.mts'` |
+| Current | `import { Router } from '@m5nv/create/lib/cli/router.mts'` |
 | Workspace | `import { Router } from '@m5nv/cli'` |
 | Published | Same (npm resolves) |
 

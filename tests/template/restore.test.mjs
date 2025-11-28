@@ -20,7 +20,7 @@ const TEST_TIMEOUT = 60000;
 
 // Helper function to execute CLI commands
 function execCLI(args, options = {}) {
-  const command = `cd ${options.cwd} && node ${join(__dirname, '../../bin/make-template/index.mts')} ${args.join(' ')}`;
+  const command = `cd ${options.cwd} && node ${join(__dirname, '../../bin/create/index.mts')} ${args.join(' ')}`;
   try {
     const result = execSync(command, {
       encoding: 'utf8',
@@ -90,7 +90,7 @@ test('restore requires undo log', async () => {
   try {
     await mkdir(testDir, { recursive: true });
 
-    const result = execCLI(['restore'], { cwd: testDir });
+    const result = execCLI(['template', 'restore'], { cwd: testDir });
 
     assert.strictEqual(result.exitCode, 1, 'Should fail without undo log');
     assert(result.stderr.includes('.template-undo.json not found'), 'Should indicate missing undo log');
@@ -107,7 +107,7 @@ test('restore --dry-run shows preview without changes', async () => {
     await mkdir(testDir, { recursive: true });
     await createMockUndoLog(testDir);
 
-    const result = execCLI(['restore', '--dry-run'], { cwd: testDir });
+    const result = execCLI(['template', 'restore', '--dry-run'], { cwd: testDir });
 
     assert.strictEqual(result.exitCode, 0, 'Dry run should succeed');
     assert(result.stdout.includes('DRY RUN MODE') || result.stdout.includes('preview'),
@@ -132,7 +132,7 @@ test('restore --help shows help text', async () => {
   try {
     await mkdir(testDir, { recursive: true });
 
-    const result = execCLI(['restore', '--help'], { cwd: testDir });
+    const result = execCLI(['template', 'restore', '--help'], { cwd: testDir });
 
     assert.strictEqual(result.exitCode, 0, 'Help command should succeed');
     assert(result.stdout.includes('restore'), 'Should show command name');
@@ -161,7 +161,7 @@ test('restore performs restoration', async () => {
 
     await writeFile(join(testDir, 'README.md'), '# ⦃PROJECT_NAME⦄\n\n⦃DESCRIPTION⦄');
 
-    const result = execCLI(['restore', '--yes'], { cwd: testDir });
+    const result = execCLI(['template', 'restore', '--yes'], { cwd: testDir });
 
     assert.strictEqual(result.exitCode, 0, 'Restoration should succeed');
 
@@ -199,7 +199,7 @@ test('restore cleans up artifacts', async () => {
     await writeFile(join(testDir, '_setup.mjs'), '// setup script');
     await writeFile(join(testDir, 'template-README.md'), '# Template README');
 
-    const result = execCLI(['restore', '--yes'], { cwd: testDir });
+    const result = execCLI(['template', 'restore', '--yes'], { cwd: testDir });
 
     assert.strictEqual(result.exitCode, 0, 'Restoration should succeed');
 
@@ -262,7 +262,7 @@ test('restore handles missing files gracefully', async () => {
 
     await writeFile(join(testDir, '.template-undo.json'), JSON.stringify(undoLog, null, 2));
 
-    const result = execCLI(['restore', '--yes'], { cwd: testDir });
+    const result = execCLI(['template', 'restore', '--yes'], { cwd: testDir });
 
     assert.strictEqual(result.exitCode, 0, 'Should succeed despite missing files');
 
@@ -294,7 +294,7 @@ test('restore --files option works', async () => {
 
     await writeFile(join(testDir, 'README.md'), '# ⦃PROJECT_NAME⦄\n\n⦃DESCRIPTION⦄');
 
-    const result = execCLI(['restore', '--yes', '--files', 'package.json'], { cwd: testDir });
+    const result = execCLI(['template', 'restore', '--yes', '--files', 'package.json'], { cwd: testDir });
 
     assert.strictEqual(result.exitCode, 0, 'Selective restoration should succeed');
 
@@ -367,7 +367,7 @@ test('restore --files option parses comma-separated list', async () => {
     await writeFile(join(testDir, 'b.js'), 'const b = "⦃PROJECT_NAME⦄";');
     await writeFile(join(testDir, 'c.js'), 'const c = "⦃PROJECT_NAME⦄";');
 
-    const result = execCLI(['restore', '--yes', '--files', 'a.js,b.js'], { cwd: testDir });
+    const result = execCLI(['template', 'restore', '--yes', '--files', 'a.js,b.js'], { cwd: testDir });
 
     assert.strictEqual(result.exitCode, 0, 'Should restore specified files');
 
@@ -400,7 +400,7 @@ test('restore --placeholders-only option works', async () => {
 
     await writeFile(join(testDir, 'README.md'), '# ⦃PROJECT_NAME⦄\n\n⦃DESCRIPTION⦄');
 
-    const result = execCLI(['restore', '--yes', '--placeholders-only'], { cwd: testDir });
+    const result = execCLI(['template', 'restore', '--yes', '--placeholders-only'], { cwd: testDir });
 
     // This option may not be fully implemented yet, so check if command accepts it
     // The important part is that the CLI accepts and parses the option

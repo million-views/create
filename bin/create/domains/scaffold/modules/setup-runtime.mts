@@ -9,7 +9,7 @@
  * - L3: Sandbox execution with VM isolation
  * - L2: Tools factory (delegated to lib/environment)
  *
- * @module bin/create-scaffold/modules/setup-runtime
+ * @module bin/scaffold/modules/setup-runtime
  */
 
 import fs from 'fs/promises';

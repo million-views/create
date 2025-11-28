@@ -1,10 +1,10 @@
-# @m5nv/create-scaffold
+# @m5nv/create
 
 > **Start new projects in seconds. Share your best practices as templates.**
 
-[![npm version](https://badge.fury.io/js/@m5nv%2Fcreate-scaffold.svg)](https://badge.fury.io/js/@m5nv/create-scaffold)
+[![npm version](https://badge.fury.io/js/@m5nv%2Fcreate.svg)](https://badge.fury.io/js/@m5nv/create)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Node.js Version](https://img.shields.io/badge/node-%3E%3D22.0.0-brightgreen.svg)](https://nodejs.org/)
+[![Node.js Version](https://img.shields.io/badge/node-%3E%3D23.0.0-brightgreen.svg)](https://nodejs.org/)
 
 ## The Problem
 
@@ -29,13 +29,13 @@ reinventing setup.
 
 ## Quick Examples
 
-> **Install once:** `npm install -g @m5nv/create-scaffold`  
-> **Or try without installing:** `npx -p @m5nv/create-scaffold create-scaffold ...`
+> **Install once:** `npm install -g @m5nv/create`  
+> **Or try without installing:** `npx @m5nv/create ...`
 
 ### 🚀 Scaffold a new project
 
 ```bash
-create-scaffold new my-app --template basic-react-spa
+create scaffold new my-app --template basic-react-spa
 ```
 
 ### 🔄 Convert your project to a template
@@ -43,18 +43,18 @@ create-scaffold new my-app --template basic-react-spa
 ```bash
 # From within project
 cd my-project
-make-template init
-make-template convert
+create template init
+create template convert
 
 # Or with explicit path
-make-template init ./my-project
-make-template convert ./my-project
+create template init ./my-project
+create template convert ./my-project
 ```
 
 ### 📋 Reuse previous choices
 
 ```bash
-create-scaffold new my-app --template basic-react-spa --selection ./previous-choices.json
+create scaffold new my-app --template basic-react-spa --selection ./previous-choices.json
 ```
 
 ## Key Benefits
@@ -117,10 +117,10 @@ Markdown, and HTML files.
 Install the package globally:
 
 ```bash
-npm install -g @m5nv/create-scaffold
+npm install -g @m5nv/create
 ```
 
-This gives you two commands: `create-scaffold` and `make-template`.
+This gives you the unified `create` command with two domains: `scaffold` and `template`.
 
 📖 **[Complete setup guide](docs/tutorial/getting-started.md)** for environment requirements and troubleshooting.
 
@@ -130,47 +130,47 @@ This gives you two commands: `create-scaffold` and `make-template`.
 
 ```bash
 # New developer joins the team
-create-scaffold new onboarding-app --template company/react-fullstack
+create scaffold new onboarding-app --template company/react-fullstack
 ```
 
 Project would be instantiated with all the best practices the org may have
 baked into the template such as ESLint, Jest, CI/CD, database integration, and
 authentication!
 
-📖 **[Complete Tutorial](docs/tutorial/create-scaffold.md)**
+📖 **[Complete Tutorial](docs/tutorial/scaffold.md)**
 
 ### Template Authoring
 
 ```bash
 # Convert your project to a reusable template
 cd my-awesome-project
-make-template init      # Create configuration files
-make-template convert   # Apply templatization
+create template init      # Create configuration files
+create template convert   # Apply templatization
 
 # Or specify path explicitly
-make-template init ./my-awesome-project
-make-template convert ./my-awesome-project
+create template init ./my-awesome-project
+create template convert ./my-awesome-project
 ```
 
 Automatically detects and templatizes JSX, JSON, Markdown, and HTML content.
 
-📖 **[Complete Tutorial](docs/tutorial/make-template.md)**
+📖 **[Complete Tutorial](docs/tutorial/template.md)**
 
 ### Reproducible Builds
 
 ```bash
 # First time - interactive setup
-create-scaffold new my-app --template complex-microservice
+create scaffold new my-app --template complex-microservice
 
 # Creates: complex-microservice.selection.json
 
 # Next time - instant recreation
-create-scaffold new my-other-app --template complex-microservice --selection ./complex-microservice.selection.json
+create scaffold new my-other-app --template complex-microservice --selection ./complex-microservice.selection.json
 ```
 
-## The Two Tools
+## The Two Domains
 
-### `create-scaffold` - Project Scaffolding
+### `create scaffold` - Project Scaffolding
 
 **Turn templates into projects instantly.**
 
@@ -178,35 +178,27 @@ Creates new projects from templates with intelligent guidance. Supports GitHub
 repos, local paths, and registry shortcuts. Features platform-aware validation
 and reusable selection files.
 
-📖
-**[Complete CLI Reference](docs/reference/cli-reference.md#create-scaffold-commands)**
+📖 **[Complete CLI Reference](docs/reference/cli-reference.md#scaffold-operations)**
 
-### `make-template` - Template Authoring
+### `create template` - Template Authoring
 
-**Turn projects into templates effortlessly with intelligent content
-detection.**
+**Turn projects into templates effortlessly with intelligent content detection.**
 
 Converts any Node.js project into a reusable template. Automatically detects and
 replaces project-specific content (JSX, JSON, Markdown, HTML) with placeholders,
 generates schema, and creates restoration files.
 
-📖
-**[Complete CLI Reference](docs/reference/cli-reference.md#make-template-commands)**
+📖 **[Complete CLI Reference](docs/reference/cli-reference.md#template-operations)**
 
 ## Learn More
 
 Ready to dive deeper? Our tutorials will get you productive in minutes:
 
-- **[Getting Started](docs/tutorial/getting-started.md)** - Installation and
-  basic usage
-- **[Template Tutorial](docs/tutorial/make-template.md)** - Convert projects to
-  templates
-- **[Scaffolding Tutorial](docs/tutorial/create-scaffold.md)** - Create projects
-  from templates
-- **[Intelligent Templatization](docs/explanation/templatization.md)** -
-  Auto-detection and placeholder replacement
-- **[Template Authoring Guide](docs/how-to/creating-templates.md)** - Advanced
-  template creation
+- **[Getting Started](docs/tutorial/getting-started.md)** - Installation and basic usage
+- **[Template Tutorial](docs/tutorial/template.md)** - Convert projects to templates
+- **[Scaffolding Tutorial](docs/tutorial/scaffold.md)** - Create projects from templates
+- **[Intelligent Templatization](docs/explanation/templatization.md)** - Auto-detection and placeholder replacement
+- **[Template Authoring Guide](docs/how-to/creating-templates.md)** - Advanced template creation
 
 ## Technical Details
 
@@ -265,8 +257,7 @@ conditional features.
 Capture your configuration choices for reproducible builds. Create once, reuse
 instantly.
 
-📖
-**[Complete Guide](docs/tutorial/create-scaffold.md#example-3-using-selection-files)**
+📖 **[Complete Guide](docs/tutorial/scaffold.md#example-3-using-selection-files)**
 
 ### Registry Configuration
 
@@ -276,8 +267,8 @@ Share templates across teams by configuring registries in `.m5nvrc`.
 
 ## Project Status
 
-**Version**: 0.6.0  
-**Status**: Production-ready, pre-publication
+**Version**: 1.0.0  
+**Status**: Production-ready
 
 Built with ❤️ using Node.js and carefully selected dependencies for optimal
 performance and reliability.

@@ -12,7 +12,7 @@ import { createTempDir } from '../helpers/temp-dir.mjs';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const ROOT_DIR = path.resolve(__dirname, '..', '..');
-const CLI_ENTRY = path.join(ROOT_DIR, 'bin', 'create-scaffold', 'index.mts');
+const CLI_ENTRY = path.join(ROOT_DIR, 'bin', 'create', 'index.mts');
 const LOCAL_TEMPLATE = path.join(ROOT_DIR, 'tests', 'fixtures', 'features-demo-template');
 
 async function assertPathMissing(targetPath) {
@@ -36,7 +36,7 @@ test('dry-run CLI preview with local template path', async (t) => {
   });
 
   const result = await execCLI(CLI_ENTRY, [
-    'new',
+    'scaffold', 'new',
     projectName,
     '--template', LOCAL_TEMPLATE,
     '--dry-run'
@@ -69,7 +69,7 @@ test('dry-run CLI preview with cached repository template', async (t) => {
   });
 
   const result = await execCLI(CLI_ENTRY, [
-    'new',
+    'scaffold', 'new',
     projectName,
     '--template', remoteUrl,
     '--dry-run'

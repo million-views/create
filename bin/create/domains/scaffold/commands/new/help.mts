@@ -127,7 +127,7 @@ export const newHelp = {
     'First time? Install the package:',
     '  npm install -g @m5nv/create',
     '',
-    'Then use create-scaffold and make-template commands directly.'
+    'Then use scaffold and make-template commands directly.'
   ]
 };
 

@@ -1,5 +1,5 @@
 /**
- * Router Tests: create-scaffold validate command
+ * Router Tests: scaffold validate command
  *
  * Tests the validate command at the CLI router layer (L4)
  * Current coverage: 45.83% lines, 62.5% branches
@@ -31,7 +31,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const FIXTURES_DIR = path.join(__dirname, '../../fixtures/cli/validate');
 
 /**
- * Test scenarios for create-scaffold validate command
+ * Test scenarios for scaffold validate command
  * Each scenario tests a specific validation case
  */
 const VALIDATE_SCENARIOS = [
@@ -109,7 +109,7 @@ const VALIDATE_SCENARIOS = [
   }
 ];
 
-describe('Create-Scaffold Validate - Router Tests', () => {
+describe('Scaffold Validate - Router Tests', () => {
   before(() => {
     // Ensure fixtures exist
     const validBasicPath = path.join(FIXTURES_DIR, 'valid-basic');
@@ -124,7 +124,7 @@ describe('Create-Scaffold Validate - Router Tests', () => {
       const fixturePath = path.join(FIXTURES_DIR, scenario.fixture);
       const args = ['validate', fixturePath, ...scenario.args];
 
-      const result = await runCLI('create-scaffold', args, {
+      const result = await runCLI('scaffold', args, {
         timeout: 15000 // Validation can take time
       });
 
@@ -162,7 +162,7 @@ describe('Create-Scaffold Validate - Router Tests', () => {
   }
 
   it('should show help when no path provided', async () => {
-    const result = await runCLI('create-scaffold', ['validate']);
+    const result = await runCLI('scaffold', ['validate']);
 
     try {
       // Should show usage/help information
@@ -173,7 +173,7 @@ describe('Create-Scaffold Validate - Router Tests', () => {
   });
 
   it('should handle non-existent template path', async () => {
-    const result = await runCLI('create-scaffold', [
+    const result = await runCLI('scaffold', [
       'validate',
       '/path/that/does/not/exist'
     ]);
@@ -191,7 +191,7 @@ describe('Create-Scaffold Validate - Router Tests', () => {
 
   it('should handle --keep-temp flag', async () => {
     const fixturePath = path.join(FIXTURES_DIR, 'valid-basic');
-    const result = await runCLI('create-scaffold', [
+    const result = await runCLI('scaffold', [
       'validate',
       fixturePath,
       '--keep-temp'
@@ -208,7 +208,7 @@ describe('Create-Scaffold Validate - Router Tests', () => {
     }
   }); it('should validate template with relative path', async () => {
     // Test using relative path resolution
-    const result = await runCLI('create-scaffold', [
+    const result = await runCLI('scaffold', [
       'validate',
       path.relative(process.cwd(), path.join(FIXTURES_DIR, 'valid-basic'))
     ]);
@@ -223,7 +223,7 @@ describe('Create-Scaffold Validate - Router Tests', () => {
 
   it('should validate template with absolute path', async () => {
     const fixturePath = path.join(FIXTURES_DIR, 'valid-basic');
-    const result = await runCLI('create-scaffold', [
+    const result = await runCLI('scaffold', [
       'validate',
       fixturePath
     ]);
@@ -238,7 +238,7 @@ describe('Create-Scaffold Validate - Router Tests', () => {
 
   it('should handle verbose output mode', async () => {
     const fixturePath = path.join(FIXTURES_DIR, 'valid-basic');
-    const result = await runCLI('create-scaffold', [
+    const result = await runCLI('scaffold', [
       'validate',
       fixturePath,
       '--verbose'
@@ -256,7 +256,7 @@ describe('Create-Scaffold Validate - Router Tests', () => {
 
   it('should handle quiet output mode', async () => {
     const fixturePath = path.join(FIXTURES_DIR, 'valid-basic');
-    const result = await runCLI('create-scaffold', [
+    const result = await runCLI('scaffold', [
       'validate',
       fixturePath,
       '--quiet'
@@ -273,11 +273,11 @@ describe('Create-Scaffold Validate - Router Tests', () => {
   });
 });
 
-describe('Create-Scaffold Validate - Edge Cases', () => {
+describe('Scaffold Validate - Edge Cases', () => {
   it('should handle template path with spaces', async () => {
     // Use existing fixture for this test
     const fixturePath = path.join(FIXTURES_DIR, 'valid-basic');
-    const result = await runCLI('create-scaffold', [
+    const result = await runCLI('scaffold', [
       'validate',
       fixturePath
     ]);
@@ -296,9 +296,9 @@ describe('Create-Scaffold Validate - Edge Cases', () => {
 
     // Run multiple validations concurrently
     const results = await Promise.all([
-      runCLI('create-scaffold', ['validate', fixturePath]),
-      runCLI('create-scaffold', ['validate', fixturePath]),
-      runCLI('create-scaffold', ['validate', fixturePath])
+      runCLI('scaffold', ['validate', fixturePath]),
+      runCLI('scaffold', ['validate', fixturePath]),
+      runCLI('scaffold', ['validate', fixturePath])
     ]);
 
     try {
@@ -322,7 +322,7 @@ describe('Create-Scaffold Validate - Edge Cases', () => {
       'utf8'
     );
 
-    const result = await runCLI('create-scaffold', ['validate', fixturePath]);
+    const result = await runCLI('scaffold', ['validate', fixturePath]);
 
     try {
       // Exit code depends on validation result

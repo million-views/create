@@ -142,7 +142,7 @@ export function loadConfig(projectPath) {
 
   // Require config file for pre-release system
   if (!fs.existsSync(configPath)) {
-    throw new Error(`Configuration file .templatize.json not found in ${projectPath}. Create one using 'npx make-template init' or provide a custom config file.`);
+    throw new Error(`Configuration file .templatize.json not found in ${projectPath}. Create one using 'npx @m5nv/create template init' or provide a custom config file.`);
   }
 
   try {

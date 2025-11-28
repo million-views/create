@@ -96,7 +96,7 @@ test('Selection file via CLI - scaffolds with dimension selections from file', a
   // Scaffold with selection file + CLI placeholders
   // Note: Placeholders must be provided via CLI as selection file placeholders are not currently loaded
   // Use quoted values to preserve spaces
-  const result = execCLI('create-scaffold', [
+  const result = execCLI('scaffold', [
     'new', 'my-selection-project',
     '--template', templateDir,
     '--selection', selectionFile,
@@ -170,7 +170,7 @@ test('Selection file via CLI - CLI placeholder works without selection file plac
 
   // Scaffold with CLI placeholders only (no selection file)
   // Use single-word values to avoid shell parsing issues
-  const result = execCLI('create-scaffold', [
+  const result = execCLI('scaffold', [
     'new', 'cli-placeholder-project',
     '--template', templateDir,
     '--placeholder', 'PACKAGE_NAME=cli-app',
@@ -269,7 +269,7 @@ test('Gates validation - valid dimension combination succeeds', async (t) => {
   await mkdir(projectsDir, { recursive: true });
 
   // Scaffold with valid combination
-  const result = execCLI('create-scaffold', [
+  const result = execCLI('scaffold', [
     'new', 'valid-gates-project',
     '--template', templateDir,
     '--selection', selectionFile,
@@ -359,7 +359,7 @@ test('Gates validation - invalid dimension combination fails with clear error', 
   await mkdir(projectsDir, { recursive: true });
 
   // Scaffold with invalid combination
-  const result = execCLI('create-scaffold', [
+  const result = execCLI('scaffold', [
     'new', 'invalid-gates-project',
     '--template', templateDir,
     '--selection', selectionFile,
@@ -426,7 +426,7 @@ test('create-scaffold validate - valid template passes', async (t) => {
   });
 
   // Run validate command on directory
-  const result = execCLI('create-scaffold', ['validate', templateDir], {
+  const result = execCLI('scaffold', ['validate', templateDir], {
     env: testEnv.env,
     cwd: testEnv.workspaceDir
   });
@@ -469,7 +469,7 @@ test('create-scaffold validate - invalid template fails with errors', async (t) 
   });
 
   // Run validate command
-  const result = execCLI('create-scaffold', ['validate', templateDir], {
+  const result = execCLI('scaffold', ['validate', templateDir], {
     env: testEnv.env,
     cwd: testEnv.workspaceDir
   });
@@ -518,7 +518,7 @@ test('create-scaffold validate - works with template.json file path', async (t) 
 
   // Run validate command with direct template.json path
   const templateJsonPath = join(templateDir, 'template.json');
-  const result = execCLI('create-scaffold', ['validate', templateJsonPath], {
+  const result = execCLI('scaffold', ['validate', templateJsonPath], {
     env: testEnv.env,
     cwd: testEnv.workspaceDir
   });

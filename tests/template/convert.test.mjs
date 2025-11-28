@@ -20,7 +20,7 @@ const TEST_TIMEOUT = 60000; // Longer timeout for conversion operations
 
 // Helper function to execute CLI commands
 async function execCLI(args, options = {}) {
-  const scriptPath = join(process.cwd(), 'bin/make-template/index.mts');
+  const scriptPath = join(process.cwd(), 'bin/create/index.mts');
   const cwd = options.cwd || process.cwd();
 
   // Use execSync with proper shell command
@@ -60,7 +60,7 @@ async function createTestProject(projectDir) {
       start: 'node index.js',
       test: 'echo "tests passed"'
     },
-    keywords: ['test'],
+    keywords: ['template', 'test'],
     author: 'Test Author',
     license: 'MIT'
   };
@@ -157,7 +157,7 @@ test('convert --dry-run shows preview without changes', async () => {
     const testDir = join(baseTestDir, 'dry-run');
     await createTestProject(testDir);
 
-    const result = await execCLI(['convert', '.', '--dry-run', '--yes'], { cwd: testDir });
+    const result = await execCLI(['template', 'convert', '.', '--dry-run', '--yes'], { cwd: testDir });
 
     assert.strictEqual(result.exitCode, 0, 'Should succeed in dry run mode');
     assert(result.stdout.includes('DRY RUN MODE'), 'Should indicate dry run mode');
@@ -183,7 +183,7 @@ test('convert requires package.json', async () => {
     const emptyDir = join(baseTestDir, 'empty-dir');
     await mkdir(emptyDir, { recursive: true });
 
-    const result = await execCLI(['convert'], { cwd: emptyDir });
+    const result = await execCLI(['template', 'convert'], { cwd: emptyDir });
 
     assert.strictEqual(result.exitCode, 1, 'Should fail without package.json');
     // The error message is displayed, just check that we got an error
@@ -206,7 +206,7 @@ test('convert detects development repository', async () => {
     await mkdir(join(testDir, 'node_modules', 'some-dep'), { recursive: true }); // Create node_modules dir
     await writeFile(join(testDir, 'node_modules', 'some-dep', 'package.json'), '{}'); // Simulate node_modules
 
-    const result = await execCLI(['convert', '.'], { cwd: testDir });
+    const result = await execCLI(['template', 'convert', '.'], { cwd: testDir });
 
     assert.strictEqual(result.exitCode, 1, 'Should fail on development repo');
     assert(result.stderr.includes('development repository') || result.stdout.includes('development repository'),
@@ -227,7 +227,7 @@ test('convert succeeds with --yes flag on development repo', async () => {
     // Add development indicators
     await writeFile(join(testDir, '.git'), ''); // Simulate git repo
 
-    const result = await execCLI(['convert', '.', '--yes'], { cwd: testDir });
+    const result = await execCLI(['template', 'convert', '.', '--yes'], { cwd: testDir });
 
     assert.strictEqual(result.exitCode, 0, 'Should succeed with --yes flag');
     assert(result.stdout.includes('Proceeding automatically'), 'Should acknowledge --yes flag');
@@ -244,7 +244,7 @@ test('convert --help shows help text', async () => {
     const testDir = join(baseTestDir, 'help');
     await mkdir(testDir, { recursive: true });
 
-    const result = await execCLI(['convert', '--help'], { cwd: testDir });
+    const result = await execCLI(['template', 'convert', '--help'], { cwd: testDir });
 
     assert.strictEqual(result.exitCode, 0, 'Help command should succeed');
     assert(result.stdout.includes('Convert project to template'), 'Should show command description');
@@ -265,7 +265,7 @@ test('convert creates template.json', async () => {
     const testDir = join(baseTestDir, 'create-template');
     await createTestProject(testDir);
 
-    const result = await execCLI(['convert', '.', '--yes'], { cwd: testDir });
+    const result = await execCLI(['template', 'convert', '.', '--yes'], { cwd: testDir });
 
     assert.strictEqual(result.exitCode, 0, 'Conversion should succeed');
 
@@ -293,7 +293,7 @@ test('convert creates undo log', async () => {
     const testDir = join(baseTestDir, 'create-undo');
     await createTestProject(testDir);
 
-    const result = await execCLI(['convert', '.', '--yes'], { cwd: testDir });
+    const result = await execCLI(['template', 'convert', '.', '--yes'], { cwd: testDir });
 
     assert.strictEqual(result.exitCode, 0, 'Conversion should succeed');
 
@@ -328,7 +328,7 @@ test('convert handles existing undo log', async () => {
     };
     await writeFile(join(testDir, '.template-undo.json'), JSON.stringify(existingUndo, null, 2));
 
-    const result = await execCLI(['convert', '.', '--yes'], { cwd: testDir });
+    const result = await execCLI(['template', 'convert', '.', '--yes'], { cwd: testDir });
 
     assert.strictEqual(result.exitCode, 0, 'Conversion should succeed');
     assert(result.stdout.includes('existing undo log will be updated'), 'Should warn about existing undo log');

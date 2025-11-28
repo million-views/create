@@ -8,7 +8,7 @@ export const convertHelp = {
     'Convert an existing project into a reusable template using configurable templatization patterns.',
     '',
     'Prerequisites:',
-    '  • Run \'make-template init\' first to create configuration files',
+    '  • Run \'template init\' first to create configuration files',
     '  • Configuration files required: template.json and .templatize.json',
     '',
     'The conversion process:',
@@ -105,9 +105,9 @@ export const convertHelp = {
 
   footer: [
     'Related commands:',
-    '  • make-template init - Initialize template configuration files',
-    '  • make-template restore - Undo templatization changes',
-    '  • make-template config validate - Validate configuration',
+    '  • template init - Initialize template configuration files',
+    '  • template restore - Undo templatization changes',
+    '  • template config validate - Validate configuration',
     '',
     'For detailed configuration options, see:',
     '  • docs/how-to/templatization-configuration.md',

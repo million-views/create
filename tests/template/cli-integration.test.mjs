@@ -21,7 +21,7 @@ const TEST_TIMEOUT = 30000;
 
 // Helper function to execute CLI commands
 function execCLI(args, options = {}) {
-  const command = `node ${join(__dirname, '../../bin/make-template/index.mts')} ${args.join(' ')}`;
+  const command = `node ${join(__dirname, '../../bin/create/index.mts')} ${args.join(' ')}`;
   try {
     const result = execSync(command, {
       encoding: 'utf8',
@@ -108,7 +108,7 @@ test('make-template CLI validate integration', async (t) => {
     const templatePath = join(tempDir, 'template.json');
     await writeFile(templatePath, JSON.stringify(validTemplateV1, null, 2));
 
-    const result = execCLI(['validate', templatePath]);
+    const result = execCLI(['template', 'validate', templatePath]);
 
     assert.equal(result.exitCode, 0, `Expected exit code 0, got ${result.exitCode}. Stderr: ${result.stderr}`);
     assert(result.stdout.includes('✅ Template validation passed!'));
@@ -120,7 +120,7 @@ test('make-template CLI validate integration', async (t) => {
     const templatePath = join(tempDir, 'invalid-schema.json');
     await writeFile(templatePath, JSON.stringify(invalidTemplateSchema, null, 2));
 
-    const result = execCLI(['validate', templatePath]);
+    const result = execCLI(['template', 'validate', templatePath]);
 
     assert.equal(result.exitCode, 1, `Expected exit code 1, got ${result.exitCode}`);
     assert(result.combined.includes('❌ Template validation failed!'));
@@ -131,7 +131,7 @@ test('make-template CLI validate integration', async (t) => {
     const templatePath = join(tempDir, 'invalid-domain.json');
     await writeFile(templatePath, JSON.stringify(invalidTemplateDomain, null, 2));
 
-    const result = execCLI(['validate', templatePath]);
+    const result = execCLI(['template', 'validate', templatePath]);
 
     // Domain validation might not catch enum violations if schema allows them
     // Let's check if it at least runs validation
@@ -142,7 +142,7 @@ test('make-template CLI validate integration', async (t) => {
   await t.test('validate handles missing template.json file', async () => {
     const missingPath = join(tempDir, 'missing.json');
 
-    const result = execCLI(['validate', missingPath]);
+    const result = execCLI(['template', 'validate', missingPath]);
 
     assert.equal(result.exitCode, 1, `Expected exit code 1, got ${result.exitCode}`);
     assert(result.combined.includes('❌ Template validation failed!'));
@@ -153,7 +153,7 @@ test('make-template CLI validate integration', async (t) => {
     const templatePath = join(tempDir, 'template.json');
     await writeFile(templatePath, JSON.stringify(validTemplateV1, null, 2));
 
-    const result = execCLI(['validate'], { cwd: tempDir });
+    const result = execCLI(['template', 'validate'], { cwd: tempDir });
 
     assert.equal(result.exitCode, 0, `Expected exit code 0, got ${result.exitCode}`);
     assert(result.stdout.includes('✅ Template validation passed!'));
@@ -163,7 +163,7 @@ test('make-template CLI validate integration', async (t) => {
     const templatePath = join(tempDir, 'detailed-error.json');
     await writeFile(templatePath, JSON.stringify(invalidTemplateSchema, null, 2));
 
-    const result = execCLI(['validate', templatePath]);
+    const result = execCLI(['template', 'validate', templatePath]);
 
     assert.equal(result.exitCode, 1);
     assert(result.combined.includes('📋 Validation Summary:'));
@@ -178,7 +178,7 @@ test('make-template CLI validate integration', async (t) => {
       dimensions: {
         ...validTemplateV1.dimensions,
         unknown_dimension: {
-          values: ['test'],
+          values: ['template', 'test'],
           default: []
         }
       }
@@ -187,7 +187,7 @@ test('make-template CLI validate integration', async (t) => {
     const templatePath = join(tempDir, 'warnings.json');
     await writeFile(templatePath, JSON.stringify(templateWithWarnings, null, 2));
 
-    const result = execCLI(['validate', templatePath]);
+    const result = execCLI(['template', 'validate', templatePath]);
 
     // This might pass or fail depending on schema strictness
     // The important thing is that warnings are displayed when present

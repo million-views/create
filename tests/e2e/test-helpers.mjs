@@ -9,7 +9,7 @@ import { execSync } from 'node:child_process';
 import { join } from 'node:path';
 import { mkdir, rm, access, constants } from 'node:fs/promises';
 
-const CLI_PATH = join(process.cwd(), 'bin');
+const CLI_PATH = join(process.cwd(), 'bin', 'create', 'index.mts');
 const TEST_TIMEOUT = 120000; // 2 minutes per command
 
 /**
@@ -57,7 +57,7 @@ export async function createTestEnvironment(testName) {
  */
 export function execCLI(tool, args, options = {}) {
   const { env, cwd = process.cwd() } = options;
-  const command = `node ${join(CLI_PATH, tool, 'index.mts')} ${args.join(' ')}`;
+  const command = `node ${CLI_PATH} ${tool} ${args.join(' ')}`;
 
   try {
     const result = execSync(command, {

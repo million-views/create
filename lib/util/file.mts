@@ -295,7 +295,7 @@ export class File {
   }
 
   /**
-   * Validate that required files exist for make-template operations
+   * Validate that required files exist for template operations
    * @param {string[]} requiredFiles - Array of required file names
    * @param {string} operation - Operation name for error messages
    * @returns {string[]} Array of error messages for missing files

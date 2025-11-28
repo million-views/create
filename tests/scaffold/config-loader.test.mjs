@@ -480,7 +480,7 @@ describe('ConfigLoader', () => {
       await fs.mkdir(tempDir, { recursive: true });
 
       const configData = {
-        'create-scaffold': {
+        'scaffold': {
           registries: {
             'product-registry': {
               'template1': 'https://github.com/user/template1.git'
@@ -509,7 +509,7 @@ describe('ConfigLoader', () => {
             'template1': 'https://github.com/user/top-level.git'
           }
         },
-        'create-scaffold': {
+        'scaffold': {
           registries: {
             'product-specific': {
               'template1': 'https://github.com/user/product-specific.git'

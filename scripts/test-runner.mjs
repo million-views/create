@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * Unified Test Runner for @m5nv/create-scaffold CLI tool
+ * Unified Test Runner for @m5nv/create
  * Coordinates execution of all test suites with comprehensive reporting
  */
 
@@ -50,17 +50,17 @@ class TestRunner {
       ],
       // Integration tests: Command-level functionality (L3/L4)
       'integration': [
-        'Create-Scaffold New Tests',
+        'Scaffold New Tests',
         'Dry Run CLI Tests',
-        'Create-Scaffold List Tests',
-        'Create-Scaffold Validate Tests',
-        'Make-Template Init Tests',
-        'Make-Template Hints Tests',
-        'Make-Template Convert Tests',
-        'Make-Template Restore Tests',
-        'Make-Template Test Command Tests',
-        'Make-Template Validate Tests',
-        'Make-Template Config Validate Tests'
+        'Scaffold List Tests',
+        'Scaffold Validate Tests',
+        'Template Init Tests',
+        'Template Hints Tests',
+        'Template Convert Tests',
+        'Template Restore Tests',
+        'Template Test Command Tests',
+        'Template Validate Tests',
+        'Template Config Validate Tests'
       ],
       // System tests: Full end-to-end workflows (L4)
       'system': [
@@ -73,22 +73,22 @@ class TestRunner {
         'E2E Edge Cases and Errors Tests',
         'E2E Guided Workflow Tests'
       ],
-      // Tool-specific groupings for targeted testing
-      'create-scaffold': [
-        'Create-Scaffold New Tests',
+      // Domain-specific groupings for targeted testing
+      'scaffold': [
+        'Scaffold New Tests',
         'Dry Run CLI Tests',
-        'Create-Scaffold List Tests',
-        'Create-Scaffold Validate Tests',
+        'Scaffold List Tests',
+        'Scaffold Validate Tests',
         'Functional Tests'
       ],
-      'make-template': [
-        'Make-Template Init Tests',
-        'Make-Template Hints Tests',
-        'Make-Template Convert Tests',
-        'Make-Template Restore Tests',
-        'Make-Template Test Command Tests',
-        'Make-Template Validate Tests',
-        'Make-Template Config Validate Tests'
+      'template': [
+        'Template Init Tests',
+        'Template Hints Tests',
+        'Template Convert Tests',
+        'Template Restore Tests',
+        'Template Test Command Tests',
+        'Template Validate Tests',
+        'Template Config Validate Tests'
       ]
     };
   }
@@ -179,7 +179,7 @@ class TestRunner {
   }
 
   async runAll() {
-    console.log('🚀 Running Complete Test Suite for @m5nv/create-scaffold');
+    console.log('🚀 Running Complete Test Suite for @m5nv/create');
     console.log('='.repeat(60));
     await fs.rm(this.m5nvBaseDir, { recursive: true, force: true });
     await fs.mkdir(this.m5nvBaseDir, { recursive: true });
@@ -293,7 +293,7 @@ class TestRunner {
       },
       {
         name: 'Logger Tests',
-        command: ['--test', './tests/create-scaffold/logger.test.mjs'],
+        command: ['--test', './tests/scaffold/logger.test.mjs'],
         description: 'Logging utility and formatting',
         homeSuffix: 'logger'
       },
@@ -329,7 +329,7 @@ class TestRunner {
       },
       {
         name: 'Functional Tests',
-        command: ['--test', './tests/create-scaffold/cli-validation.test.mjs', './tests/create-scaffold/cli-execution.test.mjs', './tests/create-scaffold/cli-error-handling.test.mjs', './tests/create-scaffold/cli-integration.test.mjs'],
+        command: ['--test', './tests/scaffold/cli-validation.test.mjs', './tests/scaffold/cli-execution.test.mjs', './tests/scaffold/cli-error-handling.test.mjs', './tests/scaffold/cli-integration.test.mjs'],
         description: 'Comprehensive end-to-end CLI behavior validation',
         homeSuffix: 'functional'
       },
@@ -365,25 +365,25 @@ class TestRunner {
       },
       {
         name: 'Options Processor Tests',
-        command: ['--test', './tests/create-scaffold/options-processor.test.mjs'],
-        description: 'Template dimension option normalization used by create-scaffold commands',
+        command: ['--test', './tests/scaffold/options-processor.test.mjs'],
+        description: 'Template dimension option normalization used by scaffold commands',
         homeSuffix: 'options-processor'
       },
       {
         name: 'Config Loader Tests',
-        command: ['--test', './tests/create-scaffold/config-loader.test.mjs', './tests/create-scaffold/config-loader-templates.test.mjs', './tests/create-scaffold/config-discovery.test.mjs'],
-        description: '.m5nvrc discovery and normalization for create-scaffold defaults',
+        command: ['--test', './tests/scaffold/config-loader.test.mjs', './tests/scaffold/config-loader-templates.test.mjs', './tests/scaffold/config-discovery.test.mjs'],
+        description: '.m5nvrc discovery and normalization for scaffold defaults',
         homeSuffix: 'config-loader'
       },
       {
         name: 'CacheManager Tests',
-        command: ['--test', './tests/create-scaffold/cache-manager.test.mjs', './tests/create-scaffold/cache-manager.git.test.mjs'],
+        command: ['--test', './tests/scaffold/cache-manager.test.mjs', './tests/scaffold/cache-manager.git.test.mjs'],
         description: 'Cache URL normalization and git-backed operations',
         homeSuffix: 'cache-manager'
       },
       {
         name: 'TemplateResolver Tests',
-        command: ['--test', './tests/create-scaffold/template-resolver.test.mjs', './tests/create-scaffold/template-resolver.git.test.mjs'],
+        command: ['--test', './tests/scaffold/template-resolver.test.mjs', './tests/scaffold/template-resolver.git.test.mjs'],
         description: 'Template resolution and git-backed alias refresh',
         homeSuffix: 'template-resolver'
       },
@@ -401,19 +401,19 @@ class TestRunner {
       },
       {
         name: 'Resource Leak Tests',
-        command: ['--test', './tests/create-scaffold/resource-leak-test.mjs'],
+        command: ['--test', './tests/scaffold/resource-leak-test.mjs'],
         description: 'Resource management and cleanup validation',
         homeSuffix: 'resource'
       },
       {
         name: 'Setup Runtime Tests',
-        command: ['--test', './tests/create-scaffold/setup-runtime.test.mjs', './tests/create-scaffold/guided-setup-workflow.test.mjs'],
+        command: ['--test', './tests/scaffold/setup-runtime.test.mjs', './tests/scaffold/guided-setup-workflow.test.mjs'],
         description: 'Setup runtime and guided workflow orchestration',
         homeSuffix: 'setup-runtime'
       },
       {
         name: 'Template URL Integration Tests',
-        command: ['--test', './tests/create-scaffold/template-url-integration.test.mjs'],
+        command: ['--test', './tests/scaffold/template-url-integration.test.mjs'],
         description: 'Template URL parsing and parameter handling',
         homeSuffix: 'template-url'
       },
@@ -424,70 +424,70 @@ class TestRunner {
         homeSuffix: 'file-utils'
       },
       {
-        name: 'Create-Scaffold New Tests',
-        command: ['--test', './tests/create-scaffold/commands/new.test.js', './tests/create-scaffold/commands/new.router.test.js'],
-        description: 'Create-scaffold new command unit and router tests',
-        homeSuffix: 'create-scaffold-new'
+        name: 'Scaffold New Tests',
+        command: ['--test', './tests/scaffold/commands/new.test.js', './tests/scaffold/commands/new.router.test.js'],
+        description: 'Scaffold new command unit and router tests',
+        homeSuffix: 'scaffold-new'
       },
       {
         name: 'Dry Run CLI Tests',
-        command: ['--test', './tests/create-scaffold/dry-run-cli.test.mjs'],
+        command: ['--test', './tests/scaffold/dry-run-cli.test.mjs'],
         description: 'End-to-end dry-run previews for local and cached templates',
         homeSuffix: 'dry-run-cli'
       },
       {
-        name: 'Create-Scaffold List Tests',
-        command: ['--test', './tests/create-scaffold/commands/list.test.js', './tests/create-scaffold/commands/list.router.test.js'],
-        description: 'Create-scaffold list command unit and router tests',
-        homeSuffix: 'create-scaffold-list'
+        name: 'Scaffold List Tests',
+        command: ['--test', './tests/scaffold/commands/list.test.js', './tests/scaffold/commands/list.router.test.js'],
+        description: 'Scaffold list command unit and router tests',
+        homeSuffix: 'scaffold-list'
       },
       {
-        name: 'Create-Scaffold Validate Tests',
-        command: ['--test', './tests/create-scaffold/commands/validate.test.js', './tests/create-scaffold/commands/validate.router.test.js'],
-        description: 'Create-scaffold validate command unit and router tests',
-        homeSuffix: 'create-scaffold-validate'
+        name: 'Scaffold Validate Tests',
+        command: ['--test', './tests/scaffold/commands/validate.test.js', './tests/scaffold/commands/validate.router.test.js'],
+        description: 'Scaffold validate command unit and router tests',
+        homeSuffix: 'scaffold-validate'
       },
       {
-        name: 'Make-Template Init Tests',
-        command: ['--test', './tests/make-template/init.test.mjs'],
+        name: 'Template Init Tests',
+        command: ['--test', './tests/template/init.test.mjs'],
         description: 'Template initialization and skeleton generation',
-        homeSuffix: 'make-template-init'
+        homeSuffix: 'template-init'
       },
       {
-        name: 'Make-Template Hints Tests',
-        command: ['--test', './tests/make-template/hints.test.mjs'],
+        name: 'Template Hints Tests',
+        command: ['--test', './tests/template/hints.test.mjs'],
         description: 'Template authoring guidance and hints display',
-        homeSuffix: 'make-template-hints'
+        homeSuffix: 'template-hints'
       },
       {
-        name: 'Make-Template Convert Tests',
-        command: ['--test', './tests/make-template/convert.test.mjs'],
+        name: 'Template Convert Tests',
+        command: ['--test', './tests/template/convert.test.mjs'],
         description: 'Project to template conversion functionality',
-        homeSuffix: 'make-template-convert'
+        homeSuffix: 'template-convert'
       },
       {
-        name: 'Make-Template Restore Tests',
-        command: ['--test', './tests/make-template/restore.test.mjs'],
+        name: 'Template Restore Tests',
+        command: ['--test', './tests/template/restore.test.mjs'],
         description: 'Template to project restoration functionality',
-        homeSuffix: 'make-template-restore'
+        homeSuffix: 'template-restore'
       },
       {
-        name: 'Make-Template Test Command Tests',
-        command: ['--test', './tests/make-template/test-command.test.mjs'],
-        description: 'Template testing with create-scaffold integration',
-        homeSuffix: 'make-template-test'
+        name: 'Template Test Command Tests',
+        command: ['--test', './tests/template/test-command.test.mjs'],
+        description: 'Template testing with scaffold integration',
+        homeSuffix: 'template-test'
       },
       {
-        name: 'Make-Template Validate Tests',
-        command: ['--test', './tests/make-template/cli-integration.test.mjs', './tests/make-template/commands/validate.test.js'],
+        name: 'Template Validate Tests',
+        command: ['--test', './tests/template/cli-integration.test.mjs', './tests/template/commands/validate.test.js'],
         description: 'Template validation and schema compliance',
-        homeSuffix: 'make-template-validate'
+        homeSuffix: 'template-validate'
       },
       {
-        name: 'Make-Template Config Validate Tests',
-        command: ['--test', './tests/make-template/config-validate.test.mjs'],
+        name: 'Template Config Validate Tests',
+        command: ['--test', './tests/template/config-validate.test.mjs'],
         description: '.templatize.json configuration validation CLI coverage',
-        homeSuffix: 'make-template-config-validate'
+        homeSuffix: 'template-config-validate'
       },
       {
         name: 'Templatize JSX Tests',

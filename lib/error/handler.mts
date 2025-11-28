@@ -125,7 +125,7 @@ export const ErrorMessages = {
       suggestions: [
         'Check the template name for typos',
         'Use "favorites/express-api" for configured templates',
-        'Run "create-scaffold list" to see available templates',
+        'Run "create scaffold list" to see available templates',
         'Try a GitHub URL like "user/repo"'
       ]
     }

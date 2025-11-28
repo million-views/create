@@ -19,7 +19,7 @@ const TEST_TIMEOUT = 30000;
 
 // Helper function to execute CLI commands
 function execCLI(args, options = {}) {
-  const command = `node ${join(__dirname, '../../bin/make-template/index.mts')} ${args.join(' ')}`;
+  const command = `node ${join(__dirname, '../../bin/create/index.mts')} ${args.join(' ')}`;
   try {
     const result = execSync(command, {
       encoding: 'utf8',
@@ -47,7 +47,7 @@ test('make-template hints command', async (t) => {
   await mkdir(testDir, { recursive: true });
 
   await t.test('hints displays catalog header', async () => {
-    const result = execCLI(['hints'], { cwd: testDir });
+    const result = execCLI(['template', 'hints'], { cwd: testDir });
 
     assert.strictEqual(result.exitCode, 0, 'Command should succeed');
     assert(result.stdout.includes('Available Hints Catalog for Template Authoring'), 'Should show catalog header');
@@ -55,7 +55,7 @@ test('make-template hints command', async (t) => {
   });
 
   await t.test('hints shows comprehensive feature list', async () => {
-    const result = execCLI(['hints'], { cwd: testDir });
+    const result = execCLI(['template', 'hints'], { cwd: testDir });
 
     // Check for key features that should be present
     const expectedFeatures = [
@@ -82,14 +82,14 @@ test('make-template hints command', async (t) => {
   });
 
   await t.test('hints provides usage guidance', async () => {
-    const result = execCLI(['hints'], { cwd: testDir });
+    const result = execCLI(['template', 'hints'], { cwd: testDir });
 
     assert(result.stdout.includes('Use them in your template.json under hints.features'), 'Should show usage guidance');
     assert(result.stdout.includes('to help users understand'), 'Should explain purpose');
   });
 
   await t.test('hints --help shows help text', async () => {
-    const result = execCLI(['hints', '--help'], { cwd: testDir });
+    const result = execCLI(['template', 'hints', '--help'], { cwd: testDir });
 
     assert.strictEqual(result.exitCode, 0, 'Help command should succeed');
     assert(result.stdout.includes('Show hints catalog'), 'Should show command description');
@@ -98,14 +98,14 @@ test('make-template hints command', async (t) => {
   });
 
   await t.test('hints shows template authoring context', async () => {
-    const result = execCLI(['hints'], { cwd: testDir });
+    const result = execCLI(['template', 'hints'], { cwd: testDir });
 
     assert(result.stdout.includes('Available Hints Catalog for Template Authoring'), 'Should show template authoring title');
     assert(result.stdout.includes('Use them in your template.json'), 'Should show template.json usage');
   });
 
   await t.test('hints output is well-formatted', async () => {
-    const result = execCLI(['hints'], { cwd: testDir });
+    const result = execCLI(['template', 'hints'], { cwd: testDir });
 
     // Check for proper formatting elements
     assert(result.stdout.includes('💡'), 'Should include emoji for visual appeal');

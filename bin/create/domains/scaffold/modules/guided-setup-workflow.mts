@@ -15,7 +15,7 @@ import { ErrorContext, ErrorSeverity } from '@m5nv/create/lib/error/handler.mts'
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const WORKFLOW_STATE_FILE = '.create-scaffold-workflow.json';
+const WORKFLOW_STATE_FILE = '.scaffold-workflow.json';
 const MAX_RETRY_ATTEMPTS = 3;
 
 /**
@@ -965,7 +965,7 @@ export class GuidedSetupWorkflow {
       // Skip certain files and directories
       if (entry.name === '.git' ||
         entry.name === 'node_modules' ||
-        entry.name === '.create-scaffold-workflow.json' ||
+        entry.name === '.scaffold-workflow.json' ||
         entry.name.startsWith('.')) {
         continue;
       }

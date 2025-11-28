@@ -9,7 +9,7 @@ import { spawn } from 'node:child_process';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const CLI_PATH = path.join(__dirname, '..', '..', 'bin', 'create-scaffold', 'index.mts');
+const CLI_PATH = path.join(__dirname, '..', '..', 'bin', 'create', 'index.mts');
 const PROJECT_ROOT = path.join(__dirname, '..', '..');
 
 test('GuidedSetupWorkflow - selection.json generation integration', async (t) => {
@@ -66,7 +66,7 @@ export default async function setup({ ctx, tools }) {
 
     // Run create-scaffold with --yes to skip prompts
     const result = await new Promise((resolve) => {
-      const child = spawn('node', [CLI_PATH, 'new', 'test-output', '--template', templateDir, '--yes'], {
+      const child = spawn('node', [CLI_PATH, 'scaffold', 'new', 'test-output', '--template', templateDir, '--yes'], {
         stdio: ['pipe', 'pipe', 'pipe'],
         cwd: tempDir
       });
@@ -134,7 +134,7 @@ export default async function setup({ ctx, tools }) {
 
     // Run scaffolding
     const result = await new Promise((resolve) => {
-      const child = spawn('node', [CLI_PATH, 'new', 'another-output', '--template', templateDir, '--yes'], {
+      const child = spawn('node', [CLI_PATH, 'scaffold', 'new', 'another-output', '--template', templateDir, '--yes'], {
         stdio: ['pipe', 'pipe', 'pipe'],
         cwd: tempDir
       });

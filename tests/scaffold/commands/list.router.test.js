@@ -15,7 +15,7 @@ const __dirname = dirname(__filename);
 const PROJECT_ROOT = join(__dirname, '../../..');
 
 /**
- * Router Tests for `create-scaffold list` Command
+ * Router Tests for `scaffold list` Command
  *
  * Test Layer: L4 (CLI/Router)
  * - Tests invoke CLI with argv arrays only
@@ -24,8 +24,8 @@ const PROJECT_ROOT = join(__dirname, '../../..');
  * - Asserts exit codes and output messages
  *
  * Coverage Target:
- * - bin/create-scaffold/commands/list/index.mts: 81.08% → 90%+
- * - bin/create-scaffold/commands/list/registry-fetcher.mts: 69.23% → 80%+, branches 21.42% → 60%+
+ * - bin/create/domains/scaffold/commands/list/index.mts: 81.08% → 90%+
+ * - bin/create/domains/scaffold/commands/list/registry-fetcher.mts: 69.23% → 80%+, branches 21.42% → 60%+
  */
 
 // Test scenario matrix for list command
@@ -111,13 +111,13 @@ const LIST_SCENARIOS = [
   }
 ];
 
-describe('Create-Scaffold List - Router Tests', () => {
+describe('Scaffold List - Router Tests', () => {
   // Matrix-based scenario tests
   for (const scenario of LIST_SCENARIOS) {
     it(`should handle: ${scenario.name}`, async () => {
       let result;
       try {
-        result = await runCLI('create-scaffold', scenario.args, {
+        result = await runCLI('scaffold', scenario.args, {
           env: {
             NODE_ENV: 'test',
             M5NV_LOG_LEVEL: 'info'
@@ -151,14 +151,14 @@ describe('Create-Scaffold List - Router Tests', () => {
   }
 });
 
-describe('Create-Scaffold List - Edge Cases', () => {
+describe('Scaffold List - Edge Cases', () => {
   it('should handle concurrent list calls', async () => {
     const registryPath = join(PROJECT_ROOT, 'tests/fixtures/cli/list/simple-registry');
 
     const results = await Promise.all([
-      runCLI('create-scaffold', ['list', '--registry', registryPath]),
-      runCLI('create-scaffold', ['list', '--registry', registryPath]),
-      runCLI('create-scaffold', ['list', '--registry', registryPath])
+      runCLI('scaffold', ['list', '--registry', registryPath]),
+      runCLI('scaffold', ['list', '--registry', registryPath]),
+      runCLI('scaffold', ['list', '--registry', registryPath])
     ]);
 
     try {
@@ -183,7 +183,7 @@ describe('Create-Scaffold List - Edge Cases', () => {
     let result;
 
     try {
-      result = await runCLI('create-scaffold', ['list', '--registry', registryPath], {
+      result = await runCLI('scaffold', ['list', '--registry', registryPath], {
         env: { NODE_ENV: 'test' }
       });
 
@@ -201,7 +201,7 @@ describe('Create-Scaffold List - Edge Cases', () => {
     let result;
 
     try {
-      result = await runCLI('create-scaffold', ['list', '--invalid-flag'], {
+      result = await runCLI('scaffold', ['list', '--invalid-flag'], {
         env: { NODE_ENV: 'test' }
       });
 

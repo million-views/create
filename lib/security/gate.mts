@@ -93,7 +93,7 @@ interface AbuseTracker {
  *
  * // At CLI entry point
  * const validated = await gate.enforce(userInputs, {
- *   command: 'create-scaffold new',
+ *   command: 'create scaffold new',
  *   requiredFields: ['projectName', 'templatePath']
  * });
  * ```

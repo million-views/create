@@ -17,7 +17,7 @@ import {
 
 describe('CLI Runner Utility', () => {
   it('should execute create-scaffold with --help', async () => {
-    const result = await runCLI('create-scaffold', ['--help']);
+    const result = await runCLI('scaffold', ['--help']);
 
     try {
       assert.strictEqual(result.exitCode, 0);
@@ -32,7 +32,7 @@ describe('CLI Runner Utility', () => {
   });
 
   it('should execute make-template with --help', async () => {
-    const result = await runCLI('make-template', ['--help']);
+    const result = await runCLI('template', ['--help']);
 
     try {
       assert.strictEqual(result.exitCode, 0);
@@ -45,7 +45,7 @@ describe('CLI Runner Utility', () => {
   });
 
   it('should return non-zero exit code for invalid command', async () => {
-    const result = await runCLI('create-scaffold', ['invalid-command']);
+    const result = await runCLI('scaffold', ['invalid-command']);
 
     try {
       assert.notStrictEqual(result.exitCode, 0);
@@ -56,7 +56,7 @@ describe('CLI Runner Utility', () => {
   });
 
   it('should strip ANSI codes from output', async () => {
-    const result = await runCLI('create-scaffold', ['--help']);
+    const result = await runCLI('scaffold', ['--help']);
 
     try {
       // Raw output might have ANSI codes
@@ -70,7 +70,7 @@ describe('CLI Runner Utility', () => {
   });
 
   it('should use isolated cache directory', async () => {
-    const result = await runCLI('create-scaffold', ['--help'], {
+    const result = await runCLI('scaffold', ['--help'], {
       isolateCache: true
     });
 
@@ -83,7 +83,7 @@ describe('CLI Runner Utility', () => {
   });
 
   it('should respect custom environment variables', async () => {
-    const result = await runCLI('create-scaffold', ['--help'], {
+    const result = await runCLI('scaffold', ['--help'], {
       env: { M5NV_DEBUG: '1' }
     });
 
@@ -98,7 +98,7 @@ describe('CLI Runner Utility', () => {
   it('should timeout long-running commands', async () => {
     // This test simulates a timeout by using a very short timeout value
     // In practice, no command should take this long
-    const result = await runCLI('create-scaffold', ['--help'], {
+    const result = await runCLI('scaffold', ['--help'], {
       timeout: 50 // Very short timeout
     });
 

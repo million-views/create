@@ -72,7 +72,7 @@ export class TestCommand extends Command {
             operation: 'test',
             suggestions: [
               'Ensure template.json exists in the template directory',
-              'Run "make-template init" to create a basic template.json'
+              'Run "template init" to create a basic template.json'
             ]
           }
         );
@@ -95,7 +95,7 @@ export class TestCommand extends Command {
         operation: 'test',
         suggestions: [
           'Check that the template path exists and contains a valid template.json',
-          'Ensure create-scaffold is properly installed and accessible',
+          'Ensure scaffold is properly installed and accessible',
           'Use --verbose for detailed error information'
         ]
       });
@@ -110,7 +110,7 @@ export class TestCommand extends Command {
     try {
       console.log(`📁 Creating test project: ${testProjectName}`);
 
-      // Run create-scaffold to test the template
+      // Run scaffold to test the template
       await this.executeCreateScaffold(templatePath, testProjectName, options);
 
       console.log('🔍 Validating test project structure...');
@@ -124,7 +124,7 @@ export class TestCommand extends Command {
             severity: ErrorSeverity.HIGH,
             operation: 'test',
             suggestions: [
-              'Check create-scaffold output for errors',
+              'Check scaffold output for errors',
               'Ensure the template is valid and properly structured'
             ]
           }
@@ -162,10 +162,10 @@ export class TestCommand extends Command {
 
   async executeCreateScaffold(templatePath, projectName, options) {
     return new Promise((resolve, reject) => {
-      const createScaffoldPath = path.join(process.cwd(), 'bin', 'create-scaffold', 'index.mts');
+      const cliPath = path.join(process.cwd(), 'bin', 'create', 'index.mts');
 
       const args = [
-        'new',
+        'scaffold', 'new',
         projectName,
         '--template',
         templatePath,
@@ -173,10 +173,10 @@ export class TestCommand extends Command {
       ];
 
       if (options.verbose) {
-        console.log(`Running: node ${createScaffoldPath} ${args.join(' ')}`);
+        console.log(`Running: node ${cliPath} ${args.join(' ')}`);
       }
 
-      const child = spawn('node', [createScaffoldPath, ...args], {
+      const child = spawn('node', [cliPath, ...args], {
         stdio: options.verbose ? 'inherit' : 'pipe',
         cwd: process.cwd()
       });
@@ -185,7 +185,7 @@ export class TestCommand extends Command {
         if (code === 0) {
           resolve();
         } else {
-          reject(new Error(`create-scaffold exited with code ${code}`));
+          reject(new Error(`scaffold exited with code ${code}`));
         }
       });
 

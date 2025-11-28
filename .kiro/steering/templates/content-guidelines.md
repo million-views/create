@@ -203,7 +203,7 @@ Before publishing any documentation:
 
 ### Project-Specific Terms
 
-- **@m5nv/create-scaffold**: The CLI tool (always use full package name in formal docs)
+- **@m5nv/create**: The unified CLI tool (always use full package name in formal docs)
 - **Template Repository**: A git repository containing template files and setup scripts
 - **Setup Script**: The `_setup.mjs` file that customizes template after cloning
 - **Environment Object**: The data structure passed to setup scripts

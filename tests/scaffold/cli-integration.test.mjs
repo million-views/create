@@ -12,11 +12,10 @@ import { TestEnvironment, TestRunner } from '../helpers/cli-test-utils.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const CLI_PATH = path.join(__dirname, '..', '..', 'bin', 'create-scaffold', 'index.mts');
+const CLI_PATH = path.join(__dirname, '..', '..', 'bin', 'create', 'index.mts');
 
 // Create test runner instance
 const runner = new TestRunner();
-tempPaths: [],
 // Test suite
 runner.createTest('Comprehensive resource management validation', async () => {
   const tempDir = await TestEnvironment.createTempDir();
@@ -26,7 +25,7 @@ runner.createTest('Comprehensive resource management validation', async () => {
   // including resource management, error handling, and cleanup
 
   // Test with a valid template creation
-  const result = await runCLI(CLI_PATH, ['new', tempDir, '--template', 'https://github.com/octocat/Hello-World.git', '--branch', 'master']);
+  const result = await runCLI(CLI_PATH, ['scaffold', 'new', tempDir, '--template', 'https://github.com/octocat/Hello-World.git', '--branch', 'master']);
 
   // This may fail due to network issues or repository changes, but should not crash
   // The important thing is that it handles the situation gracefully
@@ -47,7 +46,7 @@ runner.createTest('Comprehensive resource management validation', async () => {
   // including resource management, error handling, and cleanup
 
   // Test with a valid template creation
-  const result2 = await runCLI(CLI_PATH, ['new', tempDir, '--template', 'https://github.com/octocat/Hello-World.git', '--branch', 'master']);
+  const result2 = await runCLI(CLI_PATH, ['scaffold', 'new', tempDir, '--template', 'https://github.com/octocat/Hello-World.git', '--branch', 'master']);
 
   // This may fail due to network issues or repository changes, but should not crash
   // The important thing is that it handles the situation gracefully
@@ -75,7 +74,7 @@ runner.createTest('npm create @m5nv/scaffold command simulation', async () => {
   // Since we can't easily simulate npm create in tests, we'll test the core functionality
   // that would be invoked by npm create
 
-  const result = await runCLI(CLI_PATH, ['new', tempDir, '--template', 'test']);
+  const result = await runCLI(CLI_PATH, ['scaffold', 'new', tempDir, '--template', 'test']);
   if (result.exitCode === 0) {
     throw new Error('CLI should have failed with invalid template (but parsing should work)');
   }
@@ -95,7 +94,7 @@ runner.createTest('npx @m5nv/create command simulation', async () => {
   const tempDir = await TestEnvironment.createTempDir();
   runner.addTempPath(tempDir);
 
-  const result = await runCLI(CLI_PATH, ['new', tempDir, '--template', 'test']);
+  const result = await runCLI(CLI_PATH, ['scaffold', 'new', tempDir, '--template', 'test']);
   if (result.exitCode === 0) {
     throw new Error('CLI should have failed with invalid template (but parsing should work)');
   }
@@ -112,7 +111,7 @@ runner.createTest('Command patterns validate correct usage', async () => {
   // Test various command patterns to ensure they work correctly
 
   const testCases = [
-    // Help commands
+    // Help commands (for main CLI)
     [['--help'], 'should show help'],
     [['-h'], 'should show help with short flag'],
 
@@ -120,9 +119,9 @@ runner.createTest('Command patterns validate correct usage', async () => {
     [['--version'], 'should show version'],
     [['-V'], 'should show version with short flag'],
 
-    // Invalid commands
-    [['invalid-command'], 'should reject invalid command'],
-    [['new'], 'should require project directory']
+    // Scaffold domain commands
+    [['scaffold', '--help'], 'should show scaffold help'],
+    [['scaffold', 'new'], 'should require project directory']
   ];
 
   for (const [args, description] of testCases) {
@@ -141,15 +140,15 @@ runner.createTest('Command patterns validate correct usage', async () => {
 });
 
 runner.createTest('Help text displays correct package name and usage patterns', async () => {
-  const result = await runCLI(CLI_PATH, ['--help']);
+  const result = await runCLI(CLI_PATH, ['scaffold', '--help']);
   if (result.exitCode !== 0) {
     throw new Error(`Help command failed with exit code ${result.exitCode}`);
   }
 
   const output = result.stdout + result.stderr;
 
-  // Should reference the correct domain name (scaffold) or package name
-  if (!output.includes('@m5nv/create') && !output.includes('create-scaffold') && !output.includes('scaffold')) {
+  // Should reference the correct domain name (scaffold)
+  if (!output.includes('scaffold')) {
     throw new Error('Help text does not reference correct package name');
   }
 
@@ -166,7 +165,7 @@ runner.createTest('Help text displays correct package name and usage patterns', 
 
 runner.createTest('Error messages reference correct package name', async () => {
   // Test that error messages reference the correct package name
-  const result = await runCLI(CLI_PATH, ['invalid-command']);
+  const result = await runCLI(CLI_PATH, ['scaffold', 'invalid-command']);
   if (result.exitCode === 0) {
     throw new Error('CLI should have failed with invalid command');
   }
@@ -174,9 +173,9 @@ runner.createTest('Error messages reference correct package name', async () => {
   const output = result.stdout + result.stderr;
 
   // Error messages should be helpful and reference the correct tool
-  if (output.includes('Unknown command') || output.includes('invalid command')) {
+  if (output.includes('Unknown') || output.includes('invalid') || output.includes('Error')) {
     // Should suggest using help
-    if (!output.includes('help') && !output.includes('--help')) {
+    if (!output.includes('help') && !output.includes('--help') && !output.includes('OPERATIONS')) {
       throw new Error('Error message does not suggest using help');
     }
   }

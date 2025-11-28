@@ -24,13 +24,13 @@ export class CLITestRunner {
 
   /**
    * Execute CLI command with simulated interactive input
-   * @param {string[]} args - CLI arguments
+   * @param {string[]} args - CLI arguments (should include domain like ['scaffold', 'new', ...])
    * @param {InteractiveSimulator} simulator - Input simulator
    * @returns {Promise<{exitCode: number, stdout: string, stderr: string, interactions: object}>}
    */
   async execWithSimulation(args, simulator) {
     return new Promise((resolve, reject) => {
-      const cliPath = path.join(__dirname, '../../bin/create-scaffold/index.mts');
+      const cliPath = path.join(__dirname, '../../bin/create/index.mts');
       const child = spawn('node', [cliPath, ...args], {
         cwd: this.options.cwd,
         stdio: ['pipe', 'pipe', 'pipe'],

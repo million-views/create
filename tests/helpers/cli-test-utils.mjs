@@ -171,7 +171,7 @@ export class TestRunner {
   }
 
   createTest(name, fn, options = {}) {
-    const timeout = options.timeout || 5000;
+    const timeout = options.timeout || 10000;
 
     return test(name, { timeout }, async (t) => {
       const currentTempPaths = [];

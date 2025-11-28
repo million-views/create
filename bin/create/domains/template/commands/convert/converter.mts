@@ -28,7 +28,7 @@ export class Converter {
       if (!await File.exists(templateJsonPath)) {
         console.error('❌ Configuration files not found\n');
         console.error('Before converting, initialize your template configuration:');
-        console.error('  npx make-template init\n');
+        console.error('  npx template init\n');
         console.error('This creates the required configuration files:');
         console.error('  • .templatize.json (extraction rules)');
         console.error('  • template.json (placeholder metadata)\n');
@@ -37,7 +37,7 @@ export class Converter {
 
       if (!await File.exists(templatizeJsonPath)) {
         console.error('❌ Configuration file missing: .templatize.json\n');
-        console.error('Run: npx make-template init\n');
+        console.error('Run: npx template init\n');
         process.exit(1);
       }
 
@@ -76,7 +76,7 @@ export class Converter {
         severity: ErrorSeverity.HIGH,
         operation: 'convert',
         suggestions: [
-          'Run: npx make-template init',
+          'Run: npx template init',
           'Check that configuration files exist',
           'Verify write permissions in the target directory'
         ]
@@ -166,7 +166,7 @@ export class Converter {
       console.log(`✓ Loaded configuration with ${Object.keys(config.rules).length} file pattern(s)`);
     } catch (error) {
       console.error(`❌ Configuration error: ${error.message}`);
-      console.error('\n💡 To create a configuration file, run: npx make-template init');
+      console.error('\n💡 To create a configuration file, run: npx template init');
       console.error('   Or specify a custom config with: --config <path>');
       throw error;
     }

@@ -82,7 +82,7 @@ test('Dimension scaffolding - multi-select features from selection file', async 
   await mkdir(projectsDir, { recursive: true });
 
   // Scaffold with selection file
-  const result = execCLI('create-scaffold', [
+  const result = execCLI('scaffold', [
     'new', 'multi-feature-project',
     '--template', templateDir,
     '--selection', selectionFile,
@@ -160,7 +160,7 @@ test('Dimension scaffolding - single-select deployment from selection file', asy
   await mkdir(projectsDir, { recursive: true });
 
   // Scaffold with selection file
-  const result = execCLI('create-scaffold', [
+  const result = execCLI('scaffold', [
     'new', 'deploy-project',
     '--template', templateDir,
     '--selection', selectionFile,
@@ -224,7 +224,7 @@ test('Placeholder override - CLI overrides template defaults', async (t) => {
   await mkdir(projectsDir, { recursive: true });
 
   // Scaffold with CLI override of default value
-  const result = execCLI('create-scaffold', [
+  const result = execCLI('scaffold', [
     'new', 'override-default-project',
     '--template', templateDir,
     '--placeholder', 'PACKAGE_NAME=cli-override-name',
@@ -282,7 +282,7 @@ test('Placeholder override - multiple CLI placeholders work together', async (t)
   await mkdir(projectsDir, { recursive: true });
 
   // Scaffold with multiple CLI placeholders
-  const result = execCLI('create-scaffold', [
+  const result = execCLI('scaffold', [
     'new', 'multi-placeholder-project',
     '--template', templateDir,
     '--placeholder', 'PACKAGE_NAME=my-awesome-app',
@@ -345,9 +345,9 @@ test('make-template test - valid template succeeds', async (t) => {
   });
 
   // Run make-template test from project root (where bin/ exists)
-  // The make-template test command expects to find bin/create-scaffold relative to cwd
+  // The make-template test command expects to find bin/create relative to cwd
   const projectRoot = process.cwd();
-  const result = execCLI('make-template', ['test', templateDir], {
+  const result = execCLI('template', ['test', templateDir], {
     env: testEnv.env,
     cwd: projectRoot  // Run from project root, not test workspace
   });
@@ -374,7 +374,7 @@ test('make-template test - missing path fails', async (t) => {
 
   // Run make-template test with non-existent path from project root
   const projectRoot = process.cwd();
-  const result = execCLI('make-template', ['test', '/nonexistent/path/to/template'], {
+  const result = execCLI('template', ['test', '/nonexistent/path/to/template'], {
     env: testEnv.env,
     cwd: projectRoot
   });
@@ -411,7 +411,7 @@ test('make-template test - missing template.json fails', async (t) => {
 
   // Run make-template test from project root
   const projectRoot = process.cwd();
-  const result = execCLI('make-template', ['test', templateDir], {
+  const result = execCLI('template', ['test', templateDir], {
     env: testEnv.env,
     cwd: projectRoot
   });
@@ -461,7 +461,7 @@ test('make-template test - verbose flag shows details', async (t) => {
 
   // Run make-template test with --verbose from project root
   const projectRoot = process.cwd();
-  const result = execCLI('make-template', ['test', templateDir, '--verbose'], {
+  const result = execCLI('template', ['test', templateDir, '--verbose'], {
     env: testEnv.env,
     cwd: projectRoot
   });

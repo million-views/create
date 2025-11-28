@@ -72,7 +72,7 @@ export class Scaffolder {
         const entries = await fs.readdir(resolvedProjectDirectory);
         if (entries.length > 0) {
           // Check if it's just our workflow state file
-          const WORKFLOW_STATE_FILE = '.create-scaffold-workflow.json';
+          const WORKFLOW_STATE_FILE = '.scaffold-workflow.json';
           const nonStateFiles = entries.filter(file => file !== WORKFLOW_STATE_FILE);
           if (nonStateFiles.length > 0) {
             throw new Error(`Project directory is not empty`);

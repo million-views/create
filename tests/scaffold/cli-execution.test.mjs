@@ -13,7 +13,7 @@ import { TestEnvironment, TemplateRepository, TestRunner } from '../helpers/cli-
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const CLI_PATH = path.join(__dirname, '..', '..', 'bin', 'create-scaffold', 'index.mts');
+const CLI_PATH = path.join(__dirname, '..', '..', 'bin', 'create', 'index.mts');
 
 // Create test runner instance
 const runner = new TestRunner();
@@ -28,7 +28,7 @@ runner.createTest('Successful template creation with local repository', async ()
   // Create a test template repository
   await TemplateRepository.createTestTemplate(repoDir);
 
-  const result = await runCLI(CLI_PATH, ['new', 'test-project', '--template', repoDir + '/test-template'], { cwd: tempDir });
+  const result = await runCLI(CLI_PATH, ['scaffold', 'new', 'test-project', '--template', repoDir + '/test-template'], { cwd: tempDir });
   if (result.exitCode !== 0) {
     throw new Error(`CLI failed with exit code ${result.exitCode}: ${result.stderr}`);
   }
@@ -73,7 +73,7 @@ runner.createTest('Setup script execution and cleanup', async () => {
   `;
   await fs.writeFile(path.join(repoDir, 'features-demo-template', '_setup.mjs'), setupScript);
 
-  const result = await runCLI(CLI_PATH, ['new', 'test-project', '--template', repoDir + '/features-demo-template'], { cwd: tempDir });
+  const result = await runCLI(CLI_PATH, ['scaffold', 'new', 'test-project', '--template', repoDir + '/features-demo-template'], { cwd: tempDir });
   if (result.exitCode !== 0) {
     throw new Error(`CLI failed with exit code ${result.exitCode}: ${result.stderr}`);
   }
@@ -118,7 +118,7 @@ runner.createTest('Next steps include template-provided handoff instructions', a
   await TemplateRepository.execCommand('git', ['add', '.'], { cwd: repoDir });
   await TemplateRepository.execCommand('git', ['commit', '-m', 'Add template.json'], { cwd: repoDir });
 
-  const result = await runCLI(CLI_PATH, ['new', 'test-project', '--template', repoDir + '/test-template'], { cwd: tempDir });
+  const result = await runCLI(CLI_PATH, ['scaffold', 'new', 'test-project', '--template', repoDir + '/test-template'], { cwd: tempDir });
   if (result.exitCode !== 0) {
     throw new Error(`CLI failed with exit code ${result.exitCode}: ${result.stderr}`);
   }
@@ -162,7 +162,7 @@ runner.createTest('Next steps fall back to README guidance when metadata absent'
   await TemplateRepository.execCommand('git', ['add', '.'], { cwd: repoDir });
   await TemplateRepository.execCommand('git', ['commit', '-m', 'Add template.json'], { cwd: repoDir });
 
-  const result = await runCLI(CLI_PATH, ['new', 'test-project', '--template', repoDir + '/test-template'], { cwd: tempDir });
+  const result = await runCLI(CLI_PATH, ['scaffold', 'new', 'test-project', '--template', repoDir + '/test-template'], { cwd: tempDir });
   if (result.exitCode !== 0) {
     throw new Error(`CLI failed with exit code ${result.exitCode}: ${result.stderr}`);
   }
@@ -201,7 +201,7 @@ runner.createTest('Setup script receives Environment_Object with correct propert
 
   await fs.writeFile(path.join(repoDir, 'test-template', '_setup.mjs'), setupScript);
 
-  const result = await runCLI(CLI_PATH, ['new', 'test-project', '--template', repoDir + '/test-template'], { cwd: tempDir });
+  const result = await runCLI(CLI_PATH, ['scaffold', 'new', 'test-project', '--template', repoDir + '/test-template'], { cwd: tempDir });
   if (result.exitCode !== 0) {
     throw new Error(`CLI failed with exit code ${result.exitCode}: ${result.stderr}`);
   }
@@ -250,7 +250,7 @@ runner.createTest('Placeholder prompts accept env and flag overrides', async () 
   await TemplateRepository.execCommand('git', ['add', '.'], { cwd: repoDir });
   await TemplateRepository.execCommand('git', ['commit', '-m', 'Add template with placeholders'], { cwd: repoDir });
 
-  const result = await runCLI(CLI_PATH, ['new', 'test-project', '--template', repoDir + '/test-template', '--placeholder', 'projectName=overridden-name'], { cwd: tempDir });
+  const result = await runCLI(CLI_PATH, ['scaffold', 'new', 'test-project', '--template', repoDir + '/test-template', '--placeholder', 'projectName=overridden-name'], { cwd: tempDir });
   if (result.exitCode !== 0) {
     throw new Error(`CLI failed with exit code ${result.exitCode}: ${result.stderr}`);
   }
@@ -296,7 +296,7 @@ runner.createTest('Author assets are staged for setup and removed afterwards', a
   await TemplateRepository.execCommand('git', ['add', '.'], { cwd: repoDir });
   await TemplateRepository.execCommand('git', ['commit', '-m', 'Add author assets'], { cwd: repoDir });
 
-  const result = await runCLI(CLI_PATH, ['new', 'test-project', '--template', repoDir + '/test-template'], { cwd: tempDir });
+  const result = await runCLI(CLI_PATH, ['scaffold', 'new', 'test-project', '--template', repoDir + '/test-template'], { cwd: tempDir });
   if (result.exitCode !== 0) {
     throw new Error(`CLI failed with exit code ${result.exitCode}: ${result.stderr}`);
   }
@@ -325,7 +325,7 @@ runner.createTest('Package name validation in success output', async () => {
   // Create a test template
   await TemplateRepository.createTestTemplate(repoDir);
 
-  const result = await runCLI(CLI_PATH, ['new', 'test-project', '--template', repoDir + '/test-template'], { cwd: tempDir });
+  const result = await runCLI(CLI_PATH, ['scaffold', 'new', 'test-project', '--template', repoDir + '/test-template'], { cwd: tempDir });
   if (result.exitCode !== 0) {
     throw new Error(`CLI failed with exit code ${result.exitCode}: ${result.stderr}`);
   }

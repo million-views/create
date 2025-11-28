@@ -103,7 +103,7 @@ export class RegistryFetcher {
         throw new Error(`Registry '${registryArg}' has unsupported type '${registry.type}'. Supported types: git, local`);
       }
     } else {
-      throw new Error(`Registry '${registryArg}' is configured as a template mapping (for 'new' command), not a repository. Use 'create-scaffold new ${registryArg}/template-name' instead of 'list --registry ${registryArg}'`);
+      throw new Error(`Registry '${registryArg}' is configured as a template mapping (for 'new' command), not a repository. Use 'create scaffold new ${registryArg}/template-name' instead of 'list --registry ${registryArg}'`);
     }
   }
 

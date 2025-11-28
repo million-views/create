@@ -38,11 +38,11 @@
         "percent"
       ],
       "default": "unicode",
-      "description": "Delimiter format used for placeholders in template files. Set by 'make-template convert --placeholder-format'."
+      "description": "Delimiter format used for placeholders in template files. Set by 'create template convert --placeholder-format'."
     },
     "placeholders": {
       "type": "object",
-      "description": "THE REGISTRY. Populated by 'make-template convert'. A flat dictionary of all variables.",
+      "description": "THE REGISTRY. Populated by 'create template convert'. A flat dictionary of all variables.",
       "patternProperties": {
         "^[A-Z0-9_]+$": {
           "type": "object",

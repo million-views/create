@@ -28,17 +28,22 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PROJECT_ROOT = path.resolve(__dirname, '../..');
 
 /**
- * CLI entry point paths
+ * CLI entry point path
  */
-const CLI_PATHS = {
-  'create-scaffold': path.join(PROJECT_ROOT, 'bin/create-scaffold/index.mts'),
-  'make-template': path.join(PROJECT_ROOT, 'bin/make-template/index.mts')
+const CLI_PATH = path.join(PROJECT_ROOT, 'bin/create/index.mts');
+
+/**
+ * CLI domain mappings (for backward compatibility in tests)
+ */
+const CLI_DOMAINS = {
+  'scaffold': 'scaffold',
+  'template': 'template'
 };
 
 /**
  * Execute CLI command in isolated test environment
  *
- * @param {string} command - CLI command name ('create-scaffold' or 'make-template')
+ * @param {string} domain - CLI domain name ('scaffold' or 'template')
  * @param {string[]} argv - Command arguments (e.g., ['new', 'template-name'])
  * @param {object} options - Test options
  * @param {string} [options.cwd] - Working directory (defaults to temp dir)
@@ -49,7 +54,7 @@ const CLI_PATHS = {
  * @param {boolean} [options.debug=false] - Enable debug logging
  * @returns {Promise<CLIResult>}
  */
-export async function runCLI(command, argv = [], options = {}) {
+export async function runCLI(domain, argv = [], options = {}) {
   const {
     cwd,
     env = {},
@@ -59,11 +64,13 @@ export async function runCLI(command, argv = [], options = {}) {
     debug = false
   } = options;
 
-  // Resolve CLI path
-  const cliPath = CLI_PATHS[command];
-  if (!cliPath) {
-    throw new Error(`Unknown CLI command: ${command}. Use 'create-scaffold' or 'make-template'`);
+  // Validate domain
+  if (!CLI_DOMAINS[domain]) {
+    throw new Error(`Unknown CLI domain: ${domain}. Use 'scaffold' or 'template'`);
   }
+
+  // Build full argument list with domain prefix
+  const fullArgv = [domain, ...argv];
 
   // Create isolated temp directory if cwd not provided
   // Default to project root to allow access to test fixtures
@@ -91,13 +98,13 @@ export async function runCLI(command, argv = [], options = {}) {
   };
 
   if (debug) {
-    console.log(`[cli-runner] Executing: ${command} ${argv.join(' ')}`);
+    console.log(`[cli-runner] Executing: create ${fullArgv.join(' ')}`);
     console.log(`[cli-runner] CWD: ${tempDir}`);
     console.log(`[cli-runner] Cache: ${cacheDir || 'default'}`);
   }
 
   // Execute CLI
-  const result = await executeCLI(cliPath, argv, {
+  const result = await executeCLI(CLI_PATH, fullArgv, {
     cwd: tempDir,
     env: testEnv,
     timeout,

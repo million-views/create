@@ -15,7 +15,7 @@ const __dirname = dirname(__filename);
 const PROJECT_ROOT = join(__dirname, '../../..');
 
 /**
- * Router Tests for `create-scaffold new` Command
+ * Router Tests for `scaffold new` Command
  *
  * Test Layer: L4 (CLI/Router)
  * - Tests invoke CLI with argv arrays only
@@ -24,8 +24,8 @@ const PROJECT_ROOT = join(__dirname, '../../..');
  * - Asserts exit codes and output messages
  *
  * Coverage Target:
- * - bin/create-scaffold/commands/new/index.mts: 89.91% → 95%+
- * - bin/create-scaffold/commands/new/scaffolder.mts: 80.33% → 85%+
+ * - bin/create/domains/scaffold/commands/new/index.mts: 89.91% → 95%+
+ * - bin/create/domains/scaffold/commands/new/scaffolder.mts: 80.33% → 85%+
  *
  * Focus: Critical edge cases that existing tests may miss
  */
@@ -166,7 +166,7 @@ const NEW_SCENARIOS = [
   }
 ];
 
-describe('Create-Scaffold New - Router Tests', () => {
+describe('Scaffold New - Router Tests', () => {
   // Matrix-based scenario tests
   for (const scenario of NEW_SCENARIOS) {
     it(`should handle: ${scenario.name}`, async (t) => {
@@ -204,7 +204,7 @@ describe('Create-Scaffold New - Router Tests', () => {
             arg === scenario.setupProject ? scenario.setupProject : arg
           );
 
-          result = await runCLI('create-scaffold', updatedArgs, {
+          result = await runCLI('scaffold', updatedArgs, {
             cwd: setupDir,
             env: {
               NODE_ENV: 'test',
@@ -214,7 +214,7 @@ describe('Create-Scaffold New - Router Tests', () => {
         } else if (scenario.needsTempDir) {
           // Create unique temp directory for tests that create projects
           setupDir = await mkdtemp(join(tmpdir(), 'cli-new-test-'));
-          result = await runCLI('create-scaffold', scenario.args, {
+          result = await runCLI('scaffold', scenario.args, {
             cwd: setupDir,
             env: {
               NODE_ENV: 'test',
@@ -222,7 +222,7 @@ describe('Create-Scaffold New - Router Tests', () => {
             }
           });
         } else {
-          result = await runCLI('create-scaffold', scenario.args, {
+          result = await runCLI('scaffold', scenario.args, {
             env: {
               NODE_ENV: 'test',
               M5NV_LOG_LEVEL: 'error'
@@ -258,7 +258,7 @@ describe('Create-Scaffold New - Router Tests', () => {
   }
 });
 
-describe('Create-Scaffold New - Edge Cases', () => {
+describe('Scaffold New - Edge Cases', () => {
   it('should handle template with placeholder formats', async () => {
     const { mkdtemp, rm } = await import('fs/promises');
     const { tmpdir } = await import('os');
@@ -269,7 +269,7 @@ describe('Create-Scaffold New - Edge Cases', () => {
       // Create unique temp directory for this test
       testDir = await mkdtemp(join(tmpdir(), 'cli-new-test-'));
 
-      result = await runCLI('create-scaffold', [
+      result = await runCLI('scaffold', [
         'new',
         'format-test',
         '--template', join(PROJECT_ROOT, 'tests/fixtures/placeholder-template'),
@@ -306,7 +306,7 @@ describe('Create-Scaffold New - Edge Cases', () => {
       // Create unique temp directory for this test
       testDir = await mkdtemp(join(tmpdir(), 'cli-new-test-'));
 
-      result = await runCLI('create-scaffold', [
+      result = await runCLI('scaffold', [
         'new',
         'no-prompts-test',
         '--template', join(PROJECT_ROOT, 'tests/fixtures/placeholder-template'),
@@ -336,7 +336,7 @@ describe('Create-Scaffold New - Edge Cases', () => {
     let result;
 
     try {
-      result = await runCLI('create-scaffold', [
+      result = await runCLI('scaffold', [
         'new',
         '../../../malicious',  // Path traversal attempt
         '--template', join(PROJECT_ROOT, 'tests/fixtures/placeholder-template'),

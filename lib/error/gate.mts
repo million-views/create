@@ -45,7 +45,7 @@ export interface GateErrorOptions {
  * @example
  * ```typescript
  * throw new GateError('Validation failed at entry point', {
- *   context: 'create-scaffold new',
+ *   context: 'create scaffold new',
  *   validationErrors: [
  *     'Template path contains path traversal',
  *     'Project name contains invalid characters'

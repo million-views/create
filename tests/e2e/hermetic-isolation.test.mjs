@@ -33,7 +33,7 @@ test('M5NV_HOME isolation - make-template uses isolated environment', async (t) 
   });
 
   // Run make-template init
-  const initResult = execCLI('make-template', ['init'], {
+  const initResult = execCLI('template', ['init'], {
     env: testEnv.env,
     cwd: projectDir
   });
@@ -85,7 +85,7 @@ test('M5NV_HOME isolation - create-scaffold uses isolated environment', async (t
   });
 
   // Run create-scaffold with --help to test environment loading
-  const helpResult = execCLI('create-scaffold', ['--help'], {
+  const helpResult = execCLI('scaffold', ['--help'], {
     env: testEnv.env,
     cwd: testEnv.workspaceDir
   });
@@ -120,12 +120,12 @@ test('Multiple test environments are isolated from each other', async (t) => {
     'package.json': JSON.stringify({ name: 'project2' }, null, 2)
   });
 
-  const init1 = execCLI('make-template', ['init'], {
+  const init1 = execCLI('template', ['init'], {
     env: testEnv1.env,
     cwd: proj1Dir
   });
 
-  const init2 = execCLI('make-template', ['init'], {
+  const init2 = execCLI('template', ['init'], {
     env: testEnv2.env,
     cwd: proj2Dir
   });

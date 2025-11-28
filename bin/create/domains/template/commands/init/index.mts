@@ -39,7 +39,7 @@ export class InitCommand extends Command {
       schemaVersion: '1.0.0',
       id: 'my-org/my-template',
       name: 'My Template',
-      description: 'A template generated with make-template init',
+      description: 'A template generated with template init',
       placeholderFormat: 'unicode',
       placeholders: {
         PACKAGE_NAME: {
@@ -69,7 +69,7 @@ Next steps:
 1. Edit template.json to customize your template metadata
 2. Edit .templatize.json to customize templatization rules (optional)
 3. Add your project files to the template
-4. Run 'make-template validate' to check your template
-5. Use 'make-template convert' to create a template from an existing project`);
+4. Run 'template validate' to check your template
+5. Use 'template convert' to create a template from an existing project`);
   }
 }

@@ -104,12 +104,12 @@ function getRelatedCommands(tool, currentCommand, allCommands) {
 
   // Common command relationships
   const relationships = {
-    'create-scaffold': {
+    'scaffold': {
       new: ['list', 'validate'],
       list: ['new', 'validate'],
       validate: ['new', 'list']
     },
-    'make-template': {
+    'template': {
       init: ['convert', 'config-validate'],
       convert: ['init', 'restore', 'config-validate'],
       restore: ['convert', 'init'],
