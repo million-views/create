@@ -7,7 +7,7 @@ estimated_time: "N/A (reference)"
 prerequisites: []
 related_docs:
   - "cli-reference.md"
-  - "../guides/troubleshooting.md"
+  - "../how-to/troubleshooting.md"
 last_updated: "2025-01-15"
 ---
 
@@ -386,16 +386,16 @@ npm create @m5nv/scaffold my-app --template basic --dry-run --log-file debug.log
 
 | Problem Category | Quick Identification | Primary Solution Guide |
 |------------------|---------------------|------------------------|
-| **Installation Issues** | Can't run CLI tool, git not found | [🚀 Installation Issues](../guides/troubleshooting.md) |
-| **Repository Access** | "Repository not found", "Authentication failed" | [🎯 First Use Issues](../guides/troubleshooting.md) |
-| **Template Problems** | "Template not found", setup script failures | [🔧 Template Issues](../guides/troubleshooting.md) |
-| **Cache/Performance** | Stale data, permission errors, slow operations | [⚡ Advanced Usage Issues](../guides/troubleshooting.md) |
-| **Network/Timeout** | Clone timeouts, connectivity issues | [⚡ Network Issues](../guides/troubleshooting.md) |
+| **Installation Issues** | Can't run CLI tool, git not found | [🚀 Installation Issues](../how-to/troubleshooting.md) |
+| **Repository Access** | "Repository not found", "Authentication failed" | [🎯 First Use Issues](../how-to/troubleshooting.md) |
+| **Template Problems** | "Template not found", setup script failures | [🔧 Template Issues](../how-to/troubleshooting.md) |
+| **Cache/Performance** | Stale data, permission errors, slow operations | [⚡ Advanced Usage Issues](../how-to/troubleshooting.md) |
+| **Network/Timeout** | Clone timeouts, connectivity issues | [⚡ Network Issues](../how-to/troubleshooting.md) |
 
 ### Community Support Channels
 
 **For immediate help:**
-- 📖 [Troubleshooting Guide](../guides/troubleshooting.md) - Step-by-step problem resolution
+- 📖 [Troubleshooting Guide](../how-to/troubleshooting.md) - Step-by-step problem resolution
 - 📖 [CLI Reference](cli-reference.md) - Complete parameter documentation
 
 **For community support:**
@@ -404,13 +404,13 @@ npm create @m5nv/scaffold my-app --template basic --dry-run --log-file debug.log
 - 📚 [Documentation](https://github.com/m5nv/scaffold/tree/main/docs) - Complete guides and references
 
 **Escalation path for unresolved issues:**
-1. Check [troubleshooting guide](../guides/troubleshooting.md) for your specific scenario
+1. Check [troubleshooting guide](../how-to/troubleshooting.md) for your specific scenario
 2. Search [existing issues](https://github.com/m5nv/scaffold/issues) for similar problems
-3. Collect [diagnostic information](../guides/troubleshooting.md)
+3. Collect [diagnostic information](../how-to/troubleshooting.md)
 4. Create new issue with reproduction steps and system details
 
 ## See Also
 
 - [CLI Reference](cli-reference.md) - Complete CLI parameter documentation
-- [Troubleshooting Guide](../guides/troubleshooting.md) - Detailed troubleshooting procedures
+- [Troubleshooting Guide](../how-to/troubleshooting.md) - Detailed troubleshooting procedures
 - [Creating Templates Guide](../how-to/creating-templates.md) - Template creation and setup scripts

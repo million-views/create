@@ -9,7 +9,7 @@ prerequisites:
   - "Basic knowledge of git repositories"
 related_docs:
   - "../reference/cli-reference.md"
-  - "../guides/troubleshooting.md"
+  - "../how-to/troubleshooting.md"
   - "template-system.md"
 last_updated: "2025-11-19"
 ---
@@ -285,5 +285,5 @@ Current caching limitations that users should understand:
 ## Further Reading
 
 - 📚 [Getting Started Tutorial](../tutorial/getting-started.md) - See caching in action
-- 🛠️ [Troubleshooting Guide](../guides/troubleshooting.md) - Cache-related troubleshooting
+- 🛠️ [Troubleshooting Guide](../how-to/troubleshooting.md) - Cache-related troubleshooting
 - 📖 [CLI Reference](../reference/cli-reference.md) - Cache-related command options

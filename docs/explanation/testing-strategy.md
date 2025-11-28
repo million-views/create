@@ -1,4 +1,19 @@
-# Testing Guide
+---
+title: "Testing Strategy Explained"
+description: "Understanding the testing philosophy, layered model, and patterns used in @m5nv/create"
+type: explanation
+audience: "contributors"
+estimated_time: "20 minutes"
+prerequisites:
+  - "Familiarity with Node.js testing"
+  - "Understanding of test pyramids"
+related_docs:
+  - "../how-to/development.md"
+  - "../reference/cli-reference.md"
+last_updated: "2025-11-28"
+---
+
+# Testing Strategy Explained
 
 **A comprehensive guide to testing strategy, patterns, and lessons learned in @m5nv/create**
 

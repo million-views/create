@@ -10,7 +10,7 @@ related_docs:
   - "../tutorial/getting-started.md"
   - "../tutorial/scaffold.md"
   - "../reference/cli-reference.md"
-  - "../guides/troubleshooting.md"
+  - "../how-to/troubleshooting.md"
 last_updated: "2025-11-12"
 ---
 

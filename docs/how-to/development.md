@@ -9,7 +9,7 @@ prerequisites:
   - "Command line proficiency"
 related_docs:
   - "../../CONTRIBUTING.md"
-  - "../guides/troubleshooting.md"
+  - "../how-to/troubleshooting.md"
   - "../reference/cli-reference.md"
 last_updated: "2025-11-28"
 ---
@@ -371,4 +371,4 @@ npm test                  # Full test suite
 
 - [Contributing Guide](../../CONTRIBUTING.md) - Contribution guidelines
 - [CLI Reference](../reference/cli-reference.md) - Complete command documentation
-- [Troubleshooting Guide](../guides/troubleshooting.md) - Common issues and solutions
+- [Troubleshooting Guide](../how-to/troubleshooting.md) - Common issues and solutions

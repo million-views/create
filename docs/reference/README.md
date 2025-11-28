@@ -112,7 +112,7 @@ Complete reference for Schema V1.0 (`template.json`). Covers all sections of the
 
 ### Task-Oriented
 - [Creating Templates Guide](../how-to/creating-templates.md) - How to create templates
-- [Troubleshooting Guide](../guides/troubleshooting.md) - Problem-solving procedures
+- [Troubleshooting Guide](../how-to/troubleshooting.md) - Problem-solving procedures
 
 ### Understanding-Oriented
 - [Security Model Explanation](../explanation/security-model.md) - Why security matters

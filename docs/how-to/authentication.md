@@ -8,7 +8,7 @@ prerequisites:
   - "Access to git provider (GitHub, GitLab, etc.)"
 related_docs:
   - "../tutorial/getting-started.md"
-  - "../guides/troubleshooting.md"
+  - "../how-to/troubleshooting.md"
   - "../explanation/security.md"
 last_updated: "2025-11-12"
 ---
@@ -94,5 +94,5 @@ create scaffold new my-app yourorg/private-templates --template react
 Now that you have authentication set up, you might want to:
 
 - 🎯 **Create your first project**: [Getting Started Tutorial](../tutorial/getting-started.md) - Use your authenticated access
-- 🚨 **Resolve auth issues**: [Troubleshooting Guide](../guides/troubleshooting.md) - Fix authentication problems
+- 🚨 **Resolve auth issues**: [Troubleshooting Guide](../how-to/troubleshooting.md) - Fix authentication problems
 - 🔒 **Learn about security**: [Security Features](../explanation/security.md) - Understand how authentication fits into our security model

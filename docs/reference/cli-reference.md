@@ -303,7 +303,7 @@ All inputs are validated for security and correctness:
 - [Error Codes Reference](error-codes.md) - Exit codes and error messages
 - [Creating Templates Guide](../how-to/creating-templates.md) - How to create your own templates
 - [Getting Started Tutorial](../tutorial/getting-started.md) - Step-by-step beginner guide
-- [Troubleshooting Guide](../guides/troubleshooting.md) - Common issues
+- [Troubleshooting Guide](../how-to/troubleshooting.md) - Common issues
 
 ---
 

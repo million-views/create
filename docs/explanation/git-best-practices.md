@@ -10,7 +10,7 @@ prerequisites:
 related_docs:
   - "../how-to/development.md"
   - "../how-to/creating-templates.md"
-  - "../guides/troubleshooting.md"
+  - "../how-to/troubleshooting.md"
 last_updated: "2025-11-19"
 ---
 
