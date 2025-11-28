@@ -1,11 +1,11 @@
-# template convert
+# create template convert
 
 Convert project to template using configurable patterns
 
 ## Usage
 
 ```bash
-template convert [project-path] [options]
+create template convert [project-path] [options]
 ```
 
 ## Description
@@ -13,7 +13,7 @@ template convert [project-path] [options]
 Convert an existing project into a reusable template using configurable templatization patterns.
 
 Prerequisites:
-  • Run 'make-template init' first to create configuration files
+  • Run 'create template init' first to create configuration files
   • Configuration files required: template.json and .templatize.json
 
 The conversion process:
@@ -68,31 +68,37 @@ Prevents sensitive data from being stored in restoration logs
 
 ```bash
 # Convert current directory
-template convert
+create template convert
 
 # Convert specific project directory
-template convert ./my-project
+create template convert ./my-project
 
 # Preview changes without applying them
-template convert --dry-run
+create template convert --dry-run
 
 # Use custom config file and skip prompts
-template convert --config custom-config.json --yes
+create template convert --config custom-config.json --yes
 
 # Use $PLACEHOLDER format for replacements
-template convert --placeholder-format dollar
+create template convert --placeholder-format dollar
 
 # Use ⦃PLACEHOLDER⦄ format for React compatibility
-template convert ./my-project --placeholder-format unicode
+create template convert ./my-project --placeholder-format unicode
 ```
 
 ## Notes
 
 Related commands:
-  • make-template init - Initialize template configuration files
-  • make-template restore - Undo templatization changes
-  • make-template config validate - Validate configuration
+  • create template init - Initialize create template configuration files
+  • create template restore - Undo templatization changes
+  • create template config validate - Validate configuration
 
 For detailed configuration options, see:
   • docs/how-to/templatization-configuration.md
   • docs/reference/templatization-patterns.md
+
+## See Also
+
+- [init](./init.md)
+- [restore](./restore.md)
+- [config validate](./config-validate.md)

@@ -1,6 +1,6 @@
 ---
 title: "CLI Reference"
-description: "Complete command reference for the @m5nv/create-scaffold package"
+description: "Complete command reference for the @m5nv/create package"
 type: reference
 audience: "all"
 estimated_time: "N/A (reference)"
@@ -8,7 +8,7 @@ prerequisites: []
 related_docs:
   - "../how-to/creating-templates.md"
   - "../tutorial/getting-started.md"
-  - "../tutorial/create-scaffold.md"
+  - "../tutorial/scaffold.md"
   - "../how-to/setup-recipes.md"
   - "environment.md"
   - "error-codes.md"
@@ -17,14 +17,14 @@ last_updated: "2025-11-26"
 
 # CLI Reference
 
-Complete command reference for the `@m5nv/create-scaffold` package.
+Complete command reference for the `@m5nv/create` package.
 
 ## Overview
 
-The `@m5nv/create-scaffold` package provides two complementary CLI tools:
+The `@m5nv/create` package provides two complementary CLI tools:
 
-- **`create-scaffold`**: Scaffolds new projects from templates
-- **`make-template`**: Converts projects to templates and back
+- **`create scaffold`**: Scaffolds new projects from templates
+- **`create template`**: Converts projects to templates and back
 
 Both tools use command-based interfaces and support help commands:
 
@@ -43,55 +43,55 @@ Both tools support these global options:
 
 ---
 
-## create-scaffold Commands
+## create scaffold Commands
 
 | Command | Description |
 |---------|-------------|
-| [new](./commands/create-scaffold/new.md) | Create a new project from a template |
-| [list](./commands/create-scaffold/list.md) | List templates from a registry repository |
-| [validate](./commands/create-scaffold/validate.md) | Validate template configuration |
+| [new](./commands/scaffold/new.md) | Create a new project from a template |
+| [list](./commands/scaffold/list.md) | List templates from a registry repository |
+| [validate](./commands/scaffold/validate.md) | Validate template configuration |
 
 ### Quick Examples
 
 ```bash
 # Create a new project from a template
-create-scaffold new my-app --template react-vite
+create scaffold new my-app --template react-vite
 
 # List available templates
-create-scaffold list
+create scaffold list
 
 # Validate a template
-create-scaffold validate ./my-template
+create scaffold validate ./my-template
 ```
 
 ---
 
-## make-template Commands
+## create template Commands
 
 | Command | Description |
 |---------|-------------|
-| [init](./commands/make-template/init.md) | Initialize template configuration files |
-| [convert](./commands/make-template/convert.md) | Convert project to template |
-| [restore](./commands/make-template/restore.md) | Restore template to project |
-| [validate](./commands/make-template/validate.md) | Validate template.json |
-| [hints](./commands/make-template/hints.md) | Show hints catalog |
-| [test](./commands/make-template/test.md) | Test template functionality |
-| [config validate](./commands/make-template/config-validate.md) | Validate .templatize.json |
+| [init](./commands/template/init.md) | Initialize template configuration files |
+| [convert](./commands/template/convert.md) | Convert project to template |
+| [restore](./commands/template/restore.md) | Restore template to project |
+| [validate](./commands/template/validate.md) | Validate template.json |
+| [hints](./commands/template/hints.md) | Show hints catalog |
+| [test](./commands/template/test.md) | Test template functionality |
+| [config validate](./commands/template/config-validate.md) | Validate .templatize.json |
 
 ### Quick Examples
 
 ```bash
 # Initialize template configuration
-make-template init
+create template init
 
 # Convert project to template
-make-template convert --dry-run
+create template convert --dry-run
 
 # Restore template to working project
-make-template restore
+create template restore
 
 # Validate configuration
-make-template config validate
+create template config validate
 ```
 
 ---
@@ -145,16 +145,16 @@ Once configured, registries enable shorthand template references:
 
 ```bash
 # List all templates in the default registry
-create-scaffold list
+create scaffold list
 
 # List all templates in a specific registry
-create-scaffold list --registry work
+create scaffold list --registry work
 
 # Use a template from a registry
-create-scaffold new my-app --template work/react-app
+create scaffold new my-app --template work/react-app
 
 # Use a template from a community collection
-create-scaffold new my-tool --template community/useful-tool
+create scaffold new my-tool --template community/useful-tool
 ```
 
 ### Default Registry
@@ -165,11 +165,11 @@ The default registry is `git@github.com:million-views/templates.git` (private). 
 
 ## Template Manifest Schema
 
-@m5nv/create-scaffold publishes its canonical `template.json` contract so automation and editors stay aligned with the CLI:
+@m5nv/create publishes its canonical `template.json` contract so automation and editors stay aligned with the CLI:
 
-- `@m5nv/create-scaffold/schema/template.json` – latest stable schema (currently `template.v1.json`).
-- `@m5nv/create-scaffold/schema/template.v1.json` – immutable versioned schema.
-- `@m5nv/create-scaffold/types/template-schema` – TypeScript declarations for programmatic tooling.
+- `@m5nv/create/schema/template.json` – latest stable schema (currently `template.v1.json`).
+- `@m5nv/create/schema/template.v1.json` – immutable versioned schema.
+- `@m5nv/create/types/template-schema` – TypeScript declarations for programmatic tooling.
 
 Add the schema to your editor configuration to surface validation and completions:
 
@@ -179,7 +179,7 @@ Add the schema to your editor configuration to surface validation and completion
   "json.schemas": [
     {
       "fileMatch": ["template.json"],
-      "url": "./node_modules/@m5nv/create-scaffold/schema/template.json"
+      "url": "./node_modules/@m5nv/create/schema/template.json"
     }
   ]
 }

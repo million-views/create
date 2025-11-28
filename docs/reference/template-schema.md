@@ -27,8 +27,8 @@ steps.
 Schema V1.0.0 defines the structure for `template.json` files. Templates are
 validated against this schema during:
 
-- Template creation (`create-scaffold new`)
-- Template validation (`make-template validate`)
+- Template creation (`create scaffold new`)
+- Template validation (`create template validate`)
 - Runtime setup execution
 
 **NO BACKWARD COMPATIBILITY**: Only Schema V1.0.0 is supported. Legacy templates
@@ -90,7 +90,7 @@ The simplest valid template requires 6 fields:
 
 This minimal template:
 
-- Can be scaffolded immediately with `create-scaffold new`
+- Can be scaffolded immediately with `create scaffold new`
 - Uses unicode placeholder format (`⦃TOKEN⦄`) for React/JSX compatibility
 - Contains no placeholders or advanced features
 - Serves as a foundation for progressive enhancement
@@ -119,7 +119,7 @@ This minimal template:
 | `dollar`   | `$TOKEN$`        | Avoids conflicts with template literals         |
 | `percent`  | `%TOKEN%`        | Avoids conflicts with CSS/custom syntax         |
 
-Set via `make-template convert --placeholder-format <format>`.
+Set via `create template convert --placeholder-format <format>`.
 
 ## Setup Section
 

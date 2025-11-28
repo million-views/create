@@ -18,7 +18,7 @@ last_updated: "2025-11-19"
 
 ## Introduction
 
-@m5nv/create-scaffold implements a comprehensive security-first approach to template processing and project scaffolding. This security model protects users from common attack vectors while maintaining the flexibility needed for effective template systems. Understanding this model helps you use the tool safely and create secure templates.
+@m5nv/create implements a comprehensive security-first approach to template processing and project scaffolding. This security model protects users from common attack vectors while maintaining the flexibility needed for effective template systems. Understanding this model helps you use the tool safely and create secure templates.
 
 ## The Problem
 

@@ -1,6 +1,6 @@
 # Testing Guide
 
-**A comprehensive guide to testing strategy, patterns, and lessons learned in @m5nv/create-scaffold**
+**A comprehensive guide to testing strategy, patterns, and lessons learned in @m5nv/create**
 
 ## Table of Contents
 
@@ -251,7 +251,7 @@ test('should ignore template artifacts', () => {
 #### L3: Orchestrators and Coordinators
 **Modules that coordinate multiple L2/L1 modules.**
 
-**Example SUT**: `bin/create-scaffold/modules/setup-runtime.mjs`
+**Example SUT**: `bin/create/domains/scaffold/modules/setup-runtime.mjs`
 - Coordinates config loading, placeholder resolution, script execution
 - Calls multiple L2 utilities to accomplish workflow
 
@@ -266,9 +266,9 @@ test('should ignore template artifacts', () => {
 
 **Critical Rule**: Test the orchestrator's PUBLIC interface only. The orchestrator internally calls L2/L1, but your test never does. You're testing the CONTRACT, not the implementation.
 
-**Example**: `tests/create-scaffold/setup-runtime.test.mjs`
+**Example**: `tests/scaffold/setup-runtime.test.mjs`
 ```javascript
-import { setupRuntime } from '../../bin/create-scaffold/modules/setup-runtime.mjs';
+import { setupRuntime } from '../../bin/create/domains/scaffold/modules/setup-runtime.mjs';
 
 test('executes setup script with resolved placeholders', async () => {
   // Provide data context object - NOT a mock, just test input data
@@ -293,7 +293,7 @@ test('executes setup script with resolved placeholders', async () => {
 #### L4: CLI Entry Points
 **Router and command classes that handle user interaction.**
 
-**Example SUT**: `bin/create-scaffold/index.mjs`, `bin/create-scaffold/commands/new/index.js`
+**Example SUT**: `bin/create/domains/scaffold/index.mjs`, `bin/create/domains/scaffold/commands/new/index.js`
 - CLI argument parsing
 - Command routing
 - User-facing error messages
@@ -310,9 +310,9 @@ test('executes setup script with resolved placeholders', async () => {
 
 **Critical Rule**: Test the command's PUBLIC interface and argument processing. Commands internally call L3/L2/L1, but your test never does. You're testing the CONTRACT (argument parsing, validation, routing), not the implementation. Use dependency injection to control side effects like `process.exit`.
 
-**Example**: `tests/create-scaffold/commands/new.test.js`
+**Example**: `tests/scaffold/commands/new.test.js`
 ```javascript
-import { NewCommand } from '../../../bin/create-scaffold/commands/new/index.js';
+import { NewCommand } from '../../../bin/create/domains/scaffold/commands/new/index.js';
 import { captureExitCode } from '../../helpers.js';
 
 test('requires project-name argument', async () => {
@@ -333,14 +333,14 @@ test('requires project-name argument', async () => {
 #### L5: CLI Binary
 **The executable artifact and process lifecycle.**
 
-**Example SUT**: `bin/create-scaffold/index.mjs` (the file itself)
+**Example SUT**: `bin/create/domains/scaffold/index.mjs` (the file itself)
 - Shebang (`#!/usr/bin/env node`)
 - Module loading and startup
 - Process termination and exit codes
 - Unhandled promise rejections
 
 **Test Constraint for L5**:
-- ✅ **MUST** spawn the CLI binary as a separate process (e.g., `spawnSync('node', ['bin/create-scaffold/index.mjs', ...args])`)
+- ✅ **MUST** spawn the CLI binary as a separate process (e.g., `spawnSync('node', ['bin/create/domains/scaffold/index.mjs', ...args])`)
 - ✅ **MAY** assert on stdout, stderr, exit codes
 - ✅ **MAY** verify filesystem artifacts created by the CLI (after process completes)
 - ❌ **MUST NOT** import the CLI router or command classes
@@ -352,13 +352,13 @@ test('requires project-name argument', async () => {
 
 **Critical Rule**: The ONLY interaction with the SUT is through `argv` (command-line arguments). You're testing the complete executable, including startup time, shebang correctness, and real-world process behavior. The binary wires up all dependencies internally.
 
-**Example**: `tests/create-scaffold/cli-execution.test.mjs`
+**Example**: `tests/scaffold/cli-execution.test.mjs`
 ```javascript
 import { spawnSync } from 'child_process';
 
 test('should create project successfully', () => {
   const result = spawnSync('node', [
-    'bin/create-scaffold/index.mjs',
+    'bin/create/domains/scaffold/index.mjs',
     'new', 'test-project',
     '--template', 'react-vite'
   ], { encoding: 'utf8' });
@@ -808,7 +808,7 @@ if (registry.type) {
 
 ```javascript
 import { describe, it } from 'node:test';
-import { setupRuntime } from '../../bin/create-scaffold/modules/setup-runtime.mjs';
+import { setupRuntime } from '../../bin/create/domains/scaffold/modules/setup-runtime.mjs';
 
 describe('setupRuntime', () => {
   it('executes setup script with resolved placeholders', async () => {
@@ -848,14 +848,14 @@ describe('setupRuntime', () => {
 - ❌ Import and call L1 file operations
 - ❌ Import and call the router/command classes
 
-**Example: Dry Run Mode** (`tests/create-scaffold/dry-run-cli.test.mjs`)
+**Example: Dry Run Mode** (`tests/scaffold/dry-run-cli.test.mjs`)
 
 ```javascript
 import { spawnSync } from 'child_process';
 
 function runCLI(args, options = {}) {
   // Only interaction: spawn the CLI as a user would
-  const result = spawnSync('node', ['bin/create-scaffold/index.mjs', ...args], {
+  const result = spawnSync('node', ['bin/create/domains/scaffold/index.mjs', ...args], {
     cwd: options.cwd || process.cwd(),
     encoding: 'utf8',
     env: { ...process.env, HOME: options.home || process.env.HOME }
@@ -1225,11 +1225,11 @@ cat tmp/c8-baseline/coverage-summary.json
 ### Tool-Specific
 
 ```bash
-# All create-scaffold tests
-npm run test:create-scaffold
+# All create scaffold tests
+npm run test:scaffold
 
-# All make-template tests
-npm run test:make-template
+# All create template tests
+npm run test:create template
 ```
 
 ---

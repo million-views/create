@@ -30,7 +30,7 @@ The easiest way to get started is to generate the default configuration:
 cd my-template-project
 
 # Initialize configuration files
-make-template init
+create template init
 ```
 
 The `init` command creates both configuration files:
@@ -43,13 +43,13 @@ Once configured, convert your template:
 
 ```bash
 # Convert with default settings
-make-template convert .
+create template convert .
 
 # Preview changes without making them
-make-template convert . --dry-run
+create template convert . --dry-run
 
 # Convert without confirmation prompts (for automation)
-make-template convert . --yes
+create template convert . --yes
 ```
 
 ## Configuration Structure
@@ -348,7 +348,7 @@ Test your configuration with sample data:
 
 ```bash
 # Create a test conversion
-make-template convert . --dry-run
+create template convert . --dry-run
 
 # Check the output
 cat converted-files/
@@ -480,10 +480,10 @@ Check your configuration for errors:
 
 ```bash
 # Validate the .templatize.json configuration file
-make-template config validate
+create template config validate
 
 # Validate a specific configuration file
-make-template config validate custom-config.json
+create template config validate custom-config.json
 ```
 
 ### Debug Pattern Matching
@@ -492,7 +492,7 @@ Enable verbose output to see what's happening:
 
 ```bash
 # Enable verbose output during conversion
-make-template convert . --verbose
+create template convert . --verbose
 ```
 
 This shows detailed information about:

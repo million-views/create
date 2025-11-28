@@ -15,7 +15,7 @@ last_updated: "2025-01-15"
 
 ## Overview
 
-Complete reference for exit codes, error messages, and troubleshooting information for the `@m5nv/create-scaffold` package.
+Complete reference for exit codes, error messages, and troubleshooting information for the `@m5nv/create` package.
 
 ## Exit Codes
 
@@ -135,7 +135,7 @@ Please check your network connection and try again.
 
 | Error Message Pattern | Cause | Resolution |
 |----------------------|-------|------------|
-| `❌ Template not found in the repository` | Template directory doesn't exist | Check template name, run `create-scaffold list` |
+| `❌ Template not found in the repository` | Template directory doesn't exist | Check template name, run `create scaffold list` |
 | `❌ Failed to copy template: [details]` | File copy operation failed | Check permissions, disk space |
 | `❌ Project directory already exists` | Target directory exists and is not empty | Choose different name or remove existing directory |
 | `❌ Permission denied` | Insufficient file system permissions | Check directory permissions |
@@ -208,7 +208,7 @@ The `M5NV_HOME` environment variable allows you to override the default `~/.m5nv
 ```bash
 # Use custom directory for all M5NV data
 export M5NV_HOME=/opt/m5nv
-create-scaffold new my-app --template react
+create scaffold new my-app --template react
 
 # Isolate test environment
 M5NV_HOME=./test-cache npm test
@@ -341,7 +341,7 @@ For troubleshooting, collect the following diagnostic information:
 
 - **Node.js version:** `node --version`
 - **Git version:** `git --version`
-- **CLI version:** `npm list @m5nv/create-scaffold`
+- **CLI version:** `npm list @m5nv/create`
 - **Environment:** `NODE_ENV` value
 - **Cache location:** `~/.m5nv/cache/`
 - **Log file:** Use `--log-file debug.log` for detailed JSON logs
@@ -367,7 +367,7 @@ npm create @m5nv/scaffold my-app --template basic --dry-run --log-file debug.log
 |---------|-----------|
 | "Unknown option" error | Check spelling, use `--help` for valid options |
 | "Repository not found" | Verify repository URL, check access permissions |
-| "Template not found" | Run `create-scaffold list` to see available templates |
+| "Template not found" | Run `create scaffold list` to see available templates |
 | "Authentication failed" | Set up git credentials (SSH keys or PAT) |
 | "Permission denied" | Check file/directory permissions |
 | "Cache issues" | Use `--no-cache` to bypass cache |
@@ -377,7 +377,7 @@ npm create @m5nv/scaffold my-app --template basic --dry-run --log-file debug.log
 ### Getting Help
 
 1. **Check help:** `npm create @m5nv/scaffold -- --help`
-2. **List templates:** `create-scaffold list` or `npm create @m5nv/scaffold -- list`
+2. **List templates:** `create scaffold list` or `npm create @m5nv/scaffold -- list`
 3. **Use dry run:** Add `--dry-run` to preview operations
 4. **Enable logging:** Add `--log-file debug.log` for detailed logs
 5. **Bypass cache:** Add `--no-cache` for fresh repository clone
@@ -399,13 +399,13 @@ npm create @m5nv/scaffold my-app --template basic --dry-run --log-file debug.log
 - 📖 [CLI Reference](cli-reference.md) - Complete parameter documentation
 
 **For community support:**
-- 🐛 [GitHub Issues](https://github.com/m5nv/create-scaffold/issues) - Bug reports and feature requests
-- 💬 [GitHub Discussions](https://github.com/m5nv/create-scaffold/discussions) - Questions and community help
-- 📚 [Documentation](https://github.com/m5nv/create-scaffold/tree/main/docs) - Complete guides and references
+- 🐛 [GitHub Issues](https://github.com/m5nv/scaffold/issues) - Bug reports and feature requests
+- 💬 [GitHub Discussions](https://github.com/m5nv/scaffold/discussions) - Questions and community help
+- 📚 [Documentation](https://github.com/m5nv/scaffold/tree/main/docs) - Complete guides and references
 
 **Escalation path for unresolved issues:**
 1. Check [troubleshooting guide](../guides/troubleshooting.md) for your specific scenario
-2. Search [existing issues](https://github.com/m5nv/create-scaffold/issues) for similar problems
+2. Search [existing issues](https://github.com/m5nv/scaffold/issues) for similar problems
 3. Collect [diagnostic information](../guides/troubleshooting.md)
 4. Create new issue with reproduction steps and system details
 

@@ -1,11 +1,11 @@
-# template test
+# create template test
 
 Test template functionality
 
 ## Usage
 
 ```bash
-template test <template-path> [options]
+create template test <template-path> [options]
 ```
 
 ## Description
@@ -32,8 +32,13 @@ Use --verbose for detailed output during testing phases.
 
 ```bash
 # Test template functionality
-template test ./my-template
+create template test ./my-template
 
 # Test with detailed output
-template test ./my-template --verbose
+create template test ./my-template --verbose
 ```
+
+## See Also
+
+- [validate](./validate.md)
+- [convert](./convert.md)

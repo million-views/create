@@ -1,6 +1,6 @@
 ---
-title: "Getting Started with make-template and create-scaffold"
-description: "Set up your development environment and verify prerequisites for using make-template and create-scaffold tools"
+title: "Getting Started with @m5nv/create"
+description: "Set up your development environment and verify prerequisites for the create CLI"
 type: tutorial
 audience: "beginner"
 estimated_time: "10 minutes"
@@ -12,13 +12,11 @@ related_docs:
   - "../how-to/creating-templates.md"
   - "../reference/cli-reference.md"
   - "../how-to/author-workflow.md"
-  - "create-scaffold.md"
-  - "make-template.md"
   - "../how-to/setup-recipes.md"
-last_updated: "2025-11-14"
+last_updated: "2025-11-28"
 ---
 
-# Getting Started with `make-template` and `create-scaffold`
+# Getting Started with @m5nv/create
 
 ## Quick Environment Check
 
@@ -32,33 +30,62 @@ node --version && git --version && npm --version
 
 ## Install the Package
 
-Install globally to get both CLI tools:
+Install globally to get the CLI:
 
 ```bash
-npm install -g @m5nv/create-scaffold
+npm install -g @m5nv/create
 ```
 
-This installs two commands:
-- `create-scaffold` - Scaffold new projects from templates
-- `make-template` - Convert projects into reusable templates
+This installs the `create` command with two domains:
+- `create scaffold` - Scaffold new projects from templates
+- `create template` - Convert projects into reusable templates
 
 ## Verify Installation
 
-Test both tools are accessible:
+Test the CLI is accessible:
 
 ```bash
-create-scaffold --help | head -5
-make-template --help | head -5
+create --help
+create scaffold --help
+create template --help
 ```
 
-**Expected:** Help text for both commands.
+**Expected:** Help text showing available commands.
+
+## Quick Examples
+
+### Scaffold a New Project
+
+```bash
+# Create a project from a template
+create scaffold new my-app --template react-vite
+
+# List available templates
+create scaffold list
+```
+
+### Create a Template
+
+```bash
+# Initialize template configuration
+create template init
+
+# Convert project to template (preview first)
+create template convert --dry-run
+
+# Convert for real
+create template convert --yes
+```
 
 ## You're Ready!
 
 ✅ Environment verified  
-✅ Tools installed  
+✅ CLI installed  
 
-**Next:** [Create your first template](make-template.md) or [scaffold from existing templates](create-scaffold.md)
+**Next Steps:**
+- [Creating Templates Guide](../how-to/creating-templates.md) - Learn to create reusable templates
+- [CLI Reference](../reference/cli-reference.md) - Complete command documentation
+- [Setup Recipes](../how-to/setup-recipes.md) - Common configuration patterns
 
 ## Troubleshooting
 

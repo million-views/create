@@ -75,7 +75,7 @@ git ls-remote https://github.com/yourorg/private-templates.git
 Once authenticated, use private repositories normally:
 
 ```bash
-create-scaffold new my-app yourorg/private-templates --template react
+create scaffold new my-app yourorg/private-templates --template react
 ```
 
 ## Troubleshooting

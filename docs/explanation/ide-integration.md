@@ -17,7 +17,7 @@ last_updated: "2025-11-12"
 
 ## Overview
 
-@m5nv/create-scaffold allows template authors to include IDE-specific configurations using the `__scaffold__` directory mechanism. Templates can ship curated IDE settings that get copied to the project during setup.
+@m5nv/create allows template authors to include IDE-specific configurations using the `__scaffold__` directory mechanism. Templates can ship curated IDE settings that get copied to the project during setup.
 
 ## How It Works
 

@@ -1,6 +1,6 @@
 ---
 title: "Reference Documentation"
-description: "Complete technical reference for the @m5nv/create-scaffold package"
+description: "Complete technical reference for the @m5nv/create package"
 type: reference
 audience: "all"
 estimated_time: "N/A (reference)"
@@ -13,7 +13,7 @@ last_updated: "2025-11-17"
 
 # Reference Documentation
 
-Complete technical reference for the `@m5nv/create-scaffold` package. These documents provide comprehensive, searchable information for quick lookup during development and troubleshooting.
+Complete technical reference for the `@m5nv/create` package. These documents provide comprehensive, searchable information for quick lookup during development and troubleshooting.
 
 ## Available References
 
@@ -108,7 +108,7 @@ Complete reference for Schema V1.0 (`template.json`). Covers all sections of the
 
 ### Learning-Oriented
 - [Getting Started Tutorial](../tutorial/getting-started.md) - Step-by-step beginner guide
-- [create-scaffold Tutorial](../tutorial/create-scaffold.md) - Create your first project
+- [create scaffold Tutorial](../tutorial/scaffold.md) - Create your first project
 
 ### Task-Oriented
 - [Creating Templates Guide](../how-to/creating-templates.md) - How to create templates

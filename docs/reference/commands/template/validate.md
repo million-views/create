@@ -1,11 +1,11 @@
-# template validate
+# create template validate
 
 Validate template.json
 
 ## Usage
 
 ```bash
-template validate [options]
+create template validate [options]
 ```
 
 ## Description
@@ -28,11 +28,16 @@ Provide suggestions for fixing validation errors
 
 ```bash
 # Validate template.json in current directory
-template validate template.json
+create template validate template.json
 
 # Validate specific file
-template validate --file my-template.json
+create template validate --file my-template.json
 
 # Get fix suggestions
-template validate --file template.json --suggest
+create template validate --file template.json --suggest
 ```
+
+## See Also
+
+- [init](./init.md)
+- [config validate](./config-validate.md)

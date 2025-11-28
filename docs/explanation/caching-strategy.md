@@ -1,6 +1,6 @@
 ---
 title: "Caching Strategy Explained"
-description: "How @m5nv/create-scaffold implements intelligent caching for improved performance and reliability"
+description: "How @m5nv/create implements intelligent caching for improved performance and reliability"
 type: explanation
 audience: "intermediate"
 estimated_time: "7 minutes read"
@@ -18,7 +18,7 @@ last_updated: "2025-11-19"
 
 ## Introduction
 
-@m5nv/create-scaffold implements an intelligent caching system that dramatically improves performance for repeated template operations while maintaining data integrity and security. The caching strategy balances speed, reliability, and storage efficiency to provide a smooth user experience even with large or frequently-used templates.
+@m5nv/create implements an intelligent caching system that dramatically improves performance for repeated template operations while maintaining data integrity and security. The caching strategy balances speed, reliability, and storage efficiency to provide a smooth user experience even with large or frequently-used templates.
 
 ## The Problem
 
@@ -177,13 +177,13 @@ Users can control caching behavior through CLI options:
 
 ```bash
 # Bypass cache for fresh download
-create-scaffold new my-project user/repo --no-cache
+create scaffold new my-project user/repo --no-cache
 
 # Set custom TTL (in hours)
-create-scaffold new my-project user/repo --cache-ttl 48
+create scaffold new my-project user/repo --cache-ttl 48
 
 # Force cache refresh (future enhancement)
-create-scaffold --cache-refresh user/repo
+create --cache-refresh user/repo
 ```
 
 ### Cache Inspection
@@ -192,16 +192,16 @@ Users can inspect cache status (future enhancement):
 
 ```bash
 # List cached repositories
-create-scaffold --cache-list
+create --cache-list
 
 # Show cache statistics
-create-scaffold --cache-stats
+create --cache-stats
 
 # Clear specific cache entry
-create-scaffold --cache-clear user/repo
+create --cache-clear user/repo
 
 # Clear all cache
-create-scaffold --cache-clear-all
+create --cache-clear-all
 ```
 
 ## Performance Impact

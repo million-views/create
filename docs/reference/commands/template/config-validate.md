@@ -1,11 +1,11 @@
-# template config validate
+# create template config validate
 
 Validate .templatize.json configuration file
 
 ## Usage
 
 ```bash
-template config validate [config-file]
+create template config validate [config-file]
 ```
 
 ## Description
@@ -18,8 +18,14 @@ Run this before conversion to catch configuration issues early.
 
 ```bash
 # Validate default .templatize.json
-template config validate
+create template config validate
 
 # Validate specific configuration file
-template config validate custom-config.json
+create template config validate custom-config.json
 ```
+
+## See Also
+
+- [init](./init.md)
+- [convert](./convert.md)
+- [validate](./validate.md)

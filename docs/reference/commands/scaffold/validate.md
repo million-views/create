@@ -1,11 +1,11 @@
-# scaffold validate
+# create scaffold validate
 
-Validate template configuration
+Validate create template configuration
 
 ## Usage
 
 ```bash
-scaffold validate <template-path> [options]
+create scaffold validate <template-path> [options]
 ```
 
 ## Description
@@ -25,11 +25,16 @@ Provide suggestions for fixing validation errors
 
 ```bash
 # Validate template in directory
-scaffold validate ./my-template
+create scaffold validate ./my-template
 
-# Validate template configuration file
-scaffold validate ./template.json
+# Validate create template configuration file
+create scaffold validate ./template.json
 
 # Get fix suggestions
-scaffold validate ./my-template --suggest
+create scaffold validate ./my-template --suggest
 ```
+
+## See Also
+
+- [new](./new.md)
+- [list](./list.md)

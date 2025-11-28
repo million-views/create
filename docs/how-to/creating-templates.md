@@ -4,7 +4,7 @@ type: "guide"
 audience: "intermediate"
 estimated_time: "30 minutes"
 prerequisites:
-  - "Basic familiarity with @m5nv/create-scaffold"
+  - "Basic familiarity with @m5nv/create"
   - "Git repository management experience"
   - "Node.js and npm knowledge"
 related_docs:
@@ -21,7 +21,7 @@ last_updated: "2025-11-12"
 
 ## Overview
 
-This guide shows you how to create template repositories for @m5nv/create-scaffold. Use this when you want to share reusable project structures with your team or the community.
+This guide shows you how to create template repositories for @m5nv/create. Use this when you want to share reusable project structures with your team or the community.
 
 ## When to use this guide
 
@@ -32,7 +32,7 @@ Use this guide when you need to:
 - Build templates with conditional features based on user options
 - Implement complex setup logic for project initialization
 
-> **Note:** This guide builds on the templates created in the [make-template tutorial](../tutorial/make-template.md), which creates `basic-react-spa`, `ssr-portfolio-app`, and `portfolio-api` templates. This guide shows advanced templating features like composable templates with dimensions, conditional asset inclusion, and complex setup scripts that go beyond the basic WYSIWYG approach covered in the tutorial.
+> **Note:** This guide builds on the templates created in the [create template tutorial](../tutorial/template.md), which creates `basic-react-spa`, `ssr-portfolio-app`, and `portfolio-api` templates. This guide shows advanced templating features like composable templates with dimensions, conditional asset inclusion, and complex setup scripts that go beyond the basic WYSIWYG approach covered in the tutorial.
 
 ## Progressive Enhancement Approach
 
@@ -56,7 +56,7 @@ Start with a minimal template and add features as needed:
 ```
 
 ### Level 2: Add Auto-Templatization
-Use `make-template convert` to automatically detect and replace placeholders in existing projects.
+Use `create template convert` to automatically detect and replace placeholders in existing projects.
 
 ### Level 3: Add Setup Scripts
 ```json
@@ -84,7 +84,7 @@ Before following this guide, ensure you have:
 
 - A GitHub account (or access to another Git hosting service)
 - Node.js (latest LTS) installed
-- Basic understanding of @m5nv/create-scaffold usage
+- Basic understanding of @m5nv/create usage
 - Familiarity with JavaScript ES modules
 
 ## Step-by-step instructions
@@ -123,7 +123,7 @@ my-templates/
     └── _setup.mjs
 ```
 
-> make-template generates `template.json`, `_setup.mjs`, and `.template-undo.json` for you. Commit `.template-undo.json`: create-scaffold ignores it automatically, keeping author workflows intact.
+> create template generates `template.json`, `_setup.mjs`, and `.template-undo.json` for you. Commit `.template-undo.json`: create scaffold ignores it automatically, keeping author workflows intact.
 
 If you are authoring composable templates with snippets, add an author-assets directory now (defaults to `__scaffold__/`). Everything stored there will be available to `_setup.mjs` but removed before the end user sees the scaffold.
 
@@ -131,7 +131,7 @@ If you are authoring composable templates with snippets, add an author-assets di
 
 | Mode | When to choose it | Expectations |
 |------|-------------------|--------------|
-| **WYSIWYG** (`authoring: "wysiwyg"`) | You iterate directly in a working app and only need light placeholder replacement. This is what the make-template tutorial creates. | No runtime option parsing. `metadata.dimensions` can stay empty. `_setup.mjs` should focus on tokens and minor tweaks. |
+| **WYSIWYG** (`authoring: "wysiwyg"`) | You iterate directly in a working app and only need light placeholder replacement. This is what the create template tutorial creates. | No runtime option parsing. `metadata.dimensions` can stay empty. `_setup.mjs` should focus on tokens and minor tweaks. |
 | **Composable** (`authoring: "composable"`) | You need a single template to produce several variants (stacks, infra, capabilities). Use this for advanced templating beyond the tutorial. | Define option dimensions in `template.json`, store reusable assets in `__scaffold__/`, and keep `_setup.mjs` small but declarative. |
 | **Hybrid** | You start from a WYSIWYG base but require a few reusable snippets. | Keep placeholder replacement for inline updates, but move any repeated assets into `__scaffold__/` so they can be copied conditionally via helpers. |
 
@@ -139,7 +139,7 @@ Switching modes later is as simple as updating `template.json`, but start with W
 
 ### Step 3: Describe metadata in `template.json`
 
-`template.json` is the contract between your template and create-scaffold. Begin with the essentials:
+`template.json` is the contract between your template and scaffold. Begin with the essentials:
 
 ```json
 {
@@ -190,14 +190,14 @@ Switching modes later is as simple as updating `template.json`, but start with W
 
 > **Important:** Dimensions must use registered names from the schema. The current registered dimensions are: `deployment`, `features`, `database`, `storage`, `auth`, `payments`, `analytics`. Custom dimension names are not allowed - use only these predefined names to ensure schema compliance.
 
-> **Tooling tip:** Ship the schema with your repo to unlock editor validation. If you install `@m5nv/create-scaffold` as a dev dependency, VS Code can read the packaged schema automatically:
+> **Tooling tip:** Ship the schema with your repo to unlock editor validation. If you install `@m5nv/create` as a dev dependency, VS Code can read the packaged schema automatically:
 > ```json
 > // .vscode/settings.json
 > {
 >   "json.schemas": [
 >     {
 >       "fileMatch": ["template.json"],
->       "url": "./node_modules/@m5nv/create-scaffold/schema/template.json"
+>       "url": "./node_modules/@m5nv/create/schema/template.json"
 >     }
 >   ]
 > }
@@ -206,7 +206,7 @@ Switching modes later is as simple as updating `template.json`, but start with W
 TypeScript-aware editors can also reuse the generated types:
 
 ```ts
-import type { TemplateManifest } from '@m5nv/create-scaffold/types/template-schema';
+import type { TemplateManifest } from '@m5nv/create/types/template-schema';
 
 /** @type {TemplateManifest} */
 export const template = { /* ... */ };
@@ -304,24 +304,24 @@ portfolio-template/
 └── src/
 ```
 
-create-scaffold copies this directory into the project before `_setup.mjs` runs and removes it afterward. Treat it as read-only input. If you need to generate new assets, write them into the project tree (`src/`, `infra/`, etc.), not back into `__scaffold__/`.
+create scaffold copies this directory into the project before `_setup.mjs` runs and removes it afterward. Treat it as read-only input. If you need to generate new assets, write them into the project tree (`src/`, `infra/`, etc.), not back into `__scaffold__/`.
 
-> **Note:** The templates created in the make-template tutorial use WYSIWYG authoring mode and don't require author assets directories. Use `__scaffold__` for advanced composable templates that need conditional asset inclusion based on user options.### Step 6: Test iteratively
+> **Note:** The templates created in the create template tutorial use WYSIWYG authoring mode and don't require author assets directories. Use `__scaffold__` for advanced composable templates that need conditional asset inclusion based on user options.### Step 6: Test iteratively
 
-1. **Use make-template restore for fast loops.** After editing placeholders, run the generated restore command (based on `.template-undo.json`) to rehydrate the working app and verify changes inline.
-2. **Run create-scaffold dry runs when you touch metadata or `_setup.mjs`.**
+1. **Use create template restore for fast loops.** After editing placeholders, run the generated restore command (based on `.template-undo.json`) to rehydrate the working app and verify changes inline.
+2. **Run create scaffold dry runs when you touch metadata or `_setup.mjs`.**
    ```bash
-   create-scaffold demo-app --template yourusername/my-templates/portfolio-template --dry-run
+   create scaffold demo-app --template yourusername/my-templates/portfolio-template --dry-run
    ```
    Dry runs show directory/file counts, setup script detection, and skip author assets so the preview matches the final scaffold.
 3. **Execute a full scaffold periodically** to ensure the handoff instructions make sense and the generated project boots as expected.
-4. **Lint your manifest before publishing.** If your template repo depends on @m5nv/create-scaffold, add `npm run schema:check` to CI. The command verifies both the JSON schema (`template.json`) and the generated TypeScript definition.
+4. **Lint your manifest before publishing.** If your template repo depends on @m5nv/create, add `npm run schema:check` to CI. The command verifies both the JSON schema (`template.json`) and the generated TypeScript definition.
 5. **Run the CLI validator before commits and releases.**
   ```bash
-  create-scaffold validate ./path/to/templates/portfolio-template
+  create scaffold validate ./path/to/templates/portfolio-template
 
   # Get fix suggestions
-  create-scaffold validate ./path/to/templates/portfolio-template --suggest
+  create scaffold validate ./path/to/templates/portfolio-template --suggest
   ```
   The validator exits with code `1` when any manifest, required-file, or setup-script check fails, making it safe for local linting and CI pipelines.
 
@@ -392,7 +392,7 @@ Verify the template works correctly:
 1. Check that `{{PROJECT_NAME}}` placeholders were replaced
 2. Ensure all files were copied correctly
 3. Test that the project runs: `cd test-project && npm install && npm run dev`
-4. Run `create-scaffold validate ./path/to/templates/basic-react-spa` against the template directory to confirm linting passes
+4. Run `create scaffold validate ./path/to/templates/basic-react-spa` against the template directory to confirm linting passes
 
 ### Step 8: Publish your template repository
 

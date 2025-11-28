@@ -1,12 +1,12 @@
 ---
 title: "Troubleshooting Guide"
-description: "Step-by-step solutions for common @m5nv/create-scaffold issues and problems"
+description: "Step-by-step solutions for common @m5nv/create issues and problems"
 type: how-to
 audience: "all"
 estimated_time: "5-15 minutes per issue"
 prerequisites:
   - "Basic familiarity with command line"
-  - "@m5nv/create-scaffold installed"
+  - "@m5nv/create installed"
 related_docs:
   - "../reference/error-codes.md"
   - "../reference/cli-reference.md"
@@ -16,7 +16,7 @@ last_updated: "2025-11-19"
 
 # Troubleshooting Guide
 
-This guide helps you resolve specific problems when using @m5nv/create-scaffold. Issues are organized by when they typically occur in your workflow.
+This guide helps you resolve specific problems when using @m5nv/create. Issues are organized by when they typically occur in your workflow.
 
 ## Quick Problem Identification
 
@@ -106,7 +106,7 @@ Valid formats:
 
 **Step 3: Test with a known working repository**
 ```bash
-create-scaffold new test-project microsoft/vscode-extension-samples --template basic
+create scaffold new test-project microsoft/vscode-extension-samples --template basic
 ```
 
 **If this works:** Your original repository URL has an issue
@@ -121,7 +121,7 @@ create-scaffold new test-project microsoft/vscode-extension-samples --template b
 **For public repositories:**
 ```bash
 # This should work without authentication
-create-scaffold new test-project microsoft/vscode-extension-samples --template basic
+create scaffold new test-project microsoft/vscode-extension-samples --template basic
 ```
 
 **For private repositories, set up authentication:**
@@ -158,7 +158,7 @@ rm -rf temp-test
 
 **Step 1: List available templates**
 ```bash
-create-scaffold list --registry https://github.com/user/repo.git
+create scaffold list --registry https://github.com/user/repo.git
 ```
 
 **Expected output:** List of available template directories
@@ -169,12 +169,12 @@ Template names are case-sensitive and must match directory names exactly.
 **Step 3: Verify branch contains template**
 ```bash
 # Check if template exists in specific branch
-create-scaffold list --registry user/repo#feature-branch
+create scaffold list --registry user/repo#feature-branch
 ```
 
 **Step 4: Use dry run to debug**
 ```bash
-create-scaffold new test-project user/repo --template your-template --dry-run
+create scaffold new test-project user/repo --template your-template --dry-run
 ```
 
 **See also:** 📖 [CLI Reference](../reference/cli-reference.md)
@@ -185,20 +185,20 @@ create-scaffold new test-project user/repo --template your-template --dry-run
 
 **Option 1: Choose different name**
 ```bash
-create-scaffold new my-project-v2 react
+create scaffold new my-project-v2 react
 ```
 
 **Option 2: Remove existing directory**
 ```bash
 # ⚠️ This permanently deletes the directory
 rm -rf my-project
-create-scaffold new my-project react
+create scaffold new my-project react
 ```
 
 **Option 3: Backup existing directory**
 ```bash
 mv my-project my-project-backup
-create-scaffold new my-project react
+create scaffold new my-project react
 ```
 
 ---
@@ -223,22 +223,22 @@ ls -la ~/.m5nv/cache/
 chmod -R 755 ~/.m5nv/cache/
 
 # Or bypass cache temporarily
-create-scaffold new my-project react --no-cache
+create scaffold new my-project react --no-cache
 ```
 
 **Problem: Stale cached templates**
 ```bash
 # Force fresh clone
-create-scaffold new my-project react --no-cache
+create scaffold new my-project react --no-cache
 
 # Or set shorter cache TTL
-create-scaffold new my-project react --cache-ttl 1
+create scaffold new my-project react --cache-ttl 1
 ```
 
 **Problem: Corrupted cache**
 The tool automatically handles corrupted cache entries, but you can force a refresh:
 ```bash
-create-scaffold new my-project react --no-cache
+create scaffold new my-project react --no-cache
 ```
 
 **See also:** 💡 [Caching Strategy](../explanation/caching-strategy.md)
@@ -250,7 +250,7 @@ create-scaffold new my-project react --no-cache
 **Problem: Log file permission denied**
 ```bash
 # Use absolute path in your home directory
-create-scaffold new my-project react --log-file ~/debug.log
+create scaffold new my-project react --log-file ~/debug.log
 
 # Check the log was created
 ls -la ~/debug.log
@@ -260,7 +260,7 @@ ls -la ~/debug.log
 ```bash
 # Create directory first
 mkdir -p ~/logs
-create-scaffold new my-project react --log-file ~/logs/scaffold.log
+create scaffold new my-project react --log-file ~/logs/scaffold.log
 ```
 
 **Problem: Invalid log path**
@@ -291,7 +291,7 @@ git ls-remote https://github.com/microsoft/vscode-extension-samples.git
 **Step 3: Use dry run to isolate the issue**
 ```bash
 # This tests repository access without full clone
-create-scaffold new test-project microsoft/vscode-extension-samples --template basic --dry-run
+create scaffold new test-project microsoft/vscode-extension-samples --template basic --dry-run
 ```
 
 **Step 4: Check for proxy/firewall issues**
@@ -316,7 +316,7 @@ git config --global http.proxy http://proxy.company.com:8080
 
 **Step 1: Enable detailed logging**
 ```bash
-create-scaffold new my-project react --log-file ~/setup-debug.log
+create scaffold new my-project react --log-file ~/setup-debug.log
 ```
 
 **Step 2: Check the log for details**
@@ -357,8 +357,8 @@ cd my-project
 # Check if _setup.mjs exists and has valid syntax (limited test)
 node -e "import('./template/_setup.mjs').then(m => console.log('Setup script syntax is valid'))"
 
-# For full testing, use create-scaffold dry-run instead:
-create-scaffold new test-project user/repo --template your-template --dry-run
+# For full testing, use create scaffold dry-run instead:
+create scaffold new test-project user/repo --template your-template --dry-run
 ```
 
 **See also:** 🎯 [Creating Templates Guide](../how-to/creating-templates.md)
@@ -370,10 +370,10 @@ create-scaffold new test-project user/repo --template your-template --dry-run
 **Step 1: Examine template structure**
 ```bash
 # List templates in repository
-create-scaffold list user/repo
+create scaffold list user/repo
 
 # Use dry run to see what would be copied
-create-scaffold new test-project user/repo --template your-template --dry-run
+create scaffold new test-project user/repo --template your-template --dry-run
 ```
 
 **Step 2: Check template directory structure**
@@ -412,20 +412,20 @@ git --version
 npm --version
 
 # CLI version
-npm list @m5nv/create-scaffold
+npm list @m5nv/create
 
 # Cache status
 ls -la ~/.m5nv/cache/
 
 # Test basic functionality
-create-scaffold new test-diagnostic microsoft/vscode-extension-samples --template basic --dry-run
+create scaffold new test-diagnostic microsoft/vscode-extension-samples --template basic --dry-run
 ```
 
 ### Community Resources
 
-- **GitHub Issues:** [Report bugs and request features](https://github.com/m5nv/create-scaffold/issues)
-- **GitHub Discussions:** [Ask questions and share templates](https://github.com/m5nv/create-scaffold/discussions)
-- **Documentation:** [Complete reference and guides](https://github.com/m5nv/create-scaffold/tree/main/docs)
+- **GitHub Issues:** [Report bugs and request features](https://github.com/m5nv/scaffold/issues)
+- **GitHub Discussions:** [Ask questions and share templates](https://github.com/m5nv/scaffold/discussions)
+- **Documentation:** [Complete reference and guides](https://github.com/m5nv/scaffold/tree/main/docs)
 
 ### Escalation Path
 
@@ -440,10 +440,10 @@ If you need to work around persistent issues:
 
 ```bash
 # Bypass all caching
-create-scaffold new my-project react --no-cache
+create scaffold new my-project react --no-cache
 
 # Use alternative repository format
-create-scaffold new my-project https://github.com/user/repo.git --template react
+create scaffold new my-project https://github.com/user/repo.git --template react
 
 # Clone and copy manually as last resort
 git clone https://github.com/user/repo.git temp-manual
@@ -451,11 +451,11 @@ cp -r temp-manual/template-name my-project
 rm -rf temp-manual
 ```
 
-## 🛠️ Make-Template Issues
+## 🛠️ Template Issues
 
 ### How to Fix "Round-trip Conversion Fails" Error
 
-**When this happens:** `make-template restore` fails or produces incorrect results after `make-template convert`
+**When this happens:** `create template restore` fails or produces incorrect results after `create template convert`
 
 **Diagnostic commands:**
 ```bash
@@ -481,7 +481,7 @@ Error: Cannot read undo log
 **Solution:** Delete the corrupted undo log and re-run conversion:
 ```bash
 rm .template-undo.json
-make-template convert . --yes
+create template convert . --yes
 ```
 
 **Problem: Files modified after conversion**
@@ -497,7 +497,7 @@ Warning: File has been modified since conversion
 **Solution:** The default unicode format ⦃TOKEN⦄ is designed to avoid JSX conflicts. If you need a different format:
 ```bash
 # Use a specific format if unicode doesn't work for your use case
-make-template convert . --placeholder-format percent --yes
+create template convert . --placeholder-format percent --yes
 
 # This produces %TOKEN% instead of the default ⦃TOKEN⦄
 ```
@@ -510,7 +510,7 @@ make-template convert . --placeholder-format percent --yes
 
 ### How to Fix "Init Command Fails" Error
 
-**When this happens:** `make-template init` fails or creates files in wrong location
+**When this happens:** `create template init` fails or creates files in wrong location
 
 **Diagnostic check:**
 ```bash
@@ -522,7 +522,7 @@ ls -la package.json
 **Solution:** Always run `init` inside the project you want to templatize:
 ```bash
 cd /path/to/your/project
-make-template init
+create template init
 ```
 
 **Problem: Wrong directory**
@@ -533,13 +533,13 @@ Error: No package.json found
 
 ### How to Fix "Configuration File Not Found" Error
 
-**When this happens:** `make-template convert` shows configuration errors
+**When this happens:** `create template convert` shows configuration errors
 
 **Solution:** Initialize configuration first:
 ```bash
 # In your project directory
-make-template init
-make-template convert . --yes
+create template init
+create template convert . --yes
 ```
 
 **Problem: Custom config path**
@@ -548,7 +548,7 @@ Error: Cannot find config file
 ```
 **Solution:** Specify correct path:
 ```bash
-make-template convert . --config path/to/.templatize.json --yes
+create template convert . --config path/to/.templatize.json --yes
 ```
 
 ### How to Fix "Development Repository Warning" Error
@@ -557,7 +557,7 @@ make-template convert . --config path/to/.templatize.json --yes
 
 **Solution:** Use `--yes` flag for development repos:
 ```bash
-make-template convert . --yes
+create template convert . --yes
 ```
 
 **Problem: Accidental conversion**

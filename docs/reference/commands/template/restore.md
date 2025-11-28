@@ -1,11 +1,11 @@
-# template restore
+# create template restore
 
 Restore template to project
 
 ## Usage
 
 ```bash
-template restore [project-path] [options]
+create template restore [project-path] [options]
 ```
 
 ## Description
@@ -49,17 +49,22 @@ Keeps the undo log file for debugging or re-restoration
 
 ```bash
 # Restore current directory
-template restore
+create template restore
 
 # Restore template to working state
-template restore ./my-template
+create template restore ./my-template
 
 # Preview restoration in current directory
-template restore --dry-run
+create template restore --dry-run
 
 # Restore specific files
-template restore --files package.json,src/index.mts
+create template restore --files package.json,src/index.mts
 
 # Only restore placeholder values
-template restore --placeholders-only
+create template restore --placeholders-only
 ```
+
+## See Also
+
+- [convert](./convert.md)
+- [init](./init.md)

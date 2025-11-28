@@ -10,11 +10,11 @@ Command documentation is defined in help modules:
 
 ```console
 bin/
-├── create-scaffold/commands/
+├── scaffold/commands/
 │   ├── new/help.mts       → new.md
 │   ├── list/help.mts      → list.md
 │   └── validate/help.mts  → validate.md
-└── make-template/commands/
+└── template/commands/
     ├── init/help.mts      → init.md
     ├── convert/help.mts   → convert.md
     ├── restore/help.mts   → restore.md

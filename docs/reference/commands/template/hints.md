@@ -1,11 +1,11 @@
-# template hints
+# create template hints
 
 Show hints catalog
 
 ## Usage
 
 ```bash
-template hints [options]
+create template hints [options]
 ```
 
 ## Description
@@ -17,5 +17,10 @@ Provides guidance on best practices and common patterns.
 
 ```bash
 # Show all available hints
-template hints
+create template hints
 ```
+
+## See Also
+
+- [init](./init.md)
+- [convert](./convert.md)

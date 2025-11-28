@@ -1,11 +1,11 @@
-# scaffold new
+# create scaffold new
 
 Create a new project from a template
 
 ## Usage
 
 ```bash
-scaffold new <project-name> --template <template-name> [options]
+create scaffold new <project-name> --template <template-name> [options]
 ```
 
 ## Description
@@ -70,19 +70,19 @@ When provided, bypasses interactive prompts and uses the saved configuration.
 
 ```bash
 # Create React app from template
-scaffold new my-app --template react-app
+create scaffold new my-app --template react-app
 
 # Use template from specific branch
-scaffold new my-app --template workshop/basic-react-spa#feature-branch
+create scaffold new my-app --template workshop/basic-react-spa#feature-branch
 
 # Provide placeholder values
-scaffold new my-app --template react-app --placeholder NAME=MyApp
+create scaffold new my-app --template react-app --placeholder NAME=MyApp
 
 # Use selection file for configuration
-scaffold new my-app --template react-app --selection ./selection.json
+create scaffold new my-app --template react-app --selection ./selection.json
 
 # Skip cache and fetch fresh
-scaffold new my-app --template react-app --no-cache
+create scaffold new my-app --template react-app --no-cache
 ```
 
 ## Notes
@@ -90,4 +90,9 @@ scaffold new my-app --template react-app --no-cache
 First time? Install the package:
   npm install -g @m5nv/create
 
-Then use create-scaffold and make-template commands directly.
+Then use scaffold and create template commands directly.
+
+## See Also
+
+- [list](./list.md)
+- [validate](./validate.md)

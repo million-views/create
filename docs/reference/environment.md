@@ -6,7 +6,7 @@ audience: "template-authors"
 estimated_time: "N/A (reference)"
 prerequisites:
   - "Comfortable with modern JavaScript syntax"
-  - "Basic understanding of @m5nv/create-scaffold template workflow"
+  - "Basic understanding of @m5nv/create template workflow"
 related_docs:
   - "../how-to/creating-templates.md"
   - "../how-to/setup-recipes.md"
@@ -170,7 +170,7 @@ await tools.templates.renderFile('README.tpl.mjs', 'README.md', {
 });
 ```
 
-This shared schema lets template authoring tools (such as `make-template`) prompt for placeholder values, while the runtime guarantees consistent option handling inside `_setup.mjs`.
+This shared schema lets template authoring tools (such as `create template`) prompt for placeholder values, while the runtime guarantees consistent option handling inside `_setup.mjs`.
 
 ## Tools Overview
 
@@ -459,7 +459,7 @@ export default async function setup({ ctx, tools }) {
 
 ## Template Metadata Essentials
 
-`template.json` is the authoritative contract that create-scaffold reads before copying files or executing `_setup.mjs`. The schema requires three critical sections:
+`template.json` is the authoritative contract that create scaffold reads before copying files or executing `_setup.mjs`. The schema requires three critical sections:
 
 ```json
 {

@@ -1,11 +1,11 @@
-# scaffold list
+# create scaffold list
 
 List templates from a registry repository
 
 ## Usage
 
 ```bash
-scaffold list [options]
+create scaffold list [options]
 ```
 
 ## Description
@@ -39,17 +39,22 @@ Choose output format:
 
 ```bash
 # List templates from default registry (million-views/templates)
-scaffold list
+create scaffold list
 
 # List templates from a specific repository URL
-scaffold list --registry https://github.com/user/templates.git
+create scaffold list --registry https://github.com/user/templates.git
 
 # List templates from a configured registry shortcut
-scaffold list --registry my-templates
+create scaffold list --registry my-templates
 
 # Output template information in JSON format
-scaffold list --format json
+create scaffold list --format json
 
 # Show detailed template information including versions and authors
-scaffold list --verbose
+create scaffold list --verbose
 ```
+
+## See Also
+
+- [new](./new.md)
+- [validate](./validate.md)
