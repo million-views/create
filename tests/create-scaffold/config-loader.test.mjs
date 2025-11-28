@@ -5,11 +5,11 @@ import assert from 'node:assert';
 import fs from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
-import { ValidationError } from '@m5nv/create-scaffold/lib/error/validation.mts';
+import { ValidationError } from '@m5nv/create/lib/error/validation.mts';
 import {
   loadConfig
-} from '../../bin/create-scaffold/modules/config-loader.mts';
-import { resolveUserConfigPath } from '@m5nv/create-scaffold/lib/util/path.mts';
+} from '../../bin/create/domains/scaffold/modules/config-loader.mts';
+import { resolveUserConfigPath } from '@m5nv/create/lib/util/path.mts';
 
 // Constants from config-loader.mjs (not exported)
 const CONFIG_FILENAME = '.m5nvrc';

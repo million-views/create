@@ -4,8 +4,8 @@ import { describe, test, beforeEach, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
 import { mkdir, rm } from 'node:fs/promises';
 import { join, isAbsolute } from 'node:path';
-import { BoundaryValidator } from '@m5nv/create-scaffold/lib/security/boundary.mts';
-import { ViolationError as BoundaryViolationError } from '@m5nv/create-scaffold/lib/error/boundary.mts';
+import { BoundaryValidator } from '@m5nv/create/lib/security/boundary.mts';
+import { ViolationError as BoundaryViolationError } from '@m5nv/create/lib/error/boundary.mts';
 
 /**
  * L1 Tests for BoundaryValidator

@@ -333,7 +333,7 @@ runner.createTest('Package name validation in success output', async () => {
   const output = result.stdout + result.stderr;
 
   // Should reference the correct package name
-  if (!output.includes('@m5nv/create-scaffold') && !output.includes('create-scaffold')) {
+  if (!output.includes('@m5nv/create') && !output.includes('create-scaffold')) {
     throw new Error('Success output does not reference correct package name');
   }
 });

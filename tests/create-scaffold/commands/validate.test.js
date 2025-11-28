@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { ValidateCommand } from '@m5nv/create-scaffold/bin/create-scaffold/commands/validate/index.mts';
+import { ValidateCommand } from '@m5nv/create/bin/create/domains/scaffold/commands/validate/index.mts';
 import { captureOutputAsync, mockExitAsync } from '../../helpers/console-capture.js';
 
 describe('ValidateCommand', () => {

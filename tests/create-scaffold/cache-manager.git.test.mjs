@@ -4,7 +4,7 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert';
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { CacheManager } from '../../bin/create-scaffold/modules/cache-manager.mts';
+import { CacheManager } from '../../bin/create/domains/scaffold/modules/cache-manager.mts';
 import { File } from '../../lib/util/file.mts';
 import { GitFixtureManager } from '../helpers/git-fixtures.mjs';
 import { createTempDir } from '../helpers/temp-dir.mjs';

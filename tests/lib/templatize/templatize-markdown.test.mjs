@@ -1,6 +1,6 @@
 import { strict as assert } from 'node:assert';
 import { describe, it } from 'node:test';
-import { processMarkdownFile } from '@m5nv/create-scaffold/lib/templatize/strategy/markdown.mts';
+import { processMarkdownFile } from '@m5nv/create/lib/templatize/strategy/markdown.mts';
 
 describe('Templatize Markdown Tests', () => {
   describe('Markdown Processor - Basic functionality', () => {

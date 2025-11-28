@@ -24,7 +24,7 @@ import path from 'node:path';
 import {
   loadSetupScript,
   SetupSandboxError
-} from '../../bin/create-scaffold/modules/setup-runtime.mts';
+} from '../../bin/create/domains/scaffold/modules/setup-runtime.mts';
 import { createTestContext, createTestTools } from '../helpers/environment-fixtures.mts';
 import { createTempDir } from '../helpers/temp-dir.mjs';
 

@@ -6,7 +6,7 @@
 
 import { test } from 'node:test';
 import assert from 'node:assert';
-import { processHTMLFile } from '@m5nv/create-scaffold/lib/templatize/strategy/html.mts';
+import { processHTMLFile } from '@m5nv/create/lib/templatize/strategy/html.mts';
 
 // Test fixtures
 const testFixtures = {

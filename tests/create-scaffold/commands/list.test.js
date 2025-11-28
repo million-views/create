@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { ListCommand } from '@m5nv/create-scaffold/bin/create-scaffold/commands/list/index.mts';
+import { ListCommand } from '@m5nv/create/bin/create/domains/scaffold/commands/list/index.mts';
 import { captureOutput } from '../../helpers/console-capture.js';
 
 describe('ListCommand', () => {

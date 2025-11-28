@@ -1,31 +1,15 @@
 #!/usr/bin/env node
 // @ts-nocheck
-import { Router } from '@m5nv/create-scaffold/lib/cli/router.mts';
-import { NewCommand } from './commands/new/index.mts';
-import { ListCommand } from './commands/list/index.mts';
-import { ValidateCommand } from './commands/validate/index.mts';
+/**
+ * DEPRECATED: This entry point is maintained for backward compatibility.
+ * Use `bin/create/index.mts` with `scaffold` domain instead:
+ *   create-scaffold new my-app  →  create scaffold new my-app
+ *   create-scaffold list        →  create scaffold list
+ * 
+ * This shim will be removed in v2.0.0
+ */
+import { ScaffoldRouter } from '../create/domains/scaffold/index.mts';
 
-class CreateScaffoldRouter extends Router {
-  constructor() {
-    super();
-    this.toolName = '@m5nv/create-scaffold';
-    this.description = 'Project scaffolding tool';
-    this.commands = {
-      new: new NewCommand(),
-      list: new ListCommand(),
-      validate: new ValidateCommand()
-    };
-    this.version = '1.0.0';
-    this.examples = [
-      'new my-project --template react-app',
-      'list --registry official',
-      'validate ./my-template',
-      'npm create @m5nv/scaffold my-project --template react-app',
-      'npx @m5nv/create-scaffold new my-project --template react-app'
-    ];
-  }
-}
-
-const router = new CreateScaffoldRouter();
+const router = new ScaffoldRouter();
 const args = process.argv.slice(2);
-await router.route(args);
+await router.execute(args);

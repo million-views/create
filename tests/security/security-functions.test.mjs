@@ -20,7 +20,7 @@ import {
 } from '../../lib/security/identity.mts';
 
 // Error types
-import { ValidationError } from '@m5nv/create-scaffold/lib/error/validation.mts';
+import { ValidationError } from '@m5nv/create/lib/error/validation.mts';
 
 // Sanitization functions
 import {
@@ -35,7 +35,7 @@ import {
   validateTemplateName,
   validateProjectDirectory,
   validateAllInputs
-} from '@m5nv/create-scaffold/lib/validation/cli/input.mts';
+} from '@m5nv/create/lib/validation/cli/input.mts';
 
 // CLI option validation functions
 import {
@@ -44,7 +44,7 @@ import {
   validateAuthorAssetsDir,
   validateLogFilePath,
   validateCacheTtl
-} from '@m5nv/create-scaffold/lib/validation/cli/option.mts';
+} from '@m5nv/create/lib/validation/cli/option.mts';
 
 // Domain validation
 import { validateDimensionsMetadata } from '../../lib/validation/domain/dimension.mts';
@@ -56,12 +56,12 @@ import { validateDimensionsMetadata } from '../../lib/validation/domain/dimensio
 test('Package Identity Functions', async (t) => {
   await t.test('getPackageName returns correct package name', () => {
     const name = getPackageName();
-    assert.equal(name, '@m5nv/create-scaffold');
+    assert.equal(name, '@m5nv/create');
   });
 
   await t.test('generateInstallationInstructions includes package name', () => {
     const instructions = generateInstallationInstructions();
-    assert.ok(instructions.includes('@m5nv/create-scaffold'));
+    assert.ok(instructions.includes('@m5nv/create'));
     assert.ok(instructions.includes('npm create'));
     assert.ok(instructions.includes('npx'));
   });
@@ -69,11 +69,11 @@ test('Package Identity Functions', async (t) => {
   await t.test('generatePackageValidationError formats error correctly', () => {
     const error = generatePackageValidationError('wrong-package');
     assert.ok(error.includes('wrong-package'));
-    assert.ok(error.includes('@m5nv/create-scaffold'));
+    assert.ok(error.includes('@m5nv/create'));
   });
 
   await t.test('validatePackageName accepts correct package name', () => {
-    const result = validatePackageName('@m5nv/create-scaffold');
+    const result = validatePackageName('@m5nv/create');
     assert.equal(result, true);
   });
 

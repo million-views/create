@@ -21,7 +21,7 @@ import {
   resolveCacheDirectory,
   resolveTemplateCacheDirectory,
   resolveUserConfigPath
-} from '@m5nv/create-scaffold/lib/util/path.mts';
+} from '@m5nv/create/lib/util/path.mts';
 
 test('resolveHomeDirectory', async (t) => {
   await t.test('returns HOME from environment', () => {

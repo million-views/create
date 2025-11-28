@@ -4,9 +4,9 @@
  * CLI Reference Documentation Generator
  *
  * Generates per-command markdown files from structured help.mts files.
- * Output: docs/reference/commands/{tool}/{command}.md
+ * Output: docs/reference/commands/{domain}/{command}.md
  *
- * Source of truth: bin/{tool}/commands/{command}/help.mts
+ * Source of truth: bin/create/domains/{domain}/commands/{command}/help.mts
  */
 
 import fs from 'node:fs/promises';
@@ -21,13 +21,16 @@ const COMMANDS_DIR = path.join(ROOT_DIR, 'docs', 'reference', 'commands');
  * Load help data from all command help files
  */
 async function loadHelpFiles() {
-  const tools = ['create-scaffold', 'make-template'];
+  const domains = [
+    { name: 'scaffold', path: 'bin/create/domains/scaffold/commands' },
+    { name: 'template', path: 'bin/create/domains/template/commands' }
+  ];
   const helpData = {};
 
-  for (const tool of tools) {
-    helpData[tool] = {};
+  for (const domain of domains) {
+    helpData[domain.name] = {};
 
-    const commandsDir = path.join(ROOT_DIR, 'bin', tool, 'commands');
+    const commandsDir = path.join(ROOT_DIR, domain.path);
     const commandDirs = await fs.readdir(commandsDir);
 
     for (const cmdDir of commandDirs) {
@@ -42,7 +45,7 @@ async function loadHelpFiles() {
         const helpName = Object.keys(helpModule)[0]; // e.g., 'newHelp', 'convertHelp'
         const helpContent = helpModule[helpName];
 
-        helpData[tool][cmdDir] = helpContent;
+        helpData[domain.name][cmdDir] = helpContent;
       } catch (error) {
         // Check if this is a subcommand structure (like config/validate)
         try {
@@ -59,13 +62,13 @@ async function loadHelpFiles() {
               const subHelpContent = subHelpModule[subHelpName];
 
               // Store as "command-subcommand" (e.g., "config-validate")
-              helpData[tool][`${cmdDir}-${subDir}`] = subHelpContent;
+              helpData[domain.name][`${cmdDir}-${subDir}`] = subHelpContent;
             } catch (_subError) {
               // Skip subcommands without help
             }
           }
         } catch (_dirError) {
-          console.warn(`Warning: Could not load help for ${tool}/${cmdDir}:`, error.message);
+          console.warn(`Warning: Could not load help for ${domain.name}/${cmdDir}:`, error.message);
         }
       }
     }
@@ -294,10 +297,10 @@ async function main() {
     }
 
     console.log('');
-    console.log('Output: docs/reference/commands/{tool}/{command}.md');
+    console.log('Output: docs/reference/commands/{domain}/{command}.md');
     console.log('');
     console.log('Note: Do not edit generated files directly.');
-    console.log('Edit source help.mts files in bin/{tool}/commands/{command}/');
+    console.log('Edit source help.mts files in bin/create/domains/{domain}/commands/{command}/');
   } catch (error) {
     console.error('❌ Error:', error);
     process.exit(1);

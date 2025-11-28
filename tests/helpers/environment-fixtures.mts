@@ -13,8 +13,8 @@
 
 import path from 'path';
 import os from 'os';
-import { createContext, DEFAULT_AUTHOR_ASSETS_DIR, DEFAULT_AUTHORING_MODE } from '@m5nv/create-scaffold/lib/environment/context.mts';
-import { createTools } from '@m5nv/create-scaffold/lib/environment/tools/create.mts';
+import { createContext, DEFAULT_AUTHOR_ASSETS_DIR, DEFAULT_AUTHORING_MODE } from '@m5nv/create/lib/environment/context.mts';
+import { createTools } from '@m5nv/create/lib/environment/tools/create.mts';
 
 /**
  * Default values for test environments.

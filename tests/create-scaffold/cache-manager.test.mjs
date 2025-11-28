@@ -3,8 +3,8 @@
 import { describe, it, beforeEach } from 'node:test';
 import assert from 'node:assert';
 import { join } from 'node:path';
-import { CacheManager } from '../../bin/create-scaffold/modules/cache-manager.mts';
-import { resolveCacheDirectory } from '@m5nv/create-scaffold/lib/util/path.mts';
+import { CacheManager } from '../../bin/create/domains/scaffold/modules/cache-manager.mts';
+import { resolveCacheDirectory } from '@m5nv/create/lib/util/path.mts';
 
 describe('CacheManager', () => {
   let cacheManager;

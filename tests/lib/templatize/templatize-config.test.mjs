@@ -11,7 +11,7 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert';
 import fs from 'node:fs/promises';
 import { join } from 'node:path';
-import { loadConfig, validateConfig, generateConfigFile, getPatternsForFile, DEFAULT_CONFIG } from '@m5nv/create-scaffold/lib/templatize/strategy/config.mts';
+import { loadConfig, validateConfig, generateConfigFile, getPatternsForFile, DEFAULT_CONFIG } from '@m5nv/create/lib/templatize/strategy/config.mts';
 
 // Helper to create unique temp directories
 function tempDir(suffix) {

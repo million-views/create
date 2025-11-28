@@ -21,7 +21,8 @@ describe('CLI Runner Utility', () => {
 
     try {
       assert.strictEqual(result.exitCode, 0);
-      assertOutputContains(result.stdout, ['create-scaffold', 'Usage:', 'Commands:']);
+      // Help output now uses the new DSL terminology (scaffold, USAGE:, OPERATIONS:)
+      assertOutputContains(result.stdout, ['scaffold', 'USAGE:', 'OPERATIONS:']);
       assert.strictEqual(result.timedOut, false);
       assert.ok(result.tempDir, 'Should have temp directory');
       assert.ok(result.cacheDir, 'Should have isolated cache directory');
@@ -35,7 +36,8 @@ describe('CLI Runner Utility', () => {
 
     try {
       assert.strictEqual(result.exitCode, 0);
-      assertOutputContains(result.stdout, ['make-template', 'Usage:', 'Commands:']);
+      // Help output now uses the new DSL terminology (template, USAGE:, OPERATIONS:)
+      assertOutputContains(result.stdout, ['template', 'USAGE:', 'OPERATIONS:']);
       assert.ok(isSuccess(result));
     } finally {
       await cleanup(result);

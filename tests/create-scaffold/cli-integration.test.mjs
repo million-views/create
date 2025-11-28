@@ -88,9 +88,9 @@ runner.createTest('npm create @m5nv/scaffold command simulation', async () => {
   }
 });
 
-runner.createTest('npx @m5nv/create-scaffold command simulation', async () => {
+runner.createTest('npx @m5nv/create command simulation', async () => {
   // Test that the CLI can be invoked through npx
-  // This simulates: npx @m5nv/create-scaffold new my-project --template test
+  // This simulates: npx @m5nv/create new my-project --template test
 
   const tempDir = await TestEnvironment.createTempDir();
   runner.addTempPath(tempDir);
@@ -148,8 +148,8 @@ runner.createTest('Help text displays correct package name and usage patterns', 
 
   const output = result.stdout + result.stderr;
 
-  // Should reference the correct package name
-  if (!output.includes('@m5nv/create-scaffold') && !output.includes('create-scaffold')) {
+  // Should reference the correct domain name (scaffold) or package name
+  if (!output.includes('@m5nv/create') && !output.includes('create-scaffold') && !output.includes('scaffold')) {
     throw new Error('Help text does not reference correct package name');
   }
 

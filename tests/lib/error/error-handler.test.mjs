@@ -10,8 +10,8 @@ import {
   handleError,
   withErrorHandling,
   contextualizeError
-} from '@m5nv/create-scaffold/lib/error/handler.mts';
-import { ContextualError } from '@m5nv/create-scaffold/lib/error/contextual.mts';
+} from '@m5nv/create/lib/error/handler.mts';
+import { ContextualError } from '@m5nv/create/lib/error/contextual.mts';
 
 describe('Error Handler', () => {
   describe('Constants', () => {

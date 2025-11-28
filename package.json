@@ -1,16 +1,18 @@
 {
-  "name": "@m5nv/create-scaffold",
-  "version": "0.6.0",
+  "name": "@m5nv/create",
+  "version": "1.0.0",
   "private": false,
   "type": "module",
-  "description": "[![npm version](https://badge.fury.io/js/@m5nv%2Fcreate-scaffold.svg)](https://badge.fury.io/js/@m5nv/create-scaffold)",
+  "description": "Unified CLI for project scaffolding and template authoring",
   "bin": {
+    "create": "./bin/create/index.mts",
     "create-scaffold": "./bin/create-scaffold/index.mts",
     "make-template": "./bin/make-template/index.mts"
   },
   "exports": {
-    ".": "./bin/create-scaffold/index.mts",
-    "./make-template": "./bin/make-template/index.mts",
+    ".": "./bin/create/index.mts",
+    "./scaffold": "./bin/create/domains/scaffold/index.mts",
+    "./template": "./bin/create/domains/template/index.mts",
     "./bin/*": "./bin/*",
     "./lib/*": "./lib/*",
     "./schema/template.json": "./schema/template.json",

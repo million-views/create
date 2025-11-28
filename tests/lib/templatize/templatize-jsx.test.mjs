@@ -6,7 +6,7 @@
 
 import { test } from 'node:test';
 import assert from 'node:assert';
-import { processJSXFile } from '@m5nv/create-scaffold/lib/templatize/strategy/jsx.mts';
+import { processJSXFile } from '@m5nv/create/lib/templatize/strategy/jsx.mts';
 
 // Test fixtures
 const testFixtures = {

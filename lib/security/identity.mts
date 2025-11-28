@@ -12,7 +12,7 @@ import { ValidationError } from '../error/validation.mts';
 /**
  * The current package name.
  */
-export const PACKAGE_NAME = '@m5nv/create-scaffold' as const;
+export const PACKAGE_NAME = '@m5nv/create' as const;
 
 /**
  * Get the current package name for use in error messages and validation
@@ -29,8 +29,8 @@ export function getPackageName(): string {
 export function generateInstallationInstructions(): string {
   const packageName = getPackageName();
   return `Installation options:
-  • Use npm create: npm create @m5nv/scaffold <project-name> -- --template <template-name>
-  • Use npx: npx ${packageName}@latest <project-name> --template <template-name>
+  • Use npm create: npm create @m5nv scaffold <project-name> -- --template <template-name>
+  • Use npx: npx ${packageName}@latest scaffold <project-name> --template <template-name>
   • Install globally: npm install -g ${packageName}`;
 }
 
@@ -78,7 +78,7 @@ export function validatePackageIdentity(): boolean {
     const expectedName = getPackageName();
 
     // Validate the expected name format
-    if (expectedName !== '@m5nv/create-scaffold') {
+    if (expectedName !== '@m5nv/create') {
       throw new ValidationError(
         'Package identity validation failed: incorrect package name format',
         'packageIdentity'
@@ -86,7 +86,7 @@ export function validatePackageIdentity(): boolean {
     }
 
     // Validate package name follows npm create conventions
-    if (!expectedName.startsWith('@m5nv/create-')) {
+    if (!expectedName.startsWith('@m5nv/create')) {
       throw new ValidationError(
         'Package identity validation failed: package name does not follow npm create conventions',
         'packageIdentity'

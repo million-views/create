@@ -152,7 +152,8 @@ export class OutputValidator {
 
   static validateHelpOutput(output) {
     return output.includes('USAGE:') &&
-           (output.includes('create-scaffold') || output.includes('@m5nv/create-scaffold'));
+           (output.includes('create-scaffold') || output.includes('@m5nv/create') ||
+            output.includes('scaffold') || output.includes('create'));
   }
 }
 
