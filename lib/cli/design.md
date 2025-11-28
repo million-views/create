@@ -297,7 +297,7 @@ async execute(args) {
 
 ### Quick Reference Card
 
-```
+```text
 ┌────────────────────────────────────────────────────────────┐
 │                  parseArg() QUICK REFERENCE                │
 ├────────────────────────────────────────────────────────────┤
@@ -322,7 +322,7 @@ async execute(args) {
 
 Single-level routing, no nesting.
 
-```
+```console
 tool <command> [args]
 ```
 
@@ -492,7 +492,7 @@ interface HelpExample {
 - Sections: NAME, SYNOPSIS, DESCRIPTION, OPTIONS, EXAMPLES
 - Extended descriptions and option details
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │ Brief Help (showHelp)                                       │
 ├─────────────────────────────────────────────────────────────┤
@@ -625,7 +625,7 @@ This ensures `--help` works consistently whether invoked on:
 
 ## Routing Algorithm
 
-```
+```text
 route(args):
   1. If empty or --help/-h → showGeneralHelp()
   2. If --version/-v → show version
@@ -714,7 +714,7 @@ this.commands = {
 
 ## File Structure
 
-```
+```text
 lib/cli/
   index.mts          # Exports Command, Router
   command.mts        # Command base class
@@ -753,7 +753,7 @@ Think of your CLI as a language with two valid sentence structures:
 
 Commands and their options must make semantic sense together. Consider:
 
-```
+```text
 ❌ WRONG: validate all --docs-only
    "validate all but only docs" - contradictory
    
@@ -773,7 +773,7 @@ Commands and their options must make semantic sense together. Consider:
 - Multiple related operations on a single **target/noun**
 - Example: `config` is a thing you `validate`, `show`, `edit`
 
-```
+```console
 config validate    # validate the config
 config show        # show the config
 config edit        # edit the config
@@ -784,7 +784,7 @@ config edit        # edit the config
 - Different **targets/nouns** for the same operation
 - Example: `validate` is an action on different things
 
-```
+```console
 validate docs      # validate documentation
 validate code      # validate code
 validate           # validate all (default behavior)
@@ -795,7 +795,7 @@ validate           # validate all (default behavior)
 - Modifying **how** an action is performed, not **what** it targets
 - Example: `--verbose`, `--strict`, `--dry-run`
 
-```
+```text
 ✅ validate docs --verbose    # how to validate
 ❌ validate --target=docs     # should be a subcommand
 ```
@@ -848,7 +848,7 @@ These guidelines apply regardless of chosen paradigm:
 
 #### 1. Flag-based dispatching (instead of commands)
 
-```
+```text
 ❌ validate --type=docs --type=code
 ✅ validate docs
 ✅ validate code
@@ -857,7 +857,7 @@ These guidelines apply regardless of chosen paradigm:
 
 #### 2. Mutually exclusive flags
 
-```
+```text
 ❌ validate all --docs-only --code-only
 ✅ validate docs
 ✅ validate code
@@ -865,7 +865,7 @@ These guidelines apply regardless of chosen paradigm:
 
 #### 3. Deep nesting for simple operations
 
-```
+```text
 ❌ project template config schema validate
 ✅ template config validate
 ✅ schema validate
@@ -873,7 +873,7 @@ These guidelines apply regardless of chosen paradigm:
 
 #### 4. Inconsistent verb placement
 
-```
+```text
 ❌ docs generate / validate docs  (verb position varies)
 ✅ docs generate / docs validate  (consistent: noun verb)
 ✅ generate docs / validate docs  (consistent: verb noun)
@@ -898,7 +898,7 @@ The CLI should feel like **completing a sentence**, not navigating a menu.
 
 #### The Anti-Pattern: Mixed Paradigms
 
-```
+```console
 # Looks organized, but paradigms are mixed:
 schema build           # noun-first (schema is subject)
 docs generate          # noun-first (docs is subject)
@@ -914,7 +914,7 @@ Problems:
 #### The Fix: Choose One Paradigm
 
 **Option A: Verb-First (imperative style)**
-```
+```console
 build schema           # verb: build, target: schema
 build docs             # verb: build, target: docs
 lint docs              # verb: lint, target: docs
@@ -923,7 +923,7 @@ lint mocks             # verb: lint, target: mocks
 ```
 
 **Option B: Noun-First (subject-focused style)**
-```
+```console
 schema build           # subject: schema, verb: build
 docs generate          # subject: docs, verb: generate
 docs validate          # subject: docs, verb: validate
