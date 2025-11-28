@@ -283,7 +283,7 @@ This file is defined by the template author. It acts as the "Menu".
           "placeholders": ["CLOUDFLARE_ID"]
         },
         { "id": "deno-deploy", "label": "Deno Deploy" },
-        { "id": "linode", "label": "Akamai Linode" },
+        { "id": "akamai-linode", "label": "Akamai Linode" },
         { "id": "do-droplet", "label": "DigitalOcean Droplet" }
       ],
       "default": "cloudflare-workers"
@@ -320,7 +320,7 @@ This file is defined by the template author. It acts as the "Menu".
     "deployment": {
       "cloudflare-workers": { "database": ["d1", "none"] },
       "deno-deploy": { "database": ["sqlite", "none"] },
-      "linode": { "database": ["sqlite", "postgres", "none"] },
+      "akamai-linode": { "database": ["sqlite", "postgres", "none"] },
       "do-droplet": { "database": ["sqlite", "postgres", "none"] }
     }
   }

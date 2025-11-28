@@ -513,7 +513,7 @@ export default async function setup({ ctx, tools }) {
       tools.logger.info('Configured Deno Deploy');
       break;
 
-    case 'linode':
+    case 'akamai-linode':
       await tools.templates.copy('infra/linode', 'infra');
       tools.logger.info('Configured Akamai Linode');
       break;
