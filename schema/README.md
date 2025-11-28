@@ -1,6 +1,6 @@
 # Template Schema
 
-This directory stores the authoritative JSON schemas shipped with `@m5nv/create-scaffold`.
+This directory stores the authoritative JSON schemas shipped with `@m5nv/create`.
 
 ## Template Schema
 - `template.v1.json` contains the immutable v1 template schema definition.

@@ -489,10 +489,10 @@ Handle single-select options like deployment targets.
 ```javascript
 // _setup.mjs
 export default async function setup({ ctx, tools }) {
-  const deployment = ctx.options.byDimension.deployment || 'cloudflare-d1';
+  const deployment = ctx.options.byDimension.deployment || 'cloudflare-workers';
 
   switch (deployment) {
-    case 'cloudflare-d1':
+    case 'cloudflare-workers':
       await tools.templates.copy('infra/cloudflare', 'infra');
       await tools.templates.copy('wrangler.toml', 'wrangler.toml');
       await tools.json.merge('package.json', {
@@ -500,24 +500,27 @@ export default async function setup({ ctx, tools }) {
           'wrangler': '^3.0.0'
         }
       });
-      tools.logger.info('Configured Cloudflare Workers + D1');
+      tools.logger.info('Configured Cloudflare Workers');
       break;
 
-    case 'vercel-postgres':
+    case 'deno-deploy':
+      await tools.templates.copy('infra/deno', 'infra');
       await tools.json.merge('package.json', {
-        dependencies: {
-          '@vercel/postgres': '^0.5.0'
-        },
-        devDependencies: {
-          'vercel': '^32.0.0'
+        scripts: {
+          'deploy': 'deployctl deploy'
         }
       });
-      tools.logger.info('Configured Vercel + Postgres');
+      tools.logger.info('Configured Deno Deploy');
       break;
 
-    case 'railway':
-      await tools.templates.copy('infra/railway', 'infra');
-      tools.logger.info('Configured Railway deployment');
+    case 'linode':
+      await tools.templates.copy('infra/linode', 'infra');
+      tools.logger.info('Configured Akamai Linode');
+      break;
+
+    case 'do-droplet':
+      await tools.templates.copy('infra/digitalocean', 'infra');
+      tools.logger.info('Configured DigitalOcean Droplet');
       break;
   }
 }
@@ -730,16 +733,16 @@ export default async function setup({ ctx, tools }) {
   await tools.placeholders.applyInputs(['README.md', 'package.json']);
 
   // 3. Handle deployment dimension
-  const deployment = ctx.options.byDimension.deployment || 'cloudflare-d1';
+  const deployment = ctx.options.byDimension.deployment || 'cloudflare-workers';
 
-  if (deployment === 'cloudflare-d1') {
+  if (deployment === 'cloudflare-workers') {
     await tools.templates.copy('infra/cloudflare', 'infra');
     await tools.json.merge('package.json', {
       devDependencies: {
         'wrangler': '^3.0.0'
       }
     });
-    tools.logger.info('Configured Cloudflare deployment');
+    tools.logger.info('Configured Cloudflare Workers');
   }
 
   // 4. Handle features dimension

@@ -58,7 +58,7 @@ validate **referential integrity** across the document tree.
   registry. The schema will pass validation (because it's a valid string), but
   the UI will crash or render a broken input when that dimension is selected.
 - **The Fix:** This is easily solved not in the schema, but in your
-  `make-template validate` CLI command. You just need a simple logic check:
+  `create template validate` CLI command. You just need a simple logic check:
   `assert(reference_keys.every(k => registry.has(k)))`.
 
 ### Final Verdict: **A (Production Ready)**
