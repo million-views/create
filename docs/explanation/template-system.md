@@ -9,7 +9,7 @@ prerequisites:
   - "Basic knowledge of Node.js and CLI tools"
 related_docs:
   - "../tutorial/scaffold.md"
-  - "../how-to/creating-templates.md"
+  - "../how-to/template-author-workflow.md"
   - "../reference/environment.md"
   - "../how-to/setup-recipes.md"
 last_updated: "2025-11-14"
@@ -300,5 +300,5 @@ Current architectural limitations that users should understand:
 ## Further Reading
 
 - 📚 [create scaffold Tutorial](../tutorial/scaffold.md) - Create your first project
-- 🛠️ [Creating Templates Guide](../how-to/creating-templates.md) - Comprehensive template creation guide
+- 🛠️ [Template Author Workflow](../how-to/template-author-workflow.md) - Comprehensive template authoring guide
 - 📖 [Environment Reference](../reference/environment.md) - Complete `ctx` and `tools` documentation

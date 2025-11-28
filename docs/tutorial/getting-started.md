@@ -9,9 +9,8 @@ prerequisites:
   - "Git installed and configured"
   - "Basic command line familiarity"
 related_docs:
-  - "../how-to/creating-templates.md"
+  - "../how-to/template-author-workflow.md"
   - "../reference/cli-reference.md"
-  - "../how-to/author-workflow.md"
   - "../how-to/setup-recipes.md"
 last_updated: "2025-11-28"
 ---
@@ -83,7 +82,7 @@ create template convert --yes
 ✅ CLI installed  
 
 **Next Steps:**
-- [Creating Templates Guide](../how-to/creating-templates.md) - Learn to create reusable templates
+- [Template Author Workflow](../how-to/template-author-workflow.md) - Learn to create reusable templates
 - [CLI Reference](../reference/cli-reference.md) - Complete command documentation
 - [Setup Recipes](../how-to/setup-recipes.md) - Common configuration patterns
 

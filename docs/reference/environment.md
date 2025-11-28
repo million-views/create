@@ -8,7 +8,7 @@ prerequisites:
   - "Comfortable with modern JavaScript syntax"
   - "Basic understanding of @m5nv/create template workflow"
 related_docs:
-  - "../how-to/creating-templates.md"
+  - "../how-to/template-author-workflow.md"
   - "../how-to/setup-recipes.md"
   - "cli-reference.md"
 last_updated: "2025-11-25"
@@ -525,8 +525,7 @@ export default async function setup({ ctx, tools }) {
 
 ## Additional Reading
 
-- [Creating Templates](../how-to/creating-templates.md) – guided walkthrough with practical examples.
-- [Author Workflow](../how-to/author-workflow.md) – recommended iteration loops for WYSIWYG and composable templates.
+- [Template Author Workflow](../how-to/template-author-workflow.md) – guided walkthrough with practical examples and iteration loops.
 - [Setup Script Recipes](../how-to/setup-recipes.md) – copy-ready snippets for frequent helper tasks.
 - [Template Schema Reference](../reference/template-schema.md) – complete schema reference
 - [CLI Reference](cli-reference.md) – command-line options such as `--help`, `--dry-run`, `--log-file`, and `--no-cache`.

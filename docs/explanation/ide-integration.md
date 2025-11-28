@@ -7,7 +7,7 @@ estimated_time: "3 minutes read"
 prerequisites:
   - "Understanding of project scaffolding concepts"
 related_docs:
-  - "../how-to/creating-templates.md"
+  - "../how-to/template-author-workflow.md"
   - "../reference/environment.md"
   - "../how-to/setup-recipes.md"
 last_updated: "2025-11-12"

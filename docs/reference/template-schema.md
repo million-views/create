@@ -7,11 +7,10 @@ audience: "template-authors"
 estimated_time: "10 minutes"
 prerequisites:
   - "Read reference/environment.md"
-  - "Read how-to/creating-templates.md"
+  - "Read how-to/template-author-workflow.md"
 related_docs:
-  - "../how-to/creating-templates.md"
+  - "../how-to/template-author-workflow.md"
   - "environment.md"
-  - "../how-to/author-workflow.md"
 last_updated: "2025-11-19"
 ---
 
@@ -904,8 +903,7 @@ Validation policies:
 
 ## See Also
 
-- [Creating Templates Guide](../how-to/creating-templates.md) - Step-by-step
-  template creation
+- [Template Author Workflow](../how-to/template-author-workflow.md) - Template authoring guide
 - [Template Validation](template-validation.md) - Validation rules and error
   messages
 - [Environment Reference](environment.md) - Runtime environment variables

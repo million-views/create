@@ -7,7 +7,7 @@ estimated_time: "N/A (reference)"
 prerequisites: []
 related_docs:
   - "../tutorial/getting-started.md"
-  - "../how-to/creating-templates.md"
+  - "../how-to/template-author-workflow.md"
 last_updated: "2025-11-17"
 ---
 
@@ -111,7 +111,7 @@ Complete reference for Schema V1.0 (`template.json`). Covers all sections of the
 - [create scaffold Tutorial](../tutorial/scaffold.md) - Create your first project
 
 ### Task-Oriented
-- [Creating Templates Guide](../how-to/creating-templates.md) - How to create templates
+- [Template Author Workflow](../how-to/template-author-workflow.md) - How to create templates
 - [Troubleshooting Guide](../how-to/troubleshooting.md) - Problem-solving procedures
 
 ### Understanding-Oriented

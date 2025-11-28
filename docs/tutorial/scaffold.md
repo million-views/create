@@ -458,7 +458,7 @@ Scaffolded projects using lawn care service templates with increasing sophistica
 
 ## Next Steps
 
-- [Template Authoring](../how-to/creating-templates.md)
+- [Template Author Workflow](../how-to/template-author-workflow.md)
 - [CLI Reference](../reference/cli-reference.md)
 - [Setup Recipes](../how-to/setup-recipes.md)
 

@@ -198,7 +198,7 @@ Ready to dive deeper? Our tutorials will get you productive in minutes:
 - **[Template Tutorial](docs/tutorial/template.md)** - Convert projects to templates
 - **[Scaffolding Tutorial](docs/tutorial/scaffold.md)** - Create projects from templates
 - **[Intelligent Templatization](docs/explanation/templatization.md)** - Auto-detection and placeholder replacement
-- **[Template Authoring Guide](docs/how-to/creating-templates.md)** - Advanced template creation
+- **[Template Author Workflow](docs/how-to/template-author-workflow.md)** - Advanced template authoring
 
 ## Technical Details
 

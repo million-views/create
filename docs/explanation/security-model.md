@@ -10,7 +10,7 @@ prerequisites:
 related_docs:
   - "../tutorial/getting-started.md"
   - "../reference/cli-reference.md"
-  - "../how-to/creating-templates.md"
+  - "../how-to/template-author-workflow.md"
 last_updated: "2025-11-19"
 ---
 
@@ -242,5 +242,5 @@ For security vulnerabilities:
 ## Further Reading
 
 - 📚 [Getting Started Tutorial](../tutorial/getting-started.md) - See security in action
-- 🛠️ [Creating Templates Guide](../how-to/creating-templates.md) - Security considerations for template authors
+- 🛠️ [Template Author Workflow](../how-to/template-author-workflow.md) - Security considerations for template authors
 - 📖 [CLI Reference](../reference/cli-reference.md) - Security-related parameters and options

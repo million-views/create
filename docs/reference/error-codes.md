@@ -413,4 +413,4 @@ npm create @m5nv/scaffold my-app --template basic --dry-run --log-file debug.log
 
 - [CLI Reference](cli-reference.md) - Complete CLI parameter documentation
 - [Troubleshooting Guide](../how-to/troubleshooting.md) - Detailed troubleshooting procedures
-- [Creating Templates Guide](../how-to/creating-templates.md) - Template creation and setup scripts
+- [Template Author Workflow](../how-to/template-author-workflow.md) - Template creation and setup scripts

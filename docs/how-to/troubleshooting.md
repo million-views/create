@@ -361,7 +361,7 @@ node -e "import('./template/_setup.mjs').then(m => console.log('Setup script syn
 create scaffold new test-project user/repo --template your-template --dry-run
 ```
 
-**See also:** 🎯 [Creating Templates Guide](../how-to/creating-templates.md)
+**See also:** 🎯 [Template Author Workflow](../how-to/template-author-workflow.md)
 
 ### How to Debug Template Structure Issues
 
@@ -395,7 +395,7 @@ ls -la temp-inspect/template-name/
 rm -rf temp-inspect
 ```
 
-**See also:** 📖 [Creating Templates Guide](../how-to/creating-templates.md) - Template structure and organization
+**See also:** 📖 [Template Author Workflow](../how-to/template-author-workflow.md) - Template structure and organization
 
 ---
 

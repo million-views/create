@@ -9,7 +9,7 @@ prerequisites:
   - "../explanation/templatization.md"
 related_docs:
   - "../explanation/templatization.md"
-  - "../how-to/creating-templates.md"
+  - "../how-to/template-author-workflow.md"
 last_updated: "2025-11-18"
 ---
 

@@ -10,11 +10,10 @@ prerequisites:
   - "Git installed and configured"
   - "Basic command line familiarity"
 related_docs:
-  - "../how-to/creating-templates.md"
+  - "../how-to/template-author-workflow.md"
   - "../reference/cli-reference.md"
   - "../tutorial/getting-started.md"
   - "../tutorial/scaffold.md"
-  - "../how-to/author-workflow.md"
 last_updated: "2025-11-19"
 ---
 

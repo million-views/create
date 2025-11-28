@@ -6,7 +6,7 @@ audience: "all"
 estimated_time: "N/A (reference)"
 prerequisites: []
 related_docs:
-  - "../how-to/creating-templates.md"
+  - "../how-to/template-author-workflow.md"
   - "../tutorial/getting-started.md"
   - "../tutorial/scaffold.md"
   - "../how-to/setup-recipes.md"
@@ -301,7 +301,7 @@ All inputs are validated for security and correctness:
 
 - [Environment Reference](environment.md) - Complete Environment contract for setup scripts
 - [Error Codes Reference](error-codes.md) - Exit codes and error messages
-- [Creating Templates Guide](../how-to/creating-templates.md) - How to create your own templates
+- [Template Author Workflow](../how-to/template-author-workflow.md) - How to create your own templates
 - [Getting Started Tutorial](../tutorial/getting-started.md) - Step-by-step beginner guide
 - [Troubleshooting Guide](../how-to/troubleshooting.md) - Common issues
 

@@ -7,9 +7,8 @@ prerequisites:
   - "Read environment.md reference"
   - "Basic JavaScript module understanding"
 related_docs:
-  - "creating-templates.md"
+  - "template-author-workflow.md"
   - "../reference/environment.md"
-  - "author-workflow.md"
 last_updated: "2025-11-12"
 ---
 
@@ -814,8 +813,7 @@ export default async function setup({ ctx, tools }) {
 ## Next Steps
 
 - **[Environment Reference](../reference/environment.md)** - Complete API documentation
-- **[Creating Templates](creating-templates.md)** - Template authoring guide
-- **[Author Workflow](author-workflow.md)** - Round-trip development process
+- **[Template Author Workflow](template-author-workflow.md)** - Template authoring guide
 - **[CLI Reference](../reference/cli-reference.md)** - Command-line interface
 
 ---

@@ -9,7 +9,7 @@ prerequisites:
   - "Basic knowledge of JSX, JSON, Markdown, or HTML"
 related_docs:
   - "../tutorial/template.md"
-  - "../how-to/creating-templates.md"
+  - "../how-to/template-author-workflow.md"
   - "../reference/template-schema.md"
 last_updated: "2025-11-18"
 ---
