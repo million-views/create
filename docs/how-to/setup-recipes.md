@@ -9,7 +9,7 @@ prerequisites:
 related_docs:
   - "template-author-workflow.md"
   - "../reference/environment.md"
-last_updated: "2025-11-12"
+last_updated: "2025-11-28"
 ---
 
 # Setup Script Recipes
@@ -482,44 +482,42 @@ npm create @m5nv/scaffold my-app -- --template react-vite --selection ./my-selec
 
 ## Single-Select Dimensions
 
-Handle single-select options.
+Handle single-select options like deployment targets.
 
 ### Recipe
 
 ```javascript
 // _setup.mjs
 export default async function setup({ ctx, tools }) {
-  const styling = ctx.options.byDimension.styling || 'css-modules';
+  const deployment = ctx.options.byDimension.deployment || 'cloudflare-d1';
 
-  switch (styling) {
-    case 'tailwind':
-      await tools.templates.copy('tailwind.config.js', 'tailwind.config.js');
-      await tools.templates.copy('postcss.config.js', 'postcss.config.js');
+  switch (deployment) {
+    case 'cloudflare-d1':
+      await tools.templates.copy('infra/cloudflare', 'infra');
+      await tools.templates.copy('wrangler.toml', 'wrangler.toml');
       await tools.json.merge('package.json', {
         devDependencies: {
-          'tailwindcss': '^3.3.0',
-          'postcss': '^8.4.0',
-          'autoprefixer': '^10.4.0'
+          'wrangler': '^3.0.0'
         }
       });
-      tools.logger.info('Configured Tailwind CSS');
+      tools.logger.info('Configured Cloudflare Workers + D1');
       break;
 
-    case 'styled-components':
+    case 'vercel-postgres':
       await tools.json.merge('package.json', {
         dependencies: {
-          'styled-components': '^6.0.0'
+          '@vercel/postgres': '^0.5.0'
         },
         devDependencies: {
-          '@types/styled-components': '^5.1.26'
+          'vercel': '^32.0.0'
         }
       });
-      tools.logger.info('Configured Styled Components');
+      tools.logger.info('Configured Vercel + Postgres');
       break;
 
-    case 'css-modules':
-      // Default, no additional setup
-      tools.logger.info('Using CSS Modules');
+    case 'railway':
+      await tools.templates.copy('infra/railway', 'infra');
+      tools.logger.info('Configured Railway deployment');
       break;
   }
 }
@@ -731,17 +729,17 @@ export default async function setup({ ctx, tools }) {
   // 2. Apply placeholder inputs
   await tools.placeholders.applyInputs(['README.md', 'package.json']);
 
-  // 3. Handle styling dimension
-  const styling = ctx.options.byDimension.styling || 'css-modules';
+  // 3. Handle deployment dimension
+  const deployment = ctx.options.byDimension.deployment || 'cloudflare-d1';
 
-  if (styling === 'tailwind') {
-    await tools.templates.copy('tailwind.config.js', 'tailwind.config.js');
+  if (deployment === 'cloudflare-d1') {
+    await tools.templates.copy('infra/cloudflare', 'infra');
     await tools.json.merge('package.json', {
       devDependencies: {
-        'tailwindcss': '^3.3.0'
+        'wrangler': '^3.0.0'
       }
     });
-    tools.logger.info('Configured Tailwind CSS');
+    tools.logger.info('Configured Cloudflare deployment');
   }
 
   // 4. Handle features dimension
@@ -816,6 +814,4 @@ export default async function setup({ ctx, tools }) {
 - **[Template Author Workflow](template-author-workflow.md)** - Template authoring guide
 - **[CLI Reference](../reference/cli-reference.md)** - Command-line interface
 
----
 
-## Related Documentation
