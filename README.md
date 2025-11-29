@@ -170,7 +170,6 @@ conditional features.
   "placeholders": {
     /* ... */
   },
-  "setup": { "script": "_setup.mjs" },
   "dimensions": {
     /* user choices: deployment, database, storage, identity, billing, analytics, monitoring */
   },

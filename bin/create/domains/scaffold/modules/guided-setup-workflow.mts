@@ -1031,7 +1031,9 @@ export class GuidedSetupWorkflow {
    * Execute setup script execution step
    */
   async #executeSetupScriptExecution() {
-    const setupScriptPath = path.join(this.resolvedProjectDirectory, '_setup.mjs');
+    // Use setup.script from template.json, default to _setup.mjs
+    const setupScriptName = this.metadata?.setup?.script || '_setup.mjs';
+    const setupScriptPath = path.join(this.resolvedProjectDirectory, setupScriptName);
 
     try {
       await fs.access(setupScriptPath);
@@ -1046,7 +1048,7 @@ export class GuidedSetupWorkflow {
         logger: this.logger,
         templateContext: {
           inputs: this.placeholders,
-          authoring: this.metadata?.authoring || 'wysiwyg',
+          authoring: this.metadata?.setup?.authoringMode || 'composable',
           constants: this.metadata?.constants || {},
           authorAssetsDir: this.metadata?.setup?.authorAssetsDir || '__scaffold__',
           placeholderFormat: this.metadata?.placeholderFormat || 'unicode'
@@ -1059,7 +1061,7 @@ export class GuidedSetupWorkflow {
         projectName: this.projectDirectory,
         projectDir: this.resolvedProjectDirectory,
         cwd: process.cwd(),
-        authoring: this.metadata?.authoring || 'wysiwyg',
+        authoring: this.metadata?.setup?.authoringMode || 'composable',
         inputs: this.placeholders,
         constants: this.metadata?.constants || {},
         authorAssetsDir: this.metadata?.setup?.authorAssetsDir || '__scaffold__',
@@ -1088,7 +1090,7 @@ export class GuidedSetupWorkflow {
       }
 
       // Remove author assets directory (templates/, __scaffold__/, etc.)
-      const authorAssetsDir = this.metadata?.authorAssetsDir || '__scaffold__';
+      const authorAssetsDir = this.metadata?.setup?.authorAssetsDir || '__scaffold__';
       const authorAssetPath = path.join(this.resolvedProjectDirectory, authorAssetsDir);
       try {
         await fs.rm(authorAssetPath, { recursive: true, force: true });

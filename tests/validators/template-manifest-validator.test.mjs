@@ -917,9 +917,9 @@ test('validateTemplateManifest - Return Value Structure', async (t) => {
     assert.equal(result.authoringMode, 'composable');
   });
 
-  await t.test('defaults authorAssetsDir to template-assets', () => {
+  await t.test('defaults authorAssetsDir to __scaffold__', () => {
     const result = validateTemplateManifest(validManifest);
-    assert.equal(result.authorAssetsDir, 'template-assets');
+    assert.equal(result.authorAssetsDir, '__scaffold__');
   });
 
   await t.test('defaults canonicalVariables to empty array', () => {

@@ -41,15 +41,14 @@ without `schemaVersion` are rejected.
   "id": "author/template-name",
   "name": "Template Name",
   "description": "Template description",
+  "status": "published",
   "placeholderFormat": "unicode",
   "placeholders": {},
-  "tags": ["tag1", "tag2"],
-  "author": "Author Name",
-  "license": "MIT",
   "handoff": ["Next step 1", "Next step 2"],
   "setup": {
-    "policy": "strict",
-    "authoringMode": "composable"
+    "script": "_setup.mjs",
+    "authoringMode": "composable",
+    "authorAssetsDir": "__scaffold__"
   },
   "dimensions": {
     /* user-selectable options: deployment, database, storage, identity, billing, analytics, monitoring */
@@ -59,22 +58,13 @@ without `schemaVersion` are rejected.
   },
   "features": [
     /* feature definitions with needs */
-  ],
-  "hints": {
-    /* advisory catalog */
-  },
-  "constants": {
-    /* fixed values */
-  },
-  "scaffold": {
-    /* scaffolding steps */
-  }
+  ]
 }
 ```
 
 ## Minimal Template
 
-The simplest valid template requires 6 fields:
+The simplest valid template requires 4 fields:
 
 ```json
 {
@@ -100,14 +90,20 @@ This minimal template:
 | ------------------- | ---------- | -------- | --------------------------------------------------------------- |
 | `schemaVersion`     | `string`   | Yes      | Schema version (currently "1.0.0")                              |
 | `id`                | `string`   | Yes      | Unique identifier in format `author/template-name`              |
-| `name`              | `string`   | Yes      | Human-readable template name (1-120 chars)                      |
-| `description`       | `string`   | Yes      | Detailed description (1-500 chars)                              |
+| `name`              | `string`   | No       | Human-readable template name (max 120 chars)                    |
+| `description`       | `string`   | No       | Detailed description (max 500 chars)                            |
+| `status`            | `string`   | No       | Lifecycle status: `draft`, `published`, `deprecated` (default: `published`) |
 | `placeholderFormat` | `string`   | Yes      | Delimiter format: `unicode`, `mustache`, `dollar`, or `percent` |
 | `placeholders`      | `object`   | Yes      | Placeholder definitions (can be empty `{}`)                     |
-| `tags`              | `string[]` | No       | Categorization tags (lowercase, alphanumeric + hyphens)         |
-| `author`            | `string`   | No       | Template author or organization name                            |
-| `license`           | `string`   | No       | License under which template is distributed                     |
 | `handoff`           | `string[]` | No       | Post-scaffold instructions (max 240 chars each)                 |
+
+### Status Values
+
+| Status       | Description                                         |
+| ------------ | --------------------------------------------------- |
+| `draft`      | Testing/iteration, hidden from registry by default  |
+| `published`  | Ready for use (default)                             |
+| `deprecated` | Still usable but users should migrate               |
 
 ### Placeholder Formats
 
@@ -122,63 +118,64 @@ Set via `create template convert --placeholder-format <format>`.
 
 ## Setup Section
 
-The `setup` section configures template behavior and validation policies.
+The `setup` section configures setup script behavior and authoring options.
 
 ### Setup Properties
 
-| Property        | Type     | Required | Description                                                |
-| --------------- | -------- | -------- | ---------------------------------------------------------- |
-| `policy`        | `string` | No       | `"strict"` or `"lenient"` validation (default: `"strict"`) |
-| `authoringMode` | `string` | No       | `"wysiwyg"` or `"composable"` (default: `"composable"`)    |
+| Property         | Type     | Required | Description                                                         |
+| ---------------- | -------- | -------- | ------------------------------------------------------------------- |
+| `script`         | `string` | No       | Setup script filename (default: `_setup.mjs`)                       |
+| `authoringMode`  | `string` | No       | `"composable"` or `"wysiwyg"` (default: `"composable"`)             |
+| `authorAssetsDir`| `string` | No       | Directory for author assets, removed after scaffolding (default: `__scaffold__`) |
 
-### Validation Policies
+### Setup Script
 
-- **`strict`**: Reject invalid selections (recommended for production)
-- **`lenient`**: Allow unknown values with warnings (development only)
+The setup script must export a default async function accepting `({ctx, tools})`:
+
+```javascript
+// _setup.mjs (or custom filename via setup.script)
+export default async function setup({ ctx, tools }) {
+  // ctx contains: projectName, projectDir, inputs, options, etc.
+  // tools provides: json, templates, options, etc.
+  
+  if (tools.options.in('identity', 'auth0')) {
+    await tools.json.set('package.json', 'dependencies.@auth0/nextjs-auth0', '^3.0.0');
+  }
+}
+```
 
 ### Authoring Modes
 
-- **`composable`**: Features assembled via `_setup.mjs` (recommended)
+- **`composable`**: Features assembled via setup script (default, recommended)
 - **`wysiwyg`**: Visual editor with pre-built combinations
+
+### Author Assets Directory
+
+The `authorAssetsDir` contains template snippets for conditional copying:
+
+```text
+my-template/
+├── __scaffold__/           # Author assets (removed after scaffolding)
+│   ├── auth/
+│   │   └── src/auth/
+│   └── infra/
+│       ├── cloudflare-d1/
+│       └── vercel-postgres/
+└── src/
+```
+
+Copy conditionally in setup script:
+
+```javascript
+if (tools.options.in('deployment', 'cloudflare-d1')) {
+  await tools.templates.copy('infra/cloudflare-d1', 'infra');
+}
+```
 
 ## Dimensions
 
-Dimensions define user-selectable options. The schema supports flexible
-dimension definitions with validation.
-
-### Dimension Types
-
-Dimensions can be defined in two formats:
-
-#### Simple Format (Legacy)
-
-```json
-{
-  "dimension_name": {
-    "values": ["option1", "option2", "option3"],
-    "default": "option1"
-  }
-}
-```
-
-#### Structured Format (V1.0.0)
-
-```json
-{
-  "dimension_name": {
-    "name": "Human Readable Name",
-    "description": "Dimension description",
-    "options": [
-      {
-        "id": "option1",
-        "name": "Option 1",
-        "description": "Description of option 1"
-      }
-    ],
-    "default": "option1"
-  }
-}
-```
+Dimensions define user-selectable infrastructure options. The schema supports
+7 fixed dimensions with per-dimension validation policies.
 
 ### Standard Dimensions (V1.0.0)
 
@@ -195,6 +192,40 @@ Schema V1.0.0 defines 7 fixed infrastructure dimensions:
 | `monitoring` | `single` | HOW system behaves (operational observability)  |
 
 > **Note**: The `features` dimension is a **special multi-select dimension** for custom feature toggles. It is not one of the 7 fixed infrastructure dimensions listed above.
+
+### Dimension Properties
+
+Each dimension supports the following properties:
+
+| Property  | Type       | Required | Description                                                |
+| --------- | ---------- | -------- | ---------------------------------------------------------- |
+| `label`   | `string`   | No       | Header label in the UI                                     |
+| `policy`  | `string`   | No       | `"strict"` or `"warn"` (default: `"strict"`)               |
+| `default` | `string`   | No       | Default option ID                                          |
+| `options` | `array`    | Yes      | Array of option objects with `id`, `label`, `desc`, `icon` |
+| `display` | `object`   | No       | UI display settings (`variant`, `icon`)                    |
+
+### Validation Policies
+
+Each dimension can specify a `policy`:
+
+- **`strict`** (default): Reject unknown values with an error
+- **`warn`**: Allow unknown values with a warning (useful during development)
+
+```json
+{
+  "dimensions": {
+    "deployment": {
+      "policy": "strict",
+      "options": [
+        { "id": "vercel", "label": "Vercel" },
+        { "id": "netlify", "label": "Netlify" }
+      ],
+      "default": "vercel"
+    }
+  }
+}
+```
 
 ### Dimension Details
 
@@ -767,55 +798,106 @@ Examples:
   "id": "acme/web-app",
   "name": "Full-Stack Web Application",
   "description": "A complete web application with authentication, database, and billing",
-  "tags": ["web", "fullstack", "react"],
-  "author": "Acme Corp",
-  "license": "MIT",
+  "status": "published",
+  "placeholderFormat": "unicode",
+  "placeholders": {
+    "PROJECT_NAME": {
+      "description": "Name of the generated project",
+      "default": "my-web-app"
+    },
+    "AUTHOR_NAME": {
+      "description": "Author name for package.json",
+      "default": "Developer"
+    }
+  },
   "handoff": [
     "Run 'npm install' to install dependencies",
     "Copy .env.example to .env and configure your environment variables",
     "Run 'npm run dev' to start the development server"
   ],
   "setup": {
-    "policy": "strict",
-    "authoringMode": "composable"
+    "script": "_setup.mjs",
+    "authoringMode": "composable",
+    "authorAssetsDir": "__scaffold__"
   },
   "dimensions": {
     "deployment": {
-      "values": ["vercel", "netlify", "railway", "render"],
+      "label": "Deployment Platform",
+      "policy": "strict",
+      "options": [
+        { "id": "vercel", "label": "Vercel", "desc": "Vercel platform" },
+        { "id": "netlify", "label": "Netlify", "desc": "Netlify platform" },
+        { "id": "railway", "label": "Railway", "desc": "Railway platform" }
+      ],
       "default": "vercel"
     },
     "database": {
-      "values": ["postgres", "mysql", "sqlite", "mongodb", "none"],
+      "label": "Database",
+      "options": [
+        { "id": "postgres", "label": "PostgreSQL" },
+        { "id": "mysql", "label": "MySQL" },
+        { "id": "sqlite", "label": "SQLite" },
+        { "id": "none", "label": "None" }
+      ],
       "default": "postgres"
     },
     "storage": {
-      "values": ["local", "s3", "cloudflare", "vercel-blob", "none"],
+      "label": "File Storage",
+      "options": [
+        { "id": "s3", "label": "Amazon S3" },
+        { "id": "cloudflare", "label": "Cloudflare R2" },
+        { "id": "local", "label": "Local filesystem" },
+        { "id": "none", "label": "None" }
+      ],
       "default": "s3"
     },
     "identity": {
-      "values": ["auth0", "clerk", "firebase", "supabase", "none"],
+      "label": "Authentication",
+      "options": [
+        { "id": "auth0", "label": "Auth0" },
+        { "id": "clerk", "label": "Clerk" },
+        { "id": "supabase", "label": "Supabase Auth" },
+        { "id": "none", "label": "None" }
+      ],
       "default": "auth0"
     },
     "billing": {
-      "values": ["stripe", "paypal", "lemonsqueezy", "none"],
+      "label": "Payment Processing",
+      "options": [
+        { "id": "stripe", "label": "Stripe" },
+        { "id": "paypal", "label": "PayPal" },
+        { "id": "none", "label": "None" }
+      ],
       "default": "stripe"
     },
     "analytics": {
-      "values": ["google-analytics", "mixpanel", "posthog", "plausible", "none"],
+      "label": "Analytics",
+      "options": [
+        { "id": "google-analytics", "label": "Google Analytics" },
+        { "id": "posthog", "label": "PostHog" },
+        { "id": "plausible", "label": "Plausible" },
+        { "id": "none", "label": "None" }
+      ],
       "default": "google-analytics"
     },
     "monitoring": {
-      "values": ["datadog", "sentry", "newrelic", "grafana", "none"],
+      "label": "Monitoring",
+      "options": [
+        { "id": "sentry", "label": "Sentry" },
+        { "id": "datadog", "label": "Datadog" },
+        { "id": "none", "label": "None" }
+      ],
       "default": "sentry"
     }
   },
   "gates": {
     "deployment": {
-      "platform": "vercel",
-      "constraint": "Vercel supports specific database and storage options",
-      "allowed": {
-        "database": ["postgres", "mysql"],
-        "storage": ["s3", "cloudflare"]
+      "vercel": {
+        "database": ["postgres", "mysql", "none"],
+        "storage": ["s3", "cloudflare", "none"]
+      },
+      "railway": {
+        "database": ["postgres", "mysql", "sqlite", "none"]
       }
     }
   },
@@ -824,7 +906,6 @@ Examples:
       "id": "user-login",
       "label": "User Authentication",
       "description": "User authentication and session management",
-      "category": "authentication",
       "needs": {
         "identity": "required",
         "database": "required"
@@ -834,7 +915,6 @@ Examples:
       "id": "checkout",
       "label": "Payment Processing",
       "description": "Accept and process payments",
-      "category": "billing",
       "needs": {
         "billing": "required",
         "database": "required"
@@ -844,95 +924,26 @@ Examples:
       "id": "usage-tracking",
       "label": "Analytics",
       "description": "Track user behavior and app metrics",
-      "category": "analytics",
       "needs": {
         "analytics": "required"
       }
     }
-  ],
-  "hints": {
-    "features": [
-      {
-        "id": "public_static",
-        "label": "Public Static",
-        "description": "Static marketing pages (no forms).",
-        "needs": {
-          "identity": "none",
-          "database": "none",
-          "billing": "none",
-          "storage": "none"
-        },
-        "examples": ["Legal Pages", "About Us"]
-      },
-      {
-        "id": "auth_dataentry_simple",
-        "label": "Auth Data Entry (Simple)",
-        "description": "Authenticated forms without uploads.",
-        "needs": {
-          "identity": "required",
-          "database": "required",
-          "billing": "none",
-          "storage": "none"
-        },
-        "examples": ["Password Update", "Team Invite"]
-      }
-    ]
-  },
-  "constants": {
-    "language": "typescript",
-    "framework": "next.js",
-    "styling": "tailwindcss",
-    "ci_cd": "github-actions",
-    "runtime": "node",
-    "code_quality": "eslint+prettier",
-    "transactional_emails": "resend"
-  },
-  "scaffold": {
-    "steps": [
-      {
-        "type": "copy",
-        "source": "src/app.ts",
-        "target": "src/app.ts"
-      },
-      {
-        "type": "render",
-        "source": "templates/package.json.ejs",
-        "target": "package.json"
-      },
-      {
-        "type": "json-edit",
-        "file": "package.json",
-        "operations": [
-          {
-            "op": "add",
-            "path": "/dependencies/express",
-            "value": "^4.18.0",
-            "condition": "framework === 'express'"
-          }
-        ]
-      },
-      {
-        "type": "shell",
-        "command": "npm install",
-        "cwd": "."
-      }
-    ]
-  }
+  ]
 }
 ```
 
 ## Validation
 
-Templates are validated using `TemplateValidator` which performs:
+Templates are validated using `create template validate` which performs:
 
 1. **Schema Validation**: JSON Schema Draft 2020-12 compliance
-2. **Domain Validation**: Business rule validation
-3. **Consumption Validation**: Runtime compatibility checks
+2. **Domain Validation**: Business rule validation (dimension constraints, gate consistency)
+3. **Setup Script Validation**: Checks setup script exists and has correct exports
 
-Validation policies:
+Validation uses dimension-level `policy`:
 
-- **Strict**: Schema + domain errors are fatal
-- **Lenient**: Schema + domain errors become warnings
+- **strict** (default): Unknown values are rejected with an error
+- **warn**: Unknown values are allowed with a warning
 
 ## See Also
 

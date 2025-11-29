@@ -60,17 +60,23 @@ This guide helps template authors iterate efficiently and build advanced templat
 
 **Solution**: Use composable authoring mode with dimensions.
 
-1. Set authoring mode in `template.json`:
+1. Configure dimensions and features in `template.json`:
 ```json
 {
+  "schemaVersion": "1.0.0",
+  "id": "author/my-template",
+  "placeholderFormat": "unicode",
+  "placeholders": {},
   "setup": {
-    "authoring": "composable",
-    "dimensions": {
-      "deployment": {
-        "type": "single",
-        "values": ["cloudflare-workers", "deno-deploy"],
-        "default": "cloudflare-workers"
-      }
+    "authoringMode": "composable"
+  },
+  "dimensions": {
+    "deployment": {
+      "options": [
+        { "id": "cloudflare-workers", "label": "Cloudflare Workers" },
+        { "id": "deno-deploy", "label": "Deno Deploy" }
+      ],
+      "default": "cloudflare-workers"
     }
   },
   "features": [

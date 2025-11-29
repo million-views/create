@@ -154,7 +154,7 @@ export function createSetupTools(options) {
     constants: templateContext?.constants ?? {},
     authorAssetsDir: templateContext?.authorAssetsDir ?? '__scaffold__',
     placeholderFormat: templateContext?.placeholderFormat ?? 'unicode',
-    authoring: templateContext?.authoring ?? 'wysiwyg',
+    authoring: templateContext?.authoring ?? 'composable',
     dimensions,
     options: userOptions
   });

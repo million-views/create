@@ -186,9 +186,9 @@ function validateV1(manifest: RawManifest): ManifestResult {
     gates: manifest.gates || {},
     featureSpecs: manifest.featureSpecs || {},
     hints: manifest.hints || {},
-    // Legacy compatibility fields
+    // Setup properties with correct defaults
     authoringMode: (manifest.setup?.authoringMode || 'composable') as 'wysiwyg' | 'composable',
-    authorAssetsDir: manifest.setup?.authorAssetsDir || 'template-assets',
+    authorAssetsDir: manifest.setup?.authorAssetsDir || '__scaffold__',
     placeholders: normalizePlaceholders(normalizedPlaceholders),
     canonicalVariables: [] as readonly string[],
     handoff: Object.freeze(manifest.handoff || [])

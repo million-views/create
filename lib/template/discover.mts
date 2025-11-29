@@ -527,7 +527,7 @@ export async function loadTemplateMetadataFromPath(templatePath) {
         name: null,
         description: null,
         version: null,
-        authoringMode: 'wysiwyg',
+        authoringMode: 'composable',
         authorAssetsDir: validateAuthorAssetsDir(null),
         dimensions: {},
         handoff: [],

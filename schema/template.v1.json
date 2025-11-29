@@ -29,6 +29,16 @@
       "type": "string",
       "maxLength": 500
     },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "published",
+        "deprecated"
+      ],
+      "default": "published",
+      "description": "Template lifecycle status for registry filtering. draft=testing/iteration, published=ready for use, deprecated=migrate away"
+    },
     "placeholderFormat": {
       "type": "string",
       "enum": [
@@ -186,6 +196,32 @@
         }
       },
       "additionalProperties": false
+    },
+    "setup": {
+      "type": "object",
+      "description": "Setup script configuration and authoring options.",
+      "properties": {
+        "script": {
+          "type": "string",
+          "default": "_setup.mjs",
+          "description": "Setup script filename. Must export a default async function accepting ({ctx, tools})."
+        },
+        "authoringMode": {
+          "type": "string",
+          "enum": [
+            "composable",
+            "wysiwyg"
+          ],
+          "default": "composable",
+          "description": "composable=features assembled via setup script, wysiwyg=visual editor with pre-built combinations"
+        },
+        "authorAssetsDir": {
+          "type": "string",
+          "default": "__scaffold__",
+          "description": "Directory containing author assets (snippets, partials) for conditional copying. Removed after scaffolding."
+        }
+      },
+      "additionalProperties": false
     }
   },
   "$defs": {
@@ -198,6 +234,15 @@
         "label": {
           "type": "string",
           "description": "Header label in the UI"
+        },
+        "policy": {
+          "type": "string",
+          "enum": [
+            "strict",
+            "warn"
+          ],
+          "default": "strict",
+          "description": "Validation policy. strict=reject unknown values, warn=allow with warning"
         },
         "display": {
           "type": "object",

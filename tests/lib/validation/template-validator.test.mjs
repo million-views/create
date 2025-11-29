@@ -262,7 +262,7 @@ test('validateTemplateManifest returns normalized values for valid template', ()
   const result = validateTemplateManifest(manifest);
 
   assert.equal(result.authoringMode, 'wysiwyg');
-  assert.equal(result.authorAssetsDir, 'template-assets');
+  assert.equal(result.authorAssetsDir, '__scaffold__');
   assert.equal(result.handoff.length, 1);
   assert.equal(result.placeholders.length, Object.keys(manifest.placeholders).length);
   assert.deepEqual(result.dimensions, {});
