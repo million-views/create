@@ -29,9 +29,8 @@ export function getPackageName(): string {
 export function generateInstallationInstructions(): string {
   const packageName = getPackageName();
   return `Installation options:
-  • Use npm create: npm create @m5nv scaffold <project-name> -- --template <template-name>
-  • Use npx: npx ${packageName}@latest scaffold <project-name> --template <template-name>
-  • Install globally: npm install -g ${packageName}`;
+  • Install globally: npm install -g ${packageName}
+  • Use npx: npx ${packageName}@latest scaffold new <project-name> --template <template-name>`;
 }
 
 /**

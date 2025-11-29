@@ -43,7 +43,7 @@ Complete reference for exit codes, error messages, and troubleshooting informati
 
 **Example:**
 ```bash
-$ npm create @m5nv/scaffold my-app -- --invalid-flag
+$ create scaffold new my-app --invalid-flag
 ❌ Error: Invalid arguments
 
 Unknown option: --invalid-flag
@@ -350,13 +350,13 @@ For troubleshooting, collect the following diagnostic information:
 
 ```bash
 # Enable debug logging to console
-NODE_ENV=development npm create @m5nv/scaffold my-app --template basic
+NODE_ENV=development create scaffold new my-app --template basic
 
 # Save detailed logs to file
-npm create @m5nv/scaffold my-app --template basic --log-file debug.log
+create scaffold new my-app --template basic --log-file debug.log
 
 # Combine with dry run for safe debugging
-npm create @m5nv/scaffold my-app --template basic --dry-run --log-file debug.log
+create scaffold new my-app --template basic --dry-run --log-file debug.log
 ```
 
 ## Troubleshooting Quick Reference
@@ -376,8 +376,8 @@ npm create @m5nv/scaffold my-app --template basic --dry-run --log-file debug.log
 
 ### Getting Help
 
-1. **Check help:** `npm create @m5nv/scaffold -- --help`
-2. **List templates:** `create scaffold list` or `npm create @m5nv/scaffold -- list`
+1. **Check help:** `create scaffold --help`
+2. **List templates:** `create scaffold list`
 3. **Use dry run:** Add `--dry-run` to preview operations
 4. **Enable logging:** Add `--log-file debug.log` for detailed logs
 5. **Bypass cache:** Add `--no-cache` for fresh repository clone

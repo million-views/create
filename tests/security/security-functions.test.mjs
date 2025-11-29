@@ -62,7 +62,7 @@ test('Package Identity Functions', async (t) => {
   await t.test('generateInstallationInstructions includes package name', () => {
     const instructions = generateInstallationInstructions();
     assert.ok(instructions.includes('@m5nv/create'));
-    assert.ok(instructions.includes('npm create'));
+    assert.ok(instructions.includes('npm install -g'));
     assert.ok(instructions.includes('npx'));
   });
 

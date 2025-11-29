@@ -58,7 +58,7 @@ sudo apt install git
 **Verify the fix:**
 ```bash
 git --version
-npm create @m5nv/scaffold -- --help
+create --help
 ```
 
 **Expected result:** Both commands should work without errors.
