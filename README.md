@@ -107,18 +107,6 @@ Markdown, and HTML files.
 <h1>⦃CONTENT_TITLE⦄</h1>
 ```
 
-## Installation & Setup
-
-Install the package globally:
-
-```bash
-npm install -g @m5nv/create
-```
-
-This gives you the unified `create` command with two domains: `scaffold` and `template`.
-
-📖 **[Complete setup guide](docs/tutorial/getting-started.md)** for environment requirements and troubleshooting.
-
 ## The Two Domains
 
 ### `create template` - Template Authoring
