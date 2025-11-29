@@ -51,31 +51,6 @@ create template --help
 
 **Expected:** Help text showing available commands.
 
-## Quick Examples
-
-### Create a Template
-
-```bash
-# Initialize template configuration
-create template init
-
-# Convert project to template (preview first)
-create template convert --dry-run
-
-# Convert for real
-create template convert --yes
-```
-
-### Scaffold a New Project
-
-```bash
-# Create a project from a template
-create scaffold new my-app --template react-vite
-
-# List available templates
-create scaffold list
-```
-
 ## You're Ready!
 
 ✅ Environment verified  
@@ -84,7 +59,6 @@ create scaffold list
 **Next Steps:**
 - [Template Tutorial](./template.md) - Convert projects into reusable templates
 - [Scaffolding Tutorial](./scaffold.md) - Create projects from templates
-- [CLI Reference](../reference/cli-reference.md) - Complete command documentation
 
 ## Troubleshooting
 
