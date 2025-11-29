@@ -6,7 +6,7 @@
  * Tests dimension-based scaffolding and placeholder handling:
  * 1. Dimension-based scaffolding via CLI with selection files
  * 2. Placeholder override precedence (CLI wins)
- * 3. make-template test command
+ * 3. create template test command
  *
  * Uses hermetic test environments with M5NV_HOME isolation
  */
@@ -310,11 +310,11 @@ test('Placeholder override - multiple CLI placeholders work together', async (t)
 }, { timeout: LONG_TIMEOUT });
 
 // ============================================================================
-// Test 3: make-template test Command
+// Test 3: create template test Command
 // ============================================================================
 
-test('make-template test - valid template succeeds', async (t) => {
-  const testEnv = await createTestEnvironment('make-template-test-valid');
+test('create template test - valid template succeeds', async (t) => {
+  const testEnv = await createTestEnvironment('template-test-valid');
 
   t.after(async () => {
     await testEnv.cleanup();
@@ -344,8 +344,8 @@ test('make-template test - valid template succeeds', async (t) => {
     }, null, 2)
   });
 
-  // Run make-template test from project root (where bin/ exists)
-  // The make-template test command expects to find bin/create relative to cwd
+  // Run create template test from project root (where bin/ exists)
+  // The create template test command expects to find bin/create relative to cwd
   const projectRoot = process.cwd();
   const result = execCLI('template', ['test', templateDir], {
     env: testEnv.env,
@@ -353,7 +353,7 @@ test('make-template test - valid template succeeds', async (t) => {
   });
 
   // Valid template should pass
-  assert.strictEqual(result.exitCode, 0, `make-template test should succeed: ${result.stderr}`);
+  assert.strictEqual(result.exitCode, 0, `create template test should succeed: ${result.stderr}`);
 
   // Check output for success indicators
   const output = result.stdout + result.stderr;
@@ -365,14 +365,14 @@ test('make-template test - valid template succeeds', async (t) => {
   await verifyIsolation(testEnv);
 }, { timeout: LONG_TIMEOUT });
 
-test('make-template test - missing path fails', async (t) => {
-  const testEnv = await createTestEnvironment('make-template-test-missing');
+test('create template test - missing path fails', async (t) => {
+  const testEnv = await createTestEnvironment('template-test-missing');
 
   t.after(async () => {
     await testEnv.cleanup();
   });
 
-  // Run make-template test with non-existent path from project root
+  // Run create template test with non-existent path from project root
   const projectRoot = process.cwd();
   const result = execCLI('template', ['test', '/nonexistent/path/to/template'], {
     env: testEnv.env,
@@ -380,7 +380,7 @@ test('make-template test - missing path fails', async (t) => {
   });
 
   // Should fail with missing path
-  assert.notStrictEqual(result.exitCode, 0, 'make-template test should fail for missing path');
+  assert.notStrictEqual(result.exitCode, 0, 'create template test should fail for missing path');
 
   // Check error output
   const output = result.stdout + result.stderr;
@@ -392,8 +392,8 @@ test('make-template test - missing path fails', async (t) => {
   await verifyIsolation(testEnv);
 }, { timeout: LONG_TIMEOUT });
 
-test('make-template test - missing template.json fails', async (t) => {
-  const testEnv = await createTestEnvironment('make-template-test-no-json');
+test('create template test - missing template.json fails', async (t) => {
+  const testEnv = await createTestEnvironment('template-test-no-json');
 
   t.after(async () => {
     await testEnv.cleanup();
@@ -409,7 +409,7 @@ test('make-template test - missing template.json fails', async (t) => {
     // Note: No template.json
   });
 
-  // Run make-template test from project root
+  // Run create template test from project root
   const projectRoot = process.cwd();
   const result = execCLI('template', ['test', templateDir], {
     env: testEnv.env,
@@ -417,7 +417,7 @@ test('make-template test - missing template.json fails', async (t) => {
   });
 
   // Should fail without template.json
-  assert.notStrictEqual(result.exitCode, 0, 'make-template test should fail without template.json');
+  assert.notStrictEqual(result.exitCode, 0, 'create template test should fail without template.json');
 
   // Check error output
   const output = result.stdout + result.stderr;
@@ -429,8 +429,8 @@ test('make-template test - missing template.json fails', async (t) => {
   await verifyIsolation(testEnv);
 }, { timeout: LONG_TIMEOUT });
 
-test('make-template test - verbose flag shows details', async (t) => {
-  const testEnv = await createTestEnvironment('make-template-test-verbose');
+test('create template test - verbose flag shows details', async (t) => {
+  const testEnv = await createTestEnvironment('template-test-verbose');
 
   t.after(async () => {
     await testEnv.cleanup();
@@ -459,7 +459,7 @@ test('make-template test - verbose flag shows details', async (t) => {
     }, null, 2)
   });
 
-  // Run make-template test with --verbose from project root
+  // Run create template test with --verbose from project root
   const projectRoot = process.cwd();
   const result = execCLI('template', ['test', templateDir, '--verbose'], {
     env: testEnv.env,

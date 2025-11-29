@@ -6,7 +6,7 @@
  * Tests selection file functionality and validation workflows:
  * 1. Selection files via CLI (--selection flag)
  * 2. Gates validation (reject invalid dimension combinations)
- * 3. create-scaffold validate command
+ * 3. create scaffold validate command
  *
  * Uses hermetic test environments with M5NV_HOME isolation
  *
@@ -393,10 +393,10 @@ test('Gates validation - invalid dimension combination fails with clear error', 
 }, { timeout: LONG_TIMEOUT });
 
 // ============================================================================
-// Test 3: create-scaffold validate Command
+// Test 3: create scaffold validate Command
 // ============================================================================
 
-test('create-scaffold validate - valid template passes', async (t) => {
+test('create scaffold validate - valid template passes', async (t) => {
   const testEnv = await createTestEnvironment('validate-valid');
 
   t.after(async () => {
@@ -443,7 +443,7 @@ test('create-scaffold validate - valid template passes', async (t) => {
   await verifyIsolation(testEnv);
 }, { timeout: LONG_TIMEOUT });
 
-test('create-scaffold validate - invalid template fails with errors', async (t) => {
+test('create scaffold validate - invalid template fails with errors', async (t) => {
   const testEnv = await createTestEnvironment('validate-invalid');
 
   t.after(async () => {
@@ -487,7 +487,7 @@ test('create-scaffold validate - invalid template fails with errors', async (t) 
   await verifyIsolation(testEnv);
 }, { timeout: LONG_TIMEOUT });
 
-test('create-scaffold validate - works with template.json file path', async (t) => {
+test('create scaffold validate - works with template.json file path', async (t) => {
   const testEnv = await createTestEnvironment('validate-file-path');
 
   t.after(async () => {

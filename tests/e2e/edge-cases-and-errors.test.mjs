@@ -3,7 +3,7 @@
  *
  * Tests edge cases, restore workflow, and error handling:
  * 1. Minimal template scaffolding
- * 2. make-template restore workflow
+ * 2. create template restore workflow
  * 3. Error scenarios for invalid inputs
  */
 
@@ -171,7 +171,7 @@ describe('Sprint 3: Edge Cases and Error Scenarios', () => {
     const projectDir = path.join(testEnv.workspaceDir, 'restore-test');
     await fs.mkdir(projectDir, { recursive: true });
 
-    // Create package.json (required by make-template)
+    // Create package.json (required by create template)
     await fs.writeFile(
       path.join(projectDir, 'package.json'),
       JSON.stringify({ name: 'my-original-app', version: '1.0.0' }, null, 2)

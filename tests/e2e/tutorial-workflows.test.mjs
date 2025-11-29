@@ -27,30 +27,30 @@ test('Tutorial: Getting Started - Verify CLI tools accessible', async (t) => {
     await testEnv.cleanup();
   });
 
-  // Test create-scaffold --help
-  const createScaffoldHelp = execCLI('scaffold', ['--help'], {
+  // Test create scaffold --help
+  const scaffoldHelp = execCLI('scaffold', ['--help'], {
     env: testEnv.env,
     cwd: testEnv.workspaceDir
   });
 
-  assert.strictEqual(createScaffoldHelp.exitCode, 0, 'create-scaffold --help should succeed');
-  assert(createScaffoldHelp.stdout.includes('scaffold') || createScaffoldHelp.stdout.includes('create-scaffold'), 'Should show scaffold help');
+  assert.strictEqual(scaffoldHelp.exitCode, 0, 'create scaffold --help should succeed');
+  assert(scaffoldHelp.stdout.includes('scaffold'), 'Should show scaffold help');
 
-  // Test make-template --help
-  const makeTemplateHelp = execCLI('template', ['--help'], {
+  // Test create template --help
+  const templateHelp = execCLI('template', ['--help'], {
     env: testEnv.env,
     cwd: testEnv.workspaceDir
   });
 
-  assert.strictEqual(makeTemplateHelp.exitCode, 0, 'make-template --help should succeed');
-  assert(makeTemplateHelp.stdout.includes('template') || makeTemplateHelp.stdout.includes('make-template'), 'Should show template help');
+  assert.strictEqual(templateHelp.exitCode, 0, 'create template --help should succeed');
+  assert(templateHelp.stdout.includes('template'), 'Should show template help');
 
   // Verify isolation
   await verifyIsolation(testEnv);
 }, { timeout: LONG_TIMEOUT });
 
-test('Tutorial: make-template - Basic React SPA workflow', async (t) => {
-  const testEnv = await createTestEnvironment('make-template-basic');
+test('Tutorial: create template - Basic React SPA workflow', async (t) => {
+  const testEnv = await createTestEnvironment('template-basic');
 
   t.after(async () => {
     await testEnv.cleanup();
@@ -102,7 +102,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
     cwd: projectDir
   });
 
-  assert.strictEqual(initResult.exitCode, 0, 'make-template init should succeed');
+  assert.strictEqual(initResult.exitCode, 0, 'create template init should succeed');
   await assertFileExists(join(projectDir, '.templatize.json'), 'Should create .templatize.json');
   await assertFileExists(join(projectDir, 'template.json'), 'Should create template.json');
 
@@ -112,7 +112,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
     cwd: projectDir
   });
 
-  assert.strictEqual(convertResult.exitCode, 0, 'make-template convert should succeed');
+  assert.strictEqual(convertResult.exitCode, 0, 'create template convert should succeed');
 
   // Verify package.json was templatized (default autodetect uses PACKAGE_NAME)
   const packageJson = await readFile(join(projectDir, 'package.json'), 'utf8');
@@ -135,7 +135,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
     cwd: projectDir
   });
 
-  assert.strictEqual(restoreResult.exitCode, 0, 'make-template restore should succeed');
+  assert.strictEqual(restoreResult.exitCode, 0, 'create template restore should succeed');
 
   // Verify package.json restored to original
   const restoredPackageJson = await readFile(join(projectDir, 'package.json'), 'utf8');
@@ -146,8 +146,8 @@ ReactDOM.createRoot(document.getElementById('root')).render(
   await verifyIsolation(testEnv);
 }, { timeout: LONG_TIMEOUT });
 
-test('Tutorial: make-template - Marketing website with multiple placeholders', async (t) => {
-  const testEnv = await createTestEnvironment('make-template-marketing');
+test('Tutorial: create template - Marketing website with multiple placeholders', async (t) => {
+  const testEnv = await createTestEnvironment('template-marketing');
 
   t.after(async () => {
     await testEnv.cleanup();
@@ -269,7 +269,7 @@ test('Tutorial: make-template - Marketing website with multiple placeholders', a
     cwd: projectDir
   });
 
-  assert.strictEqual(initResult.exitCode, 0, 'make-template init should succeed');
+  assert.strictEqual(initResult.exitCode, 0, 'create template init should succeed');
 
   // Convert with custom config
   const convertResult = execCLI('template', ['convert', '--yes'], {
@@ -349,8 +349,8 @@ test('Tutorial: make-template - Marketing website with multiple placeholders', a
   await verifyIsolation(testEnv);
 }, { timeout: LONG_TIMEOUT });
 
-test('Tutorial: create-scaffold - Scaffold from local template', async (t) => {
-  const testEnv = await createTestEnvironment('create-scaffold-local');
+test('Tutorial: create scaffold - Scaffold from local template', async (t) => {
+  const testEnv = await createTestEnvironment('scaffold-local');
 
   t.after(async () => {
     await testEnv.cleanup();
@@ -418,8 +418,8 @@ test('Tutorial: create-scaffold - Scaffold from local template', async (t) => {
   await verifyIsolation(testEnv);
 }, { timeout: LONG_TIMEOUT });
 
-test('Tutorial: create-scaffold - Registry configuration and list', async (t) => {
-  const testEnv = await createTestEnvironment('create-scaffold-registry');
+test('Tutorial: create scaffold - Registry configuration and list', async (t) => {
+  const testEnv = await createTestEnvironment('scaffold-registry');
 
   t.after(async () => {
     await testEnv.cleanup();

@@ -20,8 +20,8 @@ import {
 
 const LONG_TIMEOUT = 120000;
 
-test('M5NV_HOME isolation - make-template uses isolated environment', async (t) => {
-  const testEnv = await createTestEnvironment('isolation-make-template');
+test('M5NV_HOME isolation - create template uses isolated environment', async (t) => {
+  const testEnv = await createTestEnvironment('isolation-template');
 
   t.after(async () => {
     await testEnv.cleanup();
@@ -32,7 +32,7 @@ test('M5NV_HOME isolation - make-template uses isolated environment', async (t) 
     'package.json': JSON.stringify({ name: 'test-project', version: '1.0.0' }, null, 2)
   });
 
-  // Run make-template init
+  // Run create template init
   const initResult = execCLI('template', ['init'], {
     env: testEnv.env,
     cwd: projectDir
@@ -65,8 +65,8 @@ test('M5NV_HOME isolation - make-template uses isolated environment', async (t) 
   }
 }, { timeout: LONG_TIMEOUT });
 
-test('M5NV_HOME isolation - create-scaffold uses isolated environment', async (t) => {
-  const testEnv = await createTestEnvironment('isolation-create-scaffold');
+test('M5NV_HOME isolation - create scaffold uses isolated environment', async (t) => {
+  const testEnv = await createTestEnvironment('isolation-scaffold');
 
   t.after(async () => {
     await testEnv.cleanup();
@@ -84,7 +84,7 @@ test('M5NV_HOME isolation - create-scaffold uses isolated environment', async (t
     }, null, 2)
   });
 
-  // Run create-scaffold with --help to test environment loading
+  // Run create scaffold with --help to test environment loading
   const helpResult = execCLI('scaffold', ['--help'], {
     env: testEnv.env,
     cwd: testEnv.workspaceDir
