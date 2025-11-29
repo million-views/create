@@ -59,18 +59,18 @@ create scaffold new another-app --template ./my-project --selection ./my-project
 - **Zero setup time**: Start coding immediately with pre-configured projects
 - **Consistent quality**: Every project includes battle-tested configurations
 - **Guided decisions**: Interactive prompts help you make the right choices
-- **Reproducible builds**: Recreate exact project setups anytime
+- **Reproducible builds**: `create scaffold new app-v2 --selection ./app.selection.json`
 
 ### For Teams & Organizations
 
 - **Codify standards**: Turn tribal knowledge into shareable templates
-- **Faster onboarding**: New developers get productive instantly
+- **Faster onboarding**: `create scaffold new onboarding-app --template team/fullstack`
 - **Evolving practices**: Update templates as your standards improve
 - **Cross-project consistency**: Same setup, same quality, everywhere
 
 ### For Template Creators
 
-- **One-command conversion**: Turn any project into a template
+- **One-command conversion**: `create template init && create template convert`
 - **Smart placeholder detection**: Automatically finds project-specific values
 - **Round-trip workflow**: Convert ↔ restore with full fidelity
 - **Rich validation**: Catch issues before users encounter them
@@ -118,50 +118,6 @@ npm install -g @m5nv/create
 This gives you the unified `create` command with two domains: `scaffold` and `template`.
 
 📖 **[Complete setup guide](docs/tutorial/getting-started.md)** for environment requirements and troubleshooting.
-
-## Real-World Examples
-
-### Template Authoring
-
-```bash
-# Convert your project to a reusable template
-cd my-awesome-project
-create template init      # Create configuration files
-create template convert   # Apply templatization
-
-# Or specify path explicitly
-create template init ./my-awesome-project
-create template convert ./my-awesome-project
-```
-
-Automatically detects and templatizes JSX, JSON, Markdown, and HTML content.
-
-📖 **[Complete Tutorial](docs/tutorial/template.md)**
-
-### Team Onboarding
-
-```bash
-# New developer joins the team
-create scaffold new onboarding-app --template company/react-fullstack
-```
-
-Project would be instantiated with all the best practices the org may have
-baked into the template such as ESLint, Jest, CI/CD, database integration, and
-authentication!
-
-📖 **[Complete Tutorial](docs/tutorial/scaffold.md)**
-
-### Reproducible Builds
-
-```bash
-# First time - interactive setup
-create scaffold new my-app --template complex-microservice
-
-# Creates: complex-microservice.selection.json
-
-# Next time - instant recreation
-create scaffold new my-other-app --template complex-microservice --selection ./complex-microservice.selection.json
-```
 
 ## The Two Domains
 
