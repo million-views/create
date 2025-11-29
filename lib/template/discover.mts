@@ -8,7 +8,7 @@ import * as sanitize from '../security/sanitize.mts';
 import { ValidationError } from '../error/validation.mts';
 import { validateDimensionsMetadata } from '../validation/domain/dimension.mts';
 import { validateAuthorAssetsDir } from '../validation/cli/option.mts';
-import { validateTemplateManifest } from '../validation/schema/manifest.mts';
+import { validateTemplateManifest } from '../validation/schema/template-runtime-validator.mts';
 import { normalizePlaceholders } from '../placeholder/schema.mts';
 
 /**

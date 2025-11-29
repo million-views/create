@@ -10,7 +10,7 @@
 import { strict as assert } from 'node:assert';
 import test from 'node:test';
 
-import { validateTemplateManifest } from '@m5nv/create/lib/validation/schema/manifest.mts';
+import { validateTemplateManifest } from '@m5nv/create/lib/validation/schema/template-runtime-validator.mts';
 import { ValidationError } from '@m5nv/create/lib/error/validation.mts';
 import { TemplateValidator } from '@m5nv/create/lib/validation/template-validator.mts';
 
@@ -55,26 +55,47 @@ test('TemplateValidator comprehensive validation', async (t) => {
       description: 'A valid template for testing',
       dimensions: {
         deployment: {
-          values: ['cloudflare-workers', 'deno-deploy'],
+          options: [
+            { id: 'cloudflare-workers', label: 'Cloudflare Workers' },
+            { id: 'deno-deploy', label: 'Deno Deploy' }
+          ],
           default: 'cloudflare-workers'
         },
         database: {
-          values: ['d1', 'sqlite', 'none'],
+          options: [
+            { id: 'd1', label: 'Cloudflare D1' },
+            { id: 'sqlite', label: 'SQLite' },
+            { id: 'none', label: 'None' }
+          ],
           default: 'd1'
         },
         identity: {
-          values: ['github', 'google', 'none'],
+          options: [
+            { id: 'github', label: 'GitHub OAuth' },
+            { id: 'google', label: 'Google OAuth' },
+            { id: 'none', label: 'None' }
+          ],
           default: 'none'
         }
       },
       gates: {
         deployment: {
-          platform: 'edge',
-          constraint: 'Workers runtime'
+          'cloudflare-workers': {
+            database: ['d1', 'none']  // Cloudflare Workers only supports D1 or none
+          }
         }
       },
-      // Note: featureSpecs and hints.features are legacy patterns
-      // New schema uses top-level 'features' array with 'needs'
+      features: [
+        {
+          id: 'auth',
+          label: 'Authentication',
+          description: 'User authentication',
+          needs: {
+            identity: 'required',
+            database: 'optional'
+          }
+        }
+      ],
       handoff: ['npm install']
     };
 
@@ -118,7 +139,7 @@ test('TemplateValidator comprehensive validation', async (t) => {
       description: 'Testing dimensions validation',
       dimensions: {
         invalid_dimension: {
-          values: ['test']
+          options: [{ id: 'test', label: 'Test' }]
         }
       }
     };
@@ -136,18 +157,16 @@ test('TemplateValidator comprehensive validation', async (t) => {
       description: 'Testing gates validation',
       dimensions: {
         deployment: {
-          values: ['cloudflare-workers']
+          options: [{ id: 'cloudflare-workers', label: 'Cloudflare Workers' }]
         },
         database: {
-          values: ['d1', 'postgres']
+          options: [{ id: 'd1', label: 'D1' }, { id: 'postgres', label: 'Postgres' }]
         }
       },
       gates: {
-        cloudflare: {
-          platform: 'edge',
-          constraint: 'Limited capabilities',
-          allowed: {
-            nonexistent: ['value'] // references unknown dimension
+        nonexistent: {  // references unknown dimension
+          'unknown-option': {
+            database: ['d1']
           }
         }
       }
@@ -155,35 +174,48 @@ test('TemplateValidator comprehensive validation', async (t) => {
 
     const result = await validator.validate(template, 'strict');
     assert(!result.valid, 'Template should be invalid');
-    assert(result.errors.some(e => e.message.includes('references unknown dimension')), 'Should report unknown dimension reference');
+    assert(result.errors.some(e => e.message.includes('not a valid dimension')), 'Should report invalid dimension reference');
   });
 
-  await t.test('validates feature specs reference existing features', async () => {
-    // This test validates legacy featureSpecs pattern
-    // New schema uses top-level 'features' array instead
+  await t.test('validates features array structure', async () => {
+    // V1.0.0 uses top-level 'features' array with required 'needs' field
     const template = {
       schemaVersion: '1.0.0',
       id: 'test/features',
       name: 'Features Test',
-      description: 'Testing feature specs validation',
+      description: 'Testing features validation',
       dimensions: {
         deployment: {
-          values: ['cloudflare-workers']
+          options: [{ id: 'cloudflare-workers', label: 'Cloudflare Workers' }]
+        },
+        database: {
+          options: [{ id: 'd1', label: 'D1' }]
         }
       },
-      featureSpecs: {
-        nonexistent: {
-          label: 'Nonexistent Feature',
-          description: 'This feature does not exist'
+      features: [
+        {
+          id: 'auth',
+          label: 'Authentication',
+          description: 'User authentication',
+          needs: {
+            database: 'required',
+            identity: 'optional'
+          }
+        },
+        {
+          id: 'api',
+          label: 'API',
+          description: 'REST API endpoints',
+          needs: {
+            deployment: 'required'
+          }
         }
-      }
+      ]
     };
 
     const result = await validator.validate(template, 'strict');
-    // Note: featureSpecs without dimensions.features is now valid
-    // The validator checks consistency only when both are present
-    assert(result.valid || result.errors.some(e => e.message.includes('does not correspond')),
-      'Should either be valid or report mismatch');
+    assert(result.valid, 'Template with valid features should be valid');
+    assert(result.errors.length === 0, 'Should have no errors');
   });
 
   await t.test('validates dimension names follow valid pattern', async () => {
@@ -194,7 +226,7 @@ test('TemplateValidator comprehensive validation', async (t) => {
       description: 'Testing dimension name validation',
       dimensions: {
         invalid_custom_dimension: {
-          values: ['value1', 'value2']
+          options: [{ id: 'value1', label: 'Value 1' }, { id: 'value2', label: 'Value 2' }]
         }
       }
     };
@@ -204,30 +236,24 @@ test('TemplateValidator comprehensive validation', async (t) => {
     assert(result.errors.some(e => e.message.includes('Unknown dimension')), 'Should report unknown dimension');
   });
 
-  await t.test('validates hints in legacy format', async () => {
-    // This test validates legacy hints.features pattern
-    // New schema uses top-level 'features' array instead
+  await t.test('validates options array is required', async () => {
+    // V1.0.0 requires options array format, not values
     const template = {
       schemaVersion: '1.0.0',
-      id: 'test/hints',
-      name: 'Hints Test',
-      description: 'Testing hints validation',
+      id: 'test/options-required',
+      name: 'Options Required Test',
+      description: 'Testing options array requirement',
       dimensions: {
         deployment: {
-          values: ['cloudflare-workers']
-        }
-      },
-      hints: {
-        features: {
-          nonexistent: 'This hint references a nonexistent feature'
+          // Missing options array
+          default: 'cloudflare-workers'
         }
       }
     };
 
     const result = await validator.validate(template, 'strict');
-    // Note: hints.features pattern is legacy, validator may not require dimensions.features
-    assert(result.valid || result.errors.some(e => e.message.includes('does not correspond')),
-      'Should either be valid or report mismatch');
+    assert(!result.valid, 'Template without options should be invalid');
+    assert(result.errors.some(e => e.message.includes('options')), 'Should report missing options');
   });
 
   await t.test('validates lenient policy allows schema errors', async () => {
@@ -238,7 +264,7 @@ test('TemplateValidator comprehensive validation', async (t) => {
       // Missing description
       dimensions: {
         invalid_dimension: {
-          values: ['test']
+          options: [{ id: 'test', label: 'Test' }]
         }
       }
     };

@@ -352,10 +352,10 @@ class TestRunner {
         homeSuffix: 'placeholder-schema'
       },
       {
-        name: 'Template Manifest Validator Tests',
-        command: ['--test', './tests/validators/template-manifest-validator.test.mjs'],
+        name: 'Template Runtime Validator Tests',
+        command: ['--test', './tests/validators/template-runtime-validator.test.mjs'],
         description: 'Template manifest validation for V1 schema',
-        homeSuffix: 'template-manifest-validator'
+        homeSuffix: 'template-runtime-validator'
       },
       {
         name: 'Template Validator Extended Tests',

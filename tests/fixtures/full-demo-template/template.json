@@ -5,22 +5,15 @@
   "description": "Fixture combining files, JSON, and IDE utilities",
   "placeholderFormat": "unicode",
   "placeholders": {},
-  "setup": {},
-  "dimensions": {
-    "features": {
-      "values": [
-        "docs"
-      ],
-      "default": []
-    }
-  },
-  "featureSpecs": {
-    "docs": {
+  "features": [
+    {
+      "id": "docs",
       "label": "Documentation",
       "description": "Add documentation files and setup",
       "needs": {}
     }
-  },
+  ],
+  "setup": {},
   "handoff": [
     "npm install",
     "npm run lint",

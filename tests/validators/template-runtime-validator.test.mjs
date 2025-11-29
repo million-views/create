@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 
 /**
- * @fileoverview L2 Unit Tests for template-manifest-validator.mjs
+ * @fileoverview L2 Unit Tests for template-runtime-validator.mts
  *
- * Coverage target: template-manifest-validator.mjs validation functions
+ * Coverage target: template-runtime-validator.mts validation functions
  * Testing layer: L2 (Unit Tests - isolated module testing)
  * Philosophy: "Question before fixing" - tests validate actual SUT behavior
  */
@@ -11,7 +11,7 @@
 import { strict as assert } from 'node:assert';
 import test from 'node:test';
 
-import { validateTemplateManifest } from '@m5nv/create/lib/validation/schema/manifest.mts';
+import { validateTemplateManifest } from '@m5nv/create/lib/validation/schema/template-runtime-validator.mts';
 import { ValidationError } from '@m5nv/create/lib/error/validation.mts';
 
 // =============================================================================
@@ -269,7 +269,9 @@ test('validateTemplateManifest - V1 Required Fields', async (t) => {
 });
 
 // =============================================================================
-// Test Suite: validateTemplateManifest - Dimensions Validation
+// Test Suite: validateTemplateManifest - Dimensions Validation (V1.0.0)
+// V1.0.0: Fixed vocabulary of 7 dimensions (deployment, database, storage, etc.)
+// Each dimension uses 'options' array (NOT 'values') with {id, label?, desc?} objects
 // =============================================================================
 
 test('validateTemplateManifest - Dimensions Validation', async (t) => {
@@ -293,83 +295,42 @@ test('validateTemplateManifest - Dimensions Validation', async (t) => {
     );
   });
 
-  await t.test('throws ValidationError for dimension with non-array values', () => {
+  await t.test('throws ValidationError for invalid dimension name', () => {
     assert.throws(
       () => validateTemplateManifest({
         ...baseManifest,
         dimensions: {
-          features: { values: 'not-an-array' }
+          invalidDimension: { options: [{ id: 'test' }] }
         }
       }),
       (error) => error instanceof ValidationError &&
-        error.message.includes('values must be an array')
+        error.message.includes('Invalid dimension name: invalidDimension')
     );
   });
 
-  await t.test('throws ValidationError for dimension with empty values array', () => {
+  await t.test('throws ValidationError for dimension with non-array options', () => {
     assert.throws(
       () => validateTemplateManifest({
         ...baseManifest,
         dimensions: {
-          features: { values: [] }
+          deployment: { options: 'not-an-array' }
         }
       }),
       (error) => error instanceof ValidationError &&
-        error.message.includes('must have at least one value')
+        error.message.includes("must have an 'options' array")
     );
   });
 
-  await t.test('accepts valid dimension with values array', () => {
-    const result = validateTemplateManifest({
-      ...baseManifest,
-      dimensions: {
-        features: { values: ['auth', 'database'] }
-      }
-    });
-    assert.deepEqual(result.dimensions.features.values, ['auth', 'database']);
-  });
-
-  // Structured dimension format
-  await t.test('throws ValidationError for structured dimension without name', () => {
+  await t.test('throws ValidationError for dimension with empty options array', () => {
     assert.throws(
       () => validateTemplateManifest({
         ...baseManifest,
         dimensions: {
-          features: { options: [{ id: 'test', name: 'Test' }] }
+          deployment: { options: [] }
         }
       }),
       (error) => error instanceof ValidationError &&
-        error.message.includes('must have a name')
-    );
-  });
-
-  await t.test('throws ValidationError for structured dimension without description', () => {
-    assert.throws(
-      () => validateTemplateManifest({
-        ...baseManifest,
-        dimensions: {
-          features: { name: 'Features', options: [{ id: 'test', name: 'Test' }] }
-        }
-      }),
-      (error) => error instanceof ValidationError &&
-        error.message.includes('must have a description')
-    );
-  });
-
-  await t.test('throws ValidationError for structured dimension with non-array options', () => {
-    assert.throws(
-      () => validateTemplateManifest({
-        ...baseManifest,
-        dimensions: {
-          features: {
-            name: 'Features',
-            description: 'Choose features',
-            options: 'not-an-array'
-          }
-        }
-      }),
-      (error) => error instanceof ValidationError &&
-        error.message.includes('must have options array')
+        error.message.includes('must have at least one option')
     );
   });
 
@@ -378,68 +339,83 @@ test('validateTemplateManifest - Dimensions Validation', async (t) => {
       () => validateTemplateManifest({
         ...baseManifest,
         dimensions: {
-          features: {
-            name: 'Features',
-            description: 'Choose features',
-            options: [{ name: 'Test' }]
+          deployment: {
+            options: [{ label: 'Test' }]
           }
         }
       }),
       (error) => error instanceof ValidationError &&
-        error.message.includes('option 0 must have an id')
+        error.message.includes("option 0 must have an 'id' string")
     );
   });
 
-  await t.test('throws ValidationError for option without name', () => {
-    assert.throws(
-      () => validateTemplateManifest({
-        ...baseManifest,
-        dimensions: {
-          features: {
-            name: 'Features',
-            description: 'Choose features',
-            options: [{ id: 'test' }]
-          }
-        }
-      }),
-      (error) => error instanceof ValidationError &&
-        error.message.includes('option 0 must have a name')
-    );
-  });
-
-  await t.test('accepts valid structured dimension', () => {
+  await t.test('accepts valid dimension with options array', () => {
     const result = validateTemplateManifest({
       ...baseManifest,
       dimensions: {
-        features: {
-          name: 'Features',
-          description: 'Choose features',
+        deployment: {
+          label: 'Deployment Target',
           options: [
-            { id: 'auth', name: 'Authentication' },
-            { id: 'db', name: 'Database' }
+            { id: 'aws', label: 'AWS' },
+            { id: 'gcp', label: 'GCP' }
           ]
         }
       }
     });
-    assert.equal(result.dimensions.features.options.length, 2);
+    assert.equal(result.dimensions.deployment.options.length, 2);
+    assert.equal(result.dimensions.deployment.options[0].id, 'aws');
   });
 
-  await t.test('throws ValidationError for dimension without values or options', () => {
+  await t.test('accepts all valid dimension names', () => {
+    const result = validateTemplateManifest({
+      ...baseManifest,
+      dimensions: {
+        deployment: { options: [{ id: 'aws' }] },
+        database: { options: [{ id: 'postgres' }] },
+        storage: { options: [{ id: 'r2' }] },
+        identity: { options: [{ id: 'github' }] },
+        billing: { options: [{ id: 'stripe' }] },
+        analytics: { options: [{ id: 'umami' }] },
+        monitoring: { options: [{ id: 'sentry' }] }
+      }
+    });
+    assert.equal(Object.keys(result.dimensions).length, 7);
+  });
+
+  await t.test('accepts dimension with optional label property', () => {
+    const result = validateTemplateManifest({
+      ...baseManifest,
+      dimensions: {
+        database: {
+          label: 'Database Provider',
+          options: [
+            { id: 'postgres', label: 'PostgreSQL', desc: 'Relational database' }
+          ]
+        }
+      }
+    });
+    assert.equal(result.dimensions.database.label, 'Database Provider');
+    assert.equal(result.dimensions.database.options[0].desc, 'Relational database');
+  });
+
+  await t.test('throws ValidationError for dimension without options property', () => {
     assert.throws(
       () => validateTemplateManifest({
         ...baseManifest,
         dimensions: {
-          features: { description: 'some dimension' }
+          deployment: { label: 'Deployment' }
         }
       }),
       (error) => error instanceof ValidationError &&
-        error.message.includes("must have either 'values' or 'options' property")
+        error.message.includes("must have an 'options' array")
     );
   });
 });
 
 // =============================================================================
-// Test Suite: validateTemplateManifest - Gates Validation
+// Test Suite: validateTemplateManifest - Gates Validation (V1.0.0)
+// V1.0.0 Schema: Gates are keyed by dimension name, then by option ID.
+// Each option ID maps to constraint objects specifying allowed option IDs for other dimensions.
 // =============================================================================
 
 test('validateTemplateManifest - Gates Validation', async (t) => {
@@ -449,7 +425,23 @@ test('validateTemplateManifest - Gates Validation', async (t) => {
     name: 'Test Template',
     description: 'A test template',
     placeholderFormat: 'unicode',
-    placeholders: {}
+    placeholders: {},
+    dimensions: {
+      deployment: {
+        label: 'Deployment',
+        options: [
+          { id: 'aws', label: 'AWS' },
+          { id: 'gcp', label: 'GCP' }
+        ]
+      },
+      database: {
+        label: 'Database',
+        options: [
+          { id: 'postgres', label: 'PostgreSQL' },
+          { id: 'dynamodb', label: 'DynamoDB' }
+        ]
+      }
+    }
   };
 
   await t.test('throws ValidationError for array gates', () => {
@@ -463,74 +455,149 @@ test('validateTemplateManifest - Gates Validation', async (t) => {
     );
   });
 
-  await t.test('throws ValidationError for non-object gate', () => {
+  await t.test('throws ValidationError for invalid dimension key', () => {
     assert.throws(
       () => validateTemplateManifest({
         ...baseManifest,
         gates: {
-          myGate: 'not-an-object'
+          invalidDimension: { someOption: {} }
         }
       }),
       (error) => error instanceof ValidationError &&
-        error.message.includes("gate 'myGate' must be an object")
+        error.message.includes("Gate key 'invalidDimension' is not a valid dimension")
     );
   });
 
-  await t.test('throws ValidationError for null gate', () => {
+  await t.test('throws ValidationError for non-object dimension gate', () => {
     assert.throws(
       () => validateTemplateManifest({
         ...baseManifest,
         gates: {
-          myGate: null
+          deployment: 'not-an-object'
         }
       }),
       (error) => error instanceof ValidationError &&
-        error.message.includes("gate 'myGate' must be an object")
+        error.message.includes('gates.deployment must be an object')
     );
   });
 
-  await t.test('throws ValidationError for array gate', () => {
+  await t.test('throws ValidationError for null dimension gate', () => {
     assert.throws(
       () => validateTemplateManifest({
         ...baseManifest,
         gates: {
-          myGate: []
+          deployment: null
         }
       }),
       (error) => error instanceof ValidationError &&
-        error.message.includes("gate 'myGate' must be an object")
+        error.message.includes('gates.deployment must be an object')
     );
   });
 
-  await t.test('throws ValidationError for empty gate object', () => {
+  await t.test('throws ValidationError for array dimension gate', () => {
     assert.throws(
       () => validateTemplateManifest({
         ...baseManifest,
         gates: {
-          myGate: {}
+          deployment: []
         }
       }),
       (error) => error instanceof ValidationError &&
-        error.message.includes('must have configuration properties')
+        error.message.includes('gates.deployment must be an object')
     );
   });
 
-  await t.test('accepts valid gate', () => {
+  await t.test('throws ValidationError for invalid option ID in gate', () => {
+    assert.throws(
+      () => validateTemplateManifest({
+        ...baseManifest,
+        gates: {
+          deployment: {
+            invalidOption: { database: ['postgres'] }
+          }
+        }
+      }),
+      (error) => error instanceof ValidationError &&
+        error.message.includes("Gate option 'invalidOption' is not defined in dimension 'deployment'")
+    );
+  });
+
+  await t.test('throws ValidationError for non-object constraint', () => {
+    assert.throws(
+      () => validateTemplateManifest({
+        ...baseManifest,
+        gates: {
+          deployment: {
+            aws: 'not-an-object'
+          }
+        }
+      }),
+      (error) => error instanceof ValidationError &&
+        error.message.includes('gates.deployment.aws must be an object')
+    );
+  });
+
+  await t.test('throws ValidationError for invalid constraint target dimension', () => {
+    assert.throws(
+      () => validateTemplateManifest({
+        ...baseManifest,
+        gates: {
+          deployment: {
+            aws: { invalidDimension: ['postgres'] }
+          }
+        }
+      }),
+      (error) => error instanceof ValidationError &&
+        error.message.includes("Gate constraint target 'invalidDimension' is not a valid dimension")
+    );
+  });
+
+  await t.test('throws ValidationError for non-array constraint values', () => {
+    assert.throws(
+      () => validateTemplateManifest({
+        ...baseManifest,
+        gates: {
+          deployment: {
+            aws: { database: 'postgres' }
+          }
+        }
+      }),
+      (error) => error instanceof ValidationError &&
+        error.message.includes('gates.deployment.aws.database must be an array')
+    );
+  });
+
+  await t.test('accepts valid gate with proper V1.0.0 structure', () => {
     const result = validateTemplateManifest({
       ...baseManifest,
       gates: {
-        platform: { constraint: 'node >= 18' }
+        deployment: {
+          aws: { database: ['dynamodb', 'postgres'] },
+          gcp: { database: ['postgres'] }
+        }
       }
     });
-    assert.deepEqual(result.gates.platform, { constraint: 'node >= 18' });
+    assert.deepEqual(result.gates.deployment, {
+      aws: { database: ['dynamodb', 'postgres'] },
+      gcp: { database: ['postgres'] }
+    });
+  });
+
+  await t.test('accepts empty gates object', () => {
+    const result = validateTemplateManifest({
+      ...baseManifest,
+      gates: {}
+    });
+    assert.deepEqual(result.gates, {});
   });
 });
 
 // =============================================================================
-// Test Suite: validateTemplateManifest - Feature Specs Validation
+// =============================================================================
+// Test Suite: validateTemplateManifest - Features Array Validation (V1.0.0)
 // =============================================================================
 
-test('validateTemplateManifest - Feature Specs Validation', async (t) => {
+test('validateTemplateManifest - Features Array Validation', async (t) => {
   const baseManifest = {
     schemaVersion: '1.0.0',
     id: 'test/template',
@@ -540,165 +607,120 @@ test('validateTemplateManifest - Feature Specs Validation', async (t) => {
     placeholders: {}
   };
 
-  await t.test('throws ValidationError for array featureSpecs', () => {
-    assert.throws(
-      () => validateTemplateManifest({
-        ...baseManifest,
-        featureSpecs: []
-      }),
-      (error) => error instanceof ValidationError &&
-        error.message.includes('featureSpecs must be an object')
-    );
-  });
-
-  await t.test('throws ValidationError for non-object feature', () => {
-    assert.throws(
-      () => validateTemplateManifest({
-        ...baseManifest,
-        featureSpecs: {
-          auth: 'not-an-object'
-        }
-      }),
-      (error) => error instanceof ValidationError &&
-        error.message.includes("feature 'auth' must be an object")
-    );
-  });
-
-  await t.test('throws ValidationError for null feature', () => {
-    assert.throws(
-      () => validateTemplateManifest({
-        ...baseManifest,
-        featureSpecs: {
-          auth: null
-        }
-      }),
-      (error) => error instanceof ValidationError &&
-        error.message.includes("feature 'auth' must be an object")
-    );
-  });
-
-  await t.test('throws ValidationError for array feature', () => {
-    assert.throws(
-      () => validateTemplateManifest({
-        ...baseManifest,
-        featureSpecs: {
-          auth: []
-        }
-      }),
-      (error) => error instanceof ValidationError &&
-        error.message.includes("feature 'auth' must be an object")
-    );
-  });
-
-  await t.test('throws ValidationError for empty feature object', () => {
-    assert.throws(
-      () => validateTemplateManifest({
-        ...baseManifest,
-        featureSpecs: {
-          auth: {}
-        }
-      }),
-      (error) => error instanceof ValidationError &&
-        error.message.includes('must have configuration properties')
-    );
-  });
-
-  await t.test('accepts valid feature spec', () => {
+  await t.test('accepts empty features array', () => {
     const result = validateTemplateManifest({
       ...baseManifest,
-      featureSpecs: {
-        auth: { label: 'Authentication', description: 'User auth' }
-      }
+      features: []
     });
-    assert.deepEqual(result.featureSpecs.auth, { label: 'Authentication', description: 'User auth' });
+    assert.deepEqual(result.features, []);
   });
-});
 
-// =============================================================================
-// Test Suite: validateTemplateManifest - Hints Validation
-// =============================================================================
-
-test('validateTemplateManifest - Hints Validation', async (t) => {
-  const baseManifest = {
-    schemaVersion: '1.0.0',
-    id: 'test/template',
-    name: 'Test Template',
-    description: 'A test template',
-    placeholderFormat: 'unicode',
-    placeholders: {}
-  };
-
-  await t.test('throws ValidationError for array hints', () => {
+  await t.test('throws ValidationError for feature without id', () => {
     assert.throws(
       () => validateTemplateManifest({
         ...baseManifest,
-        hints: []
+        features: [
+          { label: 'Auth', needs: {} }
+        ]
       }),
       (error) => error instanceof ValidationError &&
-        error.message.includes('hints must be an object')
+        error.message.includes("must have an 'id' string")
     );
   });
 
-  await t.test('throws ValidationError for non-object hint', () => {
+  await t.test('throws ValidationError for feature without label', () => {
     assert.throws(
       () => validateTemplateManifest({
         ...baseManifest,
-        hints: {
-          features: 'not-an-object'
-        }
+        features: [
+          { id: 'auth', needs: {} }
+        ]
       }),
       (error) => error instanceof ValidationError &&
-        error.message.includes("hint 'features' must be an object")
+        error.message.includes("must have a 'label' string")
     );
   });
 
-  await t.test('throws ValidationError for null hint', () => {
+  await t.test('throws ValidationError for feature without needs', () => {
     assert.throws(
       () => validateTemplateManifest({
         ...baseManifest,
-        hints: {
-          features: null
-        }
+        features: [
+          { id: 'auth', label: 'Authentication' }
+        ]
       }),
       (error) => error instanceof ValidationError &&
-        error.message.includes("hint 'features' must be an object")
+        error.message.includes("must have a 'needs' object")
     );
   });
 
-  await t.test('throws ValidationError for array hint', () => {
+  await t.test('throws ValidationError for feature with invalid id format', () => {
     assert.throws(
       () => validateTemplateManifest({
         ...baseManifest,
-        hints: {
-          features: []
-        }
+        features: [
+          { id: 'INVALID_ID', label: 'Auth', needs: {} }
+        ]
       }),
       (error) => error instanceof ValidationError &&
-        error.message.includes("hint 'features' must be an object")
+        error.message.includes('has invalid format')
     );
   });
 
-  await t.test('throws ValidationError for empty hint object', () => {
+  await t.test('throws ValidationError for needs referencing invalid dimension', () => {
     assert.throws(
       () => validateTemplateManifest({
         ...baseManifest,
-        hints: {
-          features: {}
-        }
+        features: [
+          { id: 'auth', label: 'Auth', needs: { invalid_dimension: 'required' } }
+        ]
       }),
       (error) => error instanceof ValidationError &&
-        error.message.includes('must have configuration properties')
+        error.message.includes('references invalid dimension')
     );
   });
 
-  await t.test('accepts valid hint', () => {
+  await t.test('throws ValidationError for invalid needs level', () => {
+    assert.throws(
+      () => validateTemplateManifest({
+        ...baseManifest,
+        features: [
+          { id: 'auth', label: 'Auth', needs: { identity: 'invalid' } }
+        ]
+      }),
+      (error) => error instanceof ValidationError &&
+        error.message.includes("must be 'required', 'optional', or 'none'")
+    );
+  });
+
+  await t.test('accepts valid feature with needs', () => {
     const result = validateTemplateManifest({
       ...baseManifest,
-      hints: {
-        features: { auth: 'Recommended for most apps' }
-      }
+      features: [
+        {
+          id: 'user-login',
+          label: 'User Login',
+          description: 'User authentication feature',
+          needs: { identity: 'required', database: 'optional' }
+        }
+      ]
     });
-    assert.deepEqual(result.hints.features, { auth: 'Recommended for most apps' });
+    assert.equal(result.features.length, 1);
+    assert.equal(result.features[0].id, 'user-login');
+    assert.equal(result.features[0].label, 'User Login');
+    assert.deepEqual(result.features[0].needs, { identity: 'required', database: 'optional' });
+  });
+
+  await t.test('accepts multiple features', () => {
+    const result = validateTemplateManifest({
+      ...baseManifest,
+      features: [
+        { id: 'api', label: 'API', needs: {} },
+        { id: 'auth', label: 'Auth', needs: { identity: 'required' } },
+        { id: 'billing', label: 'Billing', needs: { billing: 'required' } }
+      ]
+    });
+    assert.equal(result.features.length, 3);
   });
 });
 
@@ -903,8 +925,7 @@ test('validateTemplateManifest - Return Value Structure', async (t) => {
     assert('description' in result);
     assert('dimensions' in result);
     assert('gates' in result);
-    assert('featureSpecs' in result);
-    assert('hints' in result);
+    assert('features' in result);
     assert('authorAssetsDir' in result);
     assert('placeholders' in result);
     assert('canonicalVariables' in result);

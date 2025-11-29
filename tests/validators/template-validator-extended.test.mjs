@@ -6,6 +6,12 @@
  * Coverage target: template-validator.mjs uncovered validation methods
  * Testing layer: L2 (Unit Tests - isolated module testing)
  * Philosophy: "Question before fixing" - tests validate actual SUT behavior
+ *
+ * V1.0.0 Schema Compliance:
+ * - 7 fixed dimensions: deployment, database, storage, identity, billing, analytics, monitoring
+ * - dimensions use 'options' array with {id, label} objects
+ * - features is a top-level array with {id, label, needs} objects
+ * - gates keyed by dimension → option ID → constraint objects
  */
 
 import { strict as assert } from 'node:assert';
@@ -14,20 +20,20 @@ import test from 'node:test';
 import { TemplateValidator } from '../../lib/validation/template-validator.mts';
 
 // =============================================================================
-// Test Suite: Schema Validation Methods
+// Test Suite: Schema Validation Methods (V1.0.0 Compliant)
 // =============================================================================
 
 test('TemplateValidator - Dimensions Schema Validation', async (t) => {
   const validator = new TemplateValidator();
 
-  await t.test('validateDimensionsSchema catches error for dimension without values', async () => {
+  await t.test('validateDimensionsSchema catches error for dimension without options', async () => {
     const template = {
       schemaVersion: '1.0.0',
       id: 'test/template',
       name: 'Test Template',
       description: 'A test template',
       dimensions: {
-        deployment: { default: 'cloudflare-workers' } // Missing values/options causes error
+        deployment: { default: 'cloudflare-workers' } // Missing options array
       }
     };
 
@@ -43,7 +49,9 @@ test('TemplateValidator - Dimensions Schema Validation', async (t) => {
       name: 'Test Template',
       description: 'A test template',
       dimensions: {
-        invalid_dimension: { values: ['test'] }
+        invalid_dimension: {
+          options: [{ id: 'test', label: 'Test' }]
+        }
       }
     };
 
@@ -53,136 +61,284 @@ test('TemplateValidator - Dimensions Schema Validation', async (t) => {
   });
 });
 
-test('TemplateValidator - Gates Schema Validation', async (t) => {
+test('TemplateValidator - Gates Schema Validation (V1.0.0)', async (t) => {
   const validator = new TemplateValidator();
 
-  await t.test('validateGatesSchema reports missing platform', async () => {
-    const template = {
-      schemaVersion: '1.0.0',
-      id: 'test/template',
-      name: 'Test Template',
-      description: 'A test template',
-      gates: {
-        cloudflare: { constraint: 'edge runtime' } // Missing platform
-      }
-    };
-
-    const result = await validator.validate(template, 'strict');
-    assert(!result.valid);
-    assert(result.errors.some(e => e.message.includes('missing required field: platform')));
-  });
-
-  await t.test('validateGatesSchema reports missing constraint', async () => {
-    const template = {
-      schemaVersion: '1.0.0',
-      id: 'test/template',
-      name: 'Test Template',
-      description: 'A test template',
-      gates: {
-        cloudflare: { platform: 'edge' } // Missing constraint
-      }
-    };
-
-    const result = await validator.validate(template, 'strict');
-    assert(!result.valid);
-    assert(result.errors.some(e => e.message.includes('missing required field: constraint')));
-  });
-});
-
-test('TemplateValidator - FeatureSpecs Schema Validation', async (t) => {
-  const validator = new TemplateValidator();
-
-  await t.test('validateFeatureSpecsSchema reports missing label', async () => {
-    const template = {
-      schemaVersion: '1.0.0',
-      id: 'test/template',
-      name: 'Test Template',
-      description: 'A test template',
-      featureSpecs: {
-        auth: { description: 'Authentication' } // Missing label
-      }
-    };
-
-    const result = await validator.validate(template, 'strict');
-    assert(!result.valid);
-    assert(result.errors.some(e => e.message.includes('missing required field: label')));
-  });
-
-  await t.test('validateFeatureSpecsSchema reports missing description', async () => {
-    const template = {
-      schemaVersion: '1.0.0',
-      id: 'test/template',
-      name: 'Test Template',
-      description: 'A test template',
-      featureSpecs: {
-        auth: { label: 'Auth' } // Missing description
-      }
-    };
-
-    const result = await validator.validate(template, 'strict');
-    assert(!result.valid);
-    assert(result.errors.some(e => e.message.includes('missing required field: description')));
-  });
-});
-
-// =============================================================================
-// Test Suite: Domain Validation Methods
-// =============================================================================
-
-test('TemplateValidator - Domain Validation - Dimension Values', async (t) => {
-  const validator = new TemplateValidator();
-
-  await t.test('reports empty dimension values', async () => {
+  await t.test('validateGatesSchema reports invalid gate dimension', async () => {
     const template = {
       schemaVersion: '1.0.0',
       id: 'test/template',
       name: 'Test Template',
       description: 'A test template',
       dimensions: {
-        features: { values: [] }
+        deployment: {
+          options: [{ id: 'cloudflare-workers', label: 'Cloudflare Workers' }]
+        }
+      },
+      gates: {
+        invalid_dimension: {  // Not a valid dimension
+          'some-option': {
+            database: ['d1']
+          }
+        }
       }
     };
 
     const result = await validator.validate(template, 'strict');
     assert(!result.valid);
-    assert(result.errors.some(e => e.message.includes('at least one value')));
+    assert(result.errors.some(e => e.message.includes('not a valid dimension')));
   });
 
-  await t.test('reports duplicate dimension values', async () => {
+  await t.test('validateGatesSchema validates constraint structure', async () => {
     const template = {
       schemaVersion: '1.0.0',
       id: 'test/template',
       name: 'Test Template',
       description: 'A test template',
       dimensions: {
-        features: { values: ['auth', 'auth', 'db'] }
+        deployment: {
+          options: [{ id: 'cloudflare-workers', label: 'Cloudflare Workers' }]
+        },
+        database: {
+          options: [
+            { id: 'd1', label: 'D1' },
+            { id: 'none', label: 'None' }
+          ]
+        }
+      },
+      gates: {
+        deployment: {
+          'cloudflare-workers': {
+            database: ['d1', 'none']  // Valid V1.0.0 constraint structure
+          }
+        }
+      }
+    };
+
+    const result = await validator.validate(template, 'strict');
+    assert(result.valid, 'Template with valid gates should be valid');
+  });
+
+  await t.test('validateGatesSchema reports invalid constraint target dimension', async () => {
+    const template = {
+      schemaVersion: '1.0.0',
+      id: 'test/template',
+      name: 'Test Template',
+      description: 'A test template',
+      dimensions: {
+        deployment: {
+          options: [{ id: 'cloudflare-workers', label: 'Cloudflare Workers' }]
+        }
+      },
+      gates: {
+        deployment: {
+          'cloudflare-workers': {
+            invalid_target: ['value']  // Invalid target dimension
+          }
+        }
       }
     };
 
     const result = await validator.validate(template, 'strict');
     assert(!result.valid);
-    assert(result.errors.some(e => e.message.includes('duplicate values')));
+    assert(result.errors.some(e => e.message.includes('not a valid dimension')));
+  });
+});
+
+test('TemplateValidator - Features Schema Validation (V1.0.0)', async (t) => {
+  const validator = new TemplateValidator();
+
+  await t.test('validateFeaturesSchema reports missing id', async () => {
+    const template = {
+      schemaVersion: '1.0.0',
+      id: 'test/template',
+      name: 'Test Template',
+      description: 'A test template',
+      features: [
+        { label: 'Auth', needs: { database: 'required' } }  // Missing id
+      ]
+    };
+
+    const result = await validator.validate(template, 'strict');
+    assert(!result.valid);
+    assert(result.errors.some(e => e.message.includes('id')));
+  });
+
+  await t.test('validateFeaturesSchema reports missing label', async () => {
+    const template = {
+      schemaVersion: '1.0.0',
+      id: 'test/template',
+      name: 'Test Template',
+      description: 'A test template',
+      features: [
+        { id: 'auth', needs: { database: 'required' } }  // Missing label
+      ]
+    };
+
+    const result = await validator.validate(template, 'strict');
+    assert(!result.valid);
+    assert(result.errors.some(e => e.message.includes('label')));
+  });
+
+  await t.test('validateFeaturesSchema reports missing needs', async () => {
+    const template = {
+      schemaVersion: '1.0.0',
+      id: 'test/template',
+      name: 'Test Template',
+      description: 'A test template',
+      features: [
+        { id: 'auth', label: 'Authentication' }  // Missing needs
+      ]
+    };
+
+    const result = await validator.validate(template, 'strict');
+    assert(!result.valid);
+    assert(result.errors.some(e => e.message.includes('needs')));
+  });
+
+  await t.test('validateFeaturesSchema reports invalid needs dimension', async () => {
+    const template = {
+      schemaVersion: '1.0.0',
+      id: 'test/template',
+      name: 'Test Template',
+      description: 'A test template',
+      features: [
+        {
+          id: 'auth',
+          label: 'Authentication',
+          needs: {
+            invalid_dimension: 'required'  // Invalid dimension
+          }
+        }
+      ]
+    };
+
+    const result = await validator.validate(template, 'strict');
+    assert(!result.valid);
+    assert(result.errors.some(e => e.message.includes('invalid dimension')));
+  });
+
+  await t.test('validateFeaturesSchema reports invalid needs level', async () => {
+    const template = {
+      schemaVersion: '1.0.0',
+      id: 'test/template',
+      name: 'Test Template',
+      description: 'A test template',
+      features: [
+        {
+          id: 'auth',
+          label: 'Authentication',
+          needs: {
+            database: 'mandatory'  // Invalid level, should be required/optional/none
+          }
+        }
+      ]
+    };
+
+    const result = await validator.validate(template, 'strict');
+    assert(!result.valid);
+    assert(result.errors.some(e => e.message.includes("'required', 'optional', or 'none'")));
+  });
+
+  await t.test('validateFeaturesSchema passes with valid features array', async () => {
+    const template = {
+      schemaVersion: '1.0.0',
+      id: 'test/template',
+      name: 'Test Template',
+      description: 'A test template',
+      dimensions: {
+        database: {
+          options: [{ id: 'postgres', label: 'PostgreSQL' }]
+        },
+        identity: {
+          options: [{ id: 'auth0', label: 'Auth0' }]
+        }
+      },
+      features: [
+        {
+          id: 'auth',
+          label: 'Authentication',
+          needs: {
+            database: 'required',
+            identity: 'optional'
+          }
+        }
+      ]
+    };
+
+    const result = await validator.validate(template, 'strict');
+    assert(result.valid, 'Template with valid features should be valid');
+  });
+});
+
+// =============================================================================
+// Test Suite: Domain Validation Methods (V1.0.0 Compliant)
+// =============================================================================
+
+test('TemplateValidator - Domain Validation - Dimension Options', async (t) => {
+  const validator = new TemplateValidator();
+
+  await t.test('reports empty options array', async () => {
+    const template = {
+      schemaVersion: '1.0.0',
+      id: 'test/template',
+      name: 'Test Template',
+      description: 'A test template',
+      dimensions: {
+        deployment: {
+          options: []  // Empty options
+        }
+      }
+    };
+
+    const result = await validator.validate(template, 'strict');
+    assert(!result.valid);
+    assert(result.errors.some(e =>
+      e.message.includes('at least one') ||
+      e.message.includes('options') ||
+      e.message.includes('empty')
+    ));
+  });
+
+  await t.test('reports option missing id', async () => {
+    const template = {
+      schemaVersion: '1.0.0',
+      id: 'test/template',
+      name: 'Test Template',
+      description: 'A test template',
+      dimensions: {
+        deployment: {
+          options: [
+            { label: 'Workers' }  // Missing id
+          ]
+        }
+      }
+    };
+
+    const result = await validator.validate(template, 'strict');
+    assert(!result.valid);
+    assert(result.errors.some(e => e.message.includes('id')));
   });
 });
 
 test('TemplateValidator - Domain Validation - Gates Reference', async (t) => {
   const validator = new TemplateValidator();
 
-  await t.test('reports gate allowed with invalid dimension value', async () => {
+  await t.test('reports gate referencing unknown dimension', async () => {
     const template = {
       schemaVersion: '1.0.0',
       id: 'test/template',
       name: 'Test Template',
       description: 'A test template',
       dimensions: {
-        features: { values: ['auth', 'database'] }
+        deployment: {
+          options: [{ id: 'cloudflare-workers', label: 'Cloudflare Workers' }]
+        }
       },
       gates: {
-        cloudflare: {
-          platform: 'edge',
-          constraint: 'limited',
-          allowed: {
-            features: ['invalid-feature'] // Not in dimension values
+        unknown_dimension: {  // Not in valid dimensions
+          'option': {
+            database: ['d1']
           }
         }
       }
@@ -190,24 +346,27 @@ test('TemplateValidator - Domain Validation - Gates Reference', async (t) => {
 
     const result = await validator.validate(template, 'strict');
     assert(!result.valid);
-    assert(result.errors.some(e => e.message.includes("invalid value 'invalid-feature'")));
+    assert(result.errors.some(e => e.message.includes('not a valid dimension')));
   });
 
-  await t.test('reports gate forbidden with invalid dimension value', async () => {
+  await t.test('validates gate constraint target is valid dimension', async () => {
     const template = {
       schemaVersion: '1.0.0',
       id: 'test/template',
       name: 'Test Template',
       description: 'A test template',
       dimensions: {
-        features: { values: ['auth', 'database'] }
+        deployment: {
+          options: [{ id: 'cloudflare-workers', label: 'Cloudflare Workers' }]
+        },
+        database: {
+          options: [{ id: 'd1', label: 'D1' }]
+        }
       },
       gates: {
-        cloudflare: {
-          platform: 'edge',
-          constraint: 'limited',
-          forbidden: {
-            features: ['nonexistent'] // Not in dimension values
+        deployment: {
+          'cloudflare-workers': {
+            unknown_target: ['value']  // Unknown target dimension
           }
         }
       }
@@ -215,421 +374,61 @@ test('TemplateValidator - Domain Validation - Gates Reference', async (t) => {
 
     const result = await validator.validate(template, 'strict');
     assert(!result.valid);
-    assert(result.errors.some(e => e.message.includes("invalid value 'nonexistent'")));
-  });
-
-  await t.test('reports gate forbidden referencing unknown dimension', async () => {
-    const template = {
-      schemaVersion: '1.0.0',
-      id: 'test/template',
-      name: 'Test Template',
-      description: 'A test template',
-      dimensions: {
-        features: { values: ['auth', 'database'] }
-      },
-      gates: {
-        cloudflare: {
-          platform: 'edge',
-          constraint: 'limited',
-          forbidden: {
-            unknown_dimension: ['value']
-          }
-        }
-      }
-    };
-
-    const result = await validator.validate(template, 'strict');
-    assert(!result.valid);
-    assert(result.errors.some(e => e.message.includes('unknown dimension')));
+    assert(result.errors.some(e => e.message.includes('not a valid dimension')));
   });
 });
 
-test('TemplateValidator - Domain Validation - Feature Specs Reference', async (t) => {
+test('TemplateValidator - Domain Validation - Features Reference', async (t) => {
   const validator = new TemplateValidator();
 
-  await t.test('reports feature spec needs with invalid dimension', async () => {
+  await t.test('reports feature needs with invalid dimension', async () => {
     const template = {
       schemaVersion: '1.0.0',
       id: 'test/template',
       name: 'Test Template',
       description: 'A test template',
-      dimensions: {
-        features: { values: ['auth'] }
-      },
-      featureSpecs: {
-        auth: {
+      features: [
+        {
+          id: 'auth',
           label: 'Auth',
-          description: 'Authentication',
           needs: {
-            nonexistent: 'required' // Unknown dimension
+            nonexistent: 'required'  // Unknown dimension
           }
         }
-      }
+      ]
     };
 
     const result = await validator.validate(template, 'strict');
     assert(!result.valid);
-    assert(result.errors.some(e => e.message.includes('needs unknown dimension')));
+    assert(result.errors.some(e => e.message.includes('invalid dimension')));
   });
 
-  await t.test('reports feature spec needs with invalid requirement level', async () => {
+  await t.test('reports feature needs with invalid requirement level', async () => {
     const template = {
       schemaVersion: '1.0.0',
       id: 'test/template',
       name: 'Test Template',
       description: 'A test template',
-      dimensions: {
-        features: { values: ['auth'] },
-        database: { values: ['postgres'] }
-      },
-      featureSpecs: {
-        auth: {
+      features: [
+        {
+          id: 'auth',
           label: 'Auth',
-          description: 'Authentication',
           needs: {
-            database: 'mandatory' // Invalid level, should be required/optional/none
+            database: 'mandatory'  // Invalid level
           }
         }
-      }
+      ]
     };
 
     const result = await validator.validate(template, 'strict');
     assert(!result.valid);
-    assert(result.errors.some(e => e.message.includes("invalid requirement 'mandatory'")));
-  });
-});
-
-test('TemplateValidator - Domain Validation - All Features Have Specs', async (t) => {
-  const validator = new TemplateValidator();
-
-  await t.test('reports feature without corresponding spec', async () => {
-    const template = {
-      schemaVersion: '1.0.0',
-      id: 'test/template',
-      name: 'Test Template',
-      description: 'A test template',
-      dimensions: {
-        features: { values: ['auth', 'database', 'api'] }
-      },
-      featureSpecs: {
-        auth: { label: 'Auth', description: 'Authentication' }
-        // Missing 'database' and 'api' specs
-      }
-    };
-
-    const result = await validator.validate(template, 'strict');
-    assert(!result.valid);
-    assert(result.errors.some(e => e.message.includes("'database' is defined in dimensions but missing from featureSpecs")));
-    assert(result.errors.some(e => e.message.includes("'api' is defined in dimensions but missing from featureSpecs")));
-  });
-});
-
-test('TemplateValidator - Domain Validation - Hints Reference', async (t) => {
-  const validator = new TemplateValidator();
-
-  await t.test('reports hint needs with invalid dimension', async () => {
-    const template = {
-      schemaVersion: '1.0.0',
-      id: 'test/template',
-      name: 'Test Template',
-      description: 'A test template',
-      dimensions: {
-        features: { values: ['auth'] }
-      },
-      hints: {
-        features: {
-          auth: {
-            needs: {
-              unknown_dim: 'required'
-            }
-          }
-        }
-      }
-    };
-
-    const result = await validator.validate(template, 'strict');
-    assert(!result.valid);
-    assert(result.errors.some(e => e.message.includes("Hint 'auth' needs unknown dimension")));
-  });
-
-  await t.test('reports hint needs with invalid requirement level', async () => {
-    const template = {
-      schemaVersion: '1.0.0',
-      id: 'test/template',
-      name: 'Test Template',
-      description: 'A test template',
-      dimensions: {
-        features: { values: ['auth'] },
-        database: { values: ['postgres'] }
-      },
-      hints: {
-        features: {
-          auth: {
-            needs: {
-              database: 'invalid-level'
-            }
-          }
-        }
-      }
-    };
-
-    const result = await validator.validate(template, 'strict');
-    assert(!result.valid);
-    assert(result.errors.some(e => e.message.includes("invalid requirement 'invalid-level'")));
+    assert(result.errors.some(e => e.message.includes("'required', 'optional', or 'none'")));
   });
 });
 
 // =============================================================================
-// Test Suite: Runtime Validation Methods
+// Test Suite: Runtime Validation - Cross-Dimension Compatibility
 // =============================================================================
-
-test('TemplateValidator - Runtime Validation - Gates Enforcement', async (t) => {
-  const validator = new TemplateValidator();
-
-  await t.test('validateGatesEnforcement returns empty for unknown gate', () => {
-    const template = {
-      dimensions: {
-        features: { values: ['auth'] }
-      },
-      gates: {}
-    };
-
-    const errors = validator.validateGatesEnforcement(
-      template,
-      { features: 'auth' },
-      'nonexistent-platform'
-    );
-    assert.equal(errors.length, 0);
-  });
-
-  await t.test('validateGatesEnforcement detects allowed violation', () => {
-    const template = {
-      dimensions: {
-        features: { values: ['auth', 'database', 'storage'] }
-      },
-      gates: {
-        cloudflare: {
-          platform: 'edge',
-          constraint: 'limited',
-          allowed: {
-            features: ['auth']
-          }
-        }
-      }
-    };
-
-    const errors = validator.validateGatesEnforcement(
-      template,
-      { features: 'database' },
-      'cloudflare'
-    );
-    assert(errors.length > 0);
-    assert(errors[0].type === 'GATES_VIOLATION');
-    assert(errors[0].message.includes("does not allow 'database'"));
-  });
-
-  await t.test('validateGatesEnforcement handles array values', () => {
-    const template = {
-      dimensions: {
-        features: { values: ['auth', 'database', 'storage'] }
-      },
-      gates: {
-        cloudflare: {
-          platform: 'edge',
-          constraint: 'limited',
-          allowed: {
-            features: ['auth']
-          }
-        }
-      }
-    };
-
-    const errors = validator.validateGatesEnforcement(
-      template,
-      { features: ['auth', 'database'] },
-      'cloudflare'
-    );
-    assert(errors.length > 0);
-    assert(errors[0].message.includes("does not allow 'database'"));
-  });
-
-  await t.test('validateGatesEnforcement detects forbidden violation', () => {
-    const template = {
-      dimensions: {
-        features: { values: ['auth', 'database', 'storage'] }
-      },
-      gates: {
-        cloudflare: {
-          platform: 'edge',
-          constraint: 'limited',
-          forbidden: {
-            features: ['storage']
-          }
-        }
-      }
-    };
-
-    const errors = validator.validateGatesEnforcement(
-      template,
-      { features: 'storage' },
-      'cloudflare'
-    );
-    assert(errors.length > 0);
-    assert(errors[0].type === 'GATES_VIOLATION');
-    assert(errors[0].message.includes("forbids 'storage'"));
-  });
-
-  await t.test('validateGatesEnforcement handles array forbidden values', () => {
-    const template = {
-      dimensions: {
-        features: { values: ['auth', 'database', 'storage'] }
-      },
-      gates: {
-        cloudflare: {
-          platform: 'edge',
-          constraint: 'limited',
-          forbidden: {
-            features: ['storage']
-          }
-        }
-      }
-    };
-
-    const errors = validator.validateGatesEnforcement(
-      template,
-      { features: ['auth', 'storage'] },
-      'cloudflare'
-    );
-    assert(errors.length > 0);
-    assert(errors[0].message.includes("forbids 'storage'"));
-  });
-});
-
-test('TemplateValidator - Runtime Validation - Feature Needs', async (t) => {
-  const validator = new TemplateValidator();
-
-  await t.test('validateFeatureNeeds reports missing spec for enabled feature', () => {
-    const template = {
-      dimensions: {
-        features: { values: ['auth'] }
-      },
-      featureSpecs: {}
-    };
-
-    const errors = validator.validateFeatureNeeds(
-      template,
-      ['auth'],
-      {}
-    );
-    assert(errors.length > 0);
-    assert(errors[0].type === 'FEATURE_NEEDS_VIOLATION');
-    assert(errors[0].message.includes('has no specification defined'));
-  });
-
-  await t.test('validateFeatureNeeds reports missing required dimension', () => {
-    const template = {
-      dimensions: {
-        features: { values: ['auth'] },
-        database: { values: ['postgres'] }
-      },
-      featureSpecs: {
-        auth: {
-          label: 'Auth',
-          description: 'Authentication',
-          needs: {
-            database: 'required'
-          }
-        }
-      }
-    };
-
-    const errors = validator.validateFeatureNeeds(
-      template,
-      ['auth'],
-      {} // No database selected
-    );
-    assert(errors.length > 0);
-    assert(errors[0].type === 'FEATURE_NEEDS_VIOLATION');
-    assert(errors[0].message.includes("requires dimension 'database'"));
-  });
-
-  await t.test('validateFeatureNeeds reports empty array for required dimension', () => {
-    const template = {
-      dimensions: {
-        features: { values: ['auth'] },
-        database: { values: ['postgres'] }
-      },
-      featureSpecs: {
-        auth: {
-          label: 'Auth',
-          description: 'Authentication',
-          needs: {
-            database: 'required'
-          }
-        }
-      }
-    };
-
-    const errors = validator.validateFeatureNeeds(
-      template,
-      ['auth'],
-      { database: [] } // Empty array
-    );
-    assert(errors.length > 0);
-    assert(errors[0].message.includes("requires dimension 'database'"));
-  });
-
-  await t.test('validateFeatureNeeds validates array values against dimension values', () => {
-    const template = {
-      dimensions: {
-        features: { values: ['auth'] },
-        database: { values: ['postgres', 'mysql'] }
-      },
-      featureSpecs: {
-        auth: {
-          label: 'Auth',
-          description: 'Authentication',
-          needs: {
-            database: 'required'
-          }
-        }
-      }
-    };
-
-    const errors = validator.validateFeatureNeeds(
-      template,
-      ['auth'],
-      { database: ['invalid-db'] } // Invalid value
-    );
-    assert(errors.length > 0);
-    assert(errors[0].message.includes('requires a valid value'));
-  });
-
-  await t.test('validateFeatureNeeds passes with valid required dimension', () => {
-    const template = {
-      dimensions: {
-        features: { values: ['auth'] },
-        database: { values: ['postgres', 'mysql'] }
-      },
-      featureSpecs: {
-        auth: {
-          label: 'Auth',
-          description: 'Authentication',
-          needs: {
-            database: 'required'
-          }
-        }
-      }
-    };
-
-    const errors = validator.validateFeatureNeeds(
-      template,
-      ['auth'],
-      { database: 'postgres' }
-    );
-    assert.equal(errors.length, 0);
-  });
-});
 
 test('TemplateValidator - Runtime Validation - Cross-Dimension Compatibility', async (t) => {
   const validator = new TemplateValidator();
@@ -665,211 +464,13 @@ test('TemplateValidator - Runtime Validation - Cross-Dimension Compatibility', a
     assert(errors.some(e => e.message.includes('cannot use local file storage')));
   });
 
-  await t.test('reports auth feature without database', () => {
-    const template = {};
-    const errors = validator.validateCrossDimensionCompatibility(
-      template,
-      { features: ['auth'], database: 'none' }
-    );
-    assert(errors.length > 0);
-    assert(errors.some(e => e.message.includes('requires a database')));
-  });
-
-  await t.test('reports auth feature with missing database', () => {
-    const template = {};
-    const errors = validator.validateCrossDimensionCompatibility(
-      template,
-      { features: ['auth'] }
-    );
-    assert(errors.length > 0);
-    assert(errors.some(e => e.message.includes('requires a database')));
-  });
-
-  await t.test('reports payments feature without auth', () => {
-    const template = {};
-    const errors = validator.validateCrossDimensionCompatibility(
-      template,
-      { features: ['payments'] }
-    );
-    assert(errors.length > 0);
-    assert(errors.some(e => e.message.includes('Payments feature requires authentication')));
-  });
-
   await t.test('passes with compatible selections', () => {
     const template = {};
     const errors = validator.validateCrossDimensionCompatibility(
       template,
-      { deployment: 'vercel', database: 'postgres', features: ['auth'], storage: 's3' }
+      { deployment: 'vercel', database: 'postgres', storage: 's3' }
     );
     assert.equal(errors.length, 0);
-  });
-});
-
-test('TemplateValidator - Runtime Validation - Hints Consistency', async (t) => {
-  const validator = new TemplateValidator();
-
-  await t.test('reports hint for nonexistent feature spec', () => {
-    const template = {
-      hints: {
-        features: {
-          auth: { label: 'Auth', description: 'Authentication' }
-        }
-      },
-      featureSpecs: {}
-    };
-
-    const errors = validator.validateHintsConsistency(template);
-    assert(errors.length > 0);
-    assert(errors[0].type === 'HINTS_CONSISTENCY_VIOLATION');
-    assert(errors[0].message.includes('no feature spec exists'));
-  });
-
-  await t.test('reports hint with mismatched needs requirement', () => {
-    const template = {
-      hints: {
-        features: {
-          auth: {
-            label: 'Auth',
-            description: 'Authentication',
-            needs: {
-              database: 'optional'
-            }
-          }
-        }
-      },
-      featureSpecs: {
-        auth: {
-          label: 'Auth',
-          description: 'Authentication',
-          needs: {
-            database: 'required' // Different from hint
-          }
-        }
-      }
-    };
-
-    const errors = validator.validateHintsConsistency(template);
-    assert(errors.length > 0);
-    assert(errors.some(e => e.message.includes('different requirement')));
-  });
-
-  await t.test('reports hint missing label', () => {
-    const template = {
-      hints: {
-        features: {
-          auth: {
-            description: 'Authentication'
-            // Missing label
-          }
-        }
-      },
-      featureSpecs: {
-        auth: {
-          label: 'Auth',
-          description: 'Authentication'
-        }
-      }
-    };
-
-    const errors = validator.validateHintsConsistency(template);
-    assert(errors.length > 0);
-    assert(errors.some(e => e.message.includes("missing required 'label'")));
-  });
-
-  await t.test('reports hint missing description', () => {
-    const template = {
-      hints: {
-        features: {
-          auth: {
-            label: 'Auth'
-            // Missing description
-          }
-        }
-      },
-      featureSpecs: {
-        auth: {
-          label: 'Auth',
-          description: 'Authentication'
-        }
-      }
-    };
-
-    const errors = validator.validateHintsConsistency(template);
-    assert(errors.length > 0);
-    assert(errors.some(e => e.message.includes("missing required 'description'")));
-  });
-
-  await t.test('returns empty array when no hints or featureSpecs', () => {
-    const errors = validator.validateHintsConsistency({});
-    assert.equal(errors.length, 0);
-  });
-});
-
-test('TemplateValidator - Runtime Validation - Full Runtime Validation', async (t) => {
-  const validator = new TemplateValidator();
-
-  await t.test('validateRuntime returns combined results', () => {
-    const template = {
-      dimensions: {
-        features: { values: ['auth', 'database'] }
-      },
-      gates: {
-        cloudflare: {
-          platform: 'edge',
-          constraint: 'limited',
-          forbidden: {
-            features: ['database']
-          }
-        }
-      },
-      featureSpecs: {
-        auth: {
-          label: 'Auth',
-          description: 'Authentication',
-          needs: {}
-        }
-      },
-      hints: {
-        features: {
-          auth: { description: 'Some auth hint' } // Missing label
-        }
-      }
-    };
-
-    const result = validator.validateRuntime(
-      template,
-      { features: ['auth', 'database'] },
-      'cloudflare',
-      ['auth']
-    );
-
-    assert(!result.valid); // Should have errors
-    assert(result.errors.length > 0);
-    assert(result.errors.some(e => e.type === 'GATES_VIOLATION'));
-    assert(result.warnings.length > 0);
-    assert(result.warnings.some(e => e.type === 'HINTS_CONSISTENCY_VIOLATION'));
-  });
-
-  await t.test('validateRuntime skips gates enforcement without deploymentTarget', () => {
-    const template = {};
-    const result = validator.validateRuntime(
-      template,
-      {},
-      null, // No deployment target
-      []
-    );
-    assert(result.valid);
-  });
-
-  await t.test('validateRuntime skips feature needs without enabled features', () => {
-    const template = {};
-    const result = validator.validateRuntime(
-      template,
-      {},
-      null,
-      null // No enabled features
-    );
-    assert(result.valid);
   });
 });
 

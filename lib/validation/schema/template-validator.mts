@@ -243,14 +243,14 @@ export class TemplateValidator {
         errors.push(...this.validateDimensionsSchema(templateData.dimensions));
       }
 
-      // Validate gates structure
+      // Validate gates structure (V1.0.0: keyed by dimension name)
       if (templateData.gates) {
-        errors.push(...this.validateGatesSchema(templateData.gates));
+        errors.push(...this.validateGatesSchema(templateData.gates, templateData.dimensions));
       }
 
-      // Validate featureSpecs structure
-      if (templateData.featureSpecs) {
-        errors.push(...this.validateFeatureSpecsSchema(templateData.featureSpecs));
+      // Validate features array (V1.0.0: array format with id, label, needs)
+      if (templateData.features) {
+        errors.push(...this.validateFeaturesSchema(templateData.features));
       }
 
       return errors;
@@ -264,20 +264,13 @@ export class TemplateValidator {
   }
 
   /**
-   * Validate dimensions structure
+   * Validate dimensions structure (V1.0.0 compliant)
    * @param {object} dimensions - Dimensions object from template
    * @returns {Array} Validation errors
    */
   validateDimensionsSchema(dimensions) {
     const errors = [];
-    // 7 fixed infrastructure dimensions (single-select)
-    // - deployment: where it runs
-    // - database: data persistence
-    // - storage: file/blob storage
-    // - identity: authentication + authorization + RBAC
-    // - billing: payments + subscriptions
-    // - analytics: user behavior tracking
-    // - monitoring: APM, errors, logs
+    // V1.0.0: 7 fixed infrastructure dimensions
     const validDimensions = ['deployment', 'database', 'storage', 'identity', 'billing', 'analytics', 'monitoring'];
 
     for (const [key, value] of Object.entries(dimensions)) {
@@ -298,45 +291,90 @@ export class TemplateValidator {
         continue;
       }
 
-      // Support both 'values' (legacy) and 'options' (new schema) array formats
-      const hasValues = value.values && Array.isArray(value.values);
-      const hasOptions = value.options && Array.isArray(value.options);
-      
-      if (!hasValues && !hasOptions) {
+      // V1.0.0: Dimensions must have 'options' array (legacy 'values' removed)
+      if (!value.options || !Array.isArray(value.options)) {
         errors.push({
           type: 'SCHEMA_ERROR',
           message: `Dimension ${key} must have an 'options' array`,
           path: ['dimensions', key, 'options']
         });
+        continue;
       }
+
+      // Validate each option has required 'id' field
+      value.options.forEach((option, index) => {
+        if (!option.id || typeof option.id !== 'string') {
+          errors.push({
+            type: 'SCHEMA_ERROR',
+            message: `Dimension ${key} option ${index} must have an 'id' string`,
+            path: ['dimensions', key, 'options', index, 'id']
+          });
+        }
+      });
     }
 
     return errors;
   }
 
   /**
-   * Validate gates structure
+   * Validate gates structure (V1.0.0 compliant)
+   * V1.0.0: Gates are keyed by dimension name, then by option ID.
    * @param {object} gates - Gates object from template
+   * @param {object} dimensions - Dimensions object from template
    * @returns {Array} Validation errors
    */
-  validateGatesSchema(gates) {
+  validateGatesSchema(gates, dimensions = {}) {
     const errors = [];
+    const validDimensions = ['deployment', 'database', 'storage', 'identity', 'billing', 'analytics', 'monitoring'];
 
-    for (const [gateName, gateConfig] of Object.entries(gates)) {
-      if (!gateConfig.platform) {
+    for (const [dimName, dimGates] of Object.entries(gates)) {
+      // V1.0.0: Gate keys must be valid dimension names
+      if (!validDimensions.includes(dimName)) {
         errors.push({
           type: 'SCHEMA_ERROR',
-          message: `Gate '${gateName}' missing required field: platform`,
-          path: ['gates', gateName, 'platform']
+          message: `Gate key '${dimName}' is not a valid dimension. Valid dimensions are: ${validDimensions.join(', ')}`,
+          path: ['gates', dimName]
         });
+        continue;
       }
 
-      if (!gateConfig.constraint) {
+      if (typeof dimGates !== 'object' || dimGates === null || Array.isArray(dimGates)) {
         errors.push({
           type: 'SCHEMA_ERROR',
-          message: `Gate '${gateName}' missing required field: constraint`,
-          path: ['gates', gateName, 'constraint']
+          message: `gates.${dimName} must be an object`,
+          path: ['gates', dimName]
         });
+        continue;
+      }
+
+      // Validate each option ID's constraints
+      for (const [optionId, constraints] of Object.entries(dimGates)) {
+        if (typeof constraints !== 'object' || constraints === null || Array.isArray(constraints)) {
+          errors.push({
+            type: 'SCHEMA_ERROR',
+            message: `gates.${dimName}.${optionId} must be an object`,
+            path: ['gates', dimName, optionId]
+          });
+          continue;
+        }
+
+        // Validate constraint targets are valid dimensions with array values
+        for (const [targetDim, allowedValues] of Object.entries(constraints)) {
+          if (!validDimensions.includes(targetDim)) {
+            errors.push({
+              type: 'SCHEMA_ERROR',
+              message: `Gate constraint target '${targetDim}' is not a valid dimension`,
+              path: ['gates', dimName, optionId, targetDim]
+            });
+          }
+          if (!Array.isArray(allowedValues)) {
+            errors.push({
+              type: 'SCHEMA_ERROR',
+              message: `gates.${dimName}.${optionId}.${targetDim} must be an array of allowed option IDs`,
+              path: ['gates', dimName, optionId, targetDim]
+            });
+          }
+        }
       }
     }
 
@@ -344,36 +382,72 @@ export class TemplateValidator {
   }
 
   /**
-   * Validate featureSpecs structure
-   * @param {object} featureSpecs - Feature specs object from template
+   * Validate features array structure (V1.0.0 compliant)
+   * @param {Array} features - Features array from template
    * @returns {Array} Validation errors
    */
-  validateFeatureSpecsSchema(featureSpecs) {
+  validateFeaturesSchema(features) {
     const errors = [];
+    const validDimensions = ['deployment', 'database', 'storage', 'identity', 'billing', 'analytics', 'monitoring'];
 
-    for (const [featureName, featureConfig] of Object.entries(featureSpecs)) {
-      if (!featureConfig.label) {
-        errors.push({
-          type: 'SCHEMA_ERROR',
-          message: `Feature spec '${featureName}' missing required field: label`,
-          path: ['featureSpecs', featureName, 'label']
-        });
-      }
-
-      if (!featureConfig.description) {
-        errors.push({
-          type: 'SCHEMA_ERROR',
-          message: `Feature spec '${featureName}' missing required field: description`,
-          path: ['featureSpecs', featureName, 'description']
-        });
-      }
+    if (!Array.isArray(features)) {
+      errors.push({
+        type: 'SCHEMA_ERROR',
+        message: 'features must be an array',
+        path: ['features']
+      });
+      return errors;
     }
+
+    features.forEach((feature, index) => {
+      if (!feature.id || typeof feature.id !== 'string') {
+        errors.push({
+          type: 'SCHEMA_ERROR',
+          message: `Feature ${index} missing required field: id`,
+          path: ['features', index, 'id']
+        });
+      }
+
+      if (!feature.label || typeof feature.label !== 'string') {
+        errors.push({
+          type: 'SCHEMA_ERROR',
+          message: `Feature ${index} missing required field: label`,
+          path: ['features', index, 'label']
+        });
+      }
+
+      if (!feature.needs || typeof feature.needs !== 'object') {
+        errors.push({
+          type: 'SCHEMA_ERROR',
+          message: `Feature ${index} missing required field: needs`,
+          path: ['features', index, 'needs']
+        });
+      } else {
+        // Validate needs references valid dimensions
+        for (const [needDim, needLevel] of Object.entries(feature.needs)) {
+          if (!validDimensions.includes(needDim)) {
+            errors.push({
+              type: 'SCHEMA_ERROR',
+              message: `Feature '${feature.id || index}' needs references invalid dimension: ${needDim}`,
+              path: ['features', index, 'needs', needDim]
+            });
+          }
+          if (!['required', 'optional', 'none'].includes(needLevel)) {
+            errors.push({
+              type: 'SCHEMA_ERROR',
+              message: `Feature '${feature.id || index}' needs.${needDim} must be 'required', 'optional', or 'none'`,
+              path: ['features', index, 'needs', needDim]
+            });
+          }
+        }
+      }
+    });
 
     return errors;
   }
 
   /**
-   * Perform domain validation (business rules)
+   * Perform domain validation (business rules) - V1.0.0 compliant
    * @param {object} templateData - Parsed template data
    * @returns {Array} Validation errors
    */
@@ -400,40 +474,26 @@ export class TemplateValidator {
       });
     }
 
-    // Validate dimensions have valid values
+    // Validate dimensions have valid options
     if (templateData.dimensions) {
       errors.push(...this.validateDimensionValues(templateData.dimensions));
     }
 
-    // Validate gates reference valid dimensions
+    // Validate gates reference valid dimensions and options (V1.0.0)
     if (templateData.gates && templateData.dimensions) {
       errors.push(...this.validateGatesReference(templateData.gates, templateData.dimensions));
     }
 
-    // Validate feature specs reference valid features
-    if (templateData.featureSpecs && templateData.dimensions) {
-      errors.push(...this.validateFeatureSpecsReference(templateData.featureSpecs, templateData.dimensions));
-    }
-
-    // Validate all features have specs
-    if (templateData.dimensions?.features?.values &&
-      templateData.featureSpecs) {
-      errors.push(...this.validateAllFeaturesHaveSpecs(
-        templateData.dimensions.features.values,
-        templateData.featureSpecs
-      ));
-    }
-
-    // Validate hints reference valid features
-    if (templateData.hints?.features && templateData.dimensions) {
-      errors.push(...this.validateHintsReference(templateData.hints.features, templateData.dimensions));
+    // Validate features reference valid dimensions in needs (V1.0.0)
+    if (templateData.features) {
+      errors.push(...this.validateFeaturesReference(templateData.features, templateData.dimensions));
     }
 
     return errors;
   }
 
   /**
-   * Validate dimension values are properly defined
+   * Validate dimension values are properly defined (V1.0.0 compliant)
    * @param {object} dimensions - Dimensions object
    * @returns {Array} Validation errors
    */
@@ -441,25 +501,26 @@ export class TemplateValidator {
     const errors = [];
 
     for (const [dimName, dimConfig] of Object.entries(dimensions)) {
-      // Support both 'values' (legacy) and 'options' (new schema) formats
-      const values = dimConfig.values || (dimConfig.options?.map(opt => opt.id) || []);
+      // V1.0.0: Only 'options' array format
+      const options = dimConfig.options || [];
       
-      if (values.length === 0) {
+      if (options.length === 0) {
         errors.push({
           type: 'DOMAIN_ERROR',
-          message: `Dimension '${dimName}' must have at least one value/option`,
-          path: ['dimensions', dimName, dimConfig.options ? 'options' : 'values']
+          message: `Dimension '${dimName}' must have at least one option`,
+          path: ['dimensions', dimName, 'options']
         });
         continue;
       }
 
-      // Check for duplicate values
-      const uniqueValues = new Set(values);
-      if (uniqueValues.size !== values.length) {
+      // Check for duplicate option IDs
+      const optionIds = options.map(opt => opt.id);
+      const uniqueIds = new Set(optionIds);
+      if (uniqueIds.size !== optionIds.length) {
         errors.push({
           type: 'DOMAIN_ERROR',
-          message: `Dimension '${dimName}' contains duplicate values`,
-          path: ['dimensions', dimName, dimConfig.options ? 'options' : 'values']
+          message: `Dimension '${dimName}' contains duplicate option IDs`,
+          path: ['dimensions', dimName, 'options']
         });
       }
     }
@@ -468,79 +529,60 @@ export class TemplateValidator {
   }
 
   /**
-   * Validate gates have valid structure and reference existing dimensions
+   * Validate gates reference valid dimensions and options (V1.0.0 compliant)
    * @param {object} gates - Gates object
    * @param {object} dimensions - Dimensions object
    * @returns {Array} Validation errors
    */
   validateGatesReference(gates, dimensions) {
     const errors = [];
-    const dimensionNames = Object.keys(dimensions);
+    const validDimensions = ['deployment', 'database', 'storage', 'identity', 'billing', 'analytics', 'monitoring'];
 
-    for (const [gateName, gateConfig] of Object.entries(gates)) {
-      // Validate gate has required fields
-      if (!gateConfig.platform) {
+    for (const [dimName, dimGates] of Object.entries(gates)) {
+      // Validate dimension exists
+      if (!dimensions[dimName]) {
         errors.push({
           type: 'DOMAIN_ERROR',
-          message: `Gate '${gateName}' missing required field: platform`,
-          path: ['gates', gateName, 'platform']
+          message: `Gate references undefined dimension: ${dimName}`,
+          path: ['gates', dimName],
+          suggestion: `Define dimension '${dimName}' in dimensions section first`
         });
+        continue;
       }
 
-      if (!gateConfig.constraint) {
-        errors.push({
-          type: 'DOMAIN_ERROR',
-          message: `Gate '${gateName}' missing required field: constraint`,
-          path: ['gates', gateName, 'constraint']
-        });
-      }
+      const validOptionIds = new Set((dimensions[dimName].options || []).map(opt => opt.id));
 
-      // Validate allowed/forbidden reference valid dimensions
-      if (gateConfig.allowed) {
-        for (const [dimName, allowedValues] of Object.entries(gateConfig.allowed)) {
-          if (!dimensionNames.includes(dimName)) {
-            errors.push({
-              type: 'DOMAIN_ERROR',
-              message: `Gate '${gateName}' allowed constraint references unknown dimension: ${dimName}`,
-              path: ['gates', gateName, 'allowed', dimName],
-              suggestion: `Available dimensions: ${dimensionNames.join(', ')}. Add dimension '${dimName}' first or fix the reference.`
-            });
-          } else {
-            // Validate allowed values are valid for the dimension
-            const validValues = dimensions[dimName].values || [];
-            for (const value of allowedValues) {
-              if (!validValues.includes(value)) {
-                errors.push({
-                  type: 'DOMAIN_ERROR',
-                  message: `Gate '${gateName}' allows invalid value '${value}' for dimension '${dimName}'`,
-                  path: ['gates', gateName, 'allowed', dimName]
-                });
-              }
-            }
-          }
+      for (const [optionId, constraints] of Object.entries(dimGates)) {
+        // Validate option ID exists in dimension
+        if (!validOptionIds.has(optionId)) {
+          errors.push({
+            type: 'DOMAIN_ERROR',
+            message: `Gate option '${optionId}' is not defined in dimension '${dimName}'`,
+            path: ['gates', dimName, optionId],
+            suggestion: `Add option '${optionId}' to dimensions.${dimName}.options`
+          });
         }
-      }
 
-      if (gateConfig.forbidden) {
-        for (const [dimName, forbiddenValues] of Object.entries(gateConfig.forbidden)) {
-          if (!dimensionNames.includes(dimName)) {
+        // Validate constraint targets reference valid options
+        for (const [targetDim, allowedValues] of Object.entries(constraints)) {
+          if (!dimensions[targetDim]) {
             errors.push({
               type: 'DOMAIN_ERROR',
-              message: `Gate '${gateName}' forbidden constraint references unknown dimension: ${dimName}`,
-              path: ['gates', gateName, 'forbidden', dimName],
-              suggestion: `Available dimensions: ${dimensionNames.join(', ')}. Add dimension '${dimName}' first or fix the reference.`
+              message: `Gate constraint references undefined dimension: ${targetDim}`,
+              path: ['gates', dimName, optionId, targetDim],
+              suggestion: `Define dimension '${targetDim}' in dimensions section first`
             });
-          } else {
-            // Validate forbidden values are valid for the dimension
-            const validValues = dimensions[dimName].values || [];
-            for (const value of forbiddenValues) {
-              if (!validValues.includes(value)) {
-                errors.push({
-                  type: 'DOMAIN_ERROR',
-                  message: `Gate '${gateName}' forbids invalid value '${value}' for dimension '${dimName}'`,
-                  path: ['gates', gateName, 'forbidden', dimName]
-                });
-              }
+            continue;
+          }
+
+          const targetOptionIds = new Set((dimensions[targetDim].options || []).map(opt => opt.id));
+          for (const value of allowedValues) {
+            if (!targetOptionIds.has(value)) {
+              errors.push({
+                type: 'DOMAIN_ERROR',
+                message: `Gate constraint '${value}' is not a valid option for dimension '${targetDim}'`,
+                path: ['gates', dimName, optionId, targetDim]
+              });
             }
           }
         }
@@ -551,125 +593,39 @@ export class TemplateValidator {
   }
 
   /**
-   * Validate feature specs reference existing features and have valid needs
-   * @param {object} featureSpecs - Feature specs object
-   * @param {object} dimensions - Full dimensions object
+   * Validate features reference valid dimensions in needs (V1.0.0 compliant)
+   * @param {Array} features - Features array
+   * @param {object} dimensions - Dimensions object
    * @returns {Array} Validation errors
    */
-  validateFeatureSpecsReference(featureSpecs, dimensions) {
+  validateFeaturesReference(features, dimensions = {}) {
     const errors = [];
-    const validFeatures = new Set(dimensions.features?.values || []);
-    const dimensionNames = Object.keys(dimensions);
+    const validDimensions = ['deployment', 'database', 'storage', 'identity', 'billing', 'analytics', 'monitoring'];
+    const definedDimensions = new Set(Object.keys(dimensions));
 
-    for (const [specName, specConfig] of Object.entries(featureSpecs)) {
-      if (!validFeatures.has(specName)) {
-        errors.push({
-          type: 'DOMAIN_ERROR',
-          message: `Feature spec '${specName}' does not correspond to any feature in dimensions`,
-          path: ['featureSpecs', specName]
-        });
-      }
+    if (!Array.isArray(features)) return errors;
 
-      // Validate needs references
-      if (specConfig.needs) {
-        for (const [neededDim, requirement] of Object.entries(specConfig.needs)) {
-          // Check if dimension exists
-          if (!dimensionNames.includes(neededDim)) {
-            errors.push({
-              type: 'DOMAIN_ERROR',
-              message: `Feature spec '${specName}' needs unknown dimension: ${neededDim}`,
-              path: ['featureSpecs', specName, 'needs', neededDim]
-            });
-          }
+    features.forEach((feature, index) => {
+      if (!feature.needs) return;
 
-          // Validate requirement level
-          if (!['required', 'optional', 'none'].includes(requirement)) {
-            errors.push({
-              type: 'DOMAIN_ERROR',
-              message: `Feature spec '${specName}' has invalid requirement '${requirement}' for dimension '${neededDim}'. Must be: required, optional, or none`,
-              path: ['featureSpecs', specName, 'needs', neededDim]
-            });
-          }
+      for (const [needDim, requirement] of Object.entries(feature.needs)) {
+        // Check if needs references a dimension that's defined
+        if (requirement === 'required' && !definedDimensions.has(needDim)) {
+          errors.push({
+            type: 'DOMAIN_ERROR',
+            message: `Feature '${feature.id}' requires dimension '${needDim}' but it's not defined in dimensions`,
+            path: ['features', index, 'needs', needDim],
+            suggestion: `Either define dimension '${needDim}' or change requirement to 'optional'`
+          });
         }
       }
-    }
+    });
 
     return errors;
   }
 
   /**
-   * Validate hints reference existing features and have valid needs
-   * @param {object} hints - Hints features object
-   * @param {object} dimensions - Full dimensions object
-   * @returns {Array} Validation errors
-   */
-  validateHintsReference(hints, dimensions) {
-    const errors = [];
-    const validFeatures = new Set(dimensions.features?.values || []);
-    const dimensionNames = Object.keys(dimensions);
-
-    for (const [hintName, hintConfig] of Object.entries(hints)) {
-      if (!validFeatures.has(hintName)) {
-        errors.push({
-          type: 'DOMAIN_ERROR',
-          message: `Hint '${hintName}' does not correspond to any feature in dimensions`,
-          path: ['hints', 'features', hintName]
-        });
-      }
-
-      // Validate needs in hints if present
-      if (hintConfig.needs) {
-        for (const [neededDim, requirement] of Object.entries(hintConfig.needs)) {
-          // Check if dimension exists
-          if (!dimensionNames.includes(neededDim)) {
-            errors.push({
-              type: 'DOMAIN_ERROR',
-              message: `Hint '${hintName}' needs unknown dimension: ${neededDim}`,
-              path: ['hints', 'features', hintName, 'needs', neededDim]
-            });
-          }
-
-          // Validate requirement level
-          if (!['required', 'optional', 'none'].includes(requirement)) {
-            errors.push({
-              type: 'DOMAIN_ERROR',
-              message: `Hint '${hintName}' has invalid requirement '${requirement}' for dimension '${neededDim}'. Must be: required, optional, or none`,
-              path: ['hints', 'features', hintName, 'needs', neededDim]
-            });
-          }
-        }
-      }
-    }
-
-    return errors;
-  }
-
-  /**
-   * Validate that all features in dimensions have corresponding feature specs
-   * @param {Array} featureValues - Array of feature names from dimensions
-   * @param {object} featureSpecs - Feature specs object
-   * @returns {Array} Validation errors
-   */
-  validateAllFeaturesHaveSpecs(featureValues, featureSpecs) {
-    const errors = [];
-    const specNames = Object.keys(featureSpecs);
-
-    for (const feature of featureValues) {
-      if (!specNames.includes(feature)) {
-        errors.push({
-          type: 'DOMAIN_ERROR',
-          message: `Feature '${feature}' is defined in dimensions but missing from featureSpecs`,
-          path: ['featureSpecs'],
-          suggestion: `Add feature specification for '${feature}' to define its requirements and behavior`
-        });
-      }
-    }
-
-    return errors;
-  }
-
-  /**
-   * Validate deployment target compatibility with selected dimension values
+   * Validate deployment target compatibility with selected dimension values (V1.0.0)
    * @param {object} templateData - Full template data
    * @param {object} selectedValues - Selected dimension values
    * @param {string} deploymentTarget - Target deployment platform
@@ -678,57 +634,29 @@ export class TemplateValidator {
   validateGatesEnforcement(templateData, selectedValues, deploymentTarget) {
     const errors = [];
 
-    // Check if deployment target has gates defined
-    if (!templateData.gates || !templateData.gates[deploymentTarget]) {
-      // No gates defined for this target - assume compatible
+    if (!templateData.gates || !templateData.dimensions) {
       return errors;
     }
 
-    const gate = templateData.gates[deploymentTarget];
-
-    // Check allowed constraints
-    if (gate.allowed) {
-      for (const [dimension, allowedValues] of Object.entries(gate.allowed)) {
-        const selectedValue = selectedValues[dimension];
-
-        if (selectedValue !== undefined) {
-          // Handle both single values and arrays
-          const selectedValuesArray = Array.isArray(selectedValue) ? selectedValue : [selectedValue];
-
-          for (const value of selectedValuesArray) {
-            if (!allowedValues.includes(value)) {
-              errors.push({
-                type: 'GATES_VIOLATION',
-                message: `Deployment target '${deploymentTarget}' does not allow '${value}' for dimension '${dimension}'. Allowed values: ${allowedValues.join(', ')}`,
-                path: ['gates', deploymentTarget, 'allowed', dimension],
-                suggestion: `Change ${dimension} to one of: ${allowedValues.join(', ')} or choose a different deployment target`
-              });
-            }
-          }
-        }
-      }
+    // V1.0.0: Gates are keyed by dimension, then option ID
+    const deploymentGates = templateData.gates.deployment;
+    if (!deploymentGates || !deploymentGates[deploymentTarget]) {
+      return errors;
     }
 
-    // Check forbidden constraints
-    if (gate.forbidden) {
-      for (const [dimension, forbiddenValues] of Object.entries(gate.forbidden)) {
-        const selectedValue = selectedValues[dimension];
-
-        if (selectedValue !== undefined) {
-          // Handle both single values and arrays
-          const selectedValuesArray = Array.isArray(selectedValue) ? selectedValue : [selectedValue];
-
-          for (const value of selectedValuesArray) {
-            if (forbiddenValues.includes(value)) {
-              errors.push({
-                type: 'GATES_VIOLATION',
-                message: `Deployment target '${deploymentTarget}' forbids '${value}' for dimension '${dimension}'`,
-                path: ['gates', deploymentTarget, 'forbidden', dimension],
-                suggestion: `Remove ${value} from ${dimension} or choose a different deployment target`
-              });
-            }
-          }
-        }
+    const constraints = deploymentGates[deploymentTarget];
+    
+    // Check constraint restrictions
+    for (const [targetDim, allowedOptions] of Object.entries(constraints)) {
+      const selectedValue = selectedValues[targetDim];
+      
+      if (selectedValue !== undefined && !allowedOptions.includes(selectedValue)) {
+        errors.push({
+          type: 'GATES_VIOLATION',
+          message: `Deployment '${deploymentTarget}' restricts ${targetDim} to: ${allowedOptions.join(', ')}. Selected: ${selectedValue}`,
+          path: ['gates', 'deployment', deploymentTarget, targetDim],
+          suggestion: `Change ${targetDim} to one of: ${allowedOptions.join(', ')}`
+        });
       }
     }
 
@@ -736,54 +664,45 @@ export class TemplateValidator {
   }
 
   /**
-   * Validate feature needs are satisfied when features are enabled
+   * Validate feature needs are satisfied when features are enabled (V1.0.0)
    * @param {object} templateData - Full template data
-   * @param {Array<string>} enabledFeatures - List of enabled features
+   * @param {Array<string>} enabledFeatures - List of enabled feature IDs
    * @param {object} selectedValues - Selected dimension values
    * @returns {Array} Validation errors
    */
   validateFeatureNeeds(templateData, enabledFeatures, selectedValues) {
     const errors = [];
 
-    for (const feature of enabledFeatures) {
-      const featureSpec = templateData.featureSpecs?.[feature];
+    if (!Array.isArray(templateData.features)) return errors;
 
-      if (!featureSpec) {
+    const featureMap = new Map(templateData.features.map(f => [f.id, f]));
+
+    for (const featureId of enabledFeatures) {
+      const feature = featureMap.get(featureId);
+
+      if (!feature) {
         errors.push({
           type: 'FEATURE_NEEDS_VIOLATION',
-          message: `Feature '${feature}' is enabled but has no specification defined`,
-          path: ['featureSpecs', feature],
-          suggestion: `Add a feature specification for '${feature}' in featureSpecs section`
+          message: `Feature '${featureId}' is enabled but not defined in template`,
+          path: ['features'],
+          suggestion: `Add feature definition for '${featureId}' to features array`
         });
         continue;
       }
 
       // Check feature needs
-      if (featureSpec.needs) {
-        for (const [dimension, requirement] of Object.entries(featureSpec.needs)) {
+      if (feature.needs) {
+        for (const [dimension, requirement] of Object.entries(feature.needs)) {
           if (requirement === 'required') {
             const selectedValue = selectedValues[dimension];
 
-            if (!selectedValue || (Array.isArray(selectedValue) && selectedValue.length === 0)) {
+            if (!selectedValue) {
               errors.push({
                 type: 'FEATURE_NEEDS_VIOLATION',
-                message: `Feature '${feature}' requires dimension '${dimension}' but no value is selected`,
-                path: ['featureSpecs', feature, 'needs', dimension],
-                suggestion: `Select a value for dimension '${dimension}' or change feature '${feature}' requirement to 'optional'`
+                message: `Feature '${featureId}' requires dimension '${dimension}' but no value is selected`,
+                path: ['features', featureId, 'needs', dimension],
+                suggestion: `Select a value for dimension '${dimension}' or change feature requirement to 'optional'`
               });
-            } else if (Array.isArray(selectedValue)) {
-              // For array values, check if any required values are present
-              const requiredValues = templateData.dimensions[dimension]?.values || [];
-              const hasRequiredValue = selectedValue.some(val => requiredValues.includes(val));
-
-              if (!hasRequiredValue) {
-                errors.push({
-                  type: 'FEATURE_NEEDS_VIOLATION',
-                  message: `Feature '${feature}' requires a valid value for dimension '${dimension}'`,
-                  path: ['featureSpecs', feature, 'needs', dimension],
-                  suggestion: `Select valid values for dimension '${dimension}' from: ${requiredValues.join(', ')}`
-                });
-              }
             }
           }
         }
@@ -802,12 +721,7 @@ export class TemplateValidator {
   validateCrossDimensionCompatibility(templateData, selectedValues) {
     const errors = [];
 
-    // Check for incompatible dimension combinations
-    // This is a placeholder for more sophisticated cross-dimension validation
-    // In a real implementation, this could check for known incompatible combinations
-
     const deploymentTarget = selectedValues.deployment;
-    const features = selectedValues.features || [];
     const database = selectedValues.database;
     const storage = selectedValues.storage;
 
@@ -831,99 +745,15 @@ export class TemplateValidator {
       });
     }
 
-    // Example: Auth feature requires database
-    if (features.includes('auth') && (!database || database === 'none')) {
-      errors.push({
-        type: 'CROSS_DIMENSION_VIOLATION',
-        message: `Authentication feature requires a database to store user data`,
-        path: ['dimensions', 'features'],
-        suggestion: `Select a database option or remove the 'auth' feature`
-      });
-    }
-
-    // Example: Payments feature requires auth
-    if (features.includes('payments') && !features.includes('auth')) {
-      errors.push({
-        type: 'CROSS_DIMENSION_VIOLATION',
-        message: `Payments feature requires authentication to manage user billing`,
-        path: ['dimensions', 'features'],
-        suggestion: `Add the 'auth' feature or remove the 'payments' feature`
-      });
-    }
-
     return errors;
   }
 
   /**
-   * Validate hints consistency with feature specs
-   * @param {object} templateData - Full template data
-   * @returns {Array} Validation errors
-   */
-  validateHintsConsistency(templateData) {
-    const errors = [];
-
-    if (!templateData.hints?.features || !templateData.featureSpecs) {
-      return errors;
-    }
-
-    for (const [featureName, hintConfig] of Object.entries(templateData.hints.features)) {
-      const featureSpec = templateData.featureSpecs[featureName];
-
-      if (!featureSpec) {
-        errors.push({
-          type: 'HINTS_CONSISTENCY_VIOLATION',
-          message: `Hint defined for feature '${featureName}' but no feature spec exists`,
-          path: ['hints', 'features', featureName],
-          suggestion: `Add a feature specification for '${featureName}' or remove the hint`
-        });
-        continue;
-      }
-
-      // Check if hint needs align with feature spec needs
-      if (hintConfig.needs && featureSpec.needs) {
-        for (const [dimension, hintRequirement] of Object.entries(hintConfig.needs)) {
-          const specRequirement = featureSpec.needs[dimension];
-
-          if (specRequirement && specRequirement !== hintRequirement) {
-            errors.push({
-              type: 'HINTS_CONSISTENCY_VIOLATION',
-              message: `Hint for feature '${featureName}' has different requirement for '${dimension}' than feature spec (${hintRequirement} vs ${specRequirement})`,
-              path: ['hints', 'features', featureName, 'needs', dimension],
-              suggestion: `Make hint and feature spec requirements consistent for dimension '${dimension}'`
-            });
-          }
-        }
-      }
-
-      // Check if hint has required fields
-      if (!hintConfig.label) {
-        errors.push({
-          type: 'HINTS_CONSISTENCY_VIOLATION',
-          message: `Hint for feature '${featureName}' missing required 'label' field`,
-          path: ['hints', 'features', featureName],
-          suggestion: `Add a descriptive label for the '${featureName}' hint`
-        });
-      }
-
-      if (!hintConfig.description) {
-        errors.push({
-          type: 'HINTS_CONSISTENCY_VIOLATION',
-          message: `Hint for feature '${featureName}' missing required 'description' field`,
-          path: ['hints', 'features', featureName],
-          suggestion: `Add a description explaining what the '${featureName}' feature provides`
-        });
-      }
-    }
-
-    return errors;
-  }
-
-  /**
-   * Perform comprehensive runtime validation with selected values
+   * Perform comprehensive runtime validation with selected values (V1.0.0)
    * @param {object} templateData - Full template data
    * @param {object} selectedValues - Selected dimension values
    * @param {string} deploymentTarget - Target deployment platform
-   * @param {Array<string>} enabledFeatures - List of enabled features
+   * @param {Array<string>} enabledFeatures - List of enabled feature IDs
    * @returns {object} Validation result with errors and warnings
    */
   validateRuntime(templateData, selectedValues, deploymentTarget, enabledFeatures) {
@@ -942,9 +772,6 @@ export class TemplateValidator {
 
     // Cross-dimension compatibility
     errors.push(...this.validateCrossDimensionCompatibility(templateData, selectedValues));
-
-    // Hints consistency
-    warnings.push(...this.validateHintsConsistency(templateData));
 
     return {
       valid: errors.length === 0,

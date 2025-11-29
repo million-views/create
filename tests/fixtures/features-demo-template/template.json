@@ -4,17 +4,31 @@
   "name": "Features Demo Template",
   "description": "Fixture exercising feature-driven setup",
   "placeholderFormat": "unicode",
-  "authorAssetsDir": "templates",
   "placeholders": {},
-  "dimensions": {
-    "features": {
-      "values": [
-        "api",
-        "auth",
-        "testing"
-      ],
-      "default": []
+  "features": [
+    {
+      "id": "api",
+      "label": "API Support",
+      "description": "Add API handler and routes",
+      "needs": {}
+    },
+    {
+      "id": "auth",
+      "label": "Authentication",
+      "description": "Add authentication service",
+      "needs": {
+        "identity": "required"
+      }
+    },
+    {
+      "id": "testing",
+      "label": "Testing",
+      "description": "Add test infrastructure",
+      "needs": {}
     }
+  ],
+  "setup": {
+    "authorAssetsDir": "templates"
   },
   "handoff": [
     "npm install",
