@@ -47,7 +47,6 @@ without `schemaVersion` are rejected.
   "handoff": ["Next step 1", "Next step 2"],
   "setup": {
     "script": "_setup.mjs",
-    "authoringMode": "composable",
     "authorAssetsDir": "__scaffold__"
   },
   "dimensions": {
@@ -125,7 +124,6 @@ The `setup` section configures setup script behavior and authoring options.
 | Property         | Type     | Required | Description                                                         |
 | ---------------- | -------- | -------- | ------------------------------------------------------------------- |
 | `script`         | `string` | No       | Setup script filename (default: `_setup.mjs`)                       |
-| `authoringMode`  | `string` | No       | `"composable"` or `"wysiwyg"` (default: `"composable"`)             |
 | `authorAssetsDir`| `string` | No       | Directory for author assets, removed after scaffolding (default: `__scaffold__`) |
 
 ### Setup Script
@@ -143,11 +141,6 @@ export default async function setup({ ctx, tools }) {
   }
 }
 ```
-
-### Authoring Modes
-
-- **`composable`**: Features assembled via setup script (default, recommended)
-- **`wysiwyg`**: Visual editor with pre-built combinations
 
 ### Author Assets Directory
 
@@ -817,7 +810,6 @@ Examples:
   ],
   "setup": {
     "script": "_setup.mjs",
-    "authoringMode": "composable",
     "authorAssetsDir": "__scaffold__"
   },
   "dimensions": {

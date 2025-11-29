@@ -37,7 +37,7 @@
 ## Constraints & Considerations
 
 - Schema versioning must allow non-breaking additions without forcing consumers to upgrade immediately (e.g., `template.v1.json`, `template.latest.json`).
-- Must support current metadata fields (placeholders, dimensions, authoringMode, authorAssetsDir, handoff, etc.) with room for future extensions.
+- Must support current metadata fields (placeholders, dimensions, authorAssetsDir, handoff, etc.) with room for future extensions.
 - Generated typings should not require TypeScript adoption to use—JavaScript code can consume them via JSDoc or optional TS builds in tests.
 - Keep build steps simple (prefer Node-based generation scripts; no webpack/rollup).
 - Schema-driven validation must remain fast to avoid slowing CLI startup.

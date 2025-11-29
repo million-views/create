@@ -13,7 +13,7 @@
 
 import path from 'path';
 import os from 'os';
-import { createContext, DEFAULT_AUTHOR_ASSETS_DIR, DEFAULT_AUTHORING_MODE } from '@m5nv/create/lib/environment/context.mts';
+import { createContext, DEFAULT_AUTHOR_ASSETS_DIR } from '@m5nv/create/lib/environment/context.mts';
 import { createTools } from '@m5nv/create/lib/environment/tools/create.mts';
 
 /**
@@ -22,7 +22,6 @@ import { createTools } from '@m5nv/create/lib/environment/tools/create.mts';
  * @type {Readonly<{
  *   projectName: string,
  *   projectDirectory: string,
- *   authoring: 'wysiwyg' | 'composable',
  *   authorAssetsDir: string,
  *   placeholderFormat: string
  * }>}
@@ -30,7 +29,6 @@ import { createTools } from '@m5nv/create/lib/environment/tools/create.mts';
 export const TEST_DEFAULTS = Object.freeze({
   projectName: 'test-project',
   projectDirectory: path.join(os.tmpdir(), 'test-project'),
-  authoring: DEFAULT_AUTHORING_MODE,
   authorAssetsDir: DEFAULT_AUTHOR_ASSETS_DIR,
   placeholderFormat: 'unicode'
 });
@@ -45,7 +43,6 @@ export const TEST_DEFAULTS = Object.freeze({
  * @param {string} [overrides.projectName] - Project name (default: 'test-project')
  * @param {string} [overrides.projectDirectory] - Project directory path
  * @param {string} [overrides.cwd] - Current working directory
- * @param {'wysiwyg' | 'composable'} [overrides.authoring] - Authoring mode
  * @param {string} [overrides.authorAssetsDir] - Author assets directory name
  * @param {Record<string, string | number | boolean>} [overrides.inputs] - Placeholder inputs
  * @param {Record<string, unknown>} [overrides.constants] - Template constants
@@ -68,7 +65,6 @@ export function createTestContext(overrides = {}) {
     projectName: overrides.projectName ?? TEST_DEFAULTS.projectName,
     projectDirectory: overrides.projectDirectory ?? TEST_DEFAULTS.projectDirectory,
     cwd: overrides.cwd,
-    authoring: overrides.authoring ?? TEST_DEFAULTS.authoring,
     authorAssetsDir: overrides.authorAssetsDir ?? TEST_DEFAULTS.authorAssetsDir,
     inputs: overrides.inputs,
     constants: overrides.constants,
@@ -91,7 +87,6 @@ export function createTestContext(overrides = {}) {
  * @param {Record<string, unknown>} [config.constants] - Template constants
  * @param {string} [config.authorAssetsDir] - Author assets directory name
  * @param {string} [config.placeholderFormat] - Placeholder format
- * @param {'wysiwyg' | 'composable'} [config.authoring] - Authoring mode
  * @param {Object} [config.dimensions] - Dimension definitions
  * @param {Object} [config.options] - User options
  * @returns {Promise<import('./tools/index.mts').Tools>} Tools object
@@ -109,7 +104,6 @@ export async function createTestTools(config) {
     constants = {},
     authorAssetsDir = TEST_DEFAULTS.authorAssetsDir,
     placeholderFormat = TEST_DEFAULTS.placeholderFormat,
-    authoring = TEST_DEFAULTS.authoring,
     dimensions = {},
     options = { raw: [], byDimension: {} }
   } = config;
@@ -126,7 +120,6 @@ export async function createTestTools(config) {
     constants,
     authorAssetsDir,
     placeholderFormat,
-    authoring,
     dimensions,
     options
   });
@@ -146,7 +139,6 @@ export async function createTestTools(config) {
  * @param {Record<string, unknown>} [config.constants] - Template constants
  * @param {string} [config.authorAssetsDir] - Author assets directory name
  * @param {string} [config.placeholderFormat] - Placeholder format
- * @param {'wysiwyg' | 'composable'} [config.authoring] - Authoring mode
  * @param {Object} [config.dimensions] - Dimension definitions
  * @param {Object} [config.options] - User options
  * @returns {Promise<{ ctx: import('./context.mts').Context, tools: import('./tools/index.mts').Tools }>}
@@ -164,7 +156,6 @@ export async function createTestEnvironment(config) {
     constants = {},
     authorAssetsDir = TEST_DEFAULTS.authorAssetsDir,
     placeholderFormat = TEST_DEFAULTS.placeholderFormat,
-    authoring = TEST_DEFAULTS.authoring,
     dimensions = {},
     options = { raw: [], byDimension: {} }
   } = config;
@@ -176,7 +167,6 @@ export async function createTestEnvironment(config) {
   const ctx = createContext({
     projectName,
     projectDirectory,
-    authoring,
     authorAssetsDir,
     inputs,
     constants,
@@ -191,7 +181,6 @@ export async function createTestEnvironment(config) {
     constants,
     authorAssetsDir,
     placeholderFormat,
-    authoring,
     dimensions,
     options
   });

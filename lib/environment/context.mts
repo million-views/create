@@ -18,12 +18,6 @@ import path from 'path';
 export const DEFAULT_AUTHOR_ASSETS_DIR = '__scaffold__';
 
 /**
- * Default template authoring mode
- * @type {'wysiwyg' | 'composable'}
- */
-export const DEFAULT_AUTHORING_MODE = 'wysiwyg';
-
-/**
  * Context options for user selections
  */
 export interface ContextOptions {
@@ -38,7 +32,6 @@ export interface Context {
   projectName: string;
   projectDir: string;
   cwd: string;
-  authoring: 'wysiwyg' | 'composable';
   authorAssetsDir: string;
   inputs: Readonly<Record<string, string | number | boolean>>;
   constants: Readonly<Record<string, unknown>>;
@@ -52,7 +45,6 @@ export interface CreateContextOptions {
   projectName: string;
   projectDirectory: string;
   cwd?: string;
-  authoring?: 'wysiwyg' | 'composable';
   authorAssetsDir?: string;
   inputs?: Record<string, string | number | boolean>;
   constants?: Record<string, unknown>;
@@ -97,7 +89,6 @@ export function createContext(options: CreateContextOptions) {
     projectName,
     projectDirectory,
     cwd = process.cwd(),
-    authoring = DEFAULT_AUTHORING_MODE,
     authorAssetsDir = DEFAULT_AUTHOR_ASSETS_DIR,
     inputs = {},
     constants = {},
@@ -116,13 +107,6 @@ export function createContext(options: CreateContextOptions) {
     throw new ContextValidationError(
       'projectDirectory is required and must be a non-empty string',
       'projectDirectory'
-    );
-  }
-
-  if (authoring !== 'wysiwyg' && authoring !== 'composable') {
-    throw new ContextValidationError(
-      `authoring must be 'wysiwyg' or 'composable', got: ${authoring}`,
-      'authoring'
     );
   }
 
@@ -145,7 +129,6 @@ export function createContext(options: CreateContextOptions) {
     projectName,
     projectDir: resolvedDir,
     cwd,
-    authoring,
     authorAssetsDir,
     inputs: Object.freeze({ ...inputs }),
     constants: Object.freeze({ ...constants }),
@@ -170,7 +153,6 @@ export function isContext(value: unknown): value is Context {
     typeof ctx.projectName === 'string' &&
     typeof ctx.projectDir === 'string' &&
     typeof ctx.cwd === 'string' &&
-    (ctx.authoring === 'wysiwyg' || ctx.authoring === 'composable') &&
     typeof ctx.authorAssetsDir === 'string' &&
     typeof ctx.inputs === 'object' &&
     ctx.inputs !== null &&

@@ -144,14 +144,17 @@ function basicSchemaValidation(schema) {
 
 function generateTypeDefinitions(schema, version, schemaRelativePath, target = 'ts') {
   const properties = schema.properties ?? {};
-  const setup = properties.setup ?? {};
   const defs = schema.$defs ?? {};
-  const authoringEnum = setup.properties?.authoringMode?.enum ?? [];
-  const placeholderTypeEnum = defs.placeholder?.properties?.type?.enum ?? [];
+
+  // Extract placeholder type enum from the patternProperties in placeholders
+  const placeholderSchema = properties.placeholders?.patternProperties?.['^[A-Z0-9_]+$'] ?? {};
+  const placeholderTypeEnum = placeholderSchema.properties?.type?.enum ?? [];
+
+  // Extract policy enum from dimensionDef
+  const policyEnum = defs.dimensionDef?.properties?.policy?.enum ?? [];
 
   // Hardcode dimension types that are used in the TypeScript interfaces
   const dimensionTypeEnum = ['single', 'multi'];
-  const policyEnum = ['warn'];
   const canonicalVariableNames = []; // No canonical variables defined yet
 
   const dimensionValueType = 'string';
@@ -165,7 +168,6 @@ function generateTypeDefinitions(schema, version, schemaRelativePath, target = '
     `export const TEMPLATE_SCHEMA_VERSION = '${version}'${constAssertion};`,
     `export const TEMPLATE_SCHEMA_PATH = '${schemaRelativePath}'${constAssertion};`,
     '',
-    `export type TemplateAuthoringMode = ${enumUnion(authoringEnum)};`,
     `export type TemplatePlaceholderType = ${enumUnion(placeholderTypeEnum)};`,
     `export type TemplateDimensionType = ${enumUnion(dimensionTypeEnum)};`,
     `export type TemplateDimensionPolicy = ${enumUnion(policyEnum)};`,
@@ -226,7 +228,6 @@ function generateTypeDefinitions(schema, version, schemaRelativePath, target = '
     '}',
     '',
     'export interface TemplateSetup {',
-    '  authoring?: TemplateAuthoringMode;',
     '  authorAssetsDir?: string;',
     '  dimensions?: TemplateDimensions;',
     '}',

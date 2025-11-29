@@ -34,8 +34,6 @@ export interface Context {
   readonly projectDir: string;
   /** Directory where the CLI command was executed */
   readonly cwd: string;
-  /** Template authoring mode from template.json */
-  readonly authoring: 'wysiwyg' | 'composable';
   /** Directory name for template assets (default: '__scaffold__') */
   readonly authorAssetsDir: string;
   /** Placeholder values collected during instantiation */
@@ -56,8 +54,6 @@ export interface CreateContextOptions {
   projectDirectory: string;
   /** Current working directory (default: process.cwd()) */
   cwd?: string;
-  /** Template authoring mode (default: 'wysiwyg') */
-  authoring?: 'wysiwyg' | 'composable';
   /** Assets directory name (default: '__scaffold__') */
   authorAssetsDir?: string;
   /** Placeholder values */
@@ -297,8 +293,6 @@ export interface ToolsConfig {
   authorAssetsDir?: string;
   /** Placeholder format (unicode/double-brace) */
   placeholderFormat?: 'unicode' | 'double-brace';
-  /** Template authoring mode */
-  authoring?: 'wysiwyg' | 'composable';
   /** Dimension definitions */
   dimensions?: Record<string, unknown>;
   /** User-selected options */
@@ -350,7 +344,6 @@ export interface TestLogger extends Logger {
 export interface TestDefaults {
   readonly projectName: string;
   readonly projectDirectory: string;
-  readonly authoring: 'wysiwyg' | 'composable';
   readonly authorAssetsDir: string;
   readonly placeholderFormat: string;
 }
@@ -389,9 +382,6 @@ export const TEST_DEFAULTS: TestDefaults;
 
 /** Default directory name for template author assets */
 export const DEFAULT_AUTHOR_ASSETS_DIR: string;
-
-/** Default template authoring mode */
-export const DEFAULT_AUTHORING_MODE: 'wysiwyg' | 'composable';
 
 /**
  * Create a minimal valid Context for testing.

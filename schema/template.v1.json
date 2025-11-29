@@ -206,15 +206,6 @@
           "default": "_setup.mjs",
           "description": "Setup script filename. Must export a default async function accepting ({ctx, tools})."
         },
-        "authoringMode": {
-          "type": "string",
-          "enum": [
-            "composable",
-            "wysiwyg"
-          ],
-          "default": "composable",
-          "description": "composable=features assembled via setup script, wysiwyg=visual editor with pre-built combinations"
-        },
         "authorAssetsDir": {
           "type": "string",
           "default": "__scaffold__",

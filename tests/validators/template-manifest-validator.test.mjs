@@ -905,16 +905,10 @@ test('validateTemplateManifest - Return Value Structure', async (t) => {
     assert('gates' in result);
     assert('featureSpecs' in result);
     assert('hints' in result);
-    assert('authoringMode' in result);
     assert('authorAssetsDir' in result);
     assert('placeholders' in result);
     assert('canonicalVariables' in result);
     assert('handoff' in result);
-  });
-
-  await t.test('defaults authoringMode to composable', () => {
-    const result = validateTemplateManifest(validManifest);
-    assert.equal(result.authoringMode, 'composable');
   });
 
   await t.test('defaults authorAssetsDir to __scaffold__', () => {

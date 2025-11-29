@@ -1,5 +1,7 @@
 # Template Boundary Alignment — Design
 
+> **⚠️ HISTORICAL NOTE**: This spec references `authoringMode` (`wysiwyg` vs `composable`), which was **removed** from the codebase. Analysis revealed that `authoringMode` had no behavioral impact in the CLI—it was purely metadata passed to setup scripts that was never used. All references to `authoringMode`, `wysiwyg`, and `composable` in this document are obsolete.
+
 ## Problem Decomposition
 - **Option Drift**: Tutorials encourage passing arbitrary comma-separated `--options` strings ("auth", "database", "testing") without a shared vocabulary. Template authors receive free-form strings and must infer intent manually, which is brittle.
 - **Tooling Disconnect**: make-template aspires to scaffold `_setup.mjs`/`template.json` automatically but lacks clarity on which context fields are guaranteed by create-scaffold. Generated scripts may reference values that do not exist at runtime.

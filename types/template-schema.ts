@@ -4,10 +4,9 @@
 export const TEMPLATE_SCHEMA_VERSION = 'template.v1' as const;
 export const TEMPLATE_SCHEMA_PATH = 'schema/template.v1.json' as const;
 
-export type TemplateAuthoringMode = never;
-export type TemplatePlaceholderType = never;
+export type TemplatePlaceholderType = 'text' | 'number' | 'boolean' | 'email' | 'password' | 'url';
 export type TemplateDimensionType = 'single' | 'multi';
-export type TemplateDimensionPolicy = 'warn';
+export type TemplateDimensionPolicy = 'strict' | 'warn';
 export type TemplateCanonicalVariableName = never;
 
 export type TemplatePlaceholderPrimitive = string | number | boolean;
@@ -65,7 +64,6 @@ export interface TemplateMetadata {
 }
 
 export interface TemplateSetup {
-  authoring?: TemplateAuthoringMode;
   authorAssetsDir?: string;
   dimensions?: TemplateDimensions;
 }

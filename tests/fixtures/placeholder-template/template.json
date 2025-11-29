@@ -4,9 +4,7 @@
   "name": "Placeholder Template",
   "description": "Fixture demonstrating placeholder resolution",
   "placeholderFormat": "unicode",
-  "setup": {
-    "authoringMode": "wysiwyg"
-  },
+  "setup": {},
   "placeholders": {
     "PACKAGE_NAME": {
       "default": "my-project",

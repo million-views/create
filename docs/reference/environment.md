@@ -77,7 +77,6 @@ export default async function setup({ ctx, tools }) {
 | `projectDir` | `string` | Absolute path to the project directory. All helper methods already scope operations to this root, so you rarely need it directly. |
 | `projectName` | `string` | Sanitized name chosen by the user (letters, numbers, hyphen, underscore). Use it when updating metadata such as `package.json` or README content. |
 | `cwd` | `string` | Directory where the CLI command was executed. Helpful when you need to compute workspace-relative paths. |
-| `authoring` | `"wysiwyg" \| "composable"` | Mode declared in `template.json`. WYSIWYG templates mirror a working project; composable templates assemble features via `_setup.mjs`. |
 | `authorAssetsDir` | `string` | Directory name for template assets (configured via `setup.authorAssetsDir`, defaults to `"__scaffold__"`). |
 | `options` | `object` | Normalized user selections with defaults already applied. Contains `raw` (array of raw option strings) and `byDimension` (object mapping dimension names to selected values). |
 | `inputs` | `Record<string, string \| number \| boolean>` | Placeholder answers collected during template instantiation. Keys omit braces (`PROJECT_NAME`). Values are immutable and type-coerced based on `metadata.placeholders` and any canonical `metadata.variables` entries. |
@@ -100,7 +99,6 @@ The context object is frozen; attempting to mutate it throws.
   "name": "My Template",
   "description": "A template for building web applications",
   "setup": {
-    "authoring": "composable",
     "policy": "strict",
     "dimensions": {
       "deployment": {
@@ -471,7 +469,6 @@ export default async function setup({ ctx, tools }) {
   "schemaVersion": "1.0.0",
   "name": "My Template",
   "setup": {
-    "authoring": "composable",
     "policy": "strict",
     "dimensions": {
       "deployment": {
@@ -524,7 +521,6 @@ export default async function setup({ ctx, tools }) {
 }
 ```
 
-- **`setup.authoring`** distinguishes WYSIWYG (`"fixed"`) templates from composable ones (`"composable"`). The runtime exposes this value as `ctx.authoring` so setup scripts can tailor behaviour.
 - **`setup.dimensions`** enumerate the option vocabulary. Schema V1.0 supports 7 fixed infrastructure dimensions: `deployment`, `database`, `storage`, `identity`, `billing`, `analytics`, `monitoring`.
 - **`features`** define author-specified feature bundles with `needs` to declare infrastructure requirements.
 - **`constants`** provide fixed template values available in `ctx.constants`.

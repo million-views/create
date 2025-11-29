@@ -53,8 +53,6 @@ export interface Context {
   readonly projectDir: string;
   /** Directory where the CLI command was executed */
   readonly cwd: string;
-  /** Template authoring mode from template.json */
-  readonly authoring: 'wysiwyg' | 'composable';
   /** Directory name for template assets (default: '__scaffold__') */
   readonly authorAssetsDir: string;
   /** Placeholder values collected during instantiation */
@@ -102,7 +100,6 @@ export interface Tools {
  * @property {string} projectName - Sanitized project name
  * @property {string} projectDirectory - Path to project directory
  * @property {string} [cwd] - Current working directory (default: process.cwd())
- * @property {string} [authoring] - Template authoring mode (default: 'wysiwyg')
  * @property {string} [authorAssetsDir] - Assets directory name (default: '__scaffold__')
  * @property {Record<string, any>} [inputs] - Placeholder values
  * @property {Record<string, any>} [constants] - Template constants
@@ -110,7 +107,6 @@ export interface Tools {
  */
 
 export const DEFAULT_AUTHOR_ASSETS_DIR = '__scaffold__';
-export const DEFAULT_AUTHORING_MODE = 'wysiwyg';
 
 /**
  * Create an immutable Context object.
@@ -122,7 +118,6 @@ export function createContext(options) {
     projectName,
     projectDirectory,
     cwd = process.cwd(),
-    authoring = DEFAULT_AUTHORING_MODE,
     authorAssetsDir = DEFAULT_AUTHOR_ASSETS_DIR,
     inputs = {},
     constants = {},
@@ -143,7 +138,6 @@ export function createContext(options) {
     projectName,
     projectDir: resolvedDir,
     cwd,
-    authoring,
     authorAssetsDir,
     inputs: Object.freeze({ ...inputs }),
     constants: Object.freeze({ ...constants }),
@@ -296,7 +290,6 @@ import os from 'os';
 export const TEST_DEFAULTS = Object.freeze({
   projectName: 'test-project',
   projectDirectory: path.join(os.tmpdir(), 'test-project'),
-  authoring: 'wysiwyg',
   authorAssetsDir: '__scaffold__',
   placeholderFormat: 'unicode'
 });

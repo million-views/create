@@ -172,7 +172,6 @@
 ### Task 3.4: Extract CLI validators
 - [x] Create `lib/validation/cli/option.mts`
   - Move `validateIdeParameter()` → `ide()`
-  - Move `validateAuthoringMode()` → `authoringMode()`
   - Move `validateAuthorAssetsDir()` → `authorAssetsDir()`
   - Move `validateLogFilePath()` → `logFilePath()`
   - Move `validateCacheTtl()` → `cacheTtl()`

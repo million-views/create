@@ -187,7 +187,6 @@ export class TemplateDiscovery {
       }
     }
 
-    metadata.authoring = structuredMetadata.authoring;
     metadata.dimensions = structuredMetadata.dimensions;
     metadata.handoff = structuredMetadata.handoff;
     metadata.placeholders = structuredMetadata.placeholders ?? [];
@@ -431,7 +430,7 @@ export class TemplateDiscovery {
 /**
  * Load and normalize template metadata from template.json
  * @param {string} templatePath
- * @returns {Promise<{handoff: string[], authoringMode: string, dimensions: Record<string, any>, raw: any}>}
+ * @returns {Promise<{handoff: string[], dimensions: Record<string, any>, raw: any}>}
  */
 export async function loadTemplateMetadataFromPath(templatePath) {
   const { readFileSync } = await import('fs');
@@ -487,8 +486,6 @@ export async function loadTemplateMetadataFromPath(templatePath) {
         name: data.name,
         description: data.description,
         version: data.version,
-        authoring:
-          data.authoring || { mode: 'wysiwyg' },
         authorAssetsDir: validateAuthorAssetsDir(data.authorAssetsDir),
         dimensions,
         handoff: data.handoff || [],
@@ -510,7 +507,6 @@ export async function loadTemplateMetadataFromPath(templatePath) {
         name: data.name,
         description: data.description,
         version: data.version,
-        authoring: validated.authoring,
         authorAssetsDir: validated.authorAssetsDir,
         dimensions,
         handoff: validated.handoff,
@@ -527,7 +523,6 @@ export async function loadTemplateMetadataFromPath(templatePath) {
         name: null,
         description: null,
         version: null,
-        authoringMode: 'composable',
         authorAssetsDir: validateAuthorAssetsDir(null),
         dimensions: {},
         handoff: [],

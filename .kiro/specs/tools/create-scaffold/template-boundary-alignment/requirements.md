@@ -1,5 +1,7 @@
 # Template Boundary Alignment — Requirements
 
+> **⚠️ HISTORICAL NOTE**: This spec references `authoringMode` (`wysiwyg` vs `composable`), which was **removed** from the codebase. Analysis revealed that `authoringMode` had no behavioral impact in the CLI—it was purely metadata passed to setup scripts that was never used. All references to `authoringMode`, `wysiwyg`, and `composable` in this document are obsolete.
+
 ## Context
 - Tutorials such as `docs/tutorial/getting-started.md` and `docs/tutorial/first-template.md` instruct operators to pass option bundles like `--options "auth,database,testing"` without explaining how templates should implement and validate those options.
 - Authoring guidance in `docs/how-to/creating-templates.md` demonstrates helpers like `tools.templates.renderFile('templates/smoke.spec.js.tpl', ...)` without clarifying where supporting assets live or how the runtime treats auxiliary template-only files. The implied workflow leans on @m5nv/create-scaffold for verification, which conflicts with the objective for @m5nv/make-template to keep authors productive within their source projects.

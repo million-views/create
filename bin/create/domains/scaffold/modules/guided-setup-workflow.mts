@@ -1048,7 +1048,6 @@ export class GuidedSetupWorkflow {
         logger: this.logger,
         templateContext: {
           inputs: this.placeholders,
-          authoring: this.metadata?.setup?.authoringMode || 'composable',
           constants: this.metadata?.constants || {},
           authorAssetsDir: this.metadata?.setup?.authorAssetsDir || '__scaffold__',
           placeholderFormat: this.metadata?.placeholderFormat || 'unicode'
@@ -1061,7 +1060,6 @@ export class GuidedSetupWorkflow {
         projectName: this.projectDirectory,
         projectDir: this.resolvedProjectDirectory,
         cwd: process.cwd(),
-        authoring: this.metadata?.setup?.authoringMode || 'composable',
         inputs: this.placeholders,
         constants: this.metadata?.constants || {},
         authorAssetsDir: this.metadata?.setup?.authorAssetsDir || '__scaffold__',

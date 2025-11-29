@@ -1,6 +1,8 @@
 # Guidance for the make-template Team
 
-## What’s New
+> **⚠️ HISTORICAL NOTE**: This spec references `authoringMode` (`wysiwyg` vs `composable`), which was **removed** from the codebase. Analysis revealed that `authoringMode` had no behavioral impact in the CLI—it was purely metadata passed to setup scripts that was never used. All references to `authoringMode`, `wysiwyg`, and `composable` in this document are obsolete.
+
+## What's New
 - **Authoring modes:** Templates now declare `setup.authoringMode` as `"wysiwyg"` (inline iteration, minimal runtime options) or `"composable"` (runtime assembly via `_setup.mjs` + snippets). Default to `"wysiwyg"` and prompt authors before switching modes.
 - **Dimensions schema:** `template.json.setup.dimensions` captures the option vocabulary. Each dimension entry supports:
   - `type: "single" | "multi"`

@@ -26,7 +26,6 @@ export interface ManifestResult {
   readonly gates: Record<string, unknown>;
   readonly featureSpecs: Record<string, unknown>;
   readonly hints: Record<string, unknown>;
-  readonly authoringMode: 'wysiwyg' | 'composable';
   readonly authorAssetsDir: string;
   readonly placeholders: ReturnType<typeof normalizePlaceholders>;
   readonly canonicalVariables: readonly string[];
@@ -54,7 +53,6 @@ interface RawManifest {
   featureSpecs?: Record<string, unknown>;
   hints?: Record<string, unknown>;
   setup?: {
-    authoringMode?: string;
     authorAssetsDir?: string;
   };
   handoff?: string[];
@@ -187,7 +185,6 @@ function validateV1(manifest: RawManifest): ManifestResult {
     featureSpecs: manifest.featureSpecs || {},
     hints: manifest.hints || {},
     // Setup properties with correct defaults
-    authoringMode: (manifest.setup?.authoringMode || 'composable') as 'wysiwyg' | 'composable',
     authorAssetsDir: manifest.setup?.authorAssetsDir || '__scaffold__',
     placeholders: normalizePlaceholders(normalizedPlaceholders),
     canonicalVariables: [] as readonly string[],

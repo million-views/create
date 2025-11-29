@@ -40,7 +40,6 @@ import {
 // CLI option validation functions
 import {
   validateIdeParameter,
-  validateAuthoringMode,
   validateAuthorAssetsDir,
   validateLogFilePath,
   validateCacheTtl
@@ -510,48 +509,6 @@ test('validateIdeParameter Function', async (t) => {
       () => validateIdeParameter('vscode\0'),
       ValidationError
     );
-  });
-});
-
-// =============================================================================
-// validateAuthoringMode Function
-// Note: 'composable' is the alternative to 'wysiwyg', not 'pristine'
-// Returns 'wysiwyg' for null/undefined/empty
-// =============================================================================
-
-test('validateAuthoringMode Function', async (t) => {
-  await t.test('accepts valid authoring modes', () => {
-    const validModes = ['wysiwyg', 'composable'];
-
-    for (const mode of validModes) {
-      const result = validateAuthoringMode(mode);
-      assert.equal(result, mode);
-    }
-  });
-
-  await t.test('returns default for null/undefined', () => {
-    assert.equal(validateAuthoringMode(null), 'wysiwyg');
-    assert.equal(validateAuthoringMode(undefined), 'wysiwyg');
-  });
-
-  await t.test('returns default for empty string', () => {
-    assert.equal(validateAuthoringMode(''), 'wysiwyg');
-    assert.equal(validateAuthoringMode('  '), 'wysiwyg');
-  });
-
-  await t.test('rejects invalid modes', () => {
-    assert.throws(
-      () => validateAuthoringMode('invalid'),
-      ValidationError
-    );
-    assert.throws(
-      () => validateAuthoringMode('pristine'),
-      ValidationError
-    );
-  });
-
-  await t.test('rejects non-string input', () => {
-    assert.throws(() => validateAuthoringMode(123), ValidationError);
   });
 });
 

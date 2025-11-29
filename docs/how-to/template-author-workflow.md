@@ -5,7 +5,7 @@ audience: "template-authors"
 estimated_time: "20 minutes"
 prerequisites:
   - "Completed the [create template tutorial](../tutorial/template.md)"
-  - "Understanding of WYSIWYG templates and setup scripts"
+  - "Understanding of templates and setup scripts"
 related_docs:
   - "../tutorial/template.md"
   - "../reference/environment.md"
@@ -16,15 +16,15 @@ last_updated: "2025-11-28"
 
 # Template Author Workflow
 
-This guide helps template authors iterate efficiently and build advanced templates. It covers development workflows, composable template patterns, and debugging techniques.
+This guide helps template authors iterate efficiently and build advanced templates. It covers development workflows, template patterns, and debugging techniques.
 
-> **Prerequisite**: Complete the [create template tutorial](../tutorial/template.md) first. This assumes you understand WYSIWYG templates and basic setup scripts.
+> **Prerequisite**: Complete the [create template tutorial](../tutorial/template.md) first. This assumes you understand templates and basic setup scripts.
 
 ---
 
-## Restore-first iteration (WYSIWYG mode)
+## Restore-first iteration
 
-**Problem**: You need to make changes to a WYSIWYG template while keeping it functional.
+**Problem**: You need to make changes to a template while keeping it functional.
 
 **Solution**: Use the restore-convert cycle.
 
@@ -45,12 +45,11 @@ This guide helps template authors iterate efficiently and build advanced templat
    create scaffold demo-app --template my-template --repo path/to/templates --dry-run
    ```
 
-**Checklist for WYSIWYG templates**:
-- `setup.authoring` is `"wysiwyg"` and `metadata.dimensions` is `{}`
+**Checklist for simple templates**:
 - `_setup.mjs` limits itself to placeholder replacement and light adjustments
 - `handoff` instructions cover install and startup steps
 - `.template-undo.json` remains checked in for future restores
-- `metadata.placeholders` enumerates every remaining `{{TOKEN}}`
+- `placeholders` enumerates every remaining `{{TOKEN}}`
 
 ---
 
@@ -58,7 +57,7 @@ This guide helps template authors iterate efficiently and build advanced templat
 
 **Problem**: Your template needs to include different code depending on user choices (e.g., authentication, deployment target).
 
-**Solution**: Use composable authoring mode with dimensions.
+**Solution**: Use dimensions for conditional features.
 
 1. Configure dimensions and features in `template.json`:
 ```json
@@ -67,9 +66,7 @@ This guide helps template authors iterate efficiently and build advanced templat
   "id": "author/my-template",
   "placeholderFormat": "unicode",
   "placeholders": {},
-  "setup": {
-    "authoringMode": "composable"
-  },
+  "setup": {},
   "dimensions": {
     "deployment": {
       "options": [
@@ -140,9 +137,9 @@ The `__scaffold__` directory is removed automatically after setup runs.
 
 ---
 
-## Composable iteration (feature combinations)
+## Iterating on feature combinations
 
-**Problem**: You need to test multiple feature combinations in a composable template.
+**Problem**: You need to test multiple feature combinations in a template with dimensions.
 
 **Solution**: Use systematic verification with selection files.
 
@@ -167,8 +164,7 @@ The `__scaffold__` directory is removed automatically after setup runs.
      --selection ./my-selection.json --dry-run
    ```
 
-**Checklist for composable templates**:
-- `setup.authoring` is `"composable"`
+**Checklist for templates with dimensions**:
 - Every dimension lists allowed values and sensible defaults
 - `_setup.mjs` uses helper APIs only (`tools.files`, `tools.json`, `tools.options`)
 - Author assets live under `__scaffold__/` and are treated as immutable inputs

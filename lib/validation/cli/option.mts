@@ -16,12 +16,6 @@ export const SUPPORTED_IDES = ['kiro', 'vscode', 'cursor', 'windsurf'] as const;
 export type SupportedIde = typeof SUPPORTED_IDES[number];
 
 /**
- * Supported authoring modes.
- */
-export const AUTHORING_MODES = ['wysiwyg', 'composable'] as const;
-export type AuthoringMode = typeof AUTHORING_MODES[number];
-
-/**
  * Default author assets directory name.
  */
 export const DEFAULT_AUTHOR_ASSETS_DIR = '__scaffold__';
@@ -66,37 +60,6 @@ export function ide(input: unknown): SupportedIde | null {
   }
 
   return normalizedIde as SupportedIde;
-}
-
-/**
- * Validate authoring mode string.
- *
- * @param mode - Authoring mode value
- * @returns Normalized authoring mode (defaults to 'wysiwyg')
- * @throws ValidationError if mode is invalid
- */
-export function authoringMode(mode: unknown): AuthoringMode {
-  if (mode === undefined || mode === null) {
-    return 'wysiwyg';
-  }
-
-  if (typeof mode !== 'string') {
-    throw new ValidationError('setup.authoring must be a string', 'authoring');
-  }
-
-  const normalized = mode.trim().toLowerCase();
-  if (normalized === '') {
-    return 'wysiwyg';
-  }
-
-  if (!AUTHORING_MODES.includes(normalized as AuthoringMode)) {
-    throw new ValidationError(
-      `setup.authoring must be one of: ${AUTHORING_MODES.join(', ')}`,
-      'authoring'
-    );
-  }
-
-  return normalized as AuthoringMode;
 }
 
 /**
@@ -230,7 +193,6 @@ export function cacheTtl(input: unknown): number | null {
 
 // Legacy export names for backward compatibility
 export { ide as validateIdeParameter };
-export { authoringMode as validateAuthoringMode };
 export { authorAssetsDir as validateAuthorAssetsDir };
 export { logFilePath as validateLogFilePath };
 export { cacheTtl as validateCacheTtl };

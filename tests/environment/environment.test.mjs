@@ -20,8 +20,7 @@ import {
   createContext,
   isContext,
   ContextValidationError,
-  DEFAULT_AUTHOR_ASSETS_DIR,
-  DEFAULT_AUTHORING_MODE
+  DEFAULT_AUTHOR_ASSETS_DIR
 } from '@m5nv/create/lib/environment/context.mts';
 import { createTools, isTools } from '@m5nv/create/lib/environment/tools/create.mts';
 import {
@@ -45,7 +44,6 @@ describe('Environment Module', () => {
       assert.equal(ctx.projectName, 'my-app');
       assert.equal(ctx.projectDir, '/path/to/my-app');
       assert.equal(ctx.cwd, '/path/to/my-app');
-      assert.equal(ctx.authoring, DEFAULT_AUTHORING_MODE);
       assert.equal(ctx.authorAssetsDir, DEFAULT_AUTHOR_ASSETS_DIR);
       assert.deepEqual(ctx.inputs, {});
       assert.deepEqual(ctx.constants, {});
@@ -60,16 +58,6 @@ describe('Environment Module', () => {
 
       assert.equal(ctx.projectDir, '/path/to/my-app');
       assert.equal(ctx.cwd, '/custom/cwd');
-    });
-
-    it('should accept custom authoring mode', () => {
-      const ctx = createContext({
-        projectName: 'my-app',
-        projectDirectory: '/path/to/my-app',
-        authoring: 'composable'
-      });
-
-      assert.equal(ctx.authoring, 'composable');
     });
 
     it('should accept custom authorAssetsDir', () => {
@@ -138,17 +126,6 @@ describe('Environment Module', () => {
         (err) => err instanceof ContextValidationError && err.message.includes('projectDirectory')
       );
     });
-
-    it('should throw ContextValidationError for invalid authoring mode', () => {
-      assert.throws(
-        () => createContext({
-          projectName: 'my-app',
-          projectDirectory: '/path',
-          authoring: 'invalid'
-        }),
-        (err) => err instanceof ContextValidationError && err.message.includes('authoring')
-      );
-    });
   });
 
   describe('isContext()', () => {
@@ -180,7 +157,6 @@ describe('Environment Module', () => {
         projectName: 123,
         projectDir: '/path',
         cwd: '/path',
-        authoring: 'wysiwyg',
         authorAssetsDir: '__scaffold__',
         inputs: {},
         constants: {}
@@ -192,7 +168,6 @@ describe('Environment Module', () => {
         projectName: 'manual-app',
         projectDir: '/path/to/app',
         cwd: '/path/to/app',
-        authoring: 'wysiwyg',
         authorAssetsDir: '__scaffold__',
         inputs: {},
         constants: {},
@@ -228,12 +203,6 @@ describe('Environment Module', () => {
       assert.equal(DEFAULT_AUTHOR_ASSETS_DIR, '__scaffold__');
     });
   });
-
-  describe('DEFAULT_AUTHORING_MODE', () => {
-    it('should equal wysiwyg', () => {
-      assert.equal(DEFAULT_AUTHORING_MODE, 'wysiwyg');
-    });
-  });
 });
 
 describe('Testing Utilities', () => {
@@ -241,7 +210,6 @@ describe('Testing Utilities', () => {
     it('should have expected default values', () => {
       assert.equal(TEST_DEFAULTS.projectName, 'test-project');
       assert.ok(TEST_DEFAULTS.projectDirectory.includes('test-project'));
-      assert.equal(TEST_DEFAULTS.authoring, 'wysiwyg');
       assert.equal(TEST_DEFAULTS.authorAssetsDir, '__scaffold__');
     });
 
@@ -258,7 +226,6 @@ describe('Testing Utilities', () => {
 
       assert.equal(ctx.projectName, TEST_DEFAULTS.projectName);
       assert.equal(ctx.projectDir, TEST_DEFAULTS.projectDirectory);
-      assert.equal(ctx.authoring, TEST_DEFAULTS.authoring);
       assert.ok(isContext(ctx));
     });
 
@@ -281,12 +248,10 @@ describe('Testing Utilities', () => {
     it('should allow overriding multiple properties', () => {
       const ctx = createTestContext({
         projectName: 'my-app',
-        authoring: 'composable',
         constants: { debug: true }
       });
 
       assert.equal(ctx.projectName, 'my-app');
-      assert.equal(ctx.authoring, 'composable');
       assert.equal(ctx.constants.debug, true);
     });
   });

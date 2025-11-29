@@ -28,7 +28,6 @@ import { buildOptionsApi } from './options.mts';
  * @property {Record<string, unknown>} [constants] - Template constants
  * @property {string} [authorAssetsDir] - Author assets directory name
  * @property {string} [placeholderFormat] - Placeholder format (unicode/double-brace)
- * @property {'wysiwyg' | 'composable'} [authoring] - Template authoring mode
  * @property {Object} [dimensions] - Dimension definitions for options
  * @property {Object} [options] - User-selected options
  */
@@ -52,7 +51,6 @@ export interface ToolsConfig {
   constants?: Record<string, unknown>;
   authorAssetsDir?: string;
   placeholderFormat?: string;
-  authoring?: 'wysiwyg' | 'composable';
   dimensions?: Record<string, unknown>;
   options?: {
     raw?: string[];

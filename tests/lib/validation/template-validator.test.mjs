@@ -21,9 +21,7 @@ const placeholderTemplateFixture = {
   name: 'Placeholder Template',
   description: 'Fixture demonstrating placeholder resolution',
   placeholderFormat: 'unicode',
-  setup: {
-    authoringMode: 'wysiwyg'
-  },
+  setup: {},
   placeholders: {
     PACKAGE_NAME: {
       default: 'my-project',
@@ -261,7 +259,6 @@ test('validateTemplateManifest returns normalized values for valid template', ()
   const manifest = placeholderTemplateFixture;
   const result = validateTemplateManifest(manifest);
 
-  assert.equal(result.authoringMode, 'wysiwyg');
   assert.equal(result.authorAssetsDir, '__scaffold__');
   assert.equal(result.handoff.length, 1);
   assert.equal(result.placeholders.length, Object.keys(manifest.placeholders).length);

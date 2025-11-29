@@ -20,7 +20,7 @@ Key outcomes:
   - Provide `schema/template.json` as a copy of the latest stable version used by the CLI.
   - Document version policy (semantic intent: breaking → new major file, additive → minor suffix).
 - **Schema Content**:
-  - Cover existing fields: root metadata (`name`, `description`, `handoff`, etc.), `setup` subtree (dimensions, authoringMode, authorAssetsDir), `metadata.placeholders` structure, optional experimental flags.
+  - Cover existing fields: root metadata (`name`, `description`, `handoff`, etc.), `setup` subtree (dimensions, authorAssetsDir), `metadata.placeholders` structure, optional experimental flags.
   - Include `description` and `examples` for key properties to improve editor UX.
   - Use `$defs` to avoid duplication (e.g., placeholder definition reused across arrays, dimension definitions).
 
