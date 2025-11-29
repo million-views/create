@@ -1,6 +1,6 @@
 ---
-title: "Intelligent Templatization"
-description: "Automatic content detection and placeholder replacement system"
+title: "Templatization System"
+description: "Content detection and placeholder replacement system"
 type: explanation
 audience: "intermediate"
 estimated_time: "8 minutes read"
@@ -14,11 +14,13 @@ related_docs:
 last_updated: "2025-11-18"
 ---
 
-# Intelligent Templatization
+# Templatization System
 
 ## Overview
 
-The intelligent templatization system automatically detects project-specific content in source files and replaces it with reusable placeholders. This eliminates manual placeholder insertion while maintaining full control over what gets templatized.
+The templatization system detects project-specific content in source files and
+replaces it with placeholders. This reduces manual placeholder insertion while
+maintaining full control over what gets templatized.
 
 ## Core Principles
 

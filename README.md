@@ -1,6 +1,6 @@
 # @m5nv/create
 
-> **Start new projects in seconds. Share your best practices as templates.**
+> **Bidirectional template system for Node.js projects.**
 
 [![npm version](https://badge.fury.io/js/@m5nv%2Fcreate.svg)](https://badge.fury.io/js/@m5nv/create)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -21,11 +21,10 @@ gotchas. Your team does this differently. New hires struggle to get productive.
 
 ## The Solution
 
-**A template ecosystem that captures your expertise and shares it instantly.**
+**A bidirectional template system: convert projects to templates, scaffold projects from templates.**
 
 Turn any project into a reusable template. Scaffold new projects with
-battle-tested configurations. Let your team focus on building features, not
-reinventing setup.
+your team's standard configurations.
 
 ## Quick Examples
 
@@ -56,9 +55,9 @@ create scaffold new another-app --template ./my-project --selection ./my-project
 
 ### For Individual Developers
 
-- **Zero setup time**: Start coding immediately with pre-configured projects
-- **Consistent quality**: Every project includes battle-tested configurations
-- **Guided decisions**: Interactive prompts help you make the right choices
+- **Pre-configured projects**: Start with working configurations
+- **Consistent structure**: Every project follows the same patterns
+- **Interactive prompts**: Answer questions to customize your project
 - **Reproducible builds**: `create scaffold new app-v2 --selection ./app.selection.json`
 
 ### For Teams & Organizations
@@ -71,29 +70,27 @@ create scaffold new another-app --template ./my-project --selection ./my-project
 ### For Template Creators
 
 - **One-command conversion**: `create template init && create template convert`
-- **Smart placeholder detection**: Automatically finds project-specific values
+- **Placeholder detection**: Finds project-specific values in your code
 - **Round-trip workflow**: Convert ↔ restore with full fidelity
-- **Rich validation**: Catch issues before users encounter them
+- **Validation**: Catch schema issues before users encounter them
 
 ## What Makes This Different
 
-Unlike other scaffolding tools, this ecosystem focuses on **round-trip
+Unlike other scaffolding tools, this system focuses on **round-trip
 workflows** and **team collaboration**:
 
-- **Convert ↔ Restore**: Seamlessly move between project and template forms
+- **Convert ↔ Restore**: Move between project and template forms
 - **Selection Files**: Capture and reuse your configuration choices
 - **Registry Support**: Share templates across teams and organizations
 - **Progressive Enhancement**: Start simple, add complexity as needed
-- **Platform Awareness**: Smart validation based on deployment platforms
+- **Platform Awareness**: Validation based on deployment platforms
 
-## Intelligent Templatization
+## Templatization
 
-**Automatically detect and replace project-specific content with reusable
-placeholders.**
+**Detect and replace project-specific content with placeholders.**
 
-The templatization system intelligently analyzes your code and automatically
-identifies content that should be parameterized, supporting JSX/TSX, JSON,
-Markdown, and HTML files.
+The templatization system analyzes your code and identifies content that
+should be parameterized. Supports JSX/TSX, JSON, Markdown, and HTML files.
 
 📖 **[Complete Templatization Guide](docs/explanation/templatization.md)**
 
@@ -111,32 +108,30 @@ Markdown, and HTML files.
 
 ### `create template` - Template Authoring
 
-**Turn projects into templates effortlessly with intelligent content detection.**
+**Convert projects into reusable templates.**
 
-Converts any Node.js project into a reusable template. Automatically detects and
-replaces project-specific content (JSX, JSON, Markdown, HTML) with placeholders,
-generates schema, and creates restoration files.
+Converts Node.js projects into templates. Detects and replaces project-specific
+content (JSX, JSON, Markdown, HTML) with placeholders, generates schema, and
+creates restoration files.
 
 📖 **[Complete CLI Reference](docs/reference/cli-reference.md#template-operations)**
 
 ### `create scaffold` - Project Scaffolding
 
-**Turn templates into projects instantly.**
+**Create projects from templates.**
 
-Creates new projects from templates with intelligent guidance. Supports GitHub
-repos, local paths, and registry shortcuts. Features platform-aware validation
-and reusable selection files.
+Creates new projects from templates. Supports GitHub repos, local paths, and
+registry shortcuts. Features platform-aware validation and reusable selection
+files.
 
 📖 **[Complete CLI Reference](docs/reference/cli-reference.md#scaffold-operations)**
 
 ## Learn More
 
-Ready to dive deeper? Our tutorials will get you productive in minutes:
-
 - **[Getting Started](docs/tutorial/getting-started.md)** - Installation and basic usage
 - **[Template Tutorial](docs/tutorial/template.md)** - Convert projects to templates
 - **[Scaffolding Tutorial](docs/tutorial/scaffold.md)** - Create projects from templates
-- **[Intelligent Templatization](docs/explanation/templatization.md)** - Auto-detection and placeholder replacement
+- **[Templatization System](docs/explanation/templatization.md)** - Content detection and placeholder replacement
 
 ## Technical Details
 
@@ -192,8 +187,7 @@ conditional features.
 
 ### Selection Files
 
-Capture your configuration choices for reproducible builds. Create once, reuse
-instantly.
+Capture your configuration choices for reproducible builds.
 
 📖 **[Complete Guide](docs/tutorial/scaffold.md#example-3-using-selection-files)**
 
