@@ -131,7 +131,7 @@ A selection file contains:
   "templateId": "workshop/lawnmow-app",
   "timestamp": "2025-11-22T10:00:00Z",
   "choices": {
-    "features": ["auth", "payments"]
+    "features": ["user-login", "checkout"]
   },
   "placeholders": {
     "PACKAGE_NAME": "my-lawn-app",
@@ -157,7 +157,7 @@ Create `standard-config.selection.json`:
   "templateId": "workshop/lawnmow-app",
   "timestamp": "2025-11-22T10:00:00Z",
   "choices": {
-    "features": ["auth", "payments"]
+    "features": ["user-login", "checkout"]
   },
   "placeholders": {
     "PACKAGE_NAME": "standard-lawn-app",
@@ -211,7 +211,7 @@ create scaffold new custom-app \
   "schemaVersion": "1.0.0",
   "templateId": "workshop/lawnmow-app",
   "choices": {
-    "features": ["auth", "payments", "analytics"]
+    "features": ["user-login", "checkout", "usage-tracking"]
   },
   "placeholders": {
     "PACKAGE_NAME": "enterprise-app",
@@ -311,7 +311,7 @@ cat > premium.selection.json << 'EOF'
   "schemaVersion": "1.0.0",
   "templateId": "workshop/lawnmow-app",
   "choices": {
-    "features": ["auth", "payments", "analytics"]
+    "features": ["user-login", "checkout", "usage-tracking"]
   },
   "placeholders": {
     "PACKAGE_NAME": "lawn-premium",
@@ -327,7 +327,7 @@ create scaffold new lawn-premium \
 
 # Check what was generated
 cat lawn-premium/FEATURES.md
-# Shows: authentication, payments, analytics
+# Shows: user-login, checkout, usage-tracking
 ```
 
 ### Understanding Selection Files for Dimensions
@@ -341,7 +341,7 @@ When working with templates that have dimensions, use selection files to specify
   "choices": {
     "deployment": "cloudflare-workers",
     "database": "d1",
-    "features": ["auth", "payments"]
+    "features": ["user-login", "checkout"]
   },
   "placeholders": {
     "PACKAGE_NAME": "my-app"
@@ -352,7 +352,7 @@ When working with templates that have dimensions, use selection files to specify
 **Selection file structure:**
 - `choices` object contains dimension selections
 - Single-select dimensions use string values (e.g., `"deployment": "cloudflare-workers"`)
-- Multi-select dimensions use arrays (e.g., `"features": ["auth", "payments"]`)
+- Multi-select dimensions use arrays (e.g., `"features": ["user-login", "checkout"]`)
 - Values must match dimension options defined in the template's `template.json`
 
 ### Understanding Gates and Validation

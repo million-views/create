@@ -239,14 +239,14 @@ conditional features.
   },
   "setup": { "script": "_setup.mjs" },
   "dimensions": {
-    /* user choices */
+    /* user choices: deployment, database, storage, identity, billing, analytics, monitoring */
   },
   "gates": {
     /* compatibility rules */
   },
-  "featureSpecs": {
-    /* feature definitions */
-  }
+  "features": [
+    /* feature definitions with needs */
+  ]
 }
 ```
 

@@ -6,6 +6,22 @@ This directory stores the authoritative JSON schemas shipped with `@m5nv/create`
 - `template.v1.json` contains the immutable v1 template schema definition.
 - `template.json` is a symlink pointing to the latest stable template schema consumed by the CLI.
 
+### V1.0 Dimension Vocabulary
+
+The schema enforces 7 fixed infrastructure dimensions:
+
+| Dimension | Purpose |
+|-----------|---------|
+| `deployment` | WHERE it runs |
+| `database` | HOW data persists |
+| `storage` | HOW files persist |
+| `identity` | WHO can access |
+| `billing` | HOW revenue flows |
+| `analytics` | WHAT users do (business) |
+| `monitoring` | HOW system behaves (ops) |
+
+Features are defined in a top-level `features` array with `needs` to declare infrastructure requirements.
+
 ## Selection Schema
 - `selection.v1.json` contains the schema for selection.json files that store user choices and derived metadata during scaffolding.
 - `selection.json` is a symlink pointing to the latest stable selection schema consumed by the CLI.

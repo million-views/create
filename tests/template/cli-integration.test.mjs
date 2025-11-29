@@ -55,14 +55,27 @@ const validTemplateV1 = {
   id: 'test/valid-template',
   name: 'Valid Test Template',
   description: 'A template for testing validation',
+  placeholderFormat: 'unicode',
+  placeholders: {
+    PROJECT_NAME: {
+      description: 'The name of the project',
+      default: 'my-project'
+    }
+  },
   dimensions: {
-    features: {
-      values: ['auth', 'database', 'api'],
-      default: []
-    },
     deployment: {
-      values: ['vercel', 'netlify'],
-      default: 'vercel'
+      options: [
+        { id: 'cloudflare-workers', label: 'Cloudflare Workers' },
+        { id: 'deno-deploy', label: 'Deno Deploy' }
+      ],
+      default: 'cloudflare-workers'
+    },
+    database: {
+      options: [
+        { id: 'd1', label: 'Cloudflare D1' },
+        { id: 'none', label: 'None' }
+      ],
+      default: 'd1'
     }
   },
   handoff: [

@@ -66,27 +66,33 @@ This guide helps template authors iterate efficiently and build advanced templat
   "setup": {
     "authoring": "composable",
     "dimensions": {
-      "features": {
-        "type": "multi",
-        "values": ["auth", "blog", "analytics"],
-        "default": ["analytics"]
+      "deployment": {
+        "type": "single",
+        "values": ["cloudflare-workers", "deno-deploy"],
+        "default": "cloudflare-workers"
       }
     }
-  }
+  },
+  "features": [
+    { "id": "user-login", "label": "User Authentication", "needs": { "identity": "required" } },
+    { "id": "blog-posts", "label": "Blog", "needs": { "database": "required" } },
+    { "id": "usage-tracking", "label": "Analytics", "needs": { "analytics": "required" } }
+  ]
 }
 ```
 
 2. Check options in `_setup.mjs`:
 ```javascript
 export default async function setup({ ctx, tools }) {
-  if (tools.options.in('features', 'auth')) {
-    await tools.templates.copy('auth', 'src/auth');
+  // Check selected features from ctx.features or selection
+  if (tools.options.in('identity', 'github')) {
+    await tools.templates.copy('auth/github', 'src/auth');
     await tools.json.set('package.json', 'dependencies.@m5nv/auth-lib', '^1.0.0');
   }
 }
 ```
 
-**Available dimensions**: `deployment`, `features`, `database`, `storage`, `auth`, `payments`, `analytics`. Custom names are not allowed.
+**Available dimensions**: `deployment`, `database`, `storage`, `identity`, `billing`, `analytics`, `monitoring`. These 7 fixed infrastructure dimensions are enforced by schema validation.
 
 ---
 

@@ -52,14 +52,14 @@ without `schemaVersion` are rejected.
     "authoringMode": "composable"
   },
   "dimensions": {
-    /* user-selectable options */
+    /* user-selectable options: deployment, database, storage, identity, billing, analytics, monitoring */
   },
   "gates": {
     /* compatibility constraints */
   },
-  "featureSpecs": {
-    /* feature definitions */
-  },
+  "features": [
+    /* feature definitions with needs */
+  ],
   "hints": {
     /* advisory catalog */
   },
@@ -180,19 +180,21 @@ Dimensions can be defined in two formats:
 }
 ```
 
-### Required Dimensions (V1.0.0)
+### Standard Dimensions (V1.0.0)
 
-Schema V1.0.0 defines 7 standard dimensions:
+Schema V1.0.0 defines 7 fixed infrastructure dimensions:
 
-| Name         | Type     | Purpose                    |
-| ------------ | -------- | -------------------------- |
-| `deployment` | `single` | Deployment platform        |
-| `features`   | `multi`  | Custom feature toggles     |
-| `database`   | `single` | Database technology choice |
-| `storage`    | `single` | Storage solution           |
-| `auth`       | `multi`  | Authentication providers   |
-| `payments`   | `single` | Payment processor          |
-| `analytics`  | `single` | Analytics service          |
+| Name         | Type     | Purpose                                         |
+| ------------ | -------- | ----------------------------------------------- |
+| `deployment` | `single` | WHERE it runs (deployment platform)             |
+| `database`   | `single` | HOW data persists (database technology)         |
+| `storage`    | `single` | HOW files persist (storage solution)            |
+| `identity`   | `single` | WHO can access (authentication/authorization)   |
+| `billing`    | `single` | HOW revenue flows (payment processing)          |
+| `analytics`  | `single` | WHAT users do (business analytics)              |
+| `monitoring` | `single` | HOW system behaves (operational observability)  |
+
+> **Note**: The `features` dimension is a **special multi-select dimension** for custom feature toggles. It is not one of the 7 fixed infrastructure dimensions listed above.
 
 ### Dimension Details
 
@@ -297,11 +299,11 @@ Schema V1.0.0 defines 7 standard dimensions:
 }
 ```
 
-#### auth
+#### identity
 
-**Type:** `multi` (required)
+**Type:** `single` (required)
 
-**Purpose:** Authentication providers for user login.
+**Purpose:** WHO can access - authentication and authorization provider.
 
 **Allowed Values:**
 
@@ -316,18 +318,18 @@ Schema V1.0.0 defines 7 standard dimensions:
 
 ```json
 {
-  "auth": {
+  "identity": {
     "values": ["auth0", "clerk", "firebase", "supabase", "none"],
-    "default": []
+    "default": "none"
   }
 }
 ```
 
-#### payments
+#### billing
 
 **Type:** `single` (required)
 
-**Purpose:** Payment processor for monetization.
+**Purpose:** HOW revenue flows - payment processing for monetization.
 
 **Allowed Values:**
 
@@ -341,7 +343,7 @@ Schema V1.0.0 defines 7 standard dimensions:
 
 ```json
 {
-  "payments": {
+  "billing": {
     "values": ["stripe", "paypal", "lemonsqueezy", "none"],
     "default": "none"
   }
@@ -352,7 +354,7 @@ Schema V1.0.0 defines 7 standard dimensions:
 
 **Type:** `single` (required)
 
-**Purpose:** Analytics service for tracking.
+**Purpose:** WHAT users do - business analytics and tracking.
 
 **Allowed Values:**
 
@@ -369,6 +371,32 @@ Schema V1.0.0 defines 7 standard dimensions:
 {
   "analytics": {
     "values": ["google-analytics", "mixpanel", "posthog", "plausible", "none"],
+    "default": "none"
+  }
+}
+```
+
+#### monitoring
+
+**Type:** `single` (required)
+
+**Purpose:** HOW system behaves - operational observability and monitoring.
+
+**Allowed Values:**
+
+- `datadog` - Datadog
+- `sentry` - Sentry
+- `newrelic` - New Relic
+- `grafana` - Grafana Cloud
+- `custom` - Custom monitoring
+- `none` - No monitoring
+
+**Schema Example:**
+
+```json
+{
+  "monitoring": {
+    "values": ["datadog", "sentry", "newrelic", "grafana", "none"],
     "default": "none"
   }
 }
@@ -422,28 +450,32 @@ invalid combinations during template creation.
 }
 ```
 
-## FeatureSpecs
+## Features
 
-FeatureSpecs define available features and their requirements. Each feature
-specifies what capabilities it needs from the selected dimensions.
+Features define available capabilities and their infrastructure requirements. Each feature specifies what it needs from the 7 fixed dimensions.
 
-### FeatureSpec Schema
+### Features Schema
+
+Features are defined as an array of feature objects:
 
 ```json
 {
-  "featureSpecs": {
-    "feature_name": {
+  "features": [
+    {
+      "id": "feature_id",
       "label": "Human readable name",
       "description": "Feature description",
-      "category": "authentication|database|storage|payments|analytics|ui|api|deployment|other",
+      "category": "authentication|database|storage|billing|analytics|monitoring|ui|api|deployment|other",
       "needs": {
         "database": "required|optional|none",
-        "auth": "required|optional|none",
-        "payments": "required|optional|none",
-        "storage": "required|optional|none"
+        "identity": "required|optional|none",
+        "billing": "required|optional|none",
+        "storage": "required|optional|none",
+        "analytics": "required|optional|none",
+        "monitoring": "required|optional|none"
       }
     }
-  }
+  ]
 }
 ```
 
@@ -453,30 +485,32 @@ specifies what capabilities it needs from the selected dimensions.
 - **`optional`**: Feature can use this capability if available
 - **`none`**: Feature doesn't use this capability
 
-### FeatureSpec Example
+### Features Example
 
 ```json
 {
-  "featureSpecs": {
-    "auth": {
-      "label": "Authentication",
+  "features": [
+    {
+      "id": "user-login",
+      "label": "User Authentication",
       "description": "User authentication and session management",
       "category": "authentication",
       "needs": {
-        "auth": "required",
+        "identity": "required",
         "database": "required"
       }
     },
-    "payments": {
+    {
+      "id": "checkout",
       "label": "Payment Processing",
       "description": "Accept and process payments",
-      "category": "payments",
+      "category": "billing",
       "needs": {
-        "payments": "required",
+        "billing": "required",
         "database": "required"
       }
     }
-  }
+  ]
 }
 ```
 
@@ -498,9 +532,11 @@ cases. They're used by the CLI to suggest features during template creation.
         "examples": ["Example use case 1", "Example use case 2"],
         "needs": {
           "database": "required|optional|none",
-          "auth": "required|optional|none",
-          "payments": "required|optional|none",
-          "storage": "required|optional|none"
+          "identity": "required|optional|none",
+          "billing": "required|optional|none",
+          "storage": "required|optional|none",
+          "analytics": "required|optional|none",
+          "monitoring": "required|optional|none"
         }
       }
     ]
@@ -515,7 +551,7 @@ cases. They're used by the CLI to suggest features during template creation.
 - **`label`**: Human-readable display name
 - **`description`**: Detailed feature description
 - **`examples`** (optional): Array of example use cases
-- **`needs`**: Capability requirements (same as featureSpecs)
+- **`needs`**: Capability requirements (same as features)
 
 ### Hints Example
 
@@ -528,9 +564,9 @@ cases. They're used by the CLI to suggest features during template creation.
         "label": "Public Static",
         "description": "Static marketing pages (no forms).",
         "needs": {
-          "auth": "none",
+          "identity": "none",
           "database": "none",
-          "payments": "none",
+          "billing": "none",
           "storage": "none"
         },
         "examples": ["Legal Pages", "About Us"]
@@ -540,9 +576,9 @@ cases. They're used by the CLI to suggest features during template creation.
         "label": "Auth Data Entry (Simple)",
         "description": "Authenticated forms without uploads.",
         "needs": {
-          "auth": "required",
+          "identity": "required",
           "database": "required",
-          "payments": "none",
+          "billing": "none",
           "storage": "none"
         },
         "examples": ["Password Update", "Team Invite"]
@@ -730,7 +766,7 @@ Examples:
   "schemaVersion": "1.0.0",
   "id": "acme/web-app",
   "name": "Full-Stack Web Application",
-  "description": "A complete web application with authentication, database, and payments",
+  "description": "A complete web application with authentication, database, and billing",
   "tags": ["web", "fullstack", "react"],
   "author": "Acme Corp",
   "license": "MIT",
@@ -744,13 +780,9 @@ Examples:
     "authoringMode": "composable"
   },
   "dimensions": {
-    "deployment_target": {
+    "deployment": {
       "values": ["vercel", "netlify", "railway", "render"],
       "default": "vercel"
-    },
-    "features": {
-      "values": ["auth", "payments", "analytics", "testing"],
-      "default": ["testing"]
     },
     "database": {
       "values": ["postgres", "mysql", "sqlite", "mongodb", "none"],
@@ -760,27 +792,25 @@ Examples:
       "values": ["local", "s3", "cloudflare", "vercel-blob", "none"],
       "default": "s3"
     },
-    "auth": {
+    "identity": {
       "values": ["auth0", "clerk", "firebase", "supabase", "none"],
-      "default": ["auth0"]
+      "default": "auth0"
     },
-    "payments": {
+    "billing": {
       "values": ["stripe", "paypal", "lemonsqueezy", "none"],
       "default": "stripe"
     },
     "analytics": {
-      "values": [
-        "google-analytics",
-        "mixpanel",
-        "posthog",
-        "plausible",
-        "none"
-      ],
+      "values": ["google-analytics", "mixpanel", "posthog", "plausible", "none"],
       "default": "google-analytics"
+    },
+    "monitoring": {
+      "values": ["datadog", "sentry", "newrelic", "grafana", "none"],
+      "default": "sentry"
     }
   },
   "gates": {
-    "deployment_target": {
+    "deployment": {
       "platform": "vercel",
       "constraint": "Vercel supports specific database and storage options",
       "allowed": {
@@ -789,26 +819,29 @@ Examples:
       }
     }
   },
-  "featureSpecs": {
-    "auth": {
-      "label": "Authentication",
+  "features": [
+    {
+      "id": "user-login",
+      "label": "User Authentication",
       "description": "User authentication and session management",
       "category": "authentication",
       "needs": {
-        "auth": "required",
+        "identity": "required",
         "database": "required"
       }
     },
-    "payments": {
+    {
+      "id": "checkout",
       "label": "Payment Processing",
       "description": "Accept and process payments",
-      "category": "payments",
+      "category": "billing",
       "needs": {
-        "payments": "required",
+        "billing": "required",
         "database": "required"
       }
     },
-    "analytics": {
+    {
+      "id": "usage-tracking",
       "label": "Analytics",
       "description": "Track user behavior and app metrics",
       "category": "analytics",
@@ -816,7 +849,7 @@ Examples:
         "analytics": "required"
       }
     }
-  },
+  ],
   "hints": {
     "features": [
       {
@@ -824,9 +857,9 @@ Examples:
         "label": "Public Static",
         "description": "Static marketing pages (no forms).",
         "needs": {
-          "auth": "none",
+          "identity": "none",
           "database": "none",
-          "payments": "none",
+          "billing": "none",
           "storage": "none"
         },
         "examples": ["Legal Pages", "About Us"]
@@ -836,9 +869,9 @@ Examples:
         "label": "Auth Data Entry (Simple)",
         "description": "Authenticated forms without uploads.",
         "needs": {
-          "auth": "required",
+          "identity": "required",
           "database": "required",
-          "payments": "none",
+          "billing": "none",
           "storage": "none"
         },
         "examples": ["Password Update", "Team Invite"]

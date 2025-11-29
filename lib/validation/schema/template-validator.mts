@@ -270,13 +270,21 @@ export class TemplateValidator {
    */
   validateDimensionsSchema(dimensions) {
     const errors = [];
-    const validDimensions = ['deployment', 'features', 'database', 'storage', 'auth', 'payments', 'analytics'];
+    // 7 fixed infrastructure dimensions (single-select)
+    // - deployment: where it runs
+    // - database: data persistence
+    // - storage: file/blob storage
+    // - identity: authentication + authorization + RBAC
+    // - billing: payments + subscriptions
+    // - analytics: user behavior tracking
+    // - monitoring: APM, errors, logs
+    const validDimensions = ['deployment', 'database', 'storage', 'identity', 'billing', 'analytics', 'monitoring'];
 
     for (const [key, value] of Object.entries(dimensions)) {
       if (!validDimensions.includes(key)) {
         errors.push({
           type: 'SCHEMA_ERROR',
-          message: `Unknown dimension: ${key}`,
+          message: `Unknown dimension: ${key}. Valid dimensions are: ${validDimensions.join(', ')}`,
           path: ['dimensions', key]
         });
       }
@@ -290,11 +298,15 @@ export class TemplateValidator {
         continue;
       }
 
-      if (!value.values || !Array.isArray(value.values)) {
+      // Support both 'values' (legacy) and 'options' (new schema) array formats
+      const hasValues = value.values && Array.isArray(value.values);
+      const hasOptions = value.options && Array.isArray(value.options);
+      
+      if (!hasValues && !hasOptions) {
         errors.push({
           type: 'SCHEMA_ERROR',
-          message: `Dimension ${key} must have a 'values' array`,
-          path: ['dimensions', key, 'values']
+          message: `Dimension ${key} must have an 'options' array`,
+          path: ['dimensions', key, 'options']
         });
       }
     }
@@ -429,35 +441,26 @@ export class TemplateValidator {
     const errors = [];
 
     for (const [dimName, dimConfig] of Object.entries(dimensions)) {
-      if (!dimConfig.values || dimConfig.values.length === 0) {
+      // Support both 'values' (legacy) and 'options' (new schema) formats
+      const values = dimConfig.values || (dimConfig.options?.map(opt => opt.id) || []);
+      
+      if (values.length === 0) {
         errors.push({
           type: 'DOMAIN_ERROR',
-          message: `Dimension '${dimName}' must have at least one value`,
-          path: ['dimensions', dimName, 'values']
+          message: `Dimension '${dimName}' must have at least one value/option`,
+          path: ['dimensions', dimName, dimConfig.options ? 'options' : 'values']
         });
+        continue;
       }
 
       // Check for duplicate values
-      const uniqueValues = new Set(dimConfig.values);
-      if (uniqueValues.size !== dimConfig.values.length) {
+      const uniqueValues = new Set(values);
+      if (uniqueValues.size !== values.length) {
         errors.push({
           type: 'DOMAIN_ERROR',
           message: `Dimension '${dimName}' contains duplicate values`,
-          path: ['dimensions', dimName, 'values']
+          path: ['dimensions', dimName, dimConfig.options ? 'options' : 'values']
         });
-      }
-
-      // Validate feature names follow pattern
-      if (dimName === 'features') {
-        for (const feature of dimConfig.values) {
-          if (!/^[a-z][a-z0-9_-]*$/.test(feature)) {
-            errors.push({
-              type: 'DOMAIN_ERROR',
-              message: `Invalid feature name: ${feature}. Must match pattern: ^[a-z][a-z0-9_-]*$`,
-              path: ['dimensions', 'features', 'values']
-            });
-          }
-        }
       }
     }
 

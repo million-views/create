@@ -494,7 +494,7 @@ export default async function setup({ ctx, tools }) {
   switch (deployment) {
     case 'cloudflare-workers':
       await tools.templates.copy('infra/cloudflare', 'infra');
-      await tools.templates.copy('wrangler.toml', 'wrangler.toml');
+      await tools.templates.copy('wrangler.jsonc', 'wrangler.jsonc');
       await tools.json.merge('package.json', {
         devDependencies: {
           'wrangler': '^3.0.0'
@@ -514,7 +514,7 @@ export default async function setup({ ctx, tools }) {
       break;
 
     case 'akamai-linode':
-      await tools.templates.copy('infra/linode', 'infra');
+      await tools.templates.copy('infra/akamai-linode', 'infra');
       tools.logger.info('Configured Akamai Linode');
       break;
 
@@ -522,6 +522,20 @@ export default async function setup({ ctx, tools }) {
       await tools.templates.copy('infra/digitalocean', 'infra');
       tools.logger.info('Configured DigitalOcean Droplet');
       break;
+  }
+
+  // Handle identity dimension
+  const identity = ctx.options.byDimension.identity || 'none';
+  if (identity !== 'none') {
+    await tools.templates.copy(`auth/${identity}`, 'src/auth');
+    tools.logger.info(`Configured ${identity} authentication`);
+  }
+
+  // Handle billing dimension
+  const billing = ctx.options.byDimension.billing || 'none';
+  if (billing === 'stripe') {
+    await tools.templates.copy('billing/stripe', 'src/billing');
+    tools.logger.info('Configured Stripe billing');
   }
 }
 ```
@@ -737,6 +751,7 @@ export default async function setup({ ctx, tools }) {
 
   if (deployment === 'cloudflare-workers') {
     await tools.templates.copy('infra/cloudflare', 'infra');
+    await tools.templates.copy('wrangler.jsonc', 'wrangler.jsonc');
     await tools.json.merge('package.json', {
       devDependencies: {
         'wrangler': '^3.0.0'

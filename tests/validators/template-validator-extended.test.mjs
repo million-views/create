@@ -27,13 +27,13 @@ test('TemplateValidator - Dimensions Schema Validation', async (t) => {
       name: 'Test Template',
       description: 'A test template',
       dimensions: {
-        features: { default: [] } // Missing values causes exception
+        deployment: { default: 'cloudflare-workers' } // Missing values/options causes error
       }
     };
 
     const result = await validator.validate(template, 'strict');
     assert(!result.valid);
-    assert(result.errors.some(e => e.message.includes('Failed to validate')));
+    assert(result.errors.some(e => e.message.includes('must have') || e.message.includes('options')));
   });
 
   await t.test('reports unknown dimension type', async () => {

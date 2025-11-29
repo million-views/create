@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://schemas.million-views.dev/create/template.v1.json",
   "title": "Template Manifest V1.0 (Registry + UI)",
-  "description": "Defines a template's infrastructure stack, feature hints, and configuration variables.",
+  "description": "Defines a template's infrastructure stack, feature bundles, and configuration variables.",
   "type": "object",
   "required": [
     "schemaVersion",
@@ -87,67 +87,42 @@
     },
     "dimensions": {
       "type": "object",
-      "description": "Infrastructure choices (Stack).",
-      "patternProperties": {
-        "^[a-z_]+$": {
-          "type": "object",
-          "required": [
-            "options"
-          ],
-          "properties": {
-            "label": {
-              "type": "string",
-              "description": "Header label in the UI"
-            },
-            "display": {
-              "type": "object",
-              "properties": {
-                "variant": {
-                  "enum": [
-                    "card-grid",
-                    "list-selection",
-                    "dropdown"
-                  ],
-                  "default": "list-selection"
-                },
-                "icon": {
-                  "type": "string"
-                }
-              }
-            },
-            "options": {
-              "type": "array",
-              "items": {
-                "type": "object",
-                "required": [
-                  "id"
-                ],
-                "properties": {
-                  "id": {
-                    "type": "string"
-                  },
-                  "label": {
-                    "type": "string"
-                  },
-                  "desc": {
-                    "type": "string"
-                  },
-                  "icon": {
-                    "type": "string"
-                  },
-                  "placeholders": {
-                    "$ref": "#/$defs/placeholderRefList"
-                  }
-                }
-              }
-            }
-          }
+      "description": "Infrastructure choices (Stack). Fixed vocabulary of 7 dimensions.",
+      "properties": {
+        "deployment": {
+          "$ref": "#/$defs/dimensionDef",
+          "description": "WHERE it runs (e.g., cloudflare-workers, deno-deploy)"
+        },
+        "database": {
+          "$ref": "#/$defs/dimensionDef",
+          "description": "HOW data persists (e.g., d1, sqlite, postgres)"
+        },
+        "storage": {
+          "$ref": "#/$defs/dimensionDef",
+          "description": "HOW files persist (e.g., r2, local, spaces)"
+        },
+        "identity": {
+          "$ref": "#/$defs/dimensionDef",
+          "description": "WHO can access (e.g., github, google, email)"
+        },
+        "billing": {
+          "$ref": "#/$defs/dimensionDef",
+          "description": "HOW revenue flows (e.g., stripe, paddle)"
+        },
+        "analytics": {
+          "$ref": "#/$defs/dimensionDef",
+          "description": "WHAT users do - business metrics (e.g., cf-analytics, umami)"
+        },
+        "monitoring": {
+          "$ref": "#/$defs/dimensionDef",
+          "description": "HOW system behaves - ops metrics (e.g., cf-logs, sentry)"
         }
-      }
+      },
+      "additionalProperties": false
     },
-    "hints": {
+    "features": {
       "type": "array",
-      "description": "Feature choices (White-labelling/Content).",
+      "description": "Author-defined feature bundles. Each feature declares infrastructure requirements via 'needs'.",
       "items": {
         "type": "object",
         "required": [
@@ -157,50 +132,162 @@
         ],
         "properties": {
           "id": {
-            "type": "string"
+            "type": "string",
+            "pattern": "^[a-z0-9_-]+$",
+            "description": "Unique feature identifier"
           },
           "label": {
-            "type": "string"
+            "type": "string",
+            "description": "Human-readable feature name"
           },
           "description": {
-            "type": "string"
+            "type": "string",
+            "description": "Brief description of the feature"
           },
           "icon": {
-            "type": "string"
+            "type": "string",
+            "description": "Icon identifier for UI display"
           },
           "needs": {
-            "$ref": "#/$defs/capabilityNeeds"
+            "$ref": "#/$defs/capabilityNeeds",
+            "description": "Infrastructure requirements for this feature"
           },
           "placeholders": {
-            "$ref": "#/$defs/placeholderRefList"
+            "$ref": "#/$defs/placeholderRefList",
+            "description": "Configuration variables required by this feature"
           }
         }
       }
     },
     "gates": {
       "type": "object",
-      "description": "Compatibility rules between dimensions.",
-      "patternProperties": {
-        "^[a-z_]+$": {
+      "description": "Compatibility rules between dimensions. Keyed by dimension name, then option ID.",
+      "properties": {
+        "deployment": {
+          "$ref": "#/$defs/gateDef"
+        },
+        "database": {
+          "$ref": "#/$defs/gateDef"
+        },
+        "storage": {
+          "$ref": "#/$defs/gateDef"
+        },
+        "identity": {
+          "$ref": "#/$defs/gateDef"
+        },
+        "billing": {
+          "$ref": "#/$defs/gateDef"
+        },
+        "analytics": {
+          "$ref": "#/$defs/gateDef"
+        },
+        "monitoring": {
+          "$ref": "#/$defs/gateDef"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "$defs": {
+    "dimensionDef": {
+      "type": "object",
+      "required": [
+        "options"
+      ],
+      "properties": {
+        "label": {
+          "type": "string",
+          "description": "Header label in the UI"
+        },
+        "display": {
           "type": "object",
-          "patternProperties": {
-            "^[a-z0-9-]+$": {
-              "type": "object",
-              "patternProperties": {
-                "^[a-z_]+$": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                }
+          "properties": {
+            "variant": {
+              "enum": [
+                "card-grid",
+                "list-selection",
+                "dropdown"
+              ],
+              "default": "list-selection"
+            },
+            "icon": {
+              "type": "string"
+            }
+          }
+        },
+        "default": {
+          "type": "string",
+          "description": "Default option ID"
+        },
+        "options": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "id"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z0-9-]+$",
+                "description": "Option identifier (e.g., cloudflare-workers, postgres)"
+              },
+              "label": {
+                "type": "string",
+                "description": "Human-readable option name"
+              },
+              "desc": {
+                "type": "string",
+                "description": "Brief description"
+              },
+              "icon": {
+                "type": "string"
+              },
+              "placeholders": {
+                "$ref": "#/$defs/placeholderRefList"
               }
             }
           }
         }
       }
-    }
-  },
-  "$defs": {
+    },
+    "gateDef": {
+      "type": "object",
+      "description": "Constraints for each option in this dimension",
+      "patternProperties": {
+        "^[a-z0-9-]+$": {
+          "type": "object",
+          "description": "When this option is selected, restrict other dimensions",
+          "properties": {
+            "database": {
+              "type": "array",
+              "items": { "type": "string" }
+            },
+            "storage": {
+              "type": "array",
+              "items": { "type": "string" }
+            },
+            "identity": {
+              "type": "array",
+              "items": { "type": "string" }
+            },
+            "billing": {
+              "type": "array",
+              "items": { "type": "string" }
+            },
+            "analytics": {
+              "type": "array",
+              "items": { "type": "string" }
+            },
+            "monitoring": {
+              "type": "array",
+              "items": { "type": "string" }
+            }
+          },
+          "additionalProperties": false
+        }
+      }
+    },
     "placeholderKey": {
       "type": "string",
       "pattern": "^[A-Z0-9_]+$",
@@ -216,16 +303,40 @@
     },
     "capabilityNeeds": {
       "type": "object",
-      "description": "Defining what infrastructure capabilities this feature requires.",
-      "patternProperties": {
-        "^[a-z_]+$": {
-          "enum": [
-            "required",
-            "optional",
-            "none"
-          ]
+      "description": "Infrastructure requirements. Keys are dimension names, values indicate requirement level.",
+      "properties": {
+        "deployment": {
+          "$ref": "#/$defs/requirementLevel"
+        },
+        "database": {
+          "$ref": "#/$defs/requirementLevel"
+        },
+        "storage": {
+          "$ref": "#/$defs/requirementLevel"
+        },
+        "identity": {
+          "$ref": "#/$defs/requirementLevel"
+        },
+        "billing": {
+          "$ref": "#/$defs/requirementLevel"
+        },
+        "analytics": {
+          "$ref": "#/$defs/requirementLevel"
+        },
+        "monitoring": {
+          "$ref": "#/$defs/requirementLevel"
         }
-      }
+      },
+      "additionalProperties": false
+    },
+    "requirementLevel": {
+      "type": "string",
+      "enum": [
+        "required",
+        "optional",
+        "none"
+      ],
+      "description": "Whether this infrastructure capability is required, optional, or not needed"
     }
   }
 }

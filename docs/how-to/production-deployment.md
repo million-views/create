@@ -88,24 +88,31 @@ Deploy to Cloudflare's edge network with D1 database integration.
 
 ### Step 1: Configure Wrangler
 
-Ensure `wrangler.toml` exists in your project root:
+Ensure `wrangler.jsonc` exists in your project root:
 
-```toml
-name = "my-app"
-main = "dist/index.js"
-compatibility_date = "2024-01-01"
-
-[build]
-command = "npm run build"
-
-[vars]
-NODE_ENV = "production"
-
-[[d1_databases]]
-binding = "DB"
-database_name = "my-app-db"
-database_id = "your-database-id"
+```jsonc
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "my-app",
+  "main": "dist/index.js",
+  "compatibility_date": "2024-01-01",
+  "build": {
+    "command": "npm run build"
+  },
+  "vars": {
+    "NODE_ENV": "production"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "my-app-db",
+      "database_id": "your-database-id"
+    }
+  ]
+}
 ```
+
+> **Why JSONC?** Cloudflare now recommends `wrangler.jsonc` over `wrangler.toml`. JSONC provides better IDE support with schema validation, familiar syntax for JavaScript developers, and supports comments for documentation.
 
 ### Step 2: Authenticate with Cloudflare
 
@@ -131,13 +138,27 @@ wrangler deploy
 
 ### Step 4: Configure Custom Domain (Optional)
 
-```bash
-# Add custom domain
-wrangler routes put yourdomain.com/* --script=my-app
+Configure routes in your `wrangler.jsonc`:
 
-# Or use wrangler.toml:
-# [routes]
-# patterns = ["yourdomain.com/*"]
+```jsonc
+{
+  // ... other config
+  "routes": [
+    { "pattern": "yourdomain.com/*", "zone_name": "yourdomain.com" }
+  ]
+}
+```
+
+Then redeploy:
+
+```bash
+wrangler deploy
+```
+
+Alternatively, use the `--routes` flag during deployment:
+
+```bash
+wrangler deploy --route "yourdomain.com/*"
 ```
 
 ### Step 5: Database Setup (if using D1)
@@ -387,8 +408,8 @@ wrangler d1 list
 # Check database permissions
 wrangler d1 execute your-db-name --command="SELECT 1;"
 
-# Verify wrangler.toml binding
-cat wrangler.toml
+# Verify wrangler.jsonc binding
+cat wrangler.jsonc
 ```
 
 ### Linode VPS Issues
@@ -436,7 +457,7 @@ When you scaffold with deployment dimensions, deployment may require additional 
 If your template uses `deployment: "cloudflare-d1"`:
 
 ```bash
-# Database is already configured in wrangler.toml
+# Database is already configured in wrangler.jsonc
 # Just ensure migrations are run
 wrangler d1 execute my-app-db --file=./migrations/init.sql
 ```

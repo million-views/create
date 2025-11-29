@@ -21,16 +21,18 @@ needed.
 - **Structure:** Flat key-value map.
 - **Types:** text, number, boolean, email, password, url.
 
-### The References (dimensions & hints)
+### The References (dimensions & features)
 
 These sections define the "Logic" of the template. They do not define new
 inputs; they only claim keys from the Registry.
 
-- **Dimensions (Infrastructure):** Mutually exclusive stack choices (e.g.,
-  Deployment, Database).
-  - **Example:** Selecting "Cloudflare" claims CLOUDFLARE_ACCOUNT_ID.
-- **Hints (Features):** Additive functional modules (e.g., Billing, Blog).
-  - **Example:** Selecting "Billing" claims STRIPE_SECRET_KEY.
+- **Dimensions (Infrastructure):** Single-select stack choices covering 7 fixed
+  categories: `deployment`, `database`, `storage`, `identity`, `billing`,
+  `analytics`, `monitoring`.
+  - **Example:** Selecting "Cloudflare Workers" for deployment claims CLOUDFLARE_ACCOUNT_ID.
+- **Features (Capabilities):** Author-defined feature bundles with infrastructure
+  requirements via `needs`. Features drive which dimensions are required.
+  - **Example:** Selecting "SaaS Billing" feature requires `billing` dimension.
 
 ### Aside: Disambiguating "Placeholders"
 
@@ -46,7 +48,7 @@ crucial to distinguish them:
 
 2. **The Reference (Nested Level):**
 
-- **Location:** dimensions...placeholders or hints...placeholders
+- **Location:** dimensions...placeholders or features...placeholders
 - **Role:** The Dependency. It defines WHEN the variable is active. It is
   strictly a list of strings (keys) pointing back to the Dictionary.
 - **Analogy:** Selecting which columns to display in a specific report.
@@ -71,21 +73,21 @@ on display.variant.
 
 ### Step 2: Feature Composition (Intent)
 
-**Input:** template.hints `->` **Action:** Render a multi-select grid.
+**Input:** template.features `->` **Action:** Render a multi-select grid.
 
-- These are "Capabilities." Selecting a hint is a declaration of intent.
-- **Logic:** When a hint is selected, read its needs object (e.g.,
-  `{ "database": "required" }`).
+- These are "Capabilities." Selecting a feature is a declaration of intent.
+- **Logic:** When a feature is selected, read its `needs` object (e.g.,
+  `{ "database": "required", "identity": "required" }`).
 
 ### Step 3: Constraint Resolution (The Solver)
 
 **Input:** User Selections + template.gates + Feature needs `->` **Action:**
 
-- **Apply Gates:** If Deployment = Cloudflare, disable Database = Mongo (via
-  gates lookup).
-- **Apply Needs:** If Features includes "User Profiles" (which needs DB), but
-  Database = None, force the UI to auto-select a valid Database or show a
-  validation error.
+- **Apply Gates:** If deployment = cloudflare-workers, restrict database to
+  compatible options (d1, none) via gates lookup.
+- **Apply Needs:** If selected features include "User Profiles" (which needs
+  `database: "required"`), but database = none, force the UI to auto-select a
+  valid database or show a validation error.
 - **Goal:** Prevent invalid infrastructure states before configuration begins.
 
 ### Step 4: Configuration Aggregation (The Form)
@@ -94,14 +96,15 @@ on display.variant.
 
 - **Collect Keys:** Iterate through all selected items, merging their
   placeholders arrays into a Set<String>.
-  - Deployment(Cloudflare) -> adds ["CLOUDFLARE_API_TOKEN"]
-  - Feature(Billing) -> adds ["STRIPE_KEY"]
+  - deployment(cloudflare-workers) -> adds ["CLOUDFLARE_API_TOKEN"]
+  - billing(stripe) -> adds ["STRIPE_KEY"]
+  - feature(saas-billing) -> adds ["STRIPE_KEY", "BILLING_EMAIL"]
 - **Render Form:** For each key in the Set, look up the definition in the
   Registry (template.placeholders) and render the appropriate input component.
 - **Grouping Strategy:**
   - **Global:** Keys appearing in package.json (e.g., PACKAGE_NAME).
   - **Infrastructure:** Keys derived from dimensions.
-  - **Content:** Keys derived from hints.
+  - **Features:** Keys derived from selected features.
 
 ### Step 5: Output Generation
 
@@ -126,7 +129,7 @@ The selection manifest enforces strict typing to ensure reproducibility.
 | schemaVersion | string | Required. Must match the version of the Template Schema used (e.g., 1.0.0).                                                                                                                                 |
 | templateId    | string | Required. The ID of the template this selection validates against (e.g., acme/remix-v2).                                                                                                                    |
 | timestamp     | string | ISO 8601 timestamp of creation. Useful for audit logs.                                                                                                                                                      |
-| choices       | object | The Stack. A map where keys correspond to dimensions in the template. Values are the selected Option IDs.<br>• Single Select: `"database": "postgres"`<br>• Multi Select: `"features": ["auth", "billing"]` |
+| choices       | object | The Stack. A map where keys correspond to dimensions in the template. Values are the selected Option IDs.<br>• Single Select: `"database": "postgres"`<br>• Multi Select: `"features": ["user-login", "checkout"]` |
 | placeholders  | object | The Configuration. A map where keys correspond to the placeholders registry in the template. Values are the user's input.<br>• Example: `"PACKAGE_NAME": "my-app"`                                          |
 
 ### 3.2 Example Artifact
@@ -139,7 +142,7 @@ The selection manifest enforces strict typing to ensure reproducibility.
   "choices": {
     "deployment": "cloudflare-workers",
     "database": "d1",
-    "features": ["auth", "billing"]
+    "features": ["user-login", "checkout"]
   },
   "placeholders": {
     "PACKAGE_NAME": "my-app",
@@ -299,7 +302,7 @@ This file is defined by the template author. It acts as the "Menu".
     }
   },
 
-  "hints": [
+  "features": [
     {
       "id": "marketing_site",
       "label": "Marketing Website",
@@ -308,10 +311,10 @@ This file is defined by the template author. It acts as the "Menu".
       "placeholders": ["CONTACT_EMAIL"]
     },
     {
-      "id": "billing",
+      "id": "saas_billing",
       "label": "SaaS Billing",
       "icon": "credit-card",
-      "needs": { "database": "required" },
+      "needs": { "database": "required", "billing": "required" },
       "placeholders": ["STRIPE_KEY"]
     }
   ],
@@ -339,7 +342,8 @@ This file is generated by the Product-Mix UI. It acts as the "Order Ticket".
   "choices": {
     "deployment": "cloudflare-workers",
     "database": "d1",
-    "features": ["marketing_site", "billing"]
+    "billing": "stripe",
+    "features": ["marketing_site", "saas_billing"]
   },
   "placeholders": {
     "PACKAGE_NAME": "green-care-pro",
@@ -350,3 +354,65 @@ This file is generated by the Product-Mix UI. It acts as the "Order Ticket".
   }
 }
 ```
+
+## 7. Appendix B: Standard Dimension Vocabulary
+
+The V1.0 schema enforces a fixed vocabulary of 7 infrastructure dimensions.
+This standardization enables uniform UI rendering, predictable gate logic,
+and consistent feature requirement declarations.
+
+### 7.1 Dimension Reference
+
+| Dimension | Purpose | Selection Type | Example Options |
+|-----------|---------|----------------|-----------------|
+| `deployment` | WHERE it runs | single-select | `cloudflare-workers`, `deno-deploy`, `akamai-linode`, `do-droplet` |
+| `database` | HOW data persists | single-select | `d1`, `sqlite`, `postgres`, `none` |
+| `storage` | HOW files persist | single-select | `r2`, `spaces`, `local`, `none` |
+| `identity` | WHO can access | single-select | `github`, `google`, `email`, `none` |
+| `billing` | HOW revenue flows | single-select | `stripe`, `paddle`, `none` |
+| `analytics` | WHAT users do (business) | single-select | `cf-analytics`, `umami`, `plausible`, `none` |
+| `monitoring` | HOW system behaves (ops) | single-select | `cf-logs`, `sentry`, `self-hosted`, `none` |
+
+### 7.2 Design Principles
+
+**Single-Select Only:** All dimensions are single-select. This simplifies gate
+logic and prevents invalid state combinations.
+
+**Features Drive Requirements:** The `features` array (formerly `hints`)
+declares infrastructure requirements via `needs`. Selecting a feature activates
+the dimensions it requires.
+
+> **Feature ID Naming Convention:** To avoid confusion between dimension names
+> and feature IDs, use descriptive action-oriented names for features:
+> - ✅ `user-login`, `checkout`, `usage-tracking` (describes what the feature does)
+> - ❌ `auth`, `billing`, `analytics` (conflicts with dimension names)
+>
+> This makes it clear that dimensions are *infrastructure categories* (WHERE/HOW/WHO),
+> while features are *user-facing capabilities* that use those dimensions.
+
+**Gates Constrain Compatibility:** The `gates` object restricts which options
+are valid based on other selections. For example, `cloudflare-workers` may only
+support `d1` or `none` for database.
+
+### 7.3 FOSS-First Philosophy
+
+When defining dimension options, prefer open-source or self-hosted alternatives
+alongside commercial offerings:
+
+| Dimension | Commercial | FOSS Alternative |
+|-----------|------------|------------------|
+| `analytics` | Cloudflare Analytics | Umami, Plausible |
+| `monitoring` | Sentry, Datadog | Self-hosted, OpenTelemetry |
+| `identity` | Auth0, Clerk | Authelia, Authentik |
+| `billing` | Stripe | (limited FOSS options) |
+
+### 7.4 Single Window Billing
+
+The "Single Window Billing" principle recommends minimizing vendor
+relationships. Ideally, users should have 1-2 billing relationships maximum.
+This reduces operational complexity and simplifies financial management.
+
+**Example:** A Cloudflare-centric stack (Workers + D1 + R2 + Analytics) provides
+a complete infrastructure with a single vendor relationship, plus Stripe for
+billing = 2 total vendors
+

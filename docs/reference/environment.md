@@ -105,13 +105,8 @@ The context object is frozen; attempting to mutate it throws.
     "dimensions": {
       "deployment": {
         "type": "single",
-        "values": ["cloudflare-workers", "linode"],
+        "values": ["cloudflare-workers", "akamai-linode"],
         "default": "cloudflare-workers"
-      },
-      "features": {
-        "type": "multi",
-        "values": ["auth", "docs"],
-        "default": ["auth"]
       },
       "database": {
         "type": "single",
@@ -123,44 +118,54 @@ The context object is frozen; attempting to mutate it throws.
         "values": ["r2", "none"],
         "default": "r2"
       },
-      "auth": {
-        "type": "multi",
-        "values": ["google", "github"],
-        "default": []
+      "identity": {
+        "type": "single",
+        "values": ["github", "google", "none"],
+        "default": "none"
       },
-      "payments": {
+      "billing": {
         "type": "single",
         "values": ["stripe", "none"],
         "default": "none"
       },
       "analytics": {
         "type": "single",
-        "values": ["plausible", "none"],
+        "values": ["cf-analytics", "umami", "none"],
+        "default": "none"
+      },
+      "monitoring": {
+        "type": "single",
+        "values": ["cf-logs", "self-hosted", "none"],
         "default": "none"
       }
     },
     "gates": {}
   },
-  "featureSpecs": {
-    "auth": {
+  "features": [
+    {
+      "id": "auth",
       "label": "Authentication",
       "description": "Add user authentication features",
-      "needs": {}
+      "needs": { "identity": "required", "database": "required" }
     },
-    "docs": {
+    {
+      "id": "docs",
+    {
+      "id": "docs",
       "label": "Documentation",
       "description": "Generate documentation files",
       "needs": {}
     }
-  },
+  ],
   "constants": {}
 }
 ```
 
-With a selection manifest defining `features: ['auth', 'docs']` and placeholder inputs from `--placeholder AUTHOR="Jane"` and `--placeholder LICENSE="MIT"`, the setup script receives:
+With a selection manifest defining `features: ['auth', 'docs']` (selected feature IDs) and placeholder inputs from `--placeholder AUTHOR="Jane"` and `--placeholder LICENSE="MIT"`, the setup script receives:
 
 ```javascript
-ctx.options.byDimension.features; // ['auth', 'docs']
+ctx.options.byDimension.deployment; // 'cloudflare-workers'
+ctx.options.byDimension.database; // 'd1'
 ctx.inputs.AUTHOR; // 'Jane'
 ctx.inputs.LICENSE; // 'MIT'
 await tools.placeholders.applyInputs(['README.md']);
@@ -471,13 +476,8 @@ export default async function setup({ ctx, tools }) {
     "dimensions": {
       "deployment": {
         "type": "single",
-        "values": ["cloudflare-workers", "linode"],
+        "values": ["cloudflare-workers", "akamai-linode"],
         "default": "cloudflare-workers"
-      },
-      "features": {
-        "type": "multi",
-        "values": ["auth", "docs"],
-        "default": ["auth"]
       },
       "database": {
         "type": "single",
@@ -489,38 +489,44 @@ export default async function setup({ ctx, tools }) {
         "values": ["r2", "none"],
         "default": "r2"
       },
-      "auth": {
-        "type": "multi",
-        "values": ["google", "github"],
-        "default": []
+      "identity": {
+        "type": "single",
+        "values": ["github", "google", "none"],
+        "default": "none"
       },
-      "payments": {
+      "billing": {
         "type": "single",
         "values": ["stripe", "none"],
         "default": "none"
       },
       "analytics": {
         "type": "single",
-        "values": ["plausible", "none"],
+        "values": ["cf-analytics", "umami", "none"],
+        "default": "none"
+      },
+      "monitoring": {
+        "type": "single",
+        "values": ["cf-logs", "self-hosted", "none"],
         "default": "none"
       }
     },
     "gates": {}
   },
-  "featureSpecs": {
-    "auth": {
+  "features": [
+    {
+      "id": "auth",
       "label": "Authentication",
       "description": "Add user authentication features",
-      "needs": {}
+      "needs": { "identity": "required", "database": "required" }
     }
-  },
+  ],
   "constants": {}
 }
 ```
 
 - **`setup.authoring`** distinguishes WYSIWYG (`"fixed"`) templates from composable ones (`"composable"`). The runtime exposes this value as `ctx.authoring` so setup scripts can tailor behaviour.
-- **`setup.dimensions`** enumerate the option vocabulary. Schema V1.0 requires exactly 7 dimensions (deployment, features, database, storage, auth, payments, analytics) with specific types and validation rules.
-- **`featureSpecs`** define available features with labels, descriptions, and compatibility requirements.
+- **`setup.dimensions`** enumerate the option vocabulary. Schema V1.0 supports 7 fixed infrastructure dimensions: `deployment`, `database`, `storage`, `identity`, `billing`, `analytics`, `monitoring`.
+- **`features`** define author-specified feature bundles with `needs` to declare infrastructure requirements.
 - **`constants`** provide fixed template values available in `ctx.constants`.
 
 ## Additional Reading
