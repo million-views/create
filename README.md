@@ -35,26 +35,21 @@ reinventing setup.
 ### 🔄 Convert your project to a template
 
 ```bash
-# From within project
 cd my-project
 create template init
 create template convert
-
-# Or with explicit path
-create template init ./my-project
-create template convert ./my-project
 ```
 
-### 🚀 Scaffold a new project
+### 🚀 Scaffold from your template
 
 ```bash
-create scaffold new my-app --template basic-react-spa
+create scaffold new my-new-app --template ./my-project
 ```
 
 ### 📋 Reuse previous choices
 
 ```bash
-create scaffold new my-app --template basic-react-spa --selection ./previous-choices.json
+create scaffold new another-app --template ./my-project --selection ./my-project.selection.json
 ```
 
 ## Key Benefits
