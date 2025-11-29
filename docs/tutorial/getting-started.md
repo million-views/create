@@ -82,9 +82,9 @@ create template convert --yes
 ✅ CLI installed  
 
 **Next Steps:**
-- [Template Author Workflow](../how-to/template-author-workflow.md) - Learn to create reusable templates
+- [Scaffolding Tutorial](./scaffold.md) - Create projects from templates
+- [Template Tutorial](./template.md) - Convert projects into reusable templates
 - [CLI Reference](../reference/cli-reference.md) - Complete command documentation
-- [Setup Recipes](../how-to/setup-recipes.md) - Common configuration patterns
 
 ## Troubleshooting
 
