@@ -53,16 +53,6 @@ create template --help
 
 ## Quick Examples
 
-### Scaffold a New Project
-
-```bash
-# Create a project from a template
-create scaffold new my-app --template react-vite
-
-# List available templates
-create scaffold list
-```
-
 ### Create a Template
 
 ```bash
@@ -76,14 +66,24 @@ create template convert --dry-run
 create template convert --yes
 ```
 
+### Scaffold a New Project
+
+```bash
+# Create a project from a template
+create scaffold new my-app --template react-vite
+
+# List available templates
+create scaffold list
+```
+
 ## You're Ready!
 
 ✅ Environment verified  
 ✅ CLI installed  
 
 **Next Steps:**
-- [Scaffolding Tutorial](./scaffold.md) - Create projects from templates
 - [Template Tutorial](./template.md) - Convert projects into reusable templates
+- [Scaffolding Tutorial](./scaffold.md) - Create projects from templates
 - [CLI Reference](../reference/cli-reference.md) - Complete command documentation
 
 ## Troubleshooting

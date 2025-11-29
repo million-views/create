@@ -32,12 +32,6 @@ reinventing setup.
 > **Install once:** `npm install -g @m5nv/create`  
 > **Or try without installing:** `npx @m5nv/create ...`
 
-### 🚀 Scaffold a new project
-
-```bash
-create scaffold new my-app --template basic-react-spa
-```
-
 ### 🔄 Convert your project to a template
 
 ```bash
@@ -49,6 +43,12 @@ create template convert
 # Or with explicit path
 create template init ./my-project
 create template convert ./my-project
+```
+
+### 🚀 Scaffold a new project
+
+```bash
+create scaffold new my-app --template basic-react-spa
 ```
 
 ### 📋 Reuse previous choices
@@ -126,19 +126,6 @@ This gives you the unified `create` command with two domains: `scaffold` and `te
 
 ## Real-World Examples
 
-### Team Onboarding
-
-```bash
-# New developer joins the team
-create scaffold new onboarding-app --template company/react-fullstack
-```
-
-Project would be instantiated with all the best practices the org may have
-baked into the template such as ESLint, Jest, CI/CD, database integration, and
-authentication!
-
-📖 **[Complete Tutorial](docs/tutorial/scaffold.md)**
-
 ### Template Authoring
 
 ```bash
@@ -156,6 +143,19 @@ Automatically detects and templatizes JSX, JSON, Markdown, and HTML content.
 
 📖 **[Complete Tutorial](docs/tutorial/template.md)**
 
+### Team Onboarding
+
+```bash
+# New developer joins the team
+create scaffold new onboarding-app --template company/react-fullstack
+```
+
+Project would be instantiated with all the best practices the org may have
+baked into the template such as ESLint, Jest, CI/CD, database integration, and
+authentication!
+
+📖 **[Complete Tutorial](docs/tutorial/scaffold.md)**
+
 ### Reproducible Builds
 
 ```bash
@@ -170,16 +170,6 @@ create scaffold new my-other-app --template complex-microservice --selection ./c
 
 ## The Two Domains
 
-### `create scaffold` - Project Scaffolding
-
-**Turn templates into projects instantly.**
-
-Creates new projects from templates with intelligent guidance. Supports GitHub
-repos, local paths, and registry shortcuts. Features platform-aware validation
-and reusable selection files.
-
-📖 **[Complete CLI Reference](docs/reference/cli-reference.md#scaffold-operations)**
-
 ### `create template` - Template Authoring
 
 **Turn projects into templates effortlessly with intelligent content detection.**
@@ -190,6 +180,16 @@ generates schema, and creates restoration files.
 
 📖 **[Complete CLI Reference](docs/reference/cli-reference.md#template-operations)**
 
+### `create scaffold` - Project Scaffolding
+
+**Turn templates into projects instantly.**
+
+Creates new projects from templates with intelligent guidance. Supports GitHub
+repos, local paths, and registry shortcuts. Features platform-aware validation
+and reusable selection files.
+
+📖 **[Complete CLI Reference](docs/reference/cli-reference.md#scaffold-operations)**
+
 ## Learn More
 
 Ready to dive deeper? Our tutorials will get you productive in minutes:
@@ -198,7 +198,6 @@ Ready to dive deeper? Our tutorials will get you productive in minutes:
 - **[Template Tutorial](docs/tutorial/template.md)** - Convert projects to templates
 - **[Scaffolding Tutorial](docs/tutorial/scaffold.md)** - Create projects from templates
 - **[Intelligent Templatization](docs/explanation/templatization.md)** - Auto-detection and placeholder replacement
-- **[Template Author Workflow](docs/how-to/template-author-workflow.md)** - Advanced template authoring
 
 ## Technical Details
 
