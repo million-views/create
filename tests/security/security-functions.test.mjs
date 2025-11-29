@@ -17,7 +17,7 @@ import {
   generatePackageValidationError,
   validatePackageName,
   validatePackageIdentity
-} from '../../lib/security/identity.mts';
+} from '../../lib/security/package-identity.mts';
 
 // Error types
 import { ValidationError } from '@m5nv/create/lib/error/validation.mts';

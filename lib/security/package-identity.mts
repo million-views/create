@@ -4,7 +4,10 @@
  * Functions for package identity validation and generation of
  * installation instructions and error messages.
  *
- * @module lib/security/identity
+ * NOTE: This is about the npm package identity (@m5nv/create),
+ * NOT the 'identity' dimension in template schemas (authentication/authorization).
+ *
+ * @module lib/security/package-identity
  */
 
 import { ValidationError } from '../error/validation.mts';
