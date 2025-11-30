@@ -22,11 +22,17 @@ test('Template URL CLI Integration', async (t) => {
       id: 'test/test-template',
       name: 'Test Template',
       description: 'A test template for integration testing',
-      version: '1.0.0',
+      placeholderFormat: 'unicode',
+      placeholders: {},
       dimensions: {
-        deployment: { type: 'single', values: ['vercel'], default: 'vercel' },
-        features: { type: 'multiple', values: ['auth'], default: [] }
-      }
+        deployment: {
+          options: [{ id: 'vercel', label: 'Vercel' }],
+          default: 'vercel'
+        }
+      },
+      features: [
+        { id: 'auth', label: 'Authentication', needs: {} }
+      ]
     };
 
     await fs.writeFile(

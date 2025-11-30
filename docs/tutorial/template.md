@@ -1329,30 +1329,37 @@ So far, we've used simple boolean placeholders (`ENABLE_AUTH=true`). This works,
 
 ### Understanding Dimensions
 
-Dimensions are named configuration categories in your `template.json`:
+Dimensions are the 7 fixed infrastructure categories in your `template.json`. Each dimension uses an `options` array to define available choices:
 
 ```json
 {
-  "setup": {
-    "dimensions": {
-      "features": {
-        "type": "multi",
-        "values": ["auth", "payments", "analytics"],
-        "default": []
-      },
-      "deployment": {
-        "type": "single",
-        "values": ["cloudflare-workers", "vercel"],
-        "default": "cloudflare-workers"
-      }
+  "dimensions": {
+    "deployment": {
+      "options": [
+        { "id": "cloudflare-workers", "label": "Cloudflare Workers" },
+        { "id": "vercel", "label": "Vercel" }
+      ],
+      "default": "cloudflare-workers"
+    },
+    "database": {
+      "options": [
+        { "id": "d1", "label": "Cloudflare D1" },
+        { "id": "none", "label": "None" }
+      ],
+      "default": "d1"
     }
-  }
+  },
+  "features": [
+    { "id": "auth", "label": "Authentication", "needs": { "identity": "required" } },
+    { "id": "payments", "label": "Payments", "needs": { "billing": "required" } },
+    { "id": "analytics", "label": "Analytics", "needs": { "analytics": "required" } }
+  ]
 }
 ```
 
-**Dimension types:**
-- **`single`**: Consumer selects exactly one value (like a radio button)
-- **`multi`**: Consumer can select multiple values (like checkboxes)
+**Key concepts:**
+- **Dimensions**: The 7 fixed infrastructure options (`deployment`, `database`, `storage`, `identity`, `billing`, `analytics`, `monitoring`) - all single-select
+- **Features**: A top-level array of feature bundles with `needs` declarations for infrastructure requirements
 
 ### Add Dimensions to LawnMow App
 
@@ -1382,16 +1389,11 @@ Update `lawnmow-app/template.json`:
     }
   },
 
-  "setup": {
-    "policy": "strict",
-    "dimensions": {
-      "features": {
-        "type": "multi",
-        "values": ["auth", "payments", "analytics"],
-        "default": []
-      }
-    }
-  }
+  "features": [
+    { "id": "auth", "label": "Authentication", "description": "User authentication", "needs": { "identity": "required" } },
+    { "id": "payments", "label": "Payments", "description": "Payment processing", "needs": { "billing": "required" } },
+    { "id": "analytics", "label": "Analytics", "description": "Usage analytics", "needs": { "analytics": "required" } }
+  ]
 }
 ```
 
@@ -1560,35 +1562,38 @@ Add gates to `lawnmow-app/template.json`:
 
 ```json
 {
-  "setup": {
-    "dimensions": {
-      "deployment": {
-        "type": "single",
-        "values": ["cloudflare-workers", "vercel"],
-        "default": "cloudflare-workers"
-      },
-      "database": {
-        "type": "single",
-        "values": ["d1", "postgres", "none"],
-        "default": "d1"
-      },
-      "features": {
-        "type": "multi",
-        "values": ["auth", "payments", "analytics"],
-        "default": []
-      }
+  "dimensions": {
+    "deployment": {
+      "options": [
+        { "id": "cloudflare-workers", "label": "Cloudflare Workers" },
+        { "id": "vercel", "label": "Vercel" }
+      ],
+      "default": "cloudflare-workers"
     },
-    "gates": {
-      "deployment": {
-        "cloudflare-workers": {
-          "database": ["d1", "none"]
-        },
-        "vercel": {
-          "database": ["postgres", "none"]
-        }
+    "database": {
+      "options": [
+        { "id": "d1", "label": "Cloudflare D1" },
+        { "id": "postgres", "label": "PostgreSQL" },
+        { "id": "none", "label": "None" }
+      ],
+      "default": "d1"
+    }
+  },
+  "gates": {
+    "deployment": {
+      "cloudflare-workers": {
+        "database": ["d1", "none"]
+      },
+      "vercel": {
+        "database": ["postgres", "none"]
       }
     }
-  }
+  },
+  "features": [
+    { "id": "auth", "label": "Authentication", "needs": { "identity": "required" } },
+    { "id": "payments", "label": "Payments", "needs": { "billing": "required" } },
+    { "id": "analytics", "label": "Analytics", "needs": { "analytics": "required" } }
+  ]
 }
 ```
 
@@ -1759,8 +1764,8 @@ You created **two production templates** demonstrating a complete web presence f
 - Automatic cleanup after scaffolding
 
 **Enhanced with dimensions:**
-- Structured configuration options (not just boolean flags)
-- Single-select vs multi-select controls
+- Structured infrastructure options (7 fixed dimensions)
+- All dimensions are single-select
 - `tools.options.when()` for conditional logic
 - Visual configuration support (validator.breadcrumbs.workers.dev)
 
@@ -1795,10 +1800,10 @@ You also learned the fundamental workflow using a basic React SPA:
 - Conditional logic enables infinite template variations
 
 **Configuration:**
-- Dimensions define structured choices (single or multi-select)
-- Hints declare feature requirements, enabling smart validation
+- Dimensions define the 7 fixed infrastructure choices (all single-select)
+- Features declare infrastructure requirements via `needs`
 - Gates prevent invalid combinations proactively
-- Boolean placeholders work for simple cases, dimensions for complex configurations
+- Boolean placeholders work for simple cases, dimensions for infrastructure configuration
 
 ## Next Steps
 

@@ -57,13 +57,12 @@ test('Dimension scaffolding - multi-select features from selection file', async 
           required: true
         }
       },
-      dimensions: {
-        features: {
-          type: 'multi',
-          values: ['auth', 'payments', 'analytics', 'notifications'],
-          default: []
-        }
-      }
+      features: [
+        { id: 'auth', label: 'Authentication', needs: {} },
+        { id: 'payments', label: 'Payments', needs: {} },
+        { id: 'analytics', label: 'Analytics', needs: {} },
+        { id: 'notifications', label: 'Notifications', needs: {} }
+      ]
     }, null, 2)
   });
 
@@ -137,8 +136,12 @@ test('Dimension scaffolding - single-select deployment from selection file', asy
       },
       dimensions: {
         deployment: {
-          type: 'single',
-          values: ['cloudflare', 'vercel', 'node', 'docker'],
+          options: [
+            { id: 'cloudflare', label: 'Cloudflare' },
+            { id: 'vercel', label: 'Vercel' },
+            { id: 'node', label: 'Node.js' },
+            { id: 'docker', label: 'Docker' }
+          ],
           default: 'node'
         }
       }

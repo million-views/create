@@ -1,5 +1,14 @@
 #!/usr/bin/env node
 
+/**
+ * Options Processor Tests - V1.0.0 Schema Compliant
+ *
+ * V1.0.0 Schema: All dimensions are single-select with 'options' array structure.
+ * Valid dimensions: deployment, database, storage, identity, billing, analytics, monitoring
+ *
+ * @see schema/template.v1.json
+ */
+
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
 import { normalizeOptions } from '../../bin/create/domains/scaffold/modules/options-processor.mts';
@@ -16,194 +25,136 @@ describe('normalizeOptions', () => {
     });
 
     it('initializes dimensions with defaults', () => {
+      // V1.0.0: All dimensions are single-select with 'options' array
       const dimensions = {
-        auth: {
-          type: 'single',
-          values: ['none', 'basic'],
-          default: 'none'
+        deployment: {
+          options: [
+            { id: 'cloudflare-workers', label: 'Cloudflare Workers' },
+            { id: 'deno-deploy', label: 'Deno Deploy' }
+          ],
+          default: 'cloudflare-workers'
         },
-        features: {
-          type: 'multi',
-          values: ['api', 'ui'],
-          default: ['ui']
+        database: {
+          options: [
+            { id: 'd1', label: 'Cloudflare D1' },
+            { id: 'postgres', label: 'PostgreSQL' }
+          ],
+          default: 'd1'
         }
       };
 
       const result = normalizeOptions({ rawTokens: [], dimensions });
 
       assert.deepStrictEqual(result.byDimension, {
-        auth: 'none',
-        features: ['ui']
+        deployment: 'cloudflare-workers',
+        database: 'd1'
       });
       assert.deepStrictEqual(result.warnings, []);
       assert.deepStrictEqual(result.unknown, []);
     });
 
-    it('handles single-value dimensions without defaults', () => {
+    it('handles dimensions without defaults', () => {
       const dimensions = {
-        auth: {
-          type: 'single',
-          values: ['none', 'basic']
+        deployment: {
+          options: [
+            { id: 'cloudflare-workers', label: 'Cloudflare Workers' },
+            { id: 'deno-deploy', label: 'Deno Deploy' }
+          ]
         }
       };
 
       const result = normalizeOptions({ rawTokens: [], dimensions });
 
-      assert.strictEqual(result.byDimension.auth, null);
-    });
-
-    it('handles multi-value dimensions without defaults', () => {
-      const dimensions = {
-        features: {
-          type: 'multi',
-          values: ['api', 'ui']
-        }
-      };
-
-      const result = normalizeOptions({ rawTokens: [], dimensions });
-
-      assert.deepStrictEqual(result.byDimension.features, []);
+      assert.strictEqual(result.byDimension.deployment, null);
     });
   });
 
   describe('explicit dimension assignment', () => {
     it('handles single dimension assignment', () => {
       const dimensions = {
-        auth: {
-          type: 'single',
-          values: ['none', 'basic'],
-          default: 'none'
+        deployment: {
+          options: [
+            { id: 'cloudflare-workers', label: 'Cloudflare Workers' },
+            { id: 'deno-deploy', label: 'Deno Deploy' }
+          ],
+          default: 'cloudflare-workers'
         }
       };
 
       const result = normalizeOptions({
-        rawTokens: ['auth=basic'],
+        rawTokens: ['deployment=deno-deploy'],
         dimensions
       });
 
-      assert.strictEqual(result.byDimension.auth, 'basic');
+      assert.strictEqual(result.byDimension.deployment, 'deno-deploy');
       assert.deepStrictEqual(result.warnings, []);
       assert.deepStrictEqual(result.unknown, []);
     });
 
-    it('handles multi-value dimension assignment', () => {
+    it('rejects multiple values for single-select dimension', () => {
+      // V1.0.0: All dimensions are single-select
       const dimensions = {
-        features: {
-          type: 'multi',
-          values: ['api', 'ui', 'db'],
-          default: []
-        }
-      };
-
-      const result = normalizeOptions({
-        rawTokens: ['features=api+ui'],
-        dimensions
-      });
-
-      assert.deepStrictEqual(result.byDimension.features, ['api', 'ui']);
-      assert.deepStrictEqual(result.warnings, []);
-      assert.deepStrictEqual(result.unknown, []);
-    });
-
-    it('handles multiple values in multi-dimension', () => {
-      const dimensions = {
-        features: {
-          type: 'multi',
-          values: ['api', 'ui', 'db'],
-          default: []
-        }
-      };
-
-      const result = normalizeOptions({
-        rawTokens: ['features=api', 'features=ui'],
-        dimensions
-      });
-
-      assert.deepStrictEqual(result.byDimension.features.sort(), ['api', 'ui']);
-    });
-
-    it('rejects multiple values for single dimension', () => {
-      const dimensions = {
-        auth: {
-          type: 'single',
-          values: ['none', 'basic']
+        deployment: {
+          options: [
+            { id: 'cloudflare-workers', label: 'Cloudflare Workers' },
+            { id: 'deno-deploy', label: 'Deno Deploy' }
+          ]
         }
       };
 
       assert.throws(
         () => normalizeOptions({
-          rawTokens: ['auth=basic+none'],
+          rawTokens: ['deployment=cloudflare-workers+deno-deploy'],
           dimensions
         }),
-        /Dimension "auth" accepts a single value/
+        /Dimension "deployment" accepts a single value/
       );
     });
 
     it('rejects empty value assignment', () => {
       const dimensions = {
-        auth: {
-          type: 'single',
-          values: ['none', 'basic']
+        deployment: {
+          options: [
+            { id: 'cloudflare-workers', label: 'Cloudflare Workers' }
+          ]
         }
       };
 
       assert.throws(
         () => normalizeOptions({
-          rawTokens: ['auth='],
+          rawTokens: ['deployment='],
           dimensions
         }),
-        /Option "auth=" is missing a value/
+        /Option "deployment=" is missing a value/
       );
     });
   });
 
-  describe('catch-all dimension handling', () => {
-    it('uses capabilities as catch-all when present', () => {
+  describe('bare tokens handling', () => {
+    it('treats bare tokens as unknown in V1.0.0', () => {
+      // V1.0.0: No multi-select catch-all, bare tokens are unknown
       const dimensions = {
-        capabilities: {
-          type: 'multi',
-          values: ['api', 'ui', 'db']
-        },
-        auth: {
-          type: 'single',
-          values: ['none', 'basic']
+        deployment: {
+          options: [
+            { id: 'cloudflare-workers', label: 'Cloudflare Workers' }
+          ]
         }
       };
 
       const result = normalizeOptions({
-        rawTokens: ['api', 'ui'],
+        rawTokens: ['unknown-token'],
         dimensions
       });
 
-      assert.deepStrictEqual(result.byDimension.capabilities.sort(), ['api', 'ui']);
-      assert.strictEqual(result.byDimension.auth, null);
+      assert.deepStrictEqual(result.unknown, ['unknown-token']);
     });
 
-    it('uses first multi dimension as catch-all', () => {
+    it('treats unknown tokens as unknown', () => {
       const dimensions = {
-        features: {
-          type: 'multi',
-          values: ['api', 'ui', 'db']
-        },
-        auth: {
-          type: 'single',
-          values: ['none', 'basic']
-        }
-      };
-
-      const result = normalizeOptions({
-        rawTokens: ['api', 'ui'],
-        dimensions
-      });
-
-      assert.deepStrictEqual(result.byDimension.features.sort(), ['api', 'ui']);
-    });
-
-    it('treats unknown tokens as unknown when no catch-all', () => {
-      const dimensions = {
-        auth: {
-          type: 'single',
-          values: ['none', 'basic']
+        deployment: {
+          options: [
+            { id: 'cloudflare-workers', label: 'Cloudflare Workers' }
+          ]
         }
       };
 
@@ -219,9 +170,10 @@ describe('normalizeOptions', () => {
   describe('value validation', () => {
     it('rejects unknown dimension', () => {
       const dimensions = {
-        auth: {
-          type: 'single',
-          values: ['none', 'basic']
+        deployment: {
+          options: [
+            { id: 'cloudflare-workers', label: 'Cloudflare Workers' }
+          ]
         }
       };
 
@@ -235,196 +187,117 @@ describe('normalizeOptions', () => {
 
     it('rejects invalid value for strict policy', () => {
       const dimensions = {
-        auth: {
-          type: 'single',
-          values: ['none', 'basic']
+        deployment: {
+          options: [
+            { id: 'cloudflare-workers', label: 'Cloudflare Workers' },
+            { id: 'deno-deploy', label: 'Deno Deploy' }
+          ],
+          policy: 'strict'
         }
       };
 
       const result = normalizeOptions({
-        rawTokens: ['auth=invalid'],
+        rawTokens: ['deployment=invalid'],
         dimensions
       });
 
-      assert.deepStrictEqual(result.unknown, ['auth=invalid']);
+      assert.deepStrictEqual(result.unknown, ['deployment=invalid']);
     });
 
     it('warns for invalid value with warn policy', () => {
       const dimensions = {
-        auth: {
-          type: 'single',
-          values: ['none', 'basic'],
+        deployment: {
+          options: [
+            { id: 'cloudflare-workers', label: 'Cloudflare Workers' }
+          ],
           policy: 'warn'
         }
       };
 
       const result = normalizeOptions({
-        rawTokens: ['auth=invalid'],
+        rawTokens: ['deployment=invalid'],
         dimensions
       });
 
       assert.deepStrictEqual(result.warnings, [
-        'Dimension "auth" does not list value "invalid", but policy is "warn" so continuing.'
+        'Dimension "deployment" does not list value "invalid", but policy is "warn" so continuing.'
       ]);
       assert.deepStrictEqual(result.unknown, []);
     });
   });
 
-  describe('dependency enforcement', () => {
-    it('enforces single value dependencies', () => {
+  describe('multiple dimensions', () => {
+    it('handles multiple dimension assignments', () => {
       const dimensions = {
-        auth: {
-          type: 'single',
-          values: ['none', 'basic', 'jwt'],
-          requires: {
-            jwt: ['ssl']
-          }
+        deployment: {
+          options: [
+            { id: 'cloudflare-workers', label: 'Cloudflare Workers' },
+            { id: 'deno-deploy', label: 'Deno Deploy' }
+          ],
+          default: 'cloudflare-workers'
         },
-        features: {
-          type: 'multi',
-          values: ['ssl', 'api']
-        }
-      };
-
-      assert.throws(
-        () => normalizeOptions({
-          rawTokens: ['auth=jwt'],
-          dimensions
-        }),
-        /Dimension "auth" value "jwt" requires "ssl"/
-      );
-    });
-
-    it('allows dependencies when satisfied', () => {
-      const dimensions = {
-        features: {
-          type: 'multi',
-          values: ['api', 'ui', 'ssl', 'auth'],
-          requires: {
-            auth: ['ssl']
-          }
+        database: {
+          options: [
+            { id: 'd1', label: 'Cloudflare D1' },
+            { id: 'postgres', label: 'PostgreSQL' }
+          ],
+          default: 'd1'
+        },
+        identity: {
+          options: [
+            { id: 'github', label: 'GitHub OAuth' },
+            { id: 'google', label: 'Google OAuth' }
+          ]
         }
       };
 
       const result = normalizeOptions({
-        rawTokens: ['features=auth+ssl'],
+        rawTokens: ['deployment=deno-deploy', 'database=postgres', 'identity=github'],
         dimensions
       });
 
-      assert.deepStrictEqual(result.byDimension.features.sort(), ['auth', 'ssl']);
+      assert.deepStrictEqual(result.byDimension, {
+        deployment: 'deno-deploy',
+        database: 'postgres',
+        identity: 'github'
+      });
     });
 
-    it('enforces multi-value dependencies', () => {
+    it('later assignment overrides earlier for same dimension', () => {
       const dimensions = {
-        features: {
-          type: 'multi',
-          values: ['api', 'ui', 'auth'],
-          requires: {
-            auth: ['ssl'],
-            api: ['ssl']
-          }
+        deployment: {
+          options: [
+            { id: 'cloudflare-workers', label: 'Cloudflare Workers' },
+            { id: 'deno-deploy', label: 'Deno Deploy' }
+          ]
         }
       };
 
-      assert.throws(
-        () => normalizeOptions({
-          rawTokens: ['features=auth'],
-          dimensions
-        }),
-        /Dimension "features" value "auth" requires "ssl"/
-      );
-    });
-  });
+      const result = normalizeOptions({
+        rawTokens: ['deployment=cloudflare-workers', 'deployment=deno-deploy'],
+        dimensions
+      });
 
-  describe('conflict enforcement', () => {
-    it('enforces single value conflicts', () => {
-      const dimensions = {
-        features: {
-          type: 'multi',
-          values: ['basic', 'jwt', 'anonymous'],
-          conflicts: {
-            basic: ['anonymous']
-          }
-        }
-      };
-
-      assert.throws(
-        () => normalizeOptions({
-          rawTokens: ['features=basic+anonymous'],
-          dimensions
-        }),
-        /Dimension "features" value "basic" cannot be used with "anonymous"/
-      );
-    });
-
-    it('enforces multi-value conflicts', () => {
-      const dimensions = {
-        features: {
-          type: 'multi',
-          values: ['api', 'ui', 'auth', 'anonymous'],
-          conflicts: {
-            auth: ['anonymous']
-          }
-        }
-      };
-
-      assert.throws(
-        () => normalizeOptions({
-          rawTokens: ['features=auth+anonymous'],
-          dimensions
-        }),
-        /Dimension "features" value "auth" cannot be used with "anonymous"/
-      );
+      assert.strictEqual(result.byDimension.deployment, 'deno-deploy');
     });
   });
 
   describe('edge cases', () => {
     it('handles whitespace in tokens', () => {
       const dimensions = {
-        auth: {
-          type: 'single',
-          values: ['none', 'basic']
+        deployment: {
+          options: [
+            { id: 'cloudflare-workers', label: 'Cloudflare Workers' }
+          ]
         }
       };
 
       const result = normalizeOptions({
-        rawTokens: [' auth = basic '],
+        rawTokens: [' deployment = cloudflare-workers '],
         dimensions
       });
 
-      assert.strictEqual(result.byDimension.auth, 'basic');
-    });
-
-    it('handles empty values in multi-assignment', () => {
-      const dimensions = {
-        features: {
-          type: 'multi',
-          values: ['api', 'ui']
-        }
-      };
-
-      const result = normalizeOptions({
-        rawTokens: ['features=api++ui'],
-        dimensions
-      });
-
-      assert.deepStrictEqual(result.byDimension.features.sort(), ['api', 'ui']);
-    });
-
-    it('maintains deterministic ordering for multi-values', () => {
-      const dimensions = {
-        features: {
-          type: 'multi',
-          values: ['z', 'a', 'm']
-        }
-      };
-
-      const result = normalizeOptions({
-        rawTokens: ['features=z', 'features=a', 'features=m'],
-        dimensions
-      });
-
-      assert.deepStrictEqual(result.byDimension.features, ['a', 'm', 'z']);
+      assert.strictEqual(result.byDimension.deployment, 'cloudflare-workers');
     });
 
     it('handles undefined dimensions parameter', () => {
@@ -443,6 +316,22 @@ describe('normalizeOptions', () => {
         warnings: [],
         unknown: []
       });
+    });
+
+    it('handles empty options array', () => {
+      const dimensions = {
+        deployment: {
+          options: []
+        }
+      };
+
+      const result = normalizeOptions({
+        rawTokens: ['deployment=anything'],
+        dimensions
+      });
+
+      // Empty options means any value is accepted (no validation)
+      assert.strictEqual(result.byDimension.deployment, 'anything');
     });
   });
 });

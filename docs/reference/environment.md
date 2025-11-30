@@ -86,7 +86,7 @@ The context object is frozen; attempting to mutate it throws.
 
 ## How template metadata populates the environment
 
-1. **`template.json` declares intent** – Dimensions under `setup.dimensions` define the option vocabulary. The CLI validates user selections against these declared dimensions and caches results in `ctx.options.byDimension` (with defaults pre-applied).
+1. **`template.json` declares intent** – The `dimensions` property at the top level defines the option vocabulary. The CLI validates user selections against these declared dimensions and caches results in `ctx.options.byDimension` (with defaults pre-applied).
 2. **The CLI collects inputs** – Placeholder values are gathered via `--placeholder` flags, environment variables, configuration files, or interactive prompts so `ctx.inputs` is fully populated before `_setup.mjs` executes.
 3. **`ctx` and `tools` expose the results** – Setup scripts read `ctx.options` or helper wrappers (`tools.options.*`) to branch on selected features, and they access placeholder answers via `ctx.inputs` or `tools.inputs`. Helper APIs such as `tools.placeholders.applyInputs()` consume these values directly, keeping setup code deterministic.
 
@@ -98,47 +98,61 @@ The context object is frozen; attempting to mutate it throws.
   "schemaVersion": "1.0.0",
   "name": "My Template",
   "description": "A template for building web applications",
-  "setup": {
-    "policy": "strict",
-    "dimensions": {
-      "deployment": {
-        "type": "single",
-        "values": ["cloudflare-workers", "akamai-linode"],
-        "default": "cloudflare-workers"
-      },
-      "database": {
-        "type": "single",
-        "values": ["d1", "none"],
-        "default": "d1"
-      },
-      "storage": {
-        "type": "single",
-        "values": ["r2", "none"],
-        "default": "r2"
-      },
-      "identity": {
-        "type": "single",
-        "values": ["github", "google", "none"],
-        "default": "none"
-      },
-      "billing": {
-        "type": "single",
-        "values": ["stripe", "none"],
-        "default": "none"
-      },
-      "analytics": {
-        "type": "single",
-        "values": ["cf-analytics", "umami", "none"],
-        "default": "none"
-      },
-      "monitoring": {
-        "type": "single",
-        "values": ["cf-logs", "self-hosted", "none"],
-        "default": "none"
-      }
+  "dimensions": {
+    "deployment": {
+      "options": [
+        { "id": "cloudflare-workers", "label": "Cloudflare Workers" },
+        { "id": "akamai-linode", "label": "Akamai/Linode" }
+      ],
+      "default": "cloudflare-workers"
     },
-    "gates": {}
+    "database": {
+      "options": [
+        { "id": "d1", "label": "Cloudflare D1" },
+        { "id": "none", "label": "None" }
+      ],
+      "default": "d1"
+    },
+    "storage": {
+      "options": [
+        { "id": "r2", "label": "Cloudflare R2" },
+        { "id": "none", "label": "None" }
+      ],
+      "default": "r2"
+    },
+    "identity": {
+      "options": [
+        { "id": "github", "label": "GitHub OAuth" },
+        { "id": "google", "label": "Google OAuth" },
+        { "id": "none", "label": "None" }
+      ],
+      "default": "none"
+    },
+    "billing": {
+      "options": [
+        { "id": "stripe", "label": "Stripe" },
+        { "id": "none", "label": "None" }
+      ],
+      "default": "none"
+    },
+    "analytics": {
+      "options": [
+        { "id": "cf-analytics", "label": "Cloudflare Analytics" },
+        { "id": "umami", "label": "Umami" },
+        { "id": "none", "label": "None" }
+      ],
+      "default": "none"
+    },
+    "monitoring": {
+      "options": [
+        { "id": "cf-logs", "label": "Cloudflare Logs" },
+        { "id": "self-hosted", "label": "Self-Hosted" },
+        { "id": "none", "label": "None" }
+      ],
+      "default": "none"
+    }
   },
+  "gates": {},
   "features": [
     {
       "id": "auth",
@@ -146,8 +160,6 @@ The context object is frozen; attempting to mutate it throws.
       "description": "Add user authentication features",
       "needs": { "identity": "required", "database": "required" }
     },
-    {
-      "id": "docs",
     {
       "id": "docs",
       "label": "Documentation",
@@ -364,12 +376,12 @@ Log tabular data as formatted output.
 
 ### `tools.options`
 
-Dimension-based option checking and conditional logic.
+Dimension-based option checking and conditional logic. All 7 infrastructure dimensions are single-select in V1.0.0.
 
 **list(dimension?)**
-Without arguments returns `ctx.options.raw`. With dimension name returns the normalized selection for that dimension.
+Without arguments returns `ctx.options.raw`. With dimension name returns the selected value for that dimension.
 *Parameters:* `dimension?: string`
-*Returns:* `string[] | string | null`
+*Returns:* `string | null` (with dimension) or `string[]` (without dimension)
 
 **raw()**
 Shortcut for `ctx.options.raw`.
@@ -377,43 +389,37 @@ Shortcut for `ctx.options.raw`.
 
 **dimensions()**
 Shallow clone of `ctx.options.byDimension`.
-*Returns:* `Record<string, string | string[]>`
+*Returns:* `Record<string, string>`
 
 **has(name)**
-Checks whether the default multi-select dimension includes the name.
+Checks whether any dimension has this value selected.
 *Parameters:* `name: string`
 *Returns:* `boolean`
 
 **in(dimension, value)**
-Returns true when the selected value(s) for dimension include value.
+Returns true when the selected value for dimension equals value.
 *Parameters:* `dimension: string, value: string`
 *Returns:* `boolean`
-
-**require(value)**
-Ensures the default multi-select dimension includes value; throws otherwise.
-*Parameters:* `value: string`
 
 **require(dimension, value)**
 Ensures value is selected for dimension; throws otherwise.
 *Parameters:* `dimension: string, value: string`
 
 **when(value, fn)**
-Runs fn when the default multi-select dimension includes value. Supports async callbacks.
+Runs fn when any dimension has this value selected. Supports async callbacks.
 *Parameters:* `value: string, fn: () => void | Promise<void>`
 *Returns:* `Promise<void> | undefined`
 
-> The “default dimension” is the first multi-select dimension defined in `template.json`. By convention we reserve `capabilities` for feature toggles, which becomes the default unless a template specifies otherwise.
-
 **Example**
 ```javascript
-await tools.options.when('logging', async () => {
+await tools.options.when('stripe', async () => {
   await tools.json.merge('package.json', {
-    dependencies: { pino: '^9.0.0' }
+    dependencies: { stripe: '^14.0.0' }
   });
 });
 
-if (tools.options.in('deployment', 'cloudflare-d1')) {
-  await tools.templates.copy('infra/cloudflare-d1', 'infra');
+if (tools.options.in('deployment', 'cloudflare-workers')) {
+  await tools.templates.copy('infra/cloudflare', 'infra');
 }
 ```
 
@@ -462,53 +468,67 @@ export default async function setup({ ctx, tools }) {
 
 ## Template Metadata Essentials
 
-`template.json` is the authoritative contract that create scaffold reads before copying files or executing `_setup.mjs`. The schema requires three critical sections:
+`template.json` is the authoritative contract that create scaffold reads before copying files or executing `_setup.mjs`. The schema requires these critical sections:
 
 ```json
 {
   "schemaVersion": "1.0.0",
   "name": "My Template",
-  "setup": {
-    "policy": "strict",
-    "dimensions": {
-      "deployment": {
-        "type": "single",
-        "values": ["cloudflare-workers", "akamai-linode"],
-        "default": "cloudflare-workers"
-      },
-      "database": {
-        "type": "single",
-        "values": ["d1", "none"],
-        "default": "d1"
-      },
-      "storage": {
-        "type": "single",
-        "values": ["r2", "none"],
-        "default": "r2"
-      },
-      "identity": {
-        "type": "single",
-        "values": ["github", "google", "none"],
-        "default": "none"
-      },
-      "billing": {
-        "type": "single",
-        "values": ["stripe", "none"],
-        "default": "none"
-      },
-      "analytics": {
-        "type": "single",
-        "values": ["cf-analytics", "umami", "none"],
-        "default": "none"
-      },
-      "monitoring": {
-        "type": "single",
-        "values": ["cf-logs", "self-hosted", "none"],
-        "default": "none"
-      }
+  "dimensions": {
+    "deployment": {
+      "options": [
+        { "id": "cloudflare-workers", "label": "Cloudflare Workers" },
+        { "id": "akamai-linode", "label": "Akamai/Linode" }
+      ],
+      "default": "cloudflare-workers"
     },
-    "gates": {}
+    "database": {
+      "options": [
+        { "id": "d1", "label": "Cloudflare D1" },
+        { "id": "none", "label": "None" }
+      ],
+      "default": "d1"
+    },
+    "storage": {
+      "options": [
+        { "id": "r2", "label": "Cloudflare R2" },
+        { "id": "none", "label": "None" }
+      ],
+      "default": "r2"
+    },
+    "identity": {
+      "options": [
+        { "id": "github", "label": "GitHub OAuth" },
+        { "id": "google", "label": "Google OAuth" },
+        { "id": "none", "label": "None" }
+      ],
+      "default": "none"
+    },
+    "billing": {
+      "options": [
+        { "id": "stripe", "label": "Stripe" },
+        { "id": "none", "label": "None" }
+      ],
+      "default": "none"
+    },
+    "analytics": {
+      "options": [
+        { "id": "cf-analytics", "label": "Cloudflare Analytics" },
+        { "id": "umami", "label": "Umami" },
+        { "id": "none", "label": "None" }
+      ],
+      "default": "none"
+    },
+    "monitoring": {
+      "options": [
+        { "id": "cf-logs", "label": "Cloudflare Logs" },
+        { "id": "self-hosted", "label": "Self-Hosted" },
+        { "id": "none", "label": "None" }
+      ],
+      "default": "none"
+    }
   },
+  "gates": {},
   "features": [
     {
       "id": "auth",
@@ -521,8 +541,8 @@ export default async function setup({ ctx, tools }) {
 }
 ```
 
-- **`setup.dimensions`** enumerate the option vocabulary. Schema V1.0 supports 7 fixed infrastructure dimensions: `deployment`, `database`, `storage`, `identity`, `billing`, `analytics`, `monitoring`.
-- **`features`** define author-specified feature bundles with `needs` to declare infrastructure requirements.
+- **`dimensions`** (top-level) enumerates the option vocabulary. Schema V1.0 supports 7 fixed infrastructure dimensions: `deployment`, `database`, `storage`, `identity`, `billing`, `analytics`, `monitoring`.
+- **`features`** (top-level array) defines author-specified feature bundles with `needs` to declare infrastructure requirements.
 - **`constants`** provide fixed template values available in `ctx.constants`.
 
 ## Additional Reading

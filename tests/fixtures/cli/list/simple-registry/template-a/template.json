@@ -1,5 +1,6 @@
 {
   "schemaVersion": "1.0.0",
+  "id": "test/template-a",
   "name": "template-a",
   "version": "1.0.0",
   "description": "Simple template A for testing",
@@ -11,7 +12,7 @@
   "placeholderFormat": "unicode",
   "placeholders": {
     "PROJECT_NAME": {
-      "type": "string",
+      "type": "text",
       "description": "Project name"
     }
   }

@@ -68,13 +68,11 @@ test('Selection file via CLI - scaffolds with dimension selections from file', a
           default: 'Default Business'
         }
       },
-      dimensions: {
-        features: {
-          type: 'multi',
-          values: ['auth', 'payments', 'analytics'],
-          default: []
-        }
-      }
+      features: [
+        { id: 'auth', label: 'Authentication', needs: {} },
+        { id: 'payments', label: 'Payments', needs: {} },
+        { id: 'analytics', label: 'Analytics', needs: {} }
+      ]
     }, null, 2)
   });
 
@@ -228,24 +226,29 @@ test('Gates validation - valid dimension combination succeeds', async (t) => {
       },
       dimensions: {
         deployment: {
-          type: 'single',
-          values: ['cloudflare', 'vercel', 'node'],
+          options: [
+            { id: 'cloudflare', label: 'Cloudflare' },
+            { id: 'vercel', label: 'Vercel' },
+            { id: 'node', label: 'Node.js' }
+          ],
           default: 'node'
         },
         database: {
-          type: 'single',
-          values: ['d1', 'postgres', 'sqlite', 'none'],
+          options: [
+            { id: 'd1', label: 'Cloudflare D1' },
+            { id: 'postgres', label: 'PostgreSQL' },
+            { id: 'sqlite', label: 'SQLite' },
+            { id: 'none', label: 'None' }
+          ],
           default: 'none'
         }
       },
       gates: {
-        cloudflare: {
-          allowed: {
+        deployment: {
+          cloudflare: {
             database: ['d1', 'none']
-          }
-        },
-        vercel: {
-          allowed: {
+          },
+          vercel: {
             database: ['postgres', 'none']
           }
         }
@@ -318,24 +321,29 @@ test('Gates validation - invalid dimension combination fails with clear error', 
       },
       dimensions: {
         deployment: {
-          type: 'single',
-          values: ['cloudflare', 'vercel', 'node'],
+          options: [
+            { id: 'cloudflare', label: 'Cloudflare' },
+            { id: 'vercel', label: 'Vercel' },
+            { id: 'node', label: 'Node.js' }
+          ],
           default: 'node'
         },
         database: {
-          type: 'single',
-          values: ['d1', 'postgres', 'sqlite', 'none'],
+          options: [
+            { id: 'd1', label: 'Cloudflare D1' },
+            { id: 'postgres', label: 'PostgreSQL' },
+            { id: 'sqlite', label: 'SQLite' },
+            { id: 'none', label: 'None' }
+          ],
           default: 'none'
         }
       },
       gates: {
-        cloudflare: {
-          allowed: {
+        deployment: {
+          cloudflare: {
             database: ['d1', 'none']
-          }
-        },
-        vercel: {
-          allowed: {
+          },
+          vercel: {
             database: ['postgres', 'none']
           }
         }

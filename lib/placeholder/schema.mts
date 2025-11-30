@@ -3,11 +3,8 @@
 
 import { ValidationError } from '../error/validation.mts';
 
-// New schema supports 6 types: text, number, boolean, email, password, url
-// 'text' is the new default (replaces 'string' from old schema)
+// V1.0.0 supports 6 types: text, number, boolean, email, password, url
 const SUPPORTED_TYPES = new Set(['text', 'number', 'boolean', 'email', 'password', 'url']);
-// Legacy support: map old 'string' type to new 'text' type
-const TYPE_ALIASES = { string: 'text' };
 const PLACEHOLDER_NAME_PATTERN = /^[A-Z0-9_]+$/;
 
 /**
@@ -62,9 +59,7 @@ export function normalizePlaceholders(entries) {
 
     const type = normalizeType(rawEntry.type, token);
     const defaultValue = normalizeDefault(rawEntry.default, type, token);
-    // New schema: required defaults to true (was false in old schema)
     const required = rawEntry.required !== undefined ? rawEntry.required : true;
-    // New schema: 'secure' replaces 'sensitive' (but keep both for compatibility)
     const sensitive = rawEntry.sensitive === true || rawEntry.secure === true;
     const description = typeof rawEntry.description === 'string'
       ? rawEntry.description.trim() || null
@@ -86,7 +81,7 @@ export function normalizePlaceholders(entries) {
 
 function normalizeType(value, token) {
   if (value === undefined || value === null) {
-    return 'text'; // New schema default (was 'string' in old schema)
+    return 'text';
   }
 
   if (typeof value !== 'string') {
@@ -98,17 +93,14 @@ function normalizeType(value, token) {
 
   const normalized = value.trim().toLowerCase();
 
-  // Handle legacy type aliases
-  const resolvedType = TYPE_ALIASES[normalized] || normalized;
-
-  if (!SUPPORTED_TYPES.has(resolvedType)) {
+  if (!SUPPORTED_TYPES.has(normalized)) {
     throw new ValidationError(
       `Placeholder ${token} has unsupported type hint: ${value}. Supported: ${[...SUPPORTED_TYPES].join(', ')}`,
       'metadata.placeholders'
     );
   }
 
-  return resolvedType;
+  return normalized;
 }
 
 function normalizeDefault(defaultValue, type, token) {

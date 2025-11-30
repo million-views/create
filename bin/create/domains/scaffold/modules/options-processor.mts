@@ -4,30 +4,47 @@
 import { ValidationError } from '@m5nv/create/lib/error/validation.mts';
 
 /**
- * Normalize CLI-supplied options against template dimensions.
+ * V1.0.0 Schema Compliant - Valid dimension names
+ * @see schema/template.v1.json - 7 fixed infrastructure dimensions
+ */
+const VALID_DIMENSIONS = ['deployment', 'database', 'storage', 'identity', 'billing', 'analytics', 'monitoring'];
+
+/**
+ * Get valid option IDs from a V1.0.0 dimension definition.
+ * V1.0.0: dimensions have 'options' array with {id, label} objects.
+ * @param {object} definition - Dimension definition
+ * @returns {Set<string>} Set of valid option IDs
+ */
+function getValidOptionIds(definition) {
+  if (!definition || !Array.isArray(definition.options)) {
+    return new Set();
+  }
+  return new Set(definition.options.map(opt => opt.id));
+}
+
+/**
+ * Normalize CLI-supplied options against template dimensions (V1.0.0 compliant).
+ * 
+ * V1.0.0 Schema: All dimensions are single-select with 'options' array structure.
+ * Multi-select functionality is handled via 'features' (separate top-level array).
+ * 
  * @param {Object} params
- * @param {string[]} params.rawTokens - sanitized option tokens (e.g. ["auth","stack=react-vite"])
- * @param {Record<string, object>} params.dimensions - normalized dimension metadata
- * @returns {{ byDimension: Record<string, string|string[]>, unknown: string[], warnings: string[] }}
+ * @param {string[]} params.rawTokens - sanitized option tokens (e.g. ["deployment=cloudflare-workers"])
+ * @param {Record<string, object>} params.dimensions - V1.0.0 dimension definitions with 'options' array
+ * @returns {{ byDimension: Record<string, string>, unknown: string[], warnings: string[] }}
  */
 export function normalizeOptions({ rawTokens = [], dimensions = {} }) {
   const byDimension = {};
   const warnings = [];
   const unknown = [];
 
-  // Initialize with defaults
+  // V1.0.0: Initialize with defaults (all dimensions are single-select)
   for (const [name, definition] of Object.entries(dimensions)) {
-    if (definition.type === 'single') {
-      byDimension[name] = definition.default ?? null;
-    } else {
-      byDimension[name] = Array.isArray(definition.default)
-        ? [...definition.default]
-        : [];
-    }
+    // V1.0.0: 'default' is a string (single-select)
+    byDimension[name] = definition.default ?? null;
   }
 
-  const multiDefaultDimension = pickCatchAllDimension(dimensions);
-
+  // V1.0.0: All dimensions are single-select, no catch-all for multi-select
   for (const token of rawTokens) {
     if (token.includes('=')) {
       const [rawKey, rawValues] = token.split('=');
@@ -51,67 +68,26 @@ export function normalizeOptions({ rawTokens = [], dimensions = {} }) {
         );
       }
 
-      if (definition.type === 'single') {
-        if (values.length > 1) {
-          throw new ValidationError(
-            `Dimension "${key}" accepts a single value. Received: ${values.join(', ')}`,
-            'options'
-          );
-        }
-        const selected = values[0];
-        if (!definition.values.includes(selected)) {
-          handleOutOfRangeValue({ dimensionName: key, value: selected, definition, warnings, unknown, token });
-          continue;
-        }
-        byDimension[key] = selected;
-      } else {
-        const current = new Set(byDimension[key] ?? []);
-        for (const value of values) {
-          if (!definition.values.includes(value)) {
-            handleOutOfRangeValue({ dimensionName: key, value, definition, warnings, unknown, token });
-            continue;
-          }
-          current.add(value);
-        }
-        byDimension[key] = Array.from(current);
+      // V1.0.0: All dimensions are single-select
+      if (values.length > 1) {
+        throw new ValidationError(
+          `Dimension "${key}" accepts a single value. Received: ${values.join(', ')}`,
+          'options'
+        );
       }
+
+      const selected = values[0];
+      const validIds = getValidOptionIds(definition);
+      
+      if (validIds.size > 0 && !validIds.has(selected)) {
+        handleOutOfRangeValue({ dimensionName: key, value: selected, definition, warnings, unknown, token });
+        continue;
+      }
+      
+      byDimension[key] = selected;
     } else {
-      const targetDimension = multiDefaultDimension;
-      if (!targetDimension) {
-        unknown.push(token);
-        continue;
-      }
-      const definition = dimensions[targetDimension];
-      if (!definition) {
-        unknown.push(token);
-        continue;
-      }
-      if (!definition.values.includes(token)) {
-        handleOutOfRangeValue({
-          dimensionName: targetDimension,
-          value: token,
-          definition,
-          warnings,
-          unknown,
-          token
-        });
-        continue;
-      }
-      const current = new Set(byDimension[targetDimension] ?? []);
-      current.add(token);
-      byDimension[targetDimension] = Array.from(current);
-    }
-  }
-
-  enforceDependencies(byDimension, dimensions);
-  enforceConflicts(byDimension, dimensions);
-
-  // Ensure arrays remain sorted deterministically
-  for (const [name, definition] of Object.entries(dimensions)) {
-    if (definition.type === 'multi') {
-      const values = Array.from(new Set(byDimension[name] ?? []));
-      values.sort();
-      byDimension[name] = values;
+      // V1.0.0: Bare tokens not supported (no multi-select catch-all)
+      unknown.push(token);
     }
   }
 
@@ -122,20 +98,6 @@ export function normalizeOptions({ rawTokens = [], dimensions = {} }) {
   };
 }
 
-function pickCatchAllDimension(dimensions) {
-  if (dimensions.capabilities && dimensions.capabilities.type === 'multi') {
-    return 'capabilities';
-  }
-
-  for (const [name, definition] of Object.entries(dimensions)) {
-    if (definition.type === 'multi') {
-      return name;
-    }
-  }
-
-  return null;
-}
-
 function handleOutOfRangeValue({ dimensionName, value, definition, warnings, unknown, token }) {
   if (definition.policy === 'warn') {
     warnings.push(
@@ -143,55 +105,5 @@ function handleOutOfRangeValue({ dimensionName, value, definition, warnings, unk
     );
   } else {
     unknown.push(token);
-  }
-}
-
-function enforceDependencies(byDimension, dimensions) {
-  for (const [name, definition] of Object.entries(dimensions)) {
-    if (!definition.requires || Object.keys(definition.requires).length === 0) {
-      continue;
-    }
-
-    const selected = definition.type === 'single'
-      ? (byDimension[name] ? [byDimension[name]] : [])
-      : (byDimension[name] ?? []);
-
-    const selectedSet = new Set(selected);
-    for (const value of selected) {
-      const requirements = definition.requires[value] ?? [];
-      for (const required of requirements) {
-        if (!selectedSet.has(required)) {
-          throw new ValidationError(
-            `Dimension "${name}" value "${value}" requires "${required}"`,
-            'options'
-          );
-        }
-      }
-    }
-  }
-}
-
-function enforceConflicts(byDimension, dimensions) {
-  for (const [name, definition] of Object.entries(dimensions)) {
-    if (!definition.conflicts || Object.keys(definition.conflicts).length === 0) {
-      continue;
-    }
-
-    const selected = definition.type === 'single'
-      ? (byDimension[name] ? [byDimension[name]] : [])
-      : (byDimension[name] ?? []);
-
-    const selectedSet = new Set(selected);
-    for (const value of selected) {
-      const conflicts = definition.conflicts[value] ?? [];
-      for (const conflict of conflicts) {
-        if (selectedSet.has(conflict)) {
-          throw new ValidationError(
-            `Dimension "${name}" value "${value}" cannot be used with "${conflict}"`,
-            'options'
-          );
-        }
-      }
-    }
   }
 }

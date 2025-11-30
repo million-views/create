@@ -831,15 +831,25 @@ test.describe('tools.options API', () => {
   test('when() executes callback if option enabled', async () => {
     const projectDir = await createProjectFixture();
     try {
+      // V1.0.0: All dimensions are single-select, use valid dimension name
       const tools = await buildTools(projectDir, {
+        dimensions: {
+          deployment: {
+            options: [
+              { id: 'cloudflare-workers', label: 'Cloudflare Workers' },
+              { id: 'deno-deploy', label: 'Deno Deploy' }
+            ],
+            default: 'cloudflare-workers'
+          }
+        },
         options: {
-          raw: ['features=docs'],
-          byDimension: { features: ['docs'] }
+          raw: ['deployment=cloudflare-workers'],
+          byDimension: { deployment: 'cloudflare-workers' }
         }
       });
 
       let executed = false;
-      await tools.options.when('docs', async () => {
+      await tools.options.when('cloudflare-workers', async () => {
         executed = true;
       });
 
@@ -852,15 +862,25 @@ test.describe('tools.options API', () => {
   test('when() skips callback if option not enabled', async () => {
     const projectDir = await createProjectFixture();
     try {
+      // V1.0.0: All dimensions are single-select
       const tools = await buildTools(projectDir, {
+        dimensions: {
+          deployment: {
+            options: [
+              { id: 'cloudflare-workers', label: 'Cloudflare Workers' },
+              { id: 'deno-deploy', label: 'Deno Deploy' }
+            ],
+            default: 'cloudflare-workers'
+          }
+        },
         options: {
-          raw: ['features=docs'],
-          byDimension: { features: ['docs'] }
+          raw: ['deployment=cloudflare-workers'],
+          byDimension: { deployment: 'cloudflare-workers' }
         }
       });
 
       let executed = false;
-      await tools.options.when('tests', async () => {
+      await tools.options.when('deno-deploy', async () => {
         executed = true;
       });
 
@@ -870,18 +890,28 @@ test.describe('tools.options API', () => {
     }
   });
 
-  test('has() checks if default dimension includes value', async () => {
+  test('has() checks if any dimension includes value', async () => {
     const projectDir = await createProjectFixture();
     try {
+      // V1.0.0: All dimensions are single-select
       const tools = await buildTools(projectDir, {
+        dimensions: {
+          deployment: {
+            options: [
+              { id: 'cloudflare-workers', label: 'Cloudflare Workers' },
+              { id: 'deno-deploy', label: 'Deno Deploy' }
+            ],
+            default: 'cloudflare-workers'
+          }
+        },
         options: {
-          raw: ['features=docs'],
-          byDimension: { features: ['docs'] }
+          raw: ['deployment=cloudflare-workers'],
+          byDimension: { deployment: 'cloudflare-workers' }
         }
       });
 
-      assert.strictEqual(tools.options.has('docs'), true);
-      assert.strictEqual(tools.options.has('tests'), false);
+      assert.strictEqual(tools.options.has('cloudflare-workers'), true);
+      assert.strictEqual(tools.options.has('deno-deploy'), false);
     } finally {
       await rm(projectDir, { recursive: true, force: true });
     }
@@ -890,17 +920,23 @@ test.describe('tools.options API', () => {
   test('in() checks if dimension includes value', async () => {
     const projectDir = await createProjectFixture();
     try {
+      // V1.0.0: All dimensions are single-select with options array
       const tools = await buildTools(projectDir, {
         dimensions: {
-          deployment: { type: 'single', values: ['cloudflare', 'linode'] }
+          deployment: {
+            options: [
+              { id: 'cloudflare-workers', label: 'Cloudflare Workers' },
+              { id: 'linode', label: 'Linode' }
+            ]
+          }
         },
         options: {
-          raw: ['deployment=cloudflare'],
-          byDimension: { deployment: 'cloudflare' }
+          raw: ['deployment=cloudflare-workers'],
+          byDimension: { deployment: 'cloudflare-workers' }
         }
       });
 
-      assert.strictEqual(tools.options.in('deployment', 'cloudflare'), true);
+      assert.strictEqual(tools.options.in('deployment', 'cloudflare-workers'), true);
       assert.strictEqual(tools.options.in('deployment', 'linode'), false);
     } finally {
       await rm(projectDir, { recursive: true, force: true });
@@ -910,17 +946,28 @@ test.describe('tools.options API', () => {
   test('require() throws if value not selected', async () => {
     const projectDir = await createProjectFixture();
     try {
+      // V1.0.0: All dimensions are single-select
       const tools = await buildTools(projectDir, {
+        dimensions: {
+          deployment: {
+            options: [
+              { id: 'cloudflare-workers', label: 'Cloudflare Workers' },
+              { id: 'deno-deploy', label: 'Deno Deploy' }
+            ],
+            default: 'cloudflare-workers'
+          }
+        },
         options: {
-          raw: ['features=docs'],
-          byDimension: { features: ['docs'] }
+          raw: ['deployment=cloudflare-workers'],
+          byDimension: { deployment: 'cloudflare-workers' }
         }
       });
 
-      tools.options.require('docs'); // Should not throw
+      // V1.0.0: require() needs dimension and value
+      tools.options.require('deployment', 'cloudflare-workers'); // Should not throw
 
       assert.throws(
-        () => tools.options.require('tests'),
+        () => tools.options.require('deployment', 'deno-deploy'),
         (error) => error instanceof SetupSandboxError
       );
     } finally {
@@ -928,21 +975,32 @@ test.describe('tools.options API', () => {
     }
   });
 
-  test('list() returns options for dimension', async () => {
+  test('list() returns option for dimension', async () => {
     const projectDir = await createProjectFixture();
     try {
+      // V1.0.0: All dimensions are single-select
       const tools = await buildTools(projectDir, {
+        dimensions: {
+          deployment: {
+            options: [
+              { id: 'cloudflare-workers', label: 'Cloudflare Workers' },
+              { id: 'deno-deploy', label: 'Deno Deploy' }
+            ],
+            default: 'cloudflare-workers'
+          }
+        },
         options: {
-          raw: ['features=docs'],
-          byDimension: { features: ['docs', 'tests'] }
+          raw: ['deployment=cloudflare-workers'],
+          byDimension: { deployment: 'cloudflare-workers' }
         }
       });
 
-      const features = tools.options.list('features');
-      assert.deepStrictEqual(features, ['docs', 'tests']);
+      // V1.0.0: list() returns single value for single-select dimensions
+      const deployment = tools.options.list('deployment');
+      assert.strictEqual(deployment, 'cloudflare-workers');
 
       const raw = tools.options.list();
-      assert.deepStrictEqual(raw, ['features=docs']);
+      assert.deepStrictEqual(raw, ['deployment=cloudflare-workers']);
     } finally {
       await rm(projectDir, { recursive: true, force: true });
     }
@@ -951,15 +1009,28 @@ test.describe('tools.options API', () => {
   test('raw() returns raw option strings', async () => {
     const projectDir = await createProjectFixture();
     try {
+      // V1.0.0: All dimensions are single-select
       const tools = await buildTools(projectDir, {
+        dimensions: {
+          deployment: {
+            options: [
+              { id: 'cloudflare-workers', label: 'Cloudflare Workers' }
+            ]
+          },
+          database: {
+            options: [
+              { id: 'd1', label: 'Cloudflare D1' }
+            ]
+          }
+        },
         options: {
-          raw: ['features=docs', 'features=tests'],
-          byDimension: { features: ['docs', 'tests'] }
+          raw: ['deployment=cloudflare-workers', 'database=d1'],
+          byDimension: { deployment: 'cloudflare-workers', database: 'd1' }
         }
       });
 
       const raw = tools.options.raw();
-      assert.deepStrictEqual(raw, ['features=docs', 'features=tests']);
+      assert.deepStrictEqual(raw, ['deployment=cloudflare-workers', 'database=d1']);
     } finally {
       await rm(projectDir, { recursive: true, force: true });
     }
@@ -968,15 +1039,24 @@ test.describe('tools.options API', () => {
   test('dimensions() returns byDimension clone', async () => {
     const projectDir = await createProjectFixture();
     try {
+      // V1.0.0: All dimensions are single-select
       const tools = await buildTools(projectDir, {
+        dimensions: {
+          deployment: {
+            options: [
+              { id: 'cloudflare-workers', label: 'Cloudflare Workers' }
+            ],
+            default: 'cloudflare-workers'
+          }
+        },
         options: {
-          raw: ['features=docs'],
-          byDimension: { features: ['docs'] }
+          raw: ['deployment=cloudflare-workers'],
+          byDimension: { deployment: 'cloudflare-workers' }
         }
       });
 
       const dims = tools.options.dimensions();
-      assert.deepStrictEqual(dims, { features: ['docs'] });
+      assert.deepStrictEqual(dims, { deployment: 'cloudflare-workers' });
     } finally {
       await rm(projectDir, { recursive: true, force: true });
     }

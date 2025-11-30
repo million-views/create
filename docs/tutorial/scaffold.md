@@ -350,10 +350,10 @@ When working with templates that have dimensions, use selection files to specify
 ```
 
 **Selection file structure:**
-- `choices` object contains dimension selections
-- Single-select dimensions use string values (e.g., `"deployment": "cloudflare-workers"`)
-- Multi-select dimensions use arrays (e.g., `"features": ["user-login", "checkout"]`)
-- Values must match dimension options defined in the template's `template.json`
+- `choices` object contains dimension and feature selections
+- Infrastructure dimensions (deployment, database, storage, identity, billing, analytics, monitoring) use string values
+- Feature selections use arrays (e.g., `"features": ["user-login", "checkout"]`)
+- Values must match options defined in the template's `template.json`
 
 ### Understanding Gates and Validation
 

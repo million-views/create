@@ -170,6 +170,8 @@ test('Guided workflow executes setup runtime tools end-to-end', async (t) => {
   });
 
   const templateDir = join(testEnv.workspaceDir, 'templates', 'guided-success');
+
+  // V1.0.0: Use valid dimensions (single-select with options array)
   const templateJson = {
     schemaVersion: '1.0.0',
     id: 'guided/e2e',
@@ -189,18 +191,25 @@ test('Guided workflow executes setup runtime tools end-to-end', async (t) => {
     },
     dimensions: {
       deployment: {
-        type: 'single',
-        values: ['node-basic'],
-        default: 'node-basic',
-        description: 'Deployment target'
+        options: [
+          { id: 'node-basic', label: 'Node.js Basic' },
+          { id: 'cloudflare-workers', label: 'Cloudflare Workers' }
+        ],
+        default: 'node-basic'
       },
-      features: {
-        type: 'multi',
-        values: ['docs', 'testing'],
-        default: [],
-        description: 'Feature toggles'
+      identity: {
+        options: [
+          { id: 'github', label: 'GitHub OAuth' },
+          { id: 'none', label: 'No Auth' }
+        ],
+        default: 'none'
       }
     },
+    // V1.0.0: Features are a top-level array, not a dimension
+    features: [
+      { id: 'docs', label: 'Documentation', needs: {} },
+      { id: 'testing', label: 'Testing', needs: {} }
+    ],
     constants: {
       org: 'Million Views'
     },
@@ -210,6 +219,7 @@ test('Guided workflow executes setup runtime tools end-to-end', async (t) => {
     authorAssetsDir: '__scaffold__'
   };
 
+  // V1.0.0: Setup script uses single-select dimensions
   const successSetupScript = `
 export default async function setup({ ctx, tools }) {
   const { placeholders, files, json, templates, text, logger, options, inputs } = tools;
@@ -299,17 +309,15 @@ export default async function setup({ ctx, tools }) {
     block: '- [x] Generated via setup runtime'
   });
 
-  const selectedFeatures = options.list('features') || [];
-  const featureSummary = selectedFeatures.length > 0
-    ? '- Features: ' + selectedFeatures.join(', ')
-    : '- Features: none';
+  const selectedDeployment = options.list('deployment');
+  const deploymentInfo = selectedDeployment ? 'Deployment: ' + selectedDeployment : 'Deployment: not set';
   await text.replaceBetween({
     file: 'README.md',
     start: '<!-- features:start -->',
     end: '<!-- features:end -->',
     block: [
       '- Updated by setup runtime',
-      featureSummary
+      deploymentInfo
     ]
   });
   await text.appendLines({
@@ -348,34 +356,36 @@ export default async function setup({ ctx, tools }) {
     ensureMatch: true
   });
 
+  // V1.0.0: All dimensions are single-select
   const defaultList = options.list() || [];
   const rawTokens = options.raw();
-  const features = selectedFeatures;
-  if (options.has('testing')) {
+  
+  // V1.0.0: Check single-select dimensions
+  if (options.has('node-basic')) {
     await text.appendLines({
       file: 'README.md',
-      lines: ['Testing feature enabled']
+      lines: ['Node.js basic deployment enabled']
     });
   }
-  await options.when('docs', async () => {
+  await options.when('node-basic', async () => {
     await text.appendLines({
       file: 'README.md',
-      lines: ['Docs feature enabled']
+      lines: ['Node.js dimension detected']
     });
   });
-  if (options.in('features', 'docs')) {
+  if (options.in('deployment', 'node-basic')) {
     await text.appendLines({
       file: 'README.md',
-      lines: ['Docs dimension detected']
+      lines: ['Deployment dimension detected']
     });
   }
-  options.require('features', 'docs');
-  options.require('testing');
+  // V1.0.0: require() takes dimension and value
+  options.require('deployment', 'node-basic');
 
   const dimensions = options.dimensions();
   const inputsSnapshot = inputs.all();
   await files.write('docs/features.json', JSON.stringify({
-    features,
+    deployment: selectedDeployment,
     defaultList,
     rawTokens,
     dimensions,
@@ -387,7 +397,7 @@ export default async function setup({ ctx, tools }) {
 
   logger.info('Org context: ' + org);
   logger.info('Setup complete', { project: projectName, selections: defaultList.length });
-  logger.table([{ key: 'features', value: features.join(', ') }]);
+  logger.table([{ key: 'deployment', value: selectedDeployment }]);
 }
 `;
 
@@ -420,9 +430,10 @@ export default async function setup({ ctx, tools }) {
     templateDir,
     templateJson,
     projectName,
+    // V1.0.0: Only valid dimension names, single-select values
     selectionOverrides: {
       deployment: 'node-basic',
-      features: ['docs', 'testing']
+      identity: 'github'
     },
     placeholderValues: {
       PACKAGE_NAME: 'guided-e2e-app',
@@ -457,9 +468,10 @@ export default async function setup({ ctx, tools }) {
   assert.deepStrictEqual(snapshot, packageJson, 'snapshot should match package.json');
 
   const readme = await readFile(join(projectDir, 'README.md'), 'utf8');
-  assert(readme.includes('Testing feature enabled'), 'README should mention testing feature');
-  assert(readme.includes('Docs feature enabled'), 'README should mention docs feature');
-  assert(readme.includes('Docs dimension detected'), 'README should include dimension notice');
+  // V1.0.0: Check for deployment-related output instead of features
+  assert(readme.includes('Node.js basic deployment enabled'), 'README should mention deployment');
+  assert(readme.includes('Node.js dimension detected'), 'README should have dimension detection');
+  assert(readme.includes('Deployment dimension detected'), 'README should include deployment notice');
   assert(readme.includes('Org: Million Views'), 'README should include org reference');
   assert(!readme.includes('⦃'), 'README should not contain placeholder tokens');
 
@@ -485,14 +497,16 @@ export default async function setup({ ctx, tools }) {
   const legacyJs = await readFile(join(projectDir, 'src', 'legacy.js'), 'utf8');
   assert(legacyJs.includes('guided-e2e-app'), 'Legacy copy should match replaced content');
 
+  // V1.0.0: Check features.json with single-select dimensions
   const featuresJson = JSON.parse(await readFile(join(projectDir, 'docs', 'features.json'), 'utf8'));
-  assert.deepStrictEqual(featuresJson.features.sort(), ['docs', 'testing']);
-  assert.deepStrictEqual(featuresJson.dimensions.features.sort(), ['docs', 'testing']);
+  assert.strictEqual(featuresJson.deployment, 'node-basic', 'deployment should be node-basic');
+  assert.strictEqual(featuresJson.dimensions.deployment, 'node-basic', 'dimensions.deployment should be node-basic');
   assert.strictEqual(featuresJson.inputs.PACKAGE_NAME, 'guided-e2e-app');
   assert.strictEqual(featuresJson.inputs.AUTHOR_NAME, 'E2E Tester');
   assert.strictEqual(featuresJson.repoUrl, 'not-provided');
-  assert.deepStrictEqual(featuresJson.defaultList.sort(), ['deployment=node-basic', 'features=docs+testing'].sort(), 'default list should reflect selection tokens');
-  assert.deepStrictEqual(featuresJson.rawTokens.sort(), ['deployment=node-basic', 'features=docs+testing'].sort(), 'raw token cache should match selection tokens');
+  // V1.0.0: defaultList and rawTokens contain single-select tokens
+  assert(featuresJson.defaultList.includes('deployment=node-basic'), 'default list should include deployment token');
+  assert(featuresJson.rawTokens.includes('deployment=node-basic'), 'raw tokens should include deployment token');
 
   const gitignore = await readFile(join(projectDir, '.gitignore'), 'utf8');
   assert(gitignore.includes('node_modules/'), '.gitignore should include node_modules');
@@ -514,9 +528,10 @@ export default async function setup({ ctx, tools }) {
   await assertFileExists(selectionFilePath, 'selection file should be generated');
   const selectionContent = JSON.parse(await readFile(selectionFilePath, 'utf8'));
   assert.strictEqual(selectionContent.templateId, templateJson.id, 'Selection file should reference template id');
+  // V1.0.0: Selection choices use valid dimension names with single-select values
   assert.deepStrictEqual(selectionContent.choices, {
     deployment: 'node-basic',
-    features: ['docs', 'testing']
+    identity: 'github'
   });
 
   await verifyIsolation(testEnv);
@@ -530,6 +545,7 @@ test('Guided workflow logs sandbox violations without blocking scaffolding', asy
   });
 
   const templateDir = join(testEnv.workspaceDir, 'templates', 'guided-sandbox');
+  // V1.0.0: Use valid dimensions with options array
   const templateJson = {
     schemaVersion: '1.0.0',
     id: 'guided/sandbox',
@@ -544,8 +560,9 @@ test('Guided workflow logs sandbox violations without blocking scaffolding', asy
     },
     dimensions: {
       deployment: {
-        type: 'single',
-        values: ['node-basic'],
+        options: [
+          { id: 'node-basic', label: 'Node.js Basic' }
+        ],
         default: 'node-basic'
       }
     },

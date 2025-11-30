@@ -6,7 +6,7 @@
   "placeholderFormat": "unicode",
   "placeholders": {
     "appName": {
-      "type": "string",
+      "type": "text",
       "description": "Application name"
     }
   }

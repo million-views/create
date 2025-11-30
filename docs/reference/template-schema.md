@@ -184,7 +184,7 @@ Schema V1.0.0 defines 7 fixed infrastructure dimensions:
 | `analytics`  | `single` | WHAT users do (business analytics)              |
 | `monitoring` | `single` | HOW system behaves (operational observability)  |
 
-> **Note**: The `features` dimension is a **special multi-select dimension** for custom feature toggles. It is not one of the 7 fixed infrastructure dimensions listed above.
+> **Note**: Feature toggles are handled via the `features` top-level array (not a dimension). Each feature declares its infrastructure requirements using `needs`.
 
 ### Dimension Properties
 
@@ -246,28 +246,13 @@ Each dimension can specify a `policy`:
 ```json
 {
   "deployment": {
-    "values": ["vercel", "netlify", "railway", "render"],
+    "options": [
+      { "id": "vercel", "label": "Vercel" },
+      { "id": "netlify", "label": "Netlify" },
+      { "id": "railway", "label": "Railway" },
+      { "id": "render", "label": "Render" }
+    ],
     "default": "vercel"
-  }
-}
-```
-
-#### features
-
-**Type:** `multi` (required)
-
-**Purpose:** Custom feature toggles specific to your template.
-
-**Allowed Values:** Any string values following pattern `^[a-z][a-z0-9_-]*$`
-(1-50 chars)
-
-**Schema Example:**
-
-```json
-{
-  "features": {
-    "values": ["auth", "testing", "i18n", "logging"],
-    "default": ["testing"]
   }
 }
 ```
@@ -292,7 +277,13 @@ Each dimension can specify a `policy`:
 ```json
 {
   "database": {
-    "values": ["postgres", "mysql", "sqlite", "mongodb", "none"],
+    "options": [
+      { "id": "postgres", "label": "PostgreSQL" },
+      { "id": "mysql", "label": "MySQL" },
+      { "id": "sqlite", "label": "SQLite" },
+      { "id": "mongodb", "label": "MongoDB" },
+      { "id": "none", "label": "None" }
+    ],
     "default": "none"
   }
 }
@@ -317,7 +308,13 @@ Each dimension can specify a `policy`:
 ```json
 {
   "storage": {
-    "values": ["local", "s3", "cloudflare", "vercel-blob", "none"],
+    "options": [
+      { "id": "local", "label": "Local filesystem" },
+      { "id": "s3", "label": "Amazon S3" },
+      { "id": "cloudflare", "label": "Cloudflare R2" },
+      { "id": "vercel-blob", "label": "Vercel Blob" },
+      { "id": "none", "label": "None" }
+    ],
     "default": "none"
   }
 }
@@ -343,7 +340,13 @@ Each dimension can specify a `policy`:
 ```json
 {
   "identity": {
-    "values": ["auth0", "clerk", "firebase", "supabase", "none"],
+    "options": [
+      { "id": "auth0", "label": "Auth0" },
+      { "id": "clerk", "label": "Clerk" },
+      { "id": "firebase", "label": "Firebase Auth" },
+      { "id": "supabase", "label": "Supabase Auth" },
+      { "id": "none", "label": "None" }
+    ],
     "default": "none"
   }
 }
@@ -368,7 +371,12 @@ Each dimension can specify a `policy`:
 ```json
 {
   "billing": {
-    "values": ["stripe", "paypal", "lemonsqueezy", "none"],
+    "options": [
+      { "id": "stripe", "label": "Stripe" },
+      { "id": "paypal", "label": "PayPal" },
+      { "id": "lemonsqueezy", "label": "Lemon Squeezy" },
+      { "id": "none", "label": "None" }
+    ],
     "default": "none"
   }
 }
@@ -394,7 +402,13 @@ Each dimension can specify a `policy`:
 ```json
 {
   "analytics": {
-    "values": ["google-analytics", "mixpanel", "posthog", "plausible", "none"],
+    "options": [
+      { "id": "google-analytics", "label": "Google Analytics" },
+      { "id": "mixpanel", "label": "Mixpanel" },
+      { "id": "posthog", "label": "PostHog" },
+      { "id": "plausible", "label": "Plausible" },
+      { "id": "none", "label": "None" }
+    ],
     "default": "none"
   }
 }
@@ -420,7 +434,13 @@ Each dimension can specify a `policy`:
 ```json
 {
   "monitoring": {
-    "values": ["datadog", "sentry", "newrelic", "grafana", "none"],
+    "options": [
+      { "id": "datadog", "label": "Datadog" },
+      { "id": "sentry", "label": "Sentry" },
+      { "id": "newrelic", "label": "New Relic" },
+      { "id": "grafana", "label": "Grafana Cloud" },
+      { "id": "none", "label": "None" }
+    ],
     "default": "none"
   }
 }

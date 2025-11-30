@@ -1,5 +1,6 @@
 {
   "schemaVersion": "1.0.0",
+  "id": "test/template-b",
   "name": "template-b",
   "version": "2.0.0",
   "description": "Template B with more features",
@@ -11,7 +12,7 @@
   "placeholderFormat": "unicode",
   "placeholders": {
     "APP_NAME": {
-      "type": "string",
+      "type": "text",
       "description": "Application name"
     }
   }

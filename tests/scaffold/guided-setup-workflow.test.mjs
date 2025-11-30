@@ -41,9 +41,10 @@ test('GuidedSetupWorkflow - selection.json generation integration', async (t) =>
     // Create template.json
     const templateJson = {
       schemaVersion: '1.0.0',
-      id: 'test-template',
+      id: 'test/test-template',
       name: 'Test Template',
       description: 'A test template',
+      placeholderFormat: 'unicode',
       placeholders: {
         PROJECT_NAME: { default: 'test-project', description: 'Project name' }
       }
@@ -115,9 +116,10 @@ export default async function setup({ ctx, tools }) {
 
     const templateJson = {
       schemaVersion: '1.0.0',
-      id: 'another-template',
+      id: 'test/another-template',
       name: 'Another Template',
       description: 'Another test template',
+      placeholderFormat: 'unicode',
       placeholders: {}
     };
     await fs.writeFile(path.join(templateDir, 'template.json'), JSON.stringify(templateJson, null, 2));

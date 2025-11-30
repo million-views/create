@@ -274,13 +274,14 @@ test('normalizePlaceholders - Type Validation', async (t) => {
     assert.equal(result[0].type, 'url');
   });
 
-  await t.test('maps legacy string type to text', () => {
-    const result = normalizePlaceholders([{
-      name: '{{PROJECT_NAME}}',
-      description: 'test',
-      type: 'string'
-    }]);
-    assert.equal(result[0].type, 'text');
+  await t.test('rejects legacy string type (V1.0.0 only supports text)', () => {
+    assert.throws(() => {
+      normalizePlaceholders([{
+        name: '{{PROJECT_NAME}}',
+        description: 'test',
+        type: 'string'
+      }]);
+    }, ValidationError);
   });
 });
 

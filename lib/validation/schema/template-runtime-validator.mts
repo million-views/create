@@ -508,15 +508,14 @@ function processPlaceholders(placeholders: unknown): Array<{
     normalizedPlaceholders.push({
       name: `{{${placeholderName}}}`,
       description: phConfig.description,
-      default: phConfig.default, // Can be undefined (optional per new schema)
-      required: phConfig.required !== undefined ? phConfig.required : true, // New schema: defaults to true
-      sensitive: phConfig.secure || false, // New schema uses 'secure' instead of 'sensitive'
-      type: phConfig.type || 'text' // New schema: defaults to 'text' (was 'string' in old schema)
+      default: phConfig.default,
+      required: phConfig.required !== undefined ? phConfig.required : true,
+      sensitive: phConfig.secure || false,
+      type: phConfig.type || 'text'
     });
   }
 
   return normalizedPlaceholders;
 }
 
-// Legacy export name for backward compatibility
 export { validate as validateTemplateManifest };

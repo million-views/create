@@ -443,13 +443,18 @@ export async function loadTemplateMetadataFromPath(templatePath) {
 
     // Check if this is a new schema format (v1.0.0)
     if (data.schemaVersion === '1.0.0') {
-      // Process dimensions
+      // Process dimensions - transform V1.0.0 options array to internal values format
       const dimensionsWithTypes = {};
       for (const [name, definition] of Object.entries(data.dimensions || {})) {
         const type = Array.isArray(definition.default) ? 'multi' : 'single';
+        // V1.0.0: Convert options array [{id, label}] to values array ['id1', 'id2']
+        const values = Array.isArray(definition.options)
+          ? definition.options.map(opt => typeof opt === 'object' ? opt.id : opt)
+          : definition.values; // Fallback to values if already in internal format
         dimensionsWithTypes[name] = {
           ...definition,
           type,
+          values,
           policy: definition.policy || 'strict'
         };
       }
@@ -467,9 +472,9 @@ export async function loadTemplateMetadataFromPath(templatePath) {
                 name: `{{${placeholderName}}}`,
                 description: config.description || `Value for ${placeholderName}`,
                 default: config.default || '',
-                required: false, // V1 format doesn't have required field, default to false
-                sensitive: false, // V1 format doesn't have sensitive field, default to false
-                type: 'string' // V1 format doesn't specify type, default to string
+                required: config.required ?? false,
+                sensitive: config.sensitive ?? false,
+                type: config.type ?? 'text' // V1.0.0 default type is 'text'
               });
             }
           }
@@ -496,26 +501,13 @@ export async function loadTemplateMetadataFromPath(templatePath) {
         gates: data.gates || [],
         featureSpecs: data.featureSpecs || {}
       };
-    } else {
-      // Old schema format
-      const validated = validateTemplateManifest(data);
-
-      const dimensions = validated.dimensions;
-
-      return {
-        raw: data,
-        name: data.name,
-        description: data.description,
-        version: data.version,
-        authorAssetsDir: validated.authorAssetsDir,
-        dimensions,
-        handoff: validated.handoff,
-        placeholders: validated.placeholders,
-        canonicalVariables: validated.canonicalVariables,
-        constants: validated.constants || {},
-        setup: data.setup || {}
-      };
     }
+
+    // V1.0.0 is the only supported schema - reject anything else
+    throw new ValidationError(
+      `Unsupported schema version. Only schemaVersion "1.0.0" is supported. Found: "${data.schemaVersion || 'none'}"`,
+      'schemaVersion'
+    );
   } catch (error) {
     if (error.code === 'ENOENT') {
       return {
